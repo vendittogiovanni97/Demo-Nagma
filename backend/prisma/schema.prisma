@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  role          Role        @default(ARTIST)
+  phone         String?
+  color         String?     // colore calendario per il collaboratore
+  createdAt     DateTime    @default(now())
+  bookings      Booking[]
+  shifts        Shift[]
+  creamSales    CreamSale[]
+}
+
+enum Role {
+  ADMIN
+  USER
+  ARTIST
+}
+
+model Customer {
+  id            String      @id @default(cuid())
+  firstName     String
+  lastName      String
+  phone         String
+  email         String?
+  notes         String?
+  deletedAt     DateTime?   // soft delete
+  createdAt     DateTime    @default(now())
+  bookings      Booking[]
+}
+
+model Booking {
+  id              String          @id @default(cuid())
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  customerId      String
+  artist          User            @relation(fields: [artistId], references: [id])
+  artistId        String
+  date            DateTime
+  duration        Int             // minuti
+  status          BookingStatus   @default(CONFIRMED)
+  type            String          // es. "Tattoo", "Touch-up", "Consulenza"
+  price           Float?
+  deposit         Float?
+  notes           String?
+  outlookEventId  String?         // ID evento su Outlook per sincronizzazione
+  formData        Json?           // dati dinamici da form in base64
+  history         BookingHistory[]
+  deletedAt       DateTime?       // soft delete
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+  COMPLETED
+}
+
+model BookingHistory {
+  id          String    @id @default(cuid())
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  bookingId   String
+  action      String    // "CREATED", "RESCHEDULED", "CANCELLED"
+  oldDate     DateTime?
+  newDate     DateTime?
+  changedBy   String
+  changedAt   DateTime  @default(now())
+}
+
+model Shift {
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  weekStart DateTime  // lunedì della settimana
+  dayOfWeek Int       // 0=Lun, 1=Mar, ... 6=Dom
+  startTime String    // "09:00"
+  endTime   String    // "18:00"
+  isOff     Boolean   @default(false)
+  notes     String?
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  type          TransactionType
+  category      String            // "Affitto", "Materiali", "Acconto", ecc.
+  description   String
+  amount        Float
+  date          DateTime          @default(now())
+  artistId      String?
+  attachmentUrl String?
+  deletedAt     DateTime?         // soft delete come da regole globali utente
+  createdAt     DateTime          @default(now())
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Cream {
+  id          String      @id @default(cuid())
+  name        String
+  brand       String?
+  price       Float
+  stock       Int         @default(0)
+  deletedAt   DateTime?
+  sales       CreamSale[]
+}
+
+model CreamSale {
+  id          String    @id @default(cuid())
+  cream       Cream     @relation(fields: [creamId], references: [id])
+  creamId     String
+  seller      User      @relation(fields: [sellerId], references: [id])
+  sellerId    String
+  quantity    Int
+  totalPrice  Float
+  deletedAt   DateTime?
+  soldAt      DateTime  @default(now())
+}
+
+model FormTemplate {
+  id          String    @id @default(cuid())
+  name        String    // es. "Scheda Cliente Standard", "Consenso Tattoo"
+  schemaB64   String    // struttura del form in Base64
+  createdAt   DateTime  @default(now())
+}
+
+model WhatsAppTemplate {
+  id          String    @id @default(cuid())
+  name        String    // es. "Conferma Appuntamento", "Reminder 24h"
+  body        String    // testo con variabili {{nome}}, {{data}}, ecc.
+  createdAt   DateTime  @default(now())
+}

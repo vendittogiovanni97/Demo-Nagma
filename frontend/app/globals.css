@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #08121a;
+  --color-sidebar: #0a1822;
+  --color-surface: rgba(0, 191, 255, 0.04);
+  --color-surface-border: rgba(0, 191, 255, 0.25);
+  --color-accent: #00BFFF;
+  --color-accent-hover: #87CEEB;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d1d1d1;
+  --color-danger: #ff5252;
+  --color-success: #25D366;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at top right, rgba(0, 191, 255, 0.1), transparent 800px),
+    radial-gradient(circle at bottom left, rgba(0, 191, 255, 0.05), transparent 800px),
+    radial-gradient(circle at center, rgba(0, 191, 255, 0.01), transparent 1000px),
+    linear-gradient(180deg, #08121a 0%, #091620 100%);
+}
+
+/* Utils */
+.glass-panel {
+  @apply bg-surface backdrop-blur-[20px] border border-surface-border rounded-[30px] transition-all duration-200;
+}
+.glass-panel:hover {
+  @apply border-accent bg-[rgba(0,191,255,0.05)] -translate-y-1 shadow-[0_10px_30px_rgba(0,191,255,0.1)];
+}
+
+.glass-btn {
+  @apply bg-[rgba(255,255,255,0.05)] border border-surface-border text-white px-6 py-3 rounded-[15px] cursor-pointer backdrop-blur-md transition-all duration-200;
+}
+.glass-btn:hover {
+  @apply bg-[rgba(255,255,255,0.1)] border-accent;
+}
+
+.btn-primary {
+  @apply bg-accent text-black font-bold px-6 py-3 rounded-[15px] shadow-[0_0_15px_rgba(0,191,255,0.3)] transition-all duration-200;
+}
+.btn-primary:hover {
+  @apply scale-105 shadow-[0_0_20px_rgba(0,191,255,0.5)];
+}

@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { CreamController } from '../controllers/cream.controller';
 
+import { authMiddleware } from '../middlewares/auth.middleware';
+
 const router = Router();
 const controller = new CreamController();
+
+router.use(authMiddleware);
 
 router.get('/', controller.getAll);
 router.post('/', controller.create);

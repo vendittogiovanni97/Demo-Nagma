@@ -3,19 +3,24 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Calendar, Users, UsersRound, CircleDollarSign, Plus } from 'lucide-react';
+import { LayoutGrid, Calendar, Users, UsersRound, Package, Plus, LogOut } from 'lucide-react';
 import BookingModal from '@/components/BookingModal';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+
+  if (!isAuthenticated && pathname === '/login') return null;
+  if (!isAuthenticated) return null;
 
   const navItems = [
     { name: 'Home', href: '/', icon: LayoutGrid },
     { name: 'Agenda', href: '/agenda', icon: Calendar },
     { name: 'Clienti', href: '/clienti', icon: Users },
+    { name: 'Inventario', href: '/creams', icon: Package },
     { name: 'Team', href: '/team', icon: UsersRound },
-    { name: 'Spese', href: '/spese', icon: CircleDollarSign },
   ];
 
   return (
@@ -50,6 +55,16 @@ export default function Navbar() {
           className="bg-accent text-black w-[45px] h-[45px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-90 hover:shadow-[0_0_20px_var(--color-accent)] cursor-pointer"
         >
           <Plus size={28} />
+        </button>
+
+        <div className="w-[1px] h-[30px] bg-surface-border mx-2" />
+
+        <button 
+          onClick={logout}
+          className="text-text-secondary hover:text-danger hover:scale-110 transition-all p-2"
+          title="Logout"
+        >
+          <LogOut size={22} />
         </button>
       </div>
 

@@ -7,6 +7,7 @@ import transactionRoutes from './routes/transaction.routes';
 import bookingRoutes from './routes/booking.routes';
 import teamRoutes from './routes/team.routes';
 import creamRoutes from './routes/cream.routes';
+import authRoutes from './routes/auth.routes';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/bookings', bookingRoutes);

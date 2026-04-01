@@ -32,8 +32,6 @@ export class TransactionRepository {
   }
 
   async getSummary(monthStr?: string) {
-    // Aggregation non supporta dove bene deletedAt: null su campi json senza un po' di magia
-    // per questo caso lo facciamo a JS se i dati non sono troppi, o usiamo un groupBy
     const dove: Prisma.TransactionWhereInput = { deletedAt: null };
     if (monthStr) {
       const start = new Date(`${monthStr}-01T00:00:00.000Z`);
@@ -50,5 +48,40 @@ export class TransactionRepository {
       }
     });
     return res;
+  }
+
+  async getTrends(months: number = 6) {
+    const end = new Date();
+    const start = new Date();
+    start.setMonth(start.getMonth() - months);
+
+    return prisma.transaction.findMany({
+      where: {
+        deletedAt: null,
+        date: { gte: start, lte: end }
+      },
+      select: {
+        type: true,
+        amount: true,
+        date: true
+      },
+      orderBy: { date: 'asc' }
+    });
+  }
+
+  async getArtistPerformance() {
+    return prisma.booking.groupBy({
+      by: ['artistId'],
+      where: {
+        deletedAt: null,
+        status: 'COMPLETED'
+      },
+      _count: {
+        id: true
+      },
+      _sum: {
+        price: true
+      }
+    });
   }
 }

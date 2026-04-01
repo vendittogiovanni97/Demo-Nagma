@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from '@/context/AuthContext';
 
 export default function RootLayout({
   children,
@@ -21,10 +22,12 @@ export default function RootLayout({
   return (
     <html lang="it">
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-text-primary`}>
-        <Navbar />
-        <main className="pt-8 px-[5%] pb-8 min-h-screen flex flex-col pt-[100px]">
-          {children}
-        </main>
+        <AuthProvider>
+          <Navbar />
+          <main className="pt-8 px-[5%] pb-8 min-h-screen flex flex-col pt-[100px]">
+            {children}
+          </main>
+        </AuthProvider>
 
         <Toaster 
           position="bottom-center"

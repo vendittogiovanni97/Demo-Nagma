@@ -32,10 +32,26 @@ export class BookingService {
   }
 
   async updateBooking(id: string, data: any) {
-    return this.repository.update(id, data);
+    const booking = await this.repository.update(id, data);
+    
+    // Se lo stato è COMPLETED e c'è un prezzo, creiamo una transazione in entrata
+    if (data.status === 'COMPLETED' && booking.price) {
+      const { TransactionService } = require('./transaction.service');
+      const transactionService = new TransactionService();
+      await transactionService.createTransaction({
+        type: 'INCOME',
+        category: 'Tatuaggio',
+        description: `Incasso prenotazione ${booking.type} - Cliente ID: ${booking.customerId}`,
+        amount: booking.price,
+        date: new Date().toISOString()
+      });
+    }
+
+    return booking;
   }
 
   async deleteBooking(id: string) {
     return this.repository.softDelete(id);
   }
 }
+

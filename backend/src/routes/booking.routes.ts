@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { BookingController } from '../controllers/booking.controller';
 
+import { authMiddleware } from '../middlewares/auth.middleware';
+
 const router = Router();
 const controller = new BookingController();
+
+router.use(authMiddleware);
 
 router.get('/stats', controller.getStats);
 router.get('/', controller.getAll);

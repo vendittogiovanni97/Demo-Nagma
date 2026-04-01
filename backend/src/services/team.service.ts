@@ -35,6 +35,7 @@ export class TeamService {
   }
 
   async deleteShift(id: string) {
-    return this.shiftRepo.delete(id);
+    return this.shiftRepo.softDelete(id);
   }
 }
+

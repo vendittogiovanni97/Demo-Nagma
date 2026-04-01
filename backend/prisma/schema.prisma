@@ -11,9 +11,11 @@ model User {
   id            String      @id @default(cuid())
   name          String
   email         String      @unique
+  password      String      // hashed password
   role          Role        @default(ARTIST)
   phone         String?
   color         String?     // colore calendario per il collaboratore
+  deletedAt     DateTime?   // soft delete
   createdAt     DateTime    @default(now())
   bookings      Booking[]
   shifts        Shift[]
@@ -36,6 +38,7 @@ model Customer {
   deletedAt     DateTime?   // soft delete
   createdAt     DateTime    @default(now())
   bookings      Booking[]
+  creamSales    CreamSale[]
 }
 
 model Booking {
@@ -87,6 +90,7 @@ model Shift {
   endTime   String    // "18:00"
   isOff     Boolean   @default(false)
   notes     String?
+  deletedAt DateTime? // soft delete
 }
 
 model Transaction {
@@ -113,7 +117,7 @@ model Cream {
   brand       String?
   price       Float
   stock       Int         @default(0)
-  deletedAt   DateTime?
+  deletedAt   DateTime?   // soft delete
   sales       CreamSale[]
 }
 
@@ -123,10 +127,12 @@ model CreamSale {
   creamId     String
   seller      User      @relation(fields: [sellerId], references: [id])
   sellerId    String
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  customerId  String?
   quantity    Int
   totalPrice  Float
-  deletedAt   DateTime?
-  soldAt      DateTime  @default(now())
+  deletedAt   DateTime? // soft delete
+  createdAt   DateTime  @default(now())
 }
 
 model FormTemplate {

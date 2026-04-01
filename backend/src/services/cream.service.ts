@@ -20,6 +20,10 @@ export class CreamService {
     return this.repo.updateCream(id, data);
   }
 
+  async deleteCream(id: string) {
+    return this.repo.softDeleteCream(id);
+  }
+
   async getSales(sellerId?: string, month?: string) {
     return this.repo.findSales(sellerId, month);
   }
@@ -31,11 +35,30 @@ export class CreamService {
     // Update stock implicitly
     await this.repo.updateCream(data.creamId, { stock: { decrement: Number(data.quantity) } });
     
-    return this.repo.createSale({
+    // Create Sale record
+    const sale = await this.repo.createSale({
       cream: { connect: { id: data.creamId } },
       seller: { connect: { id: data.sellerId } },
       quantity: Number(data.quantity),
       totalPrice: Number(data.totalPrice)
     });
+
+    // Create Transaction INCOME record
+    const { TransactionService } = require('./transaction.service');
+    const transactionService = new TransactionService();
+    await transactionService.createTransaction({
+      type: 'INCOME',
+      category: 'Vendita Prodotti',
+      description: `Vendita Aftercare: ${data.quantity} pz. - Venditore: ${data.sellerId}`,
+      amount: Number(data.totalPrice),
+      date: new Date().toISOString()
+    });
+
+    return sale;
+  }
+
+  async deleteSale(id: string) {
+    return this.repo.softDeleteSale(id);
   }
 }
+

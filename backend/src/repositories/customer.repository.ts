@@ -21,6 +21,11 @@ export class CustomerRepository {
         bookings: {
           where: { deletedAt: null },
           orderBy: { date: 'desc' }
+        },
+        creamSales: {
+          where: { deletedAt: null },
+          include: { cream: true },
+          orderBy: { createdAt: 'desc' }
         }
       }
     });

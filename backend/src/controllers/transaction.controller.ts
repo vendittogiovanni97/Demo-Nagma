@@ -39,4 +39,23 @@ export class TransactionController {
       res.status(400).json({ status: 'error', message: e.message });
     }
   };
+
+  getTrends = async (req: Request, res: Response) => {
+    try {
+      const months = req.query.months ? Number(req.query.months) : 6;
+      const trends = await this.service.getTrends(months);
+      res.json(trends);
+    } catch (e: any) {
+      res.status(500).json({ status: 'error', message: e.message });
+    }
+  };
+
+  getArtistPerformance = async (req: Request, res: Response) => {
+    try {
+      const perf = await this.service.getArtistPerformance();
+      res.json(perf);
+    } catch (e: any) {
+      res.status(500).json({ status: 'error', message: e.message });
+    }
+  };
 }

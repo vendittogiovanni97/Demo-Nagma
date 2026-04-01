@@ -1,10 +1,16 @@
 import { Router } from 'express';
 import { TransactionController } from '../controllers/transaction.controller';
 
+import { authMiddleware } from '../middlewares/auth.middleware';
+
 const router = Router();
 const controller = new TransactionController();
 
-router.get('/summary', controller.getSummary); // Deve essere prima di /:id se ci fosse un /:id
+router.use(authMiddleware);
+
+router.get('/summary', controller.getSummary);
+router.get('/trends', controller.getTrends);
+router.get('/performance', controller.getArtistPerformance);
 router.get('/', controller.getAll);
 router.post('/', controller.create);
 router.delete('/:id', controller.delete);

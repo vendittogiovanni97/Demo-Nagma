@@ -43,4 +43,26 @@ export class TransactionService {
     result.balance = result.totalIncome - result.totalExpense;
     return result;
   }
+
+  async getTrends(months: number = 6) {
+    const raw = await this.repository.getTrends(months);
+    // Raggruppamento per mese in JS per semplicità di risposta
+    const trends: Record<string, { income: number, expense: number }> = {};
+    
+    raw.forEach(t => {
+      const month = t.date.toISOString().substring(0, 7); // YYYY-MM
+      if (!trends[month]) trends[month] = { income: 0, expense: 0 };
+      if (t.type === 'INCOME') trends[month].income += t.amount;
+      else trends[month].expense += t.amount;
+    });
+
+    return Object.entries(trends).map(([month, data]) => ({
+      month,
+      ...data
+    })).sort((a, b) => a.month.localeCompare(b.month));
+  }
+
+  async getArtistPerformance() {
+    return this.repository.getArtistPerformance();
+  }
 }

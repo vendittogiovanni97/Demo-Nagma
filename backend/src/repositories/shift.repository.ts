@@ -5,7 +5,8 @@ export class ShiftRepository {
   async findByWeek(weekStart: Date) {
     return prisma.shift.findMany({
       where: { 
-        weekStart: { equals: weekStart } 
+        weekStart: { equals: weekStart },
+        deletedAt: null
       },
       include: { user: true }
     });
@@ -19,7 +20,11 @@ export class ShiftRepository {
     return prisma.shift.update({ where: { id }, data });
   }
 
-  async delete(id: string) {
-    return prisma.shift.delete({ where: { id } }); // Nessun deletedAt previsto dallo schema originario su Shift
+  async softDelete(id: string) {
+    return prisma.shift.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
   }
 }
+

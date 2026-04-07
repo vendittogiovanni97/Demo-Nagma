@@ -1,67 +1,58 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { setToken as saveToken, getToken, logout as clearAuth } from '@/utils/auth';
 import { authService } from '@/services/auth.service';
 import toast from 'react-hot-toast';
 
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
 interface AuthContextType {
-  token: string | null;
   isAuthenticated: boolean;
-  login: (credentials: any) => Promise<void>;
-  logout: () => void;
   isLoading: boolean;
+  login: (credentials: LoginPayload) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const savedToken = getToken();
-    if (savedToken) {
-      setToken(savedToken);
-    }
+    setIsAuthenticated(!!getToken());
     setIsLoading(false);
   }, []);
 
-  const login = async (credentials: any) => {
-    try {
-      const response: any = await authService.login(credentials);
-      const newToken = response.token;
-      
-      saveToken(newToken);
-      setToken(newToken);
-      
-      toast.success('Accesso effettuato!');
-      router.push('/');
-    } catch (error: any) {
-      toast.error(error.message || 'Credenziali non valide');
-      throw error;
-    }
+  const login = async (credentials: LoginPayload) => {
+    const { token } = await authService.login(credentials);
+    saveToken(token);
+    setIsAuthenticated(true);
+    toast.success('Accesso effettuato!');
+    router.push('/');
   };
 
   const logout = () => {
     clearAuth();
-    setToken(null);
+    setIsAuthenticated(false);
     router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated: !!token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth deve essere usato all\'interno di un AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth deve essere usato dentro AuthProvider');
+  return ctx;
+}

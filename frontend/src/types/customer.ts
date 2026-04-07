@@ -12,5 +12,30 @@ export interface Customer {
     bookings: number;
   };
   bookings?: Booking[];
-  creamSales?: any[]; // Da tipizzare se necessario
+  creamSales?: CreamSale[];
+}
+
+export interface Cream {
+  id: string;
+  name: string;
+  brand?: string;
+  price: number;
+  stock: number;
+}
+
+export interface CreamSale {
+  id: string;
+  quantity: number;
+  totalPrice: number;
+  createdAt: string;
+  cream: Cream;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  color?: string;
 }

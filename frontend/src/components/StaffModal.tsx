@@ -1,107 +1,95 @@
-import { X } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
+"use client";
 
-interface StaffModalProps {
+import { useState } from 'react';
+import { X, Save, Loader2 } from 'lucide-react';
+import { teamService } from '@/services/team.service';
+import { Role } from '@/types/enums';
+import toast from 'react-hot-toast';
+
+interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function StaffModal({ isOpen, onClose }: StaffModalProps) {
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('ARTIST');
-  const [phone, setPhone] = useState('');
-  const [commissionPattern, setCommissionPattern] = useState('50%');
+const EMPTY = { name: '', email: '', password: '', role: Role.ARTIST, phone: '' };
+
+export default function StaffModal({ isOpen, onClose }: Props) {
+  const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
+  const set = <K extends keyof typeof EMPTY>(field: K) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setForm(prev => ({ ...prev, [field]: e.target.value }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !role) return toast.error('Nome e Ruolo sono obbligatori');
-
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/team/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, role, phone, commissionPattern })
+      await teamService.createUser({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+        phone: form.phone || undefined,
       });
-      if(!res.ok) throw new Error();
-      
-      toast.success('Membro del Team salvato!');
-      setName('');
-      setRole('ARTIST');
-      setPhone('');
-      setCommissionPattern('50%');
+      toast.success('Staff aggiunto');
+      setForm(EMPTY);
       onClose();
-    } catch (e) {
-      toast.error('Errore durante l\'inserimento');
+    } catch (err: any) {
+      toast.error(err.message || 'Errore durante l\'inserimento');
     } finally {
       setLoading(false);
     }
   };
 
+  const inputCls = 'w-full p-3 rounded-xl bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition appearance-none';
+
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex justify-center items-center z-[2000]">
-      <div className="bg-[#0a0a0a] border border-surface-border p-10 rounded-[35px] w-[500px] max-w-[90%] shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
-        <div className="flex justify-between items-center mb-6">
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex justify-center items-center z-2000 p-4">
+      <div className="bg-[#0a0a0a] border border-surface-border rounded-[35px] w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="p-8 border-b border-surface-border flex justify-between items-center bg-white/2">
           <h3 className="text-2xl font-outfit text-white font-semibold">Aggiungi Staff</h3>
-          <button onClick={onClose} className="glass-btn !p-2" type="button">
-            <X size={24} />
+          <button onClick={onClose} type="button" className="p-2 hover:bg-white/10 rounded-full transition">
+            <X size={24} className="text-text-secondary" />
           </button>
         </div>
-        
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-2">
-            <label className="text-text-secondary">Nome *</label>
-            <input 
-              required
-              type="text" 
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Nome del collaboratore..." 
-              className="w-full p-3 rounded-[10px] bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition"
-            />
+
+        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+          <div className="space-y-2">
+            <label className="text-text-secondary text-sm px-1">Nome *</label>
+            <input required type="text" placeholder="Nome del collaboratore" className={inputCls} value={form.name} onChange={set('name')} />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-text-secondary">Ruolo *</label>
-            <select
-              value={role}
-              onChange={e => setRole(e.target.value)}
-              className="w-full p-3 rounded-[10px] bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition appearance-none"
-            >
-              <option value="ARTIST" className="text-black">Tatuatore (Artist)</option>
-              <option value="MANAGER" className="text-black">Shop Manager</option>
-              <option value="ASSISTANT" className="text-black">Assistente / Segreteria</option>
-            </select>
+          <div className="space-y-2">
+            <label className="text-text-secondary text-sm px-1">Email *</label>
+            <input required type="email" placeholder="email@studio.it" className={inputCls} value={form.email} onChange={set('email')} />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-text-secondary">Telefono</label>
-            <input 
-              type="tel" 
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="+39 333..." 
-              className="w-full p-3 rounded-[10px] bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition"
-            />
+          <div className="space-y-2">
+            <label className="text-text-secondary text-sm px-1">Password *</label>
+            <input required type="password" placeholder="Min. 6 caratteri" className={inputCls} value={form.password} onChange={set('password')} />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-text-secondary">Commissione / Contratto (Note)</label>
-            <input 
-              type="text" 
-              value={commissionPattern}
-              onChange={e => setCommissionPattern(e.target.value)}
-              placeholder="Es. 50% su eseguiti" 
-              className="w-full p-3 rounded-[10px] bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-text-secondary text-sm px-1">Ruolo *</label>
+              <select className={inputCls} value={form.role} onChange={set('role')}>
+                <option value={Role.ARTIST}  className="bg-[#0a0a0a]">Tatuatore</option>
+                <option value={Role.USER}    className="bg-[#0a0a0a]">Staff</option>
+                <option value={Role.ADMIN}   className="bg-[#0a0a0a]">Admin</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-text-secondary text-sm px-1">Telefono</label>
+              <input type="tel" placeholder="+39 333..." className={inputCls} value={form.phone} onChange={set('phone')} />
+            </div>
           </div>
-          
-          <button disabled={loading} type="submit" className="btn-primary mt-4 w-full">
-            {loading ? 'Salvataggio...' : 'Crea Profilo Staff'}
+
+          <button type="submit" disabled={loading} className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-lg">
+            {loading ? <Loader2 className="animate-spin" size={22} /> : <Save size={22} />}
+            <span>Crea Profilo</span>
           </button>
         </form>
       </div>

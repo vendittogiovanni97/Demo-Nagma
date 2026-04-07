@@ -1,49 +1,46 @@
+import prisma from '../utils/prisma';
 import { BookingRepository } from '../repositories/booking.repository';
+import { validate, CreateBookingSchema, UpdateBookingSchema } from '../utils/validators';
+
+const repository = new BookingRepository();
 
 export class BookingService {
-  private repository = new BookingRepository();
-
-  async getBookings(monthStr?: string) {
-    return this.repository.findAll(monthStr);
+  async getBookings(month?: string) {
+    return repository.findAll(month);
   }
 
-  async getStats(monthStr?: string) {
-    return this.repository.getStats(monthStr);
+  async getStats(month?: string) {
+    return repository.getStats(month);
   }
 
-  async createBooking(data: any) {
-    // Basic val
-    if (!data.customerId || !data.artistId || !data.date) {
-      throw new Error('customerId, artistId, date sono obbligatori');
-    }
-    // Outlook sync stub
-    const outlookEventId = 'stub_outlook_' + Date.now();
-    return this.repository.create({
+  async createBooking(body: unknown) {
+    const data = validate(CreateBookingSchema, body);
+    return repository.create({
       customer: { connect: { id: data.customerId } },
       artist: { connect: { id: data.artistId } },
       date: new Date(data.date),
-      duration: data.duration || 60,
-      type: data.type || 'Tattoo',
-      price: data.price ? Number(data.price) : null,
-      deposit: data.deposit ? Number(data.deposit) : null,
+      duration: data.duration ?? 60,
+      type: data.type ?? 'Tattoo',
+      price: data.price ?? null,
+      deposit: data.deposit ?? null,
       notes: data.notes,
-      outlookEventId
     });
   }
 
-  async updateBooking(id: string, data: any) {
-    const booking = await this.repository.update(id, data);
-    
-    // Se lo stato è COMPLETED e c'è un prezzo, creiamo una transazione in entrata
+  async updateBooking(id: string, body: unknown) {
+    const data = validate(UpdateBookingSchema, body);
+    const booking = await repository.update(id, data);
+
+    // Se la prenotazione è completata e ha un prezzo, genera automaticamente una transazione di incasso
     if (data.status === 'COMPLETED' && booking.price) {
-      const { TransactionService } = require('./transaction.service');
-      const transactionService = new TransactionService();
-      await transactionService.createTransaction({
-        type: 'INCOME',
-        category: 'Tatuaggio',
-        description: `Incasso prenotazione ${booking.type} - Cliente ID: ${booking.customerId}`,
-        amount: booking.price,
-        date: new Date().toISOString()
+      await prisma.transaction.create({
+        data: {
+          type: 'INCOME',
+          category: 'Tatuaggio',
+          description: `Incasso prenotazione ${booking.type} — Cliente ID: ${booking.customerId}`,
+          amount: booking.price,
+          date: new Date(),
+        },
       });
     }
 
@@ -51,7 +48,6 @@ export class BookingService {
   }
 
   async deleteBooking(id: string) {
-    return this.repository.softDelete(id);
+    return repository.softDelete(id);
   }
 }
-

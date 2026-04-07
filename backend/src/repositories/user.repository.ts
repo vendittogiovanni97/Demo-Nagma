@@ -13,6 +13,10 @@ export class UserRepository {
     return prisma.user.findFirst({ where: { id, deletedAt: null } });
   }
 
+  async findByEmail(email: string) {
+    return prisma.user.findFirst({ where: { email, deletedAt: null } });
+  }
+
   async create(data: Prisma.UserCreateInput) {
     return prisma.user.create({ data });
   }

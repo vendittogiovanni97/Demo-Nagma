@@ -1,41 +1,51 @@
 import { Request, Response } from 'express';
 import { BookingService } from '../services/booking.service';
 
-export class BookingController {
-  private service = new BookingService();
+const service = new BookingService();
 
+export class BookingController {
   getAll = async (req: Request, res: Response) => {
     try {
-      const data = await this.service.getBookings(req.query.month as string);
+      const data = await service.getBookings(req.query.month as string | undefined);
       res.json(data);
-    } catch (e: any) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message });
+    }
   };
 
   getStats = async (req: Request, res: Response) => {
     try {
-      const data = await this.service.getStats(req.query.month as string);
+      const data = await service.getStats(req.query.month as string | undefined);
       res.json(data);
-    } catch (e: any) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message });
+    }
   };
 
   create = async (req: Request, res: Response) => {
     try {
-      const data = await this.service.createBooking(req.body);
+      const data = await service.createBooking(req.body);
       res.status(201).json(data);
-    } catch (e: any) { res.status(400).json({ error: e.message }); }
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message });
+    }
   };
 
   update = async (req: Request, res: Response) => {
     try {
-      const data = await this.service.updateBooking(req.params.id as string, req.body);
+      const data = await service.updateBooking(String(req.params.id), req.body);
       res.json(data);
-    } catch (e: any) { res.status(400).json({ error: e.message }); }
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message });
+    }
   };
 
   delete = async (req: Request, res: Response) => {
     try {
-      await this.service.deleteBooking(req.params.id as string);
+      await service.deleteBooking(String(req.params.id));
       res.status(204).send();
-    } catch (e: any) { res.status(400).json({ error: e.message }); }
+    } catch (e: any) {
+      res.status(e.status ?? 500).json({ message: e.message });
+    }
   };
 }

@@ -1,41 +1,49 @@
+import bcrypt from 'bcryptjs';
 import { UserRepository } from '../repositories/user.repository';
 import { ShiftRepository } from '../repositories/shift.repository';
+import { AppError } from '../utils/AppError';
+import { validate, CreateUserSchema, CreateShiftSchema } from '../utils/validators';
+
+const userRepo = new UserRepository();
+const shiftRepo = new ShiftRepository();
 
 export class TeamService {
-  private userRepo = new UserRepository();
-  private shiftRepo = new ShiftRepository();
-
   async getAllUsers() {
-    return this.userRepo.findAll();
+    return userRepo.findAll();
   }
 
-  async createUser(data: any) {
-    return this.userRepo.create(data);
+  async createUser(body: unknown) {
+    const data = validate(CreateUserSchema, body);
+    const exists = await userRepo.findByEmail(data.email);
+    if (exists) throw new AppError('Email già in uso.', 400);
+
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    return userRepo.create({ ...data, password: hashedPassword });
   }
 
-  async getShifts(weekStartStr: string) {
-    if (!weekStartStr) throw new Error('Query param weekStart is required (e.g. "2026-03-30")');
-    return this.shiftRepo.findByWeek(new Date(weekStartStr));
+  async getShifts(weekStart?: string) {
+    if (!weekStart) throw new AppError('Il parametro weekStart è obbligatorio (es. "2026-03-30").', 400);
+    return shiftRepo.findByWeek(new Date(weekStart));
   }
 
-  async createShift(data: any) {
-    return this.shiftRepo.create({
+  async createShift(body: unknown) {
+    const data = validate(CreateShiftSchema, body);
+    return shiftRepo.create({
       user: { connect: { id: data.userId } },
       weekStart: new Date(data.weekStart),
-      dayOfWeek: parseInt(data.dayOfWeek),
-      startTime: data.startTime || '',
-      endTime: data.endTime || '',
-      isOff: data.isOff || false,
-      notes: data.notes
+      dayOfWeek: data.dayOfWeek,
+      startTime: data.startTime ?? '',
+      endTime: data.endTime ?? '',
+      isOff: data.isOff ?? false,
+      notes: data.notes,
     });
   }
 
-  async updateShift(id: string, data: any) {
-    return this.shiftRepo.update(id, data);
+  async updateShift(id: string, data: object) {
+    return shiftRepo.update(id, data);
   }
 
   async deleteShift(id: string) {
-    return this.shiftRepo.softDelete(id);
+    return shiftRepo.softDelete(id);
   }
 }
-

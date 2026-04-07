@@ -4,11 +4,12 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { customerService } from '@/services/customer.service';
 import { ENDPOINTS } from '@/api/endpoints';
-import { Search, UserPlus, Phone, Mail, MoreHorizontal, Calendar, Package, Edit, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Phone, Mail, MoreHorizontal, Calendar, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Skeleton } from '@/components/Skeleton';
-import { Customer } from '@/types/customer';
+import type { Customer } from '@/types';
+import PageHeader from '@/components/PageHeader';
 import CustomerModal from '@/components/CustomerModal';
 import toast from 'react-hot-toast';
 
@@ -17,8 +18,8 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  const { data: customers, error, mutate, isLoading } = useSWR<Customer[]>(
-    [ENDPOINTS.CUSTOMERS.BASE, search], 
+  const { data: customers, mutate, isLoading } = useSWR<Customer[]>(
+    [ENDPOINTS.CUSTOMERS.BASE, search],
     () => customerService.getAll(search)
   );
 
@@ -28,34 +29,35 @@ export default function CustomersPage() {
         await customerService.delete(id);
         toast.success('Cliente eliminato');
         mutate();
-      } catch (err: any) {
-        toast.error(err.message || 'Errore durante l\'eliminazione');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Errore durante l\'eliminazione';
+        toast.error(message);
       }
     }
   };
 
   return (
     <div className="flex-1 flex flex-col gap-6">
-      <div className="flex justify-between items-center bg-surface p-6 rounded-[25px] border border-surface-border shadow-xl">
-        <div>
-          <h1 className="text-3xl font-outfit font-bold text-white">Anagrafica Clienti</h1>
-          <p className="text-text-secondary text-sm">Gestisci i tuoi contatti e visualizza la loro storia</p>
-        </div>
-        <button 
-          onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
-          className="btn-primary flex items-center gap-2 px-6"
-        >
-          <UserPlus size={20} />
-          <span>Nuovo Cliente</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Anagrafica Clienti"
+        subtitle="Gestisci i tuoi contatti e visualizza la loro storia"
+        actions={
+          <button
+            onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
+            className="btn-primary flex items-center gap-2 px-6"
+          >
+            <UserPlus size={20} />
+            <span>Nuovo Cliente</span>
+          </button>
+        }
+      />
 
       <div className="glass-panel p-4 flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={20} />
-          <input 
-            type="text" 
-            placeholder="Cerca per nome, cognome o telefono..." 
+          <input
+            type="text"
+            placeholder="Cerca per nome, cognome o telefono..."
             className="w-full bg-white/5 border border-surface-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-accent transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -88,7 +90,7 @@ export default function CustomersPage() {
                     </tr>
                   ))
                 ) : (
-                  customers?.map((customer: any) => (
+                  customers?.map((customer) => (
                     <tr key={customer.id} className="border-b border-surface-border/50 hover:bg-white/[0.02] transition-colors group">
                       <td className="p-5">
                         <div className="flex flex-col">
@@ -125,16 +127,16 @@ export default function CustomersPage() {
                           <button className="p-2 hover:bg-white/10 rounded-lg text-white transition" title="Dettagli">
                             <Calendar size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
-                            className="p-2 hover:bg-white/10 rounded-lg text-accent transition" 
+                            className="p-2 hover:bg-white/10 rounded-lg text-accent transition"
                             title="Modifica"
                           >
                             <Edit size={18} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(customer.id)}
-                            className="p-2 hover:bg-danger/20 rounded-lg text-danger transition" 
+                            className="p-2 hover:bg-danger/20 rounded-lg text-danger transition"
                             title="Elimina"
                           >
                             <Trash2 size={18} />
@@ -158,10 +160,10 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      <CustomerModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={() => mutate()} 
+      <CustomerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => mutate()}
         customer={editingCustomer}
       />
     </div>

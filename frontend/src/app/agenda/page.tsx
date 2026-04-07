@@ -2,23 +2,24 @@
 
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
-import { format, startOfWeek, addDays, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, startOfToday } from 'date-fns';
+import { format, startOfWeek, addDays, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Clock, User, Filter } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Clock } from 'lucide-react';
 import { bookingService } from '@/services/booking.service';
 import { ENDPOINTS } from '@/api/endpoints';
 import BookingModal from '@/components/BookingModal';
 import { Skeleton } from '@/components/Skeleton';
+import type { Booking } from '@/types';
 
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 9); // 09:00 to 20:00
+const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);
 
 export default function AgendaPage() {
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const monthStr = format(currentWeekStart, 'yyyy-MM');
-  const { data: bookings, isLoading } = useSWR(
-    [ENDPOINTS.BOOKINGS.BASE, monthStr], 
+  const { data: bookings, isLoading, mutate } = useSWR<Booking[]>(
+    [ENDPOINTS.BOOKINGS.BASE, monthStr],
     () => bookingService.getAll(monthStr)
   );
 
@@ -87,7 +88,7 @@ export default function AgendaPage() {
                   ))}
                   
                   {/* Container Appuntamenti */}
-                  {bookings?.filter((b: any) => isSameDay(parseISO(b.date), day)).map((booking: any) => {
+                  {bookings?.filter((b) => isSameDay(parseISO(b.date), day)).map((booking) => {
                     const startHour = new Date(booking.date).getHours();
                     const startMin = new Date(booking.date).getMinutes();
                     const top = ((startHour - 9) * 80) + (startMin * 80 / 60);
@@ -116,7 +117,7 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} onSuccess={() => mutate()} />
     </div>
   );
 }

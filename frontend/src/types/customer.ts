@@ -1,4 +1,5 @@
-import { Booking } from './dashboard';
+import type { Booking } from './booking';
+import type { CreamSale } from './cream';
 
 export interface Customer {
   id: string;
@@ -12,5 +13,13 @@ export interface Customer {
     bookings: number;
   };
   bookings?: Booking[];
-  creamSales?: any[]; // Da tipizzare se necessario
+  creamSales?: CreamSale[];
+}
+
+export interface CreateCustomerData {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  notes?: string;
 }

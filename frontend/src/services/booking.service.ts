@@ -1,20 +1,21 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import { Booking, BookingStats } from '@/types/dashboard';
+import type { Booking, BookingStats, CreateBookingData } from '@/types';
 
 export const bookingService = {
-  getAll: (month?: string): Promise<Booking[]> =>
-    apiClient.get(ENDPOINTS.BOOKINGS.BASE, { month }),
-
-  getStats: (month?: string): Promise<BookingStats> =>
-    apiClient.get(ENDPOINTS.BOOKINGS.STATS, { month }),
-
-  create: (data: Partial<Booking>) =>
-    apiClient.post(ENDPOINTS.BOOKINGS.BASE, data),
-
-  update: (id: string, data: Partial<Booking>) =>
-    apiClient.put(ENDPOINTS.BOOKINGS.BY_ID(id), data),
-
-  delete: (id: string) =>
-    apiClient.delete(ENDPOINTS.BOOKINGS.BY_ID(id)),
+  getAll: async (month?: string): Promise<Booking[]> => {
+    return apiClient.get<Booking[]>(ENDPOINTS.BOOKINGS.BASE, { month });
+  },
+  getStats: async (month?: string): Promise<BookingStats> => {
+    return apiClient.get<BookingStats>(ENDPOINTS.BOOKINGS.STATS, { month });
+  },
+  create: async (data: CreateBookingData) => {
+    return apiClient.post(ENDPOINTS.BOOKINGS.BASE, data);
+  },
+  update: async (id: string, data: Partial<CreateBookingData> & { status?: string; price?: number }) => {
+    return apiClient.put(ENDPOINTS.BOOKINGS.BY_ID(id), data);
+  },
+  delete: async (id: string) => {
+    return apiClient.delete(ENDPOINTS.BOOKINGS.BY_ID(id));
+  },
 };

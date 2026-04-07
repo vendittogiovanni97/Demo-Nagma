@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
 import { bookingService } from '@/services/booking.service';
 import { customerService } from '@/services/customer.service';
 import { teamService } from '@/services/team.service';
 import { ENDPOINTS } from '@/api/endpoints';
+import type { Customer, User, CreateBookingData } from '@/types';
+import Modal from '@/components/Modal';
+import FormInput from '@/components/FormInput';
+import FormSelect from '@/components/FormSelect';
+import SubmitButton from '@/components/SubmitButton';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -15,32 +19,56 @@ interface Props {
   onSuccess?: () => void;
 }
 
-const EMPTY = {
-  customerId: '',
-  artistId: '',
-  date: '',
-  time: '',
-  duration: '60',
-  type: 'Tattoo',
-  price: '',
-  deposit: '',
-  notes: '',
-};
-
-export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
-  const [form, setForm] = useState(EMPTY);
+export default function BookingModal({ isOpen, onClose, onSuccess }: BookingModalProps) {
+  const [customerId, setCustomerId] = useState('');
+  const [artistId, setArtistId] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [duration, setDuration] = useState('60');
+  const [type, setType] = useState('Tattoo');
   const [loading, setLoading] = useState(false);
 
-  const { data: customers } = useSWR(
-    isOpen ? '/api/customers-list' : null,
-    () => customerService.getAll(undefined, 1, 100)
+  const { data: customers } = useSWR<Customer[]>(
+    isOpen ? ENDPOINTS.CUSTOMERS.BASE : null,
+    () => customerService.getAll()
   );
-  const { data: artists } = useSWR(
+  const { data: artists } = useSWR<User[]>(
     isOpen ? ENDPOINTS.TEAM.USERS : null,
     () => teamService.getUsers()
   );
 
-  if (!isOpen) return null;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerId || !artistId || !date || !time) {
+      return toast.error('Compila tutti i campi obbligatori');
+    }
+
+    setLoading(true);
+    try {
+      const data: CreateBookingData = {
+        customerId,
+        artistId,
+        date: new Date(`${date}T${time}`).toISOString(),
+        duration: Number(duration),
+        type,
+      };
+      await bookingService.create(data);
+      toast.success('Prenotazione confermata!');
+      setCustomerId('');
+      setArtistId('');
+      setDate('');
+      setTime('');
+      setDuration('60');
+      setType('Tattoo');
+      onSuccess?.();
+      onClose();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Errore nella prenotazione';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const set = <K extends keyof typeof EMPTY>(field: K) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -78,84 +106,61 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
   const inputCls = 'w-full p-3 rounded-xl bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition appearance-none';
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex justify-center items-center z-2000 p-4">
-      <div className="bg-[#0a0a0a] border border-surface-border rounded-[35px] w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-        <div className="p-8 border-b border-surface-border flex justify-between items-center bg-white/2">
-          <h3 className="text-2xl font-outfit text-white font-semibold">Nuova Prenotazione</h3>
-          <button onClick={onClose} type="button" className="p-2 hover:bg-white/10 rounded-full transition">
-            <X size={24} className="text-text-secondary" />
-          </button>
+    <Modal isOpen={isOpen} onClose={onClose} title="Nuova Prenotazione">
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <FormSelect
+          label="Cliente *"
+          value={customerId}
+          onChange={setCustomerId}
+          placeholder="Seleziona cliente..."
+          required
+          options={(customers || []).map((c) => ({
+            value: c.id,
+            label: `${c.firstName} ${c.lastName}`,
+          }))}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormInput label="Data *" type="date" required value={date} onChange={setDate} />
+          <FormInput label="Ora *" type="time" required value={time} onChange={setTime} />
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
-          <div className="space-y-2">
-            <label className="text-text-secondary text-sm px-1">Cliente *</label>
-            <select required className={inputCls} value={form.customerId} onChange={set('customerId')}>
-              <option value="" className="bg-[#0a0a0a]">Seleziona cliente...</option>
-              {customers?.data.map(c => (
-                <option key={c.id} value={c.id} className="bg-[#0a0a0a]">{c.firstName} {c.lastName}</option>
-              ))}
-            </select>
-          </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormSelect
+            label="Artista *"
+            value={artistId}
+            onChange={setArtistId}
+            placeholder="Seleziona artista..."
+            required
+            options={(artists || []).map((a) => ({
+              value: a.id,
+              label: a.name,
+            }))}
+          />
+          <FormInput
+            label="Durata (min)"
+            type="number"
+            value={duration}
+            onChange={setDuration}
+            min={15}
+            step="15"
+          />
+        </div>
 
-          <div className="space-y-2">
-            <label className="text-text-secondary text-sm px-1">Artista *</label>
-            <select required className={inputCls} value={form.artistId} onChange={set('artistId')}>
-              <option value="" className="bg-[#0a0a0a]">Seleziona artista...</option>
-              {artists?.map(a => (
-                <option key={a.id} value={a.id} className="bg-[#0a0a0a]">{a.name}</option>
-              ))}
-            </select>
-          </div>
+        <FormSelect
+          label="Tipo"
+          value={type}
+          onChange={setType}
+          options={[
+            { value: 'Tattoo', label: 'Tattoo' },
+            { value: 'Touch-up', label: 'Touch-up' },
+            { value: 'Consulenza', label: 'Consulenza' },
+            { value: 'Piercing', label: 'Piercing' },
+          ]}
+        />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-text-secondary text-sm px-1">Data *</label>
-              <input required type="date" className={inputCls} value={form.date} onChange={set('date')} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-text-secondary text-sm px-1">Ora *</label>
-              <input required type="time" className={inputCls} value={form.time} onChange={set('time')} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-text-secondary text-sm px-1">Tipo</label>
-              <select className={inputCls} value={form.type} onChange={set('type')}>
-                {['Tattoo', 'Touch-up', 'Consulenza', 'Piercing'].map(t => (
-                  <option key={t} value={t} className="bg-[#0a0a0a]">{t}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-text-secondary text-sm px-1">Durata (min)</label>
-              <input type="number" min="15" step="15" className={inputCls} value={form.duration} onChange={set('duration')} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-text-secondary text-sm px-1">Prezzo (€)</label>
-              <input type="number" step="0.01" min="0" placeholder="0.00" className={inputCls} value={form.price} onChange={set('price')} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-text-secondary text-sm px-1">Acconto (€)</label>
-              <input type="number" step="0.01" min="0" placeholder="0.00" className={inputCls} value={form.deposit} onChange={set('deposit')} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-text-secondary text-sm px-1">Note</label>
-            <textarea rows={2} className={`${inputCls} resize-none`} value={form.notes} onChange={set('notes')} />
-          </div>
-
-          <button type="submit" disabled={loading} className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-lg">
-            {loading ? <Loader2 className="animate-spin" size={22} /> : <Save size={22} />}
-            <span>Conferma Prenotazione</span>
-          </button>
-        </form>
-      </div>
-    </div>
+        <SubmitButton loading={loading} label="Conferma Prenotazione" />
+      </form>
+    </Modal>
   );
 }

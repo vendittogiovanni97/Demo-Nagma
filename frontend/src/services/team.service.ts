@@ -1,45 +1,24 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import { User } from '@/types/customer';
-
-export interface Shift {
-  id: string;
-  userId: string;
-  weekStart: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isOff: boolean;
-  notes?: string;
-  user?: User;
-}
-
-interface CreateShiftPayload {
-  userId: string;
-  weekStart: string;
-  dayOfWeek: number;
-  startTime?: string;
-  endTime?: string;
-  isOff?: boolean;
-  notes?: string;
-}
+import type { User, CreateUserData, Shift, CreateShiftData } from '@/types';
 
 export const teamService = {
-  getUsers: (): Promise<User[]> =>
-    apiClient.get(ENDPOINTS.TEAM.USERS),
-
-  createUser: (data: Omit<User, 'id'> & { password: string }) =>
-    apiClient.post(ENDPOINTS.TEAM.USERS, data),
-
-  getShifts: (weekStart: string): Promise<Shift[]> =>
-    apiClient.get(ENDPOINTS.TEAM.SHIFTS, { weekStart }),
-
-  createShift: (data: CreateShiftPayload): Promise<Shift> =>
-    apiClient.post(ENDPOINTS.TEAM.SHIFTS, data),
-
-  updateShift: (id: string, data: Partial<CreateShiftPayload>): Promise<Shift> =>
-    apiClient.put(ENDPOINTS.TEAM.SHIFT_BY_ID(id), data),
-
-  deleteShift: (id: string) =>
-    apiClient.delete(ENDPOINTS.TEAM.SHIFT_BY_ID(id)),
+  getUsers: async (): Promise<User[]> => {
+    return apiClient.get<User[]>(ENDPOINTS.TEAM.USERS);
+  },
+  createUser: async (data: CreateUserData) => {
+    return apiClient.post(ENDPOINTS.TEAM.USERS, data);
+  },
+  getShifts: async (weekStart: string): Promise<Shift[]> => {
+    return apiClient.get<Shift[]>(ENDPOINTS.TEAM.SHIFTS, { weekStart });
+  },
+  createShift: async (data: CreateShiftData) => {
+    return apiClient.post(ENDPOINTS.TEAM.SHIFTS, data);
+  },
+  updateShift: async (id: string, data: Partial<CreateShiftData>) => {
+    return apiClient.put(ENDPOINTS.TEAM.SHIFT_BY_ID(id), data);
+  },
+  deleteShift: async (id: string) => {
+    return apiClient.delete(ENDPOINTS.TEAM.SHIFT_BY_ID(id));
+  },
 };

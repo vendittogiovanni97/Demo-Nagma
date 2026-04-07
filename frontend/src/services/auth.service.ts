@@ -1,21 +1,12 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import { User } from '@/types/customer';
-
-interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-interface AuthResponse {
-  token: string;
-  user: User;
-}
+import type { LoginCredentials, RegisterData, AuthResponse } from '@/types';
 
 export const authService = {
-  login: (credentials: LoginPayload): Promise<AuthResponse> =>
-    apiClient.post(ENDPOINTS.AUTH.LOGIN, credentials),
-
-  register: (data: Omit<User, 'id'> & { password: string }) =>
-    apiClient.post(ENDPOINTS.AUTH.REGISTER, data),
+  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
+    return apiClient.post<AuthResponse>(ENDPOINTS.AUTH.LOGIN, credentials);
+  },
+  register: async (userData: RegisterData) => {
+    return apiClient.post(ENDPOINTS.AUTH.REGISTER, userData);
+  },
 };

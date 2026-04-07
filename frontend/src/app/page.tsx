@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/Skeleton';
 import { bookingService } from '@/services/booking.service';
 import { transactionService } from '@/services/transaction.service';
 import { ENDPOINTS } from '@/api/endpoints';
-import { FinanceSummary, BookingStats, Booking } from '@/types/dashboard';
+import type { FinanceSummary, BookingStats, Booking, MonthlyTrend, ArtistPerformance } from '@/types';
 
 export default function DashboardPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -36,19 +36,18 @@ export default function DashboardPage() {
     () => bookingService.getAll(monthStr)
   ); 
 
-  const { data: trends } = useSWR(
-    ENDPOINTS.TRANSACTIONS.TRENDS, 
+  const { data: trends } = useSWR<MonthlyTrend[]>(
+    ENDPOINTS.TRANSACTIONS.TRENDS,
     () => transactionService.getTrends()
   );
 
-  const { data: performance } = useSWR(
-    ENDPOINTS.TRANSACTIONS.PERFORMANCE, 
+  const { data: performance } = useSWR<ArtistPerformance[]>(
+    ENDPOINTS.TRANSACTIONS.PERFORMANCE,
     () => transactionService.getArtistPerformance()
   );
 
   const totalIncome = financeSummary?.totalIncome || 0;
   const totalExpense = financeSummary?.totalExpense || 0;
-  const balance = totalIncome - totalExpense;
 
   const financeData = [
     { name: 'Entrate', value: totalIncome || 0.01, color: '#00BFFF' }, 
@@ -162,7 +161,7 @@ export default function DashboardPage() {
         <div className="glass-panel lg:col-span-1 lg:row-span-2 p-6 flex flex-col">
           <h3 className="text-xl font-outfit mb-4">Oggi</h3>
           <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-            {isDailyLoading ? <Skeleton className="h-full" /> : dailyBookings?.map((b: Booking) => (
+            {isDailyLoading ? <Skeleton className="h-full" /> : dailyBookings?.map((b) => (
               <div key={b.id} className="p-3 bg-white/5 border border-white/5 rounded-xl flex gap-3 items-center">
                 <div className="text-accent font-bold text-xs">{format(new Date(b.date), 'HH:mm')}</div>
                 <div className="flex flex-col whitespace-nowrap overflow-hidden">

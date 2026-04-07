@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { setToken as saveToken, getToken, logout as clearAuth } from '@/utils/auth';
 import { authService } from '@/services/auth.service';
+import type { LoginCredentials } from '@/types';
 import toast from 'react-hot-toast';
 
 interface LoginPayload {
@@ -13,6 +14,8 @@ interface LoginPayload {
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => void;
   isLoading: boolean;
   login: (credentials: LoginPayload) => Promise<void>;
   logout: () => void;
@@ -30,12 +33,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (credentials: LoginPayload) => {
-    const { token } = await authService.login(credentials);
-    saveToken(token);
-    setIsAuthenticated(true);
-    toast.success('Accesso effettuato!');
-    router.push('/');
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      const response = await authService.login(credentials);
+      const newToken = response.token;
+
+      saveToken(newToken);
+      setToken(newToken);
+
+      toast.success('Accesso effettuato!');
+      router.push('/');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Credenziali non valide';
+      toast.error(message);
+      throw error;
+    }
   };
 
   const logout = () => {

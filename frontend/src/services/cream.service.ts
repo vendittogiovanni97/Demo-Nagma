@@ -1,28 +1,21 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import { Cream, CreamSale } from '@/types/customer';
-
-interface RegisterSalePayload {
-  creamId: string;
-  sellerId: string;
-  customerId?: string;
-  quantity: number;
-  totalPrice: number;
-}
+import type { Cream, CreateCreamData, CreamSale, CreateCreamSaleData } from '@/types';
 
 export const creamService = {
-  getAll: (): Promise<Cream[]> =>
-    apiClient.get(ENDPOINTS.CREAMS.BASE),
-
-  create: (data: Omit<Cream, 'id'>) =>
-    apiClient.post(ENDPOINTS.CREAMS.BASE, data),
-
-  update: (id: string, data: Partial<Omit<Cream, 'id'>>) =>
-    apiClient.put(ENDPOINTS.CREAMS.BY_ID(id), data),
-
-  getSales: (sellerId?: string, month?: string): Promise<CreamSale[]> =>
-    apiClient.get(ENDPOINTS.CREAMS.SALES, { sellerId, month }),
-
-  registerSale: (data: RegisterSalePayload): Promise<CreamSale> =>
-    apiClient.post(ENDPOINTS.CREAMS.SALES, data),
+  getAll: async (): Promise<Cream[]> => {
+    return apiClient.get<Cream[]>(ENDPOINTS.CREAMS.BASE);
+  },
+  create: async (data: CreateCreamData) => {
+    return apiClient.post(ENDPOINTS.CREAMS.BASE, data);
+  },
+  update: async (id: string, data: Partial<CreateCreamData>) => {
+    return apiClient.put(ENDPOINTS.CREAMS.BY_ID(id), data);
+  },
+  getSales: async (sellerId?: string, month?: string): Promise<CreamSale[]> => {
+    return apiClient.get<CreamSale[]>(ENDPOINTS.CREAMS.SALES, { sellerId, month });
+  },
+  registerSale: async (data: CreateCreamSaleData) => {
+    return apiClient.post(ENDPOINTS.CREAMS.SALES, data);
+  },
 };

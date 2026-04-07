@@ -8,16 +8,17 @@ import { ChevronLeft, ChevronRight, Plus, Clock } from 'lucide-react';
 import { bookingService } from '@/services/booking.service';
 import { ENDPOINTS } from '@/api/endpoints';
 import BookingModal from '@/components/BookingModal';
-import { Booking } from '@/types/dashboard';
+import { Skeleton } from '@/components/Skeleton';
+import type { Booking } from '@/types';
 
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 9); // 09:00 → 20:00
+const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);
 
 export default function AgendaPage() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const monthStr = format(weekStart, 'yyyy-MM');
-  const { data: bookings, mutate } = useSWR<Booking[]>(
+  const monthStr = format(currentWeekStart, 'yyyy-MM');
+  const { data: bookings, isLoading, mutate } = useSWR<Booking[]>(
     [ENDPOINTS.BOOKINGS.BASE, monthStr],
     () => bookingService.getAll(monthStr)
   );
@@ -97,6 +98,22 @@ export default function AgendaPage() {
                 {HOURS.map(h => (
                   <div key={h} className="h-20 border-b border-surface-border/30" />
                 ))}
+             </div>
+
+             {/* Colonne Giorni */}
+             {weekDays.map((day) => (
+               <div key={day.toString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
+                  {HOURS.map(hour => (
+                    <div key={hour} className="h-20 border-b border-surface-border/30 group-hover:bg-white/[0.01] transition-colors" />
+                  ))}
+                  
+                  {/* Container Appuntamenti */}
+                  {bookings?.filter((b) => isSameDay(parseISO(b.date), day)).map((booking) => {
+                    const startHour = new Date(booking.date).getHours();
+                    const startMin = new Date(booking.date).getMinutes();
+                    const top = ((startHour - 9) * 80) + (startMin * 80 / 60);
+                    const height = (booking.duration || 60) * 80 / 60;
+                    const artistColor = booking.artist?.color || 'var(--color-accent)';
 
                 {bookings
                   ?.filter(b => isSameDay(parseISO(b.date), day))
@@ -122,7 +139,7 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      <BookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => mutate()} />
+      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} onSuccess={() => mutate()} />
     </div>
   );
 }

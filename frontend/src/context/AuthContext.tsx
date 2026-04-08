@@ -7,17 +7,10 @@ import { authService } from '@/services/auth.service';
 import type { LoginCredentials } from '@/types';
 import toast from 'react-hot-toast';
 
-interface LoginPayload {
-  email: string;
-  password: string;
-}
-
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => void;
   isLoading: boolean;
-  login: (credentials: LoginPayload) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
 }
 
@@ -39,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const newToken = response.token;
 
       saveToken(newToken);
-      setToken(newToken);
+      setIsAuthenticated(true);
 
       toast.success('Accesso effettuato!');
       router.push('/');

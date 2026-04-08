@@ -19,7 +19,7 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export default function BookingModal({ isOpen, onClose, onSuccess }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
   const [customerId, setCustomerId] = useState('');
   const [artistId, setArtistId] = useState('');
   const [date, setDate] = useState('');
@@ -70,40 +70,6 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: BookingModa
     }
   };
 
-  const set = <K extends keyof typeof EMPTY>(field: K) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-      setForm(prev => ({ ...prev, [field]: e.target.value }));
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.customerId || !form.artistId || !form.date || !form.time) {
-      toast.error('Cliente, artista, data e ora sono obbligatori');
-      return;
-    }
-    setLoading(true);
-    try {
-      await bookingService.create({
-        customerId: form.customerId,
-        artistId: form.artistId,
-        date: `${form.date}T${form.time}:00`,
-        duration: Number(form.duration),
-        type: form.type,
-        price: form.price ? Number(form.price) : undefined,
-        deposit: form.deposit ? Number(form.deposit) : undefined,
-        notes: form.notes || undefined,
-      });
-      toast.success('Prenotazione creata');
-      setForm(EMPTY);
-      onSuccess?.();
-      onClose();
-    } catch (err: any) {
-      toast.error(err.message || 'Errore durante la creazione');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const inputCls = 'w-full p-3 rounded-xl bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition appearance-none';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuova Prenotazione">

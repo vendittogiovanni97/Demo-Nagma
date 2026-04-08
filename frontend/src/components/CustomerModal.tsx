@@ -17,7 +17,7 @@ interface Props {
   customer?: Customer | null;
 }
 
-export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: CustomerModalProps) {
+export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: Props) {
   const [formData, setFormData] = useState<CreateCustomerData>({
     firstName: '',
     lastName: '',
@@ -28,9 +28,9 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setForm(customer
+    setFormData(customer
       ? { firstName: customer.firstName, lastName: customer.lastName, phone: customer.phone, email: customer.email ?? '', notes: customer.notes ?? '' }
-      : EMPTY
+      : { firstName: '', lastName: '', phone: '', email: '', notes: '' }
     );
   }, [customer, isOpen]);
 
@@ -39,10 +39,10 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     setLoading(true);
     try {
       if (customer) {
-        await customerService.update(customer.id, form);
+        await customerService.update(customer.id, formData);
         toast.success('Cliente aggiornato');
       } else {
-        await customerService.create(form);
+        await customerService.create(formData);
         toast.success('Cliente creato');
       }
       onSuccess();

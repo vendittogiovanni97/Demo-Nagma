@@ -80,12 +80,14 @@ export default function CreamsPage() {
                 {cream.stock > 0 ? 'Registra Vendita' : 'Esaurito'}
               </button>
             </div>
-          ))}
+          ))
+        )}
       </div>
 
       <CreamModal
         isOpen={isCreamModalOpen}
-        onClose={() => { setIsCreamModalOpen(false); mutateCreams(); }}
+        onClose={() => setIsCreamModalOpen(false)}
+        onSuccess={() => mutateCreams()}
       />
 
       <SaleModal

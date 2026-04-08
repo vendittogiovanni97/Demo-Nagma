@@ -8,11 +8,6 @@ import FormInput from '@/components/FormInput';
 import SubmitButton from '@/components/SubmitButton';
 import toast from 'react-hot-toast';
 
-import { useState } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
-import { creamService } from '@/services/cream.service';
-import toast from 'react-hot-toast';
-
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -25,22 +20,23 @@ export default function CreamModal({ isOpen, onClose, onSuccess }: Props) {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
 
+  const set = <K extends keyof typeof EMPTY>(field: K) =>
+    (value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const data: CreateCreamData = {
-        name,
-        brand: brand || undefined,
-        price: Number(price),
-        stock: Number(stock),
+        name: form.name,
+        brand: form.brand || undefined,
+        price: Number(form.price),
+        stock: Number(form.stock),
       };
       await creamService.create(data);
       toast.success('Prodotto in inventario!');
-      setName('');
-      setBrand('');
-      setPrice('');
-      setStock('1');
+      setForm(EMPTY);
+      onSuccess();
       onClose();
     } catch {
       toast.error('Errore durante l\'inserimento');
@@ -49,23 +45,21 @@ export default function CreamModal({ isOpen, onClose, onSuccess }: Props) {
     }
   };
 
-  const inputCls = 'w-full p-3 rounded-xl bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition';
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuovo Prodotto in Inventario">
       <form className="space-y-4" onSubmit={handleSubmit}>
         <FormInput
           label="Nome Prodotto *"
           required
-          value={name}
-          onChange={setName}
+          value={form.name}
+          onChange={set('name')}
           placeholder="Es. Tattoo Care Cream 50ml"
         />
 
         <FormInput
           label="Brand"
-          value={brand}
-          onChange={setBrand}
+          value={form.brand}
+          onChange={set('brand')}
           placeholder="Brand A, Brand B..."
         />
 
@@ -74,8 +68,8 @@ export default function CreamModal({ isOpen, onClose, onSuccess }: Props) {
             label="Prezzo di Vendita (€) *"
             type="number"
             required
-            value={price}
-            onChange={setPrice}
+            value={form.price}
+            onChange={set('price')}
             placeholder="0.00"
             step="0.01"
             min={0}
@@ -84,8 +78,8 @@ export default function CreamModal({ isOpen, onClose, onSuccess }: Props) {
             label="Stock Iniziale (Qt.)"
             type="number"
             required
-            value={stock}
-            onChange={setStock}
+            value={form.stock}
+            onChange={set('stock')}
             placeholder="10"
             min={0}
           />

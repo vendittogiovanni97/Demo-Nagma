@@ -5,7 +5,8 @@ export class UserRepository {
   async findAll() {
     return prisma.user.findMany({
       where: { deletedAt: null },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
+      omit: { password: true },
     });
   }
 

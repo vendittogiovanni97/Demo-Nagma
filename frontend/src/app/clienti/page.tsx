@@ -4,7 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { customerService } from '@/services/customer.service';
 import { ENDPOINTS } from '@/api/endpoints';
-import { Search, UserPlus, Phone, Mail, MoreHorizontal, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Phone, Mail, MoreHorizontal, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Skeleton } from '@/components/feedback/Skeleton';
@@ -19,10 +19,12 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  const { data: customers, mutate, isLoading } = useSWR<Customer[]>(
-    [ENDPOINTS.CUSTOMERS.BASE, search],
-    () => customerService.getAll(search)
+  const { data: result, mutate, isLoading } = useSWR(
+    [ENDPOINTS.CUSTOMERS.BASE, search, page],
+    () => customerService.getAll(search, page)
   );
+  const customers = result?.data;
+  const totalPages = result?.totalPages ?? 1;
 
   const handleDelete = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
@@ -198,8 +200,12 @@ export default function CustomersPage() {
                       </td>
                       <td className="p-5 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2 hover:bg-white/10 rounded-lg text-white transition" title="Dettagli">
-                            <Calendar size={18} />
+                          <button
+                            onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
+                            className="p-2 hover:bg-white/10 rounded-lg text-white transition"
+                            title="Dettagli"
+                          >
+                            <Eye size={18} />
                           </button>
                           <button
                             onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
@@ -231,6 +237,31 @@ export default function CustomersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between p-4 border-t border-surface-border">
+              <span className="text-sm text-text-secondary">
+                Pagina {page} di {totalPages} ({result?.total ?? 0} clienti)
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

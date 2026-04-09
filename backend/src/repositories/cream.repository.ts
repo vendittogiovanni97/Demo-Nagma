@@ -17,7 +17,10 @@ export class CreamRepository {
     }
     return prisma.creamSale.findMany({
       where,
-      include: { cream: true, seller: true },
+      include: {
+        cream: true,
+        seller: { omit: { password: true } },
+      },
       orderBy: { createdAt: 'desc' }
     });
   }

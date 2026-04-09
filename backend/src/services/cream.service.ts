@@ -37,6 +37,14 @@ export class CreamService {
 
     // Operazione atomica: decremento stock + creazione vendita + transazione INCOME
     return prisma.$transaction(async (tx) => {
+      const cream = await tx.cream.findUnique({ where: { id: data.creamId } });
+      if (!cream || cream.deletedAt) {
+        throw { status: 404, message: 'Prodotto non trovato' };
+      }
+      if (cream.stock < data.quantity) {
+        throw { status: 400, message: `Stock insufficiente: disponibili ${cream.stock} pz, richiesti ${data.quantity}` };
+      }
+
       await tx.cream.update({
         where: { id: data.creamId },
         data: { stock: { decrement: data.quantity } },

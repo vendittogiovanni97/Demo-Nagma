@@ -6,23 +6,26 @@ import { teamService } from '@/services/team.service';
 import { ENDPOINTS } from '@/api/endpoints';
 import DataTable, { Column } from '@/components/data-display/DataTable';
 import StaffModal from '@/components/modals/StaffModal';
+import ShiftModal from '@/components/modals/ShiftModal';
 import PageHeader from '@/components/layout/PageHeader';
 import { useAuth } from '@/context/AuthContext';
 import { UsersRound, CalendarDays, Plus, Clock, Trash2 } from 'lucide-react';
 import { startOfWeek, format } from 'date-fns';
 import type { User, Shift } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function TeamPage() {
   const { isAuthenticated } = useAuth();
   const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
 
   const { data: users, isLoading: loadingUsers, mutate: mutateUsers } = useSWR<User[]>(
     ENDPOINTS.TEAM.USERS,
     () => teamService.getUsers()
   );
 
-  const { data: shifts, isLoading: loadingShifts } = useSWR<Shift[]>(
+  const { data: shifts, isLoading: loadingShifts, mutate: mutateShifts } = useSWR<Shift[]>(
     [ENDPOINTS.TEAM.SHIFTS, week],
     () => teamService.getShifts(week)
   );
@@ -52,6 +55,18 @@ export default function TeamPage() {
     render: (val: string) => <span className="text-text-secondary text-sm">{val || '—'}</span>,
   },
 ];
+
+  const handleDeleteShift = async (id: string) => {
+    if (!confirm('Eliminare questo turno?')) return;
+    try {
+      await teamService.deleteShift(id);
+      toast.success('Turno eliminato');
+      mutateShifts();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Errore durante l\'eliminazione';
+      toast.error(message);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col gap-6">
@@ -116,7 +131,7 @@ export default function TeamPage() {
                         <span className="text-[10px] text-text-secondary uppercase tracking-widest">{s.isOff ? 'Giorno Libero' : `${s.startTime} - ${s.endTime}`}</span>
                      </div>
                    </div>
-                   <button className="p-2 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/10 rounded-lg">
+                   <button onClick={() => handleDeleteShift(s.id)} className="p-2 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/10 rounded-lg">
                       <Trash2 size={16} />
                    </button>
                  </div>
@@ -124,7 +139,7 @@ export default function TeamPage() {
             )}
           </div>
 
-          <button className="glass-btn w-full mt-2 py-4 flex items-center justify-center gap-2">
+          <button onClick={() => setIsShiftModalOpen(true)} className="glass-btn w-full mt-2 py-4 flex items-center justify-center gap-2">
             <Plus size={18} />
             <span>Pianifica Turno</span>
           </button>
@@ -132,6 +147,7 @@ export default function TeamPage() {
       </div>
 
       <StaffModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); mutateUsers(); }} />
+      <ShiftModal isOpen={isShiftModalOpen} onClose={() => setIsShiftModalOpen(false)} onSuccess={() => mutateShifts()} weekStart={week} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { ArrowLeft, ArrowRight, Users, Package, BarChart3, Activity } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { format, subMonths, addMonths } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
@@ -17,6 +18,7 @@ import { ENDPOINTS } from '@/api/endpoints';
 import type { FinanceSummary, BookingStats, Booking, MonthlyTrend, ArtistPerformance } from '@/types';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const monthStr = format(currentDate, 'yyyy-MM');
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -175,10 +177,10 @@ export default function DashboardPage() {
 
         {/* Bento: Quick Actions */}
         <div className="glass-panel lg:col-span-1 p-6 flex flex-col justify-center gap-3">
-          <button className="glass-btn flex items-center justify-center gap-3 py-4">
+          <button onClick={() => router.push('/clienti')} className="glass-btn flex items-center justify-center gap-3 py-4">
             <Users size={16} /> <span>Clienti</span>
           </button>
-          <button className="btn-primary flex items-center justify-center gap-3 py-4">
+          <button onClick={() => router.push('/creams')} className="btn-primary flex items-center justify-center gap-3 py-4">
             <Package size={16} /> <span>Creme</span>
           </button>
         </div>

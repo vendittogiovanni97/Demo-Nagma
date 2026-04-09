@@ -70,7 +70,7 @@ export class TransactionRepository {
   }
 
   async getArtistPerformance() {
-    return prisma.booking.groupBy({
+    const stats = await prisma.booking.groupBy({
       by: ['artistId'],
       where: {
         deletedAt: null,
@@ -83,5 +83,21 @@ export class TransactionRepository {
         price: true
       }
     });
+
+    // Arricchisci con i nomi degli artisti
+    const artistIds = stats.map(s => s.artistId);
+    const artists = await prisma.user.findMany({
+      where: { id: { in: artistIds } },
+      select: { id: true, name: true, color: true },
+    });
+    const artistMap = Object.fromEntries(artists.map(a => [a.id, a]));
+
+    return stats.map(s => ({
+      artistId: s.artistId,
+      artistName: artistMap[s.artistId]?.name ?? 'Sconosciuto',
+      artistColor: artistMap[s.artistId]?.color ?? null,
+      bookings: s._count.id,
+      revenue: s._sum.price ?? 0,
+    }));
   }
 }

@@ -8,7 +8,7 @@ export class ShiftRepository {
         weekStart: { equals: weekStart },
         deletedAt: null
       },
-      include: { user: true }
+      include: { user: { omit: { password: true } } }
     });
   }
 

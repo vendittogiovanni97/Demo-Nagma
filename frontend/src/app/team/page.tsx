@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { teamService, Shift } from '@/services/team.service';
+import { teamService } from '@/services/team.service';
 import { ENDPOINTS } from '@/api/endpoints';
-import DataTable, { Column } from '@/components/DataTable';
-import StaffModal from '@/components/StaffModal';
-import PageHeader from '@/components/PageHeader';
+import DataTable, { Column } from '@/components/data-display/DataTable';
+import StaffModal from '@/components/modals/StaffModal';
+import PageHeader from '@/components/layout/PageHeader';
 import { useAuth } from '@/context/AuthContext';
 import { UsersRound, CalendarDays, Plus, Clock, Trash2 } from 'lucide-react';
 import { startOfWeek, format } from 'date-fns';
@@ -52,20 +52,6 @@ export default function TeamPage() {
     render: (val: string) => <span className="text-text-secondary text-sm">{val || '—'}</span>,
   },
 ];
-
-export default function TeamPage() {
-  const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const { data: users, isLoading: loadingUsers, mutate: mutateUsers } = useSWR<User[]>(
-    ENDPOINTS.TEAM.USERS,
-    () => teamService.getUsers()
-  );
-
-  const { data: shifts, isLoading: loadingShifts } = useSWR<Shift[]>(
-    [ENDPOINTS.TEAM.SHIFTS, week],
-    () => teamService.getShifts(week)
-  );
 
   return (
     <div className="flex-1 flex flex-col gap-6">

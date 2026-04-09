@@ -2,16 +2,10 @@
 
 import { useState } from 'react';
 import { teamService } from '@/services/team.service';
-import Modal from '@/components/Modal';
-import FormInput from '@/components/FormInput';
-import FormSelect from '@/components/FormSelect';
-import SubmitButton from '@/components/SubmitButton';
-import toast from 'react-hot-toast';
-
-import { useState } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
-import { teamService } from '@/services/team.service';
-import { Role } from '@/types/enums';
+import Modal from './Modal';
+import FormInput from '../forms/FormInput';
+import FormSelect from '../forms/FormSelect';
+import SubmitButton from '../forms/SubmitButton';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -19,7 +13,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function StaffModal({ isOpen, onClose }: StaffModalProps) {
+export default function StaffModal({ isOpen, onClose }: Props) {
   const [name, setName] = useState('');
   const [role, setRole] = useState('ARTIST');
   const [phone, setPhone] = useState('');
@@ -53,8 +47,6 @@ export default function StaffModal({ isOpen, onClose }: StaffModalProps) {
       setLoading(false);
     }
   };
-
-  const inputCls = 'w-full p-3 rounded-xl bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition appearance-none';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Aggiungi Staff" maxWidth="max-w-md">

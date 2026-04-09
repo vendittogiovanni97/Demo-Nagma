@@ -7,13 +7,11 @@ import { ENDPOINTS } from '@/api/endpoints';
 import { Search, UserPlus, Phone, Mail, MoreHorizontal, Calendar, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Skeleton } from '@/components/Skeleton';
+import { Skeleton } from '@/components/feedback/Skeleton';
 import type { Customer } from '@/types';
-import PageHeader from '@/components/PageHeader';
-import CustomerModal from '@/components/CustomerModal';
+import PageHeader from '@/components/layout/PageHeader';
+import CustomerModal from '@/components/modals/CustomerModal';
 import toast from 'react-hot-toast';
-
-const LIMIT = 20;
 
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
@@ -39,77 +37,77 @@ export default function CustomersPage() {
     }
   };
 
-  const openEdit = (customer: Customer) => {
-    setEditingCustomer(customer);
-    setIsModalOpen(true);
-  };
+  // const openEdit = (customer: Customer) => {
+  //   setEditingCustomer(customer);
+  //   setIsModalOpen(true);
+  // };
 
-  const openNew = () => {
-    setEditingCustomer(null);
-    setIsModalOpen(true);
-  };
+  // const openNew = () => {
+  //   setEditingCustomer(null);
+  //   setIsModalOpen(true);
+  // };
 
-  const columns: Column<Customer>[] = [
-    {
-      key: 'firstName',
-      header: 'Nominativo',
-      render: (_, c) => (
-        <div className="flex flex-col">
-          <span className="font-bold font-outfit">{c.firstName} {c.lastName}</span>
-          <span className="text-xs text-text-secondary italic">{c.notes || 'Nessuna nota'}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'phone',
-      header: 'Contatti',
-      render: (_, c) => (
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 text-text-secondary">
-            <Phone size={14} className="text-accent" /> {c.phone}
-          </div>
-          {c.email && (
-            <div className="flex items-center gap-2 text-text-secondary">
-              <Mail size={14} className="text-accent" /> {c.email}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'createdAt',
-      header: 'Prima visita',
-      render: (val) => (
-        <span>{val ? format(new Date(val), 'dd MMM yyyy', { locale: it }) : '—'}</span>
-      ),
-    },
-    {
-      key: '_count',
-      header: 'Appuntamenti',
-      render: (val) => (
-        <div className="bg-surface-border/30 w-10 h-10 rounded-full flex items-center justify-center text-accent font-bold">
-          {val?.bookings ?? 0}
-        </div>
-      ),
-    },
-    {
-      key: 'id',
-      header: '',
-      render: (_, c) => (
-        <div className="flex justify-end gap-2">
-          <button className="p-2 hover:bg-white/10 rounded-lg text-white transition" title="Agenda">
-            <Calendar size={18} />
-          </button>
-          <button onClick={() => openEdit(c)} className="p-2 hover:bg-white/10 rounded-lg text-accent transition" title="Modifica">
-            <Edit size={18} />
-          </button>
-          <button onClick={() => handleDelete(c.id)} className="p-2 hover:bg-danger/20 rounded-lg text-danger transition" title="Elimina">
-            <Trash2 size={18} />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  // const columns: Column<Customer>[] = [
+  //   {
+  //     key: 'firstName',
+  //     header: 'Nominativo',
+  //     render: (_, c) => (
+  //       <div className="flex flex-col">
+  //         <span className="font-bold font-outfit">{c.firstName} {c.lastName}</span>
+  //         <span className="text-xs text-text-secondary italic">{c.notes || 'Nessuna nota'}</span>
+  //       </div>
+  //     ),
+  //   },
+  //   {
+  //     key: 'phone',
+  //     header: 'Contatti',
+  //     render: (_, c) => (
+  //       <div className="flex flex-col gap-1">
+  //         <div className="flex items-center gap-2 text-text-secondary">
+  //           <Phone size={14} className="text-accent" /> {c.phone}
+  //         </div>
+  //         {c.email && (
+  //           <div className="flex items-center gap-2 text-text-secondary">
+  //             <Mail size={14} className="text-accent" /> {c.email}
+  //           </div>
+  //         )}
+  //       </div>
+  //     ),
+  //   },
+  //   {
+  //     key: 'createdAt',
+  //     header: 'Prima visita',
+  //     render: (val) => (
+  //       <span>{val ? format(new Date(val), 'dd MMM yyyy', { locale: it }) : '—'}</span>
+  //     ),
+  //   },
+  //   {
+  //     key: '_count',
+  //     header: 'Appuntamenti',
+  //     render: (val) => (
+  //       <div className="bg-surface-border/30 w-10 h-10 rounded-full flex items-center justify-center text-accent font-bold">
+  //         {val?.bookings ?? 0}
+  //       </div>
+  //     ),
+  //   },
+  //   {
+  //     key: 'id',
+  //     header: '',
+  //     render: (_, c) => (
+  //       <div className="flex justify-end gap-2">
+  //         <button className="p-2 hover:bg-white/10 rounded-lg text-white transition" title="Agenda">
+  //           <Calendar size={18} />
+  //         </button>
+  //         <button onClick={() => openEdit(c)} className="p-2 hover:bg-white/10 rounded-lg text-accent transition" title="Modifica">
+  //           <Edit size={18} />
+  //         </button>
+  //         <button onClick={() => handleDelete(c.id)} className="p-2 hover:bg-danger/20 rounded-lg text-danger transition" title="Elimina">
+  //           <Trash2 size={18} />
+  //         </button>
+  //       </div>
+  //     ),
+  //   },
+  // ];
 
   return (
     <div className="flex-1 flex flex-col gap-6">

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, Calendar, Users, UsersRound, Package, Plus, LogOut } from 'lucide-react';
-import BookingModal from '@/components/BookingModal';
+import BookingModal from '../modals/BookingModal';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {

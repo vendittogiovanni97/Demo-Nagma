@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { User, Phone, Mail, FileText, Save } from 'lucide-react';
 import { customerService } from '@/services/customer.service';
 import type { Customer, CreateCustomerData } from '@/types';
-import Modal from '@/components/Modal';
-import FormInput from '@/components/FormInput';
-import FormTextarea from '@/components/FormTextarea';
-import SubmitButton from '@/components/SubmitButton';
+import Modal from './Modal';
+import FormInput from '../forms/FormInput';
+import FormTextarea from '../forms/FormTextarea';
+import SubmitButton from '../forms/SubmitButton';
 import toast from 'react-hot-toast';
 
 interface Props {

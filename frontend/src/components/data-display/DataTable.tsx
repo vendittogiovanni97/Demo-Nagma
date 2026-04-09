@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { TableSkeleton } from './Skeleton';
+import { TableSkeleton } from '../feedback/Skeleton';
 
 export interface Column<T> {
   key: string;

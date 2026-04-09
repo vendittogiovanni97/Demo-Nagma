@@ -7,10 +7,10 @@ import { customerService } from '@/services/customer.service';
 import { teamService } from '@/services/team.service';
 import { ENDPOINTS } from '@/api/endpoints';
 import type { Customer, User, CreateBookingData } from '@/types';
-import Modal from '@/components/Modal';
-import FormInput from '@/components/FormInput';
-import FormSelect from '@/components/FormSelect';
-import SubmitButton from '@/components/SubmitButton';
+import Modal from './Modal';
+import FormInput from '../forms/FormInput';
+import FormSelect from '../forms/FormSelect';
+import SubmitButton from '../forms/SubmitButton';
 import toast from 'react-hot-toast';
 
 interface Props {

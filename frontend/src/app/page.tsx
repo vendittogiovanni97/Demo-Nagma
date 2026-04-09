@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { format, subMonths, addMonths } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
-import { Skeleton } from '@/components/Skeleton';
+import { Skeleton } from '@/components/feedback/Skeleton';
 import { bookingService } from '@/services/booking.service';
 import { transactionService } from '@/services/transaction.service';
 import { ENDPOINTS } from '@/api/endpoints';

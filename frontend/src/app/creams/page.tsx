@@ -5,10 +5,10 @@ import useSWR from 'swr';
 import { creamService } from '@/services/cream.service';
 import { ENDPOINTS } from '@/api/endpoints';
 import { Package, Plus, ShoppingCart, AlertTriangle } from 'lucide-react';
-import { Skeleton } from '@/components/Skeleton';
-import PageHeader from '@/components/PageHeader';
-import CreamModal from '@/components/CreamModal';
-import SaleModal from '@/components/SaleModal';
+import { Skeleton } from '@/components/feedback/Skeleton';
+import PageHeader from '@/components/layout/PageHeader';
+import CreamModal from '@/components/modals/CreamModal';
+import SaleModal from '@/components/modals/SaleModal';
 import type { Cream } from '@/types';
 
 export default function CreamsPage() {

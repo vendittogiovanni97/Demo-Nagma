@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { creamService } from '@/services/cream.service';
 import type { CreateCreamData } from '@/types';
-import Modal from '@/components/Modal';
-import FormInput from '@/components/FormInput';
-import SubmitButton from '@/components/SubmitButton';
+import Modal from './Modal';
+import FormInput from '../forms/FormInput';
+import SubmitButton from '../forms/SubmitButton';
 import toast from 'react-hot-toast';
 
 interface Props {

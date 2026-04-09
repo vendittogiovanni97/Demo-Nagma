@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { transactionService } from '@/services/transaction.service';
 import type { CreateTransactionData, TransactionType } from '@/types';
-import Modal from '@/components/Modal';
-import FormInput from '@/components/FormInput';
-import FormSelect from '@/components/FormSelect';
-import SubmitButton from '@/components/SubmitButton';
+import Modal from './Modal';
+import FormInput from '../forms/FormInput';
+import FormSelect from '../forms/FormSelect';
+import SubmitButton from '../forms/SubmitButton';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function TransactionModal({ isOpen, onClose }: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose }: Props) {
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('EXPENSE');
@@ -43,8 +43,6 @@ export default function TransactionModal({ isOpen, onClose }: TransactionModalPr
       setLoading(false);
     }
   };
-
-  const inputCls = 'w-full p-3 rounded-xl bg-white/5 border border-surface-border text-white focus:outline-none focus:border-accent transition appearance-none';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuova Voce Spesa / Entrata">

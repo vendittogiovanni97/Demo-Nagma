@@ -7,7 +7,7 @@ import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Clock } from 'lucide-react';
 import { bookingService } from '@/services/booking.service';
 import { ENDPOINTS } from '@/api/endpoints';
-import BookingModal from '@/components/BookingModal';
+import BookingModal from '@/components/modals/BookingModal';
 import type { Booking } from '@/types';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);

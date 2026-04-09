@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
-import GlobalErrorBoundary from '@/components/GlobalErrorBoundary';
+import Navbar from '@/components/layout/Navbar';
+import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });

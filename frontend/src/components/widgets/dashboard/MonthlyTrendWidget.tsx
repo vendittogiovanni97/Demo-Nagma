@@ -5,8 +5,8 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip as RechartsTooltip,
+  ResponsiveContainer,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -31,7 +31,7 @@ export default function MonthlyTrendWidget({ trends, className }: MonthlyTrendWi
       }
       contentClassName="min-h-0"
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200} initialDimension={{ width: 1, height: 1 }}>
         <AreaChart data={trends}>
           <defs>
             <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">

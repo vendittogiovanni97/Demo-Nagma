@@ -18,7 +18,7 @@ body {
   color: var(--color-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
-  background-image: 
+  background-image:
     radial-gradient(circle at top right, rgba(0, 191, 255, 0.1), transparent 800px),
     radial-gradient(circle at bottom left, rgba(0, 191, 255, 0.05), transparent 800px),
     radial-gradient(circle at center, rgba(0, 191, 255, 0.01), transparent 1000px),
@@ -46,3 +46,4 @@ body {
 .btn-primary:hover {
   @apply scale-105 shadow-[0_0_20px_rgba(0,191,255,0.5)];
 }
+

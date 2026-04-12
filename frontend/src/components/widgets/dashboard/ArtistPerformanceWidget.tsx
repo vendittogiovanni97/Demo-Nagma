@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart3 } from 'lucide-react';
-import { Bar, BarChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis } from 'recharts';
+import { Bar, BarChart, Tooltip as RechartsTooltip, ResponsiveContainer, XAxis } from 'recharts';
 
 import BentoCard from '@/components/data-display/BentoCard';
 import type { ArtistPerformance } from '@/types/transaction';
@@ -31,7 +31,7 @@ export default function ArtistPerformanceWidget({
           Nessun dato disponibile
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200}>
           <BarChart data={performance}>
             <XAxis dataKey="artistName" tick={{ fill: '#888', fontSize: 10 }} />
             <Bar dataKey="revenue" fill="#00BFFF" radius={[5, 5, 0, 0]} />

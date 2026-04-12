@@ -1,24 +1,33 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import * as Popover from '@radix-ui/react-popover';
-import { LayoutGrid, Calendar, Users, UsersRound, Package, Plus, LogOut, MessageSquare } from 'lucide-react';
-import BookingModal from '../modals/BookingModal';
-import { useAuth } from '@/context/AuthContext';
-import { branding } from '@/config/branding';
-import { canSendWhatsApp } from '@/utils/permissions';
+import { branding } from "@/config/branding";
+import { useAuth } from "@/context/AuthContext";
+import { canSendWhatsApp } from "@/utils/permissions";
+import * as Popover from "@radix-ui/react-popover";
+import {
+  Calendar,
+  LayoutGrid,
+  LogOut,
+  MessageSquare,
+  Package,
+  Plus,
+  Users,
+  UsersRound,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import BookingModal from "../modals/BookingModal";
 
 function getInitials(name?: string, email?: string) {
   if (name) {
     const parts = name.trim().split(/\s+/);
-    const first = parts[0]?.[0] ?? '';
-    const second = parts[1]?.[0] ?? '';
+    const first = parts[0]?.[0] ?? "";
+    const second = parts[1]?.[0] ?? "";
     return (first + second).toUpperCase() || first.toUpperCase();
   }
-  return (email?.[0] ?? 'U').toUpperCase();
+  return (email?.[0] ?? "U").toUpperCase();
 }
 
 export default function Navbar() {
@@ -27,15 +36,65 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
 
-  if (!isAuthenticated && pathname === '/login') return null;
-  if (!isAuthenticated) return null;
+  // --------------------------------------------------------------
+  // 1️⃣  Evita il primo render nullo sul server
+  // --------------------------------------------------------------
+  const [authChecked, setAuthChecked] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuthChecked(true);
+  }, []); // esegue solo sul client dopo il mount
 
+  // Prima che l’autenticazione sia verificata restituiamo un <nav> vuoto
+  // (o con uno scheletro leggero) così l’albero è identico su server/client.
+  if (!authChecked) {
+    return (
+      <nav
+        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]"
+      >
+        {/* eventuale scheletro o niente – importante che sia sempre un <nav> */}
+      </nav>
+    );
+  }
+
+  // --------------------------------------------------------------
+  // 2️⃣  Se l’utente non è autenticato, mostriamo comunque un <nav>
+  // --------------------------------------------------------------
+  if (!isAuthenticated) {
+    return (
+      <nav
+        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]"
+      >
+        {/* Puoi scegliere di mostrare solo il logo o lasciare vuoto */}
+        <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
+          <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
+            <div className="h-8 w-8 rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden">
+              <Image
+                src={branding.portalLogo}
+                alt={branding.portalName}
+                width={22}
+                height={22}
+                className="h-5 w-5 object-contain"
+              />
+            </div>
+            <span className="hidden md:block text-xs font-outfit font-semibold tracking-[0.4px]">
+              {branding.portalShortName}
+            </span>
+          </Link>
+        </div>
+      </nav>
+    );
+  }
+
+  // --------------------------------------------------------------
+  // 3️⃣  Utente autenticato → render completo (invariato rispetto al tuo codice)
+  // --------------------------------------------------------------
   const navItems = [
-    { name: 'Home', href: '/', icon: LayoutGrid },
-    { name: 'Agenda', href: '/agenda', icon: Calendar },
-    { name: 'Clienti', href: '/clienti', icon: Users },
-    { name: 'Inventario', href: '/creams', icon: Package },
-    { name: 'Team', href: '/team', icon: UsersRound },
+    { name: "Home", href: "/", icon: LayoutGrid },
+    { name: "Agenda", href: "/agenda", icon: Calendar },
+    { name: "Clienti", href: "/clienti", icon: Users },
+    { name: "Inventario", href: "/creams", icon: Package },
+    { name: "Team", href: "/team", icon: UsersRound },
   ];
 
   const initials = getInitials(user?.name, user?.email);
@@ -59,7 +118,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="w-[1px] h-[26px] bg-surface-border" />
+        <div className="w-px h-6.5 bg-surface-border" />
 
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -70,8 +129,8 @@ export default function Navbar() {
               href={item.href}
               className={`flex flex-col items-center gap-0.5 transition-all duration-200 p-1.5 ${
                 isActive
-                  ? 'text-accent -translate-y-[2px]'
-                  : 'text-text-secondary hover:text-accent hover:-translate-y-[2px]'
+                  ? "text-accent -translate-y-0.5"
+                  : "text-text-secondary hover:text-accent hover:-translate-y-0.5"
               }`}
             >
               <Icon size={20} />
@@ -82,22 +141,22 @@ export default function Navbar() {
           );
         })}
 
-        <div className="w-[1px] h-[26px] bg-surface-border" />
+        <div className="w-px h-6.5 bg-surface-border" />
 
         <button
           onClick={() => setIsBookingOpen(true)}
-          className="bg-accent text-black w-[38px] h-[38px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-90 hover:shadow-[0_0_20px_var(--color-accent)] cursor-pointer"
+          className="bg-accent text-black w-9.5 h-9.5 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-90 hover:shadow-[0_0_20px_var(--color-accent)] cursor-pointer"
         >
           <Plus size={22} />
         </button>
 
-        <div className="w-[1px] h-[26px] bg-surface-border mx-1.5" />
+        <div className="w-px h-6.5 bg-surface-border mx-1.5" />
 
         <Popover.Root open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <Popover.Trigger asChild>
             <button
-              className="group flex items-center justify-center h-[42px] w-[42px] rounded-full bg-accent/15 border border-accent/40 text-accent text-xs font-bold uppercase tracking-wider hover:bg-accent/25 hover:scale-105 transition-all cursor-pointer"
-              title={user?.name || user?.email || 'Profilo utente'}
+              className="group flex items-center justify-center h-10.5 w-10.5 rounded-full bg-accent/15 border border-accent/40 text-accent text-xs font-bold uppercase tracking-wider hover:bg-accent/25 hover:scale-105 transition-all cursor-pointer"
+              title={user?.name || user?.email || "Profilo utente"}
               aria-label="Menu utente"
             >
               {initials}
@@ -107,11 +166,11 @@ export default function Navbar() {
             <Popover.Content
               align="end"
               sideOffset={14}
-              className="z-[60] w-60 rounded-2xl border border-surface-border bg-[#0a1a26]/95 backdrop-blur-[20px] p-3 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]"
+              className="z-60 w-60 rounded-2xl border border-surface-border bg-[#0a1a26]/95 backdrop-blur-[20px] p-3 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]"
             >
               <div className="px-3 py-2 mb-2 border-b border-surface-border">
                 <div className="text-sm font-semibold text-white truncate">
-                  {user?.name || 'Utente'}
+                  {user?.name || "Utente"}
                 </div>
                 <div className="text-[11px] text-text-secondary truncate">{user?.email}</div>
                 {user?.role && (

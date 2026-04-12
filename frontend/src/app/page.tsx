@@ -1,11 +1,6 @@
 "use client";
 
-import useSWR from 'swr';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { format, subMonths, addMonths } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { useAuth } from '@/context/AuthContext';
+import { ENDPOINTS } from '@/api/endpoints';
 import { Skeleton } from '@/components/feedback/Skeleton';
 import ArtistPerformanceWidget from '@/components/widgets/dashboard/ArtistPerformanceWidget';
 import BookingStatsWidget from '@/components/widgets/dashboard/BookingStatsWidget';
@@ -13,10 +8,15 @@ import FinanceOverviewWidget from '@/components/widgets/dashboard/FinanceOvervie
 import MonthlyTrendWidget from '@/components/widgets/dashboard/MonthlyTrendWidget';
 import QuickActionsWidget from '@/components/widgets/dashboard/QuickActionsWidget';
 import TodayAgendaWidget from '@/components/widgets/dashboard/TodayAgendaWidget';
-import { transactionService } from '@/services/transaction.service';
-import { ENDPOINTS } from '@/api/endpoints';
+import { useAuth } from '@/context/AuthContext';
 import { useBookings, useBookingStats } from '@/hooks/domain';
-import type { FinanceSummary, MonthlyTrend, ArtistPerformance } from '@/types/transaction';
+import { transactionService } from '@/services/transaction.service';
+import type { ArtistPerformance, FinanceSummary, MonthlyTrend } from '@/types/transaction';
+import { addMonths, format, subMonths } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -24,7 +24,13 @@ export default function DashboardPage() {
   const [bookingDate, setBookingDate] = useState(new Date());
   const financeMonthStr = format(financeDate, 'yyyy-MM');
   const bookingMonthStr = format(bookingDate, 'yyyy-MM');
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAuthChecked(true);
+  }, []);
 
   const { data: financeSummary, isLoading: isFinanceLoading } = useSWR<FinanceSummary>(
     [ENDPOINTS.TRANSACTIONS.SUMMARY, financeMonthStr],
@@ -43,16 +49,30 @@ export default function DashboardPage() {
     ENDPOINTS.TRANSACTIONS.PERFORMANCE,
     () => transactionService.getArtistPerformance()
   );
-  const totalIncome = financeSummary?.totalIncome || 0;
-  const totalExpense = financeSummary?.totalExpense || 0;
+
+  const totalIncome = financeSummary?.totalIncome ?? 0;
+  const totalExpense = financeSummary?.totalExpense ?? 0;
   const financeMonthLabel = format(financeDate, 'MMM yyyy', { locale: it });
   const bookingMonthLabel = format(bookingDate, 'MMM yyyy', { locale: it });
 
-  if (isAuthLoading) return <div className="p-10"><Skeleton className="h-20 w-full" /></div>;
+  useEffect(() => {
+    if (authChecked && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authChecked, isAuthenticated, router]);
+
+  if (!authChecked) {
+    return (
+      <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
+        <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
+
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+    <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 auto-rows-auto">
         <FinanceOverviewWidget
           className="lg:col-span-2"
@@ -69,9 +89,9 @@ export default function DashboardPage() {
         <BookingStatsWidget
           className="lg:col-span-1"
           monthLabel={bookingMonthLabel}
-          total={bookingStats?.total || 0}
-          cancelled={bookingStats?.cancelled || 0}
-          completed={bookingStats?.completed || 0}
+          total={bookingStats?.total ?? 0}
+          cancelled={bookingStats?.cancelled ?? 0}
+          completed={bookingStats?.completed ?? 0}
           isLoading={isStatsLoading}
           onPreviousMonth={() => setBookingDate(subMonths(bookingDate, 1))}
           onNextMonth={() => setBookingDate(addMonths(bookingDate, 1))}
@@ -90,7 +110,6 @@ export default function DashboardPage() {
           onCustomersClick={() => router.push('/clienti')}
           onCreamsClick={() => router.push('/creams')}
         />
-
       </div>
     </div>
   );

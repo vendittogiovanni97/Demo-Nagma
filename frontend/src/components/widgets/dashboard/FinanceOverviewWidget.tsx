@@ -1,10 +1,10 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
-import { Skeleton } from '@/components/feedback/Skeleton';
 import BentoCard from '@/components/data-display/BentoCard';
+import { Skeleton } from '@/components/feedback/Skeleton';
 
 interface FinanceOverviewWidgetProps {
   totalIncome: number;
@@ -47,7 +47,7 @@ export default function FinanceOverviewWidget({
               >
                 <ArrowLeft size={12} />
               </button>
-              <span className="text-[10px] font-bold text-accent uppercase px-1.5 min-w-[52px] text-center leading-none">
+              <span className="text-[10px] font-bold text-accent uppercase px-1.5 min-w-13 text-center leading-none">
                 {monthLabel}
               </span>
               <button
@@ -66,7 +66,7 @@ export default function FinanceOverviewWidget({
         <Skeleton className="h-48" />
       ) : (
         <div className="flex h-48 flex-1 items-center gap-4">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200} initialDimension={{ width: 1, height: 1 }}>
             <PieChart>
               <Pie
                 data={financeData}

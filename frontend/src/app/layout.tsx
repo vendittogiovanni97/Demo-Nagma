@@ -27,9 +27,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <GlobalErrorBoundary>
             <Navbar />
-            <main className="px-[2%] min-h-screen flex flex-col pt-29">
-              {children}
-            </main>
+            <div className="min-h-screen flex flex-col pt-24">
+              <main className="px-[2%] flex-1 flex flex-col">
+                {children}
+              </main>
+            </div>
           </GlobalErrorBoundary>
         </AuthProvider>
 

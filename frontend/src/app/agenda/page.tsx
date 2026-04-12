@@ -54,9 +54,9 @@ export default function AgendaPage() {
   return (
     <div className="flex-1 flex flex-col gap-6 h-[calc(100vh-140px)]">
       {/* Header */}
-      <div className="flex justify-between items-center bg-surface p-6 rounded-[25px] border border-surface-border shadow-xl">
-        <div className="flex items-center gap-6">
-          <h1 className="text-3xl font-outfit font-bold text-white">Agenda Studio</h1>
+      <div className="flex justify-between items-center bg-surface p-4 rounded-[25px] border border-surface-border shadow-xl">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-outfit font-bold text-white">Agenda Studio</h1>
           <div className="flex items-center bg-white/5 rounded-xl p-1 border border-surface-border">
             <button onClick={() => setWeekStart(w => subWeeks(w, 1))} className="p-2 hover:bg-white/10 rounded-lg transition">
               <ChevronLeft size={20} />

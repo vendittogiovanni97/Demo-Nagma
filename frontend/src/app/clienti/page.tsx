@@ -188,10 +188,10 @@ export default function CustomersPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-surface-border text-text-secondary text-xs uppercase tracking-widest font-bold">
-                  <th className="p-5">Nominativo</th>
-                  <th className="p-5">Contatti</th>
-                  <th className="p-5">Ultima Visita</th>
-                  <th className="p-5">Appuntamenti</th>
+                  <th className="p-3">Nominativo</th>
+                  <th className="p-3">Contatti</th>
+                  <th className="p-3">Ultima Visita</th>
+                  <th className="p-3">Appuntamenti</th>
                   <th className="p-5 text-right">Azioni</th>
                 </tr>
               </thead>
@@ -199,23 +199,23 @@ export default function CustomersPage() {
                 {isLoading ? (
                   [1, 2, 3, 4, 5].map((i) => (
                     <tr key={i} className="border-b border-surface-border/50">
-                      <td className="p-5"><Skeleton variant="text" className="w-32" /></td>
-                      <td className="p-5"><Skeleton variant="text" className="w-48" /></td>
-                      <td className="p-5"><Skeleton variant="text" className="w-24" /></td>
-                      <td className="p-5"><Skeleton variant="circle" className="w-8 h-8" /></td>
-                      <td className="p-5"><Skeleton variant="rect" className="w-8 ml-auto" /></td>
+                      <td className="p-3"><Skeleton variant="text" className="w-32" /></td>
+                      <td className="p-3"><Skeleton variant="text" className="w-48" /></td>
+                      <td className="p-3"><Skeleton variant="text" className="w-24" /></td>
+                      <td className="p-3"><Skeleton variant="circle" className="w-8 h-8" /></td>
+                      <td className="p-3"><Skeleton variant="rect" className="w-8 ml-auto" /></td>
                     </tr>
                   ))
                 ) : (
                   customers?.map((customer) => (
                     <tr key={customer.id} className="border-b border-surface-border/50 hover:bg-white/2 transition-colors group">
-                      <td className="p-5">
+                      <td className="p-3">
                         <div className="flex flex-col">
                           <span className="text-white font-bold font-outfit">{customer.firstName} {customer.lastName}</span>
                           <span className="text-xs text-text-secondary italic">{customer.notes || 'Nessuna nota'}</span>
                         </div>
                       </td>
-                      <td className="p-5">
+                      <td className="p-3">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2 text-sm text-text-secondary">
                             <Phone size={14} className="text-accent" />
@@ -229,12 +229,12 @@ export default function CustomersPage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-5">
+                      <td className="p-3">
                         <span className="text-sm text-white">
                           {customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it }) : '-'}
                         </span>
                       </td>
-                      <td className="p-5">
+                      <td className="p-3">
                         <div className="bg-surface-border/30 w-10 h-10 rounded-full flex items-center justify-center text-accent font-bold">
                           {customer._count?.bookings || 0}
                         </div>

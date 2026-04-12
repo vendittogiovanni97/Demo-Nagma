@@ -5,6 +5,15 @@ type FetchOptions = RequestInit & {
   params?: Record<string, string | number | undefined>;
 };
 
+interface ApiErrorResponse {
+  message?: string;
+  error?: {
+    code?: string;
+    statusCode?: number;
+    details?: unknown;
+  };
+}
+
 async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { params, ...init } = options;
   
@@ -37,7 +46,7 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch<ApiErrorResponse>(() => ({}));
     throw new Error(errorData.message || `Errore ${response.status}: ${response.statusText}`);
   }
 
@@ -49,9 +58,9 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 export const apiClient = {
   get: <T>(url: string, params?: Record<string, string | number | undefined>) => 
     apiFetch<T>(url, { method: 'GET', params }),
-  post: <T>(url: string, body: any) => 
+  post: <T>(url: string, body: unknown) => 
     apiFetch<T>(url, { method: 'POST', body: JSON.stringify(body) }),
-  put: <T>(url: string, body: any) => 
+  put: <T>(url: string, body: unknown) => 
     apiFetch<T>(url, { method: 'PUT', body: JSON.stringify(body) }),
   delete: <T>(url: string) => 
     apiFetch<T>(url, { method: 'DELETE' }),

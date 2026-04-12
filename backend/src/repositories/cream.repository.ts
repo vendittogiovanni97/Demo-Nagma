@@ -2,8 +2,47 @@ import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
 
 export class CreamRepository {
-  async findAll() {
-    return prisma.cream.findMany({ where: { deletedAt: null } });
+  async findAllPaged({
+    search,
+    stockStatus,
+    page = 1,
+    limit = 12,
+  }: {
+    search?: string;
+    stockStatus?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const where: Prisma.CreamWhereInput = { deletedAt: null };
+
+    if (search?.trim()) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (stockStatus === 'LOW') where.stock = { gt: 0, lt: 5 };
+    if (stockStatus === 'OUT') where.stock = { lte: 0 };
+
+    const skip = (page - 1) * limit;
+    const [data, total] = await prisma.$transaction([
+      prisma.cream.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ stock: 'asc' }, { name: 'asc' }],
+      }),
+      prisma.cream.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
   }
 
   async findSales(sellerId?: string, monthStr?: string) {
@@ -51,4 +90,3 @@ export class CreamRepository {
     });
   }
 }
-

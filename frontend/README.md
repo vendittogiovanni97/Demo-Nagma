@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nagma Frontend
 
-## Getting Started
+Frontend Next.js del gestionale Nagma Tattoo CRM.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js `16.2.1` con App Router
+- React `19.2.4`
+- TypeScript `5`
+- SWR per caching e server state
+- Tailwind CSS `4`
+- Recharts per dashboard
+- `xlsx` per export file
+- `react-hot-toast` per feedback utente
+
+## Funzionalita principali
+
+- dashboard a widget con `BentoCard`
+- anagrafica clienti
+- agenda settimanale
+- spese / transazioni
+- team e turni
+- inventario / creme
+- export `CSV`, `XLSX` e stampa `PDF`
+- branding via `.env`
+- WhatsApp manuale con template, anteprima, modifica testo e storico invii
+
+## Struttura rilevante
+
+```txt
+frontend/src/
+├── app/
+│   ├── page.tsx
+│   ├── login/
+│   ├── clienti/
+│   ├── agenda/
+│   ├── spese/
+│   ├── team/
+│   ├── creams/
+│   └── whatsapp/
+├── api/
+├── components/
+├── config/
+├── context/
+├── hooks/
+│   ├── domain/
+│   └── useWhatsAppComposer.ts
+├── services/
+├── types/
+└── utils/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Avvio locale
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+App disponibile su `http://localhost:3000`.
 
-## Learn More
+## Variabili ambiente
 
-To learn more about Next.js, take a look at the following resources:
+File: `frontend/.env`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+NEXT_PUBLIC_PORTAL_NAME=
+NEXT_PUBLIC_PORTAL_SHORT_NAME=
+NEXT_PUBLIC_PORTAL_DESCRIPTION=
+NEXT_PUBLIC_PORTAL_LOGIN_TAGLINE=
+NEXT_PUBLIC_PORTAL_LOGO=
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Qualita codice
 
-## Deploy on Vercel
+```bash
+cd frontend
+npx tsc --noEmit
+npm run lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Convenzioni architetturali
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- niente barrel `index.ts`: import espliciti verso i file reali
+- hook di dominio in `src/hooks/domain/`
+- validazione frontend riallineata agli schema condivisi in `/schemas`
+- permessi UI centralizzati in `src/utils/permissions.ts`
+- export centralizzato in `src/utils/export.ts`
+- stato `loading / empty / error` standardizzato con componenti di feedback condivisi
+- composer WhatsApp condiviso tra pagina e modal per evitare duplicazioni
+
+## Domini principali
+
+### Dashboard
+
+- widget separati e riusabili
+- base comune tramite `BentoCard`
+- grafici e KPI isolati in componenti dedicati
+
+### CRUD e liste
+
+- filtri e ricerca nelle pagine principali
+- paginazione dove supportata dal backend
+- hook SWR dedicati per ridurre fetch duplicati
+
+### WhatsApp manuale
+
+La sezione WhatsApp e volutamente manuale:
+
+- nessun reminder automatico
+- template con categoria, attivo/disattivo e duplicazione
+- anteprima e modifica rapida del testo prima di aprire WhatsApp
+- apertura `wa.me` dal browser
+- storico invii registrato lato backend
+- template consigliati per casi d'uso frequenti
+
+## Stato attuale
+
+Frontend allineato a:
+
+- branding dinamico via env
+- role-based UI permissions
+- export filtrati
+- validazione condivisa FE/BE
+- logging backend con `requestId` usabile per debug FE/BE

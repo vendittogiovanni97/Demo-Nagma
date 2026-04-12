@@ -1,17 +1,15 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import type { Customer, CreateCustomerData } from '@/types';
-
-interface PaginatedCustomers {
-  data: Customer[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
+import type { Customer, CreateCustomerData } from '@/types/customer';
+import type { PaginatedResponse } from '@/types/pagination';
 
 export const customerService = {
-  getAll: async (search?: string, page: number = 1): Promise<PaginatedCustomers> => {
-    return apiClient.get<PaginatedCustomers>(ENDPOINTS.CUSTOMERS.BASE, { search, page });
+  getAll: async (
+    search?: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedResponse<Customer>> => {
+    return apiClient.get<PaginatedResponse<Customer>>(ENDPOINTS.CUSTOMERS.BASE, { search, page, limit });
   },
   getById: async (id: string): Promise<Customer> => {
     return apiClient.get<Customer>(ENDPOINTS.CUSTOMERS.BY_ID(id));

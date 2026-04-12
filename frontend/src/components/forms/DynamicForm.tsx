@@ -12,22 +12,22 @@ type FieldDef = {
 
 interface DynamicFormProps {
   base64Schema: string;
-  onSubmit: (data: Record<string, any>) => void;
+  onSubmit: (data: Record<string, string | number | boolean>) => void;
   submitLabel?: string;
 }
 
 export default function DynamicForm({ base64Schema, onSubmit, submitLabel = 'Salva Modulo' }: DynamicFormProps) {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, string | number | boolean>>({});
 
   let fields: FieldDef[] = [];
   try {
     const jsonStr = atob(base64Schema);
     fields = JSON.parse(jsonStr);
-  } catch (e) {
+  } catch {
     return <div className="text-danger p-4 border border-danger/20 rounded bg-danger/5">Errore decodifica Base64 Schema Form</div>;
   }
 
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -71,6 +71,15 @@ export default function DynamicForm({ base64Schema, onSubmit, submitLabel = 'Sal
                <option value="">Seleziona...</option>
                {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
              </select>
+          )}
+
+          {field.type === 'number' && (
+            <input
+              type="number"
+              required={field.required}
+              onChange={e => handleChange(field.name, Number(e.target.value))}
+              className="p-3 rounded-[10px] bg-[#0a0a0a] border border-surface-border text-white focus:border-accent outline-none"
+            />
           )}
 
           {field.type === 'checkbox' && (

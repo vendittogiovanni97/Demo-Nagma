@@ -1,6 +1,6 @@
 import { CustomerRepository } from '../repositories/customer.repository';
 import { AppError } from '../utils/AppError';
-import { validate, CreateCustomerSchema } from '../utils/validators';
+import { validate, CreateCustomerSchema, UpdateCustomerSchema } from '../utils/validators';
 
 const repository = new CustomerRepository();
 
@@ -26,8 +26,12 @@ export class CustomerService {
     });
   }
 
-  async updateCustomer(id: string, data: object) {
-    return repository.update(id, data);
+  async updateCustomer(id: string, body: unknown) {
+    const data = validate(UpdateCustomerSchema, body);
+    return repository.update(id, {
+      ...data,
+      email: data.email || undefined,
+    });
   }
 
   async deleteCustomer(id: string) {

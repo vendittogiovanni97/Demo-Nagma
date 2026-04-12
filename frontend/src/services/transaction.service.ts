@@ -1,10 +1,29 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import type { Transaction, CreateTransactionData, FinanceSummary, MonthlyTrend, ArtistPerformance } from '@/types';
+import type { Transaction, CreateTransactionData, FinanceSummary, MonthlyTrend, ArtistPerformance } from '@/types/transaction';
+import type { PaginatedResponse } from '@/types/pagination';
 
 export const transactionService = {
-  getAll: async (type?: string, month?: string): Promise<Transaction[]> => {
-    return apiClient.get<Transaction[]>(ENDPOINTS.TRANSACTIONS.BASE, { type, month });
+  getAll: async ({
+    type,
+    month,
+    search,
+    page = 1,
+    limit = 20,
+  }: {
+    type?: string;
+    month?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<PaginatedResponse<Transaction>> => {
+    return apiClient.get<PaginatedResponse<Transaction>>(ENDPOINTS.TRANSACTIONS.BASE, {
+      type,
+      month,
+      search,
+      page,
+      limit,
+    });
   },
   getSummary: async (month?: string): Promise<FinanceSummary> => {
     return apiClient.get<FinanceSummary>(ENDPOINTS.TRANSACTIONS.SUMMARY, { month });

@@ -4,6 +4,7 @@ export const ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
+    ME: '/api/auth/me',
   },
   CUSTOMERS: {
     BASE: '/api/customers',
@@ -13,6 +14,7 @@ export const ENDPOINTS = {
     BASE: '/api/bookings',
     STATS: '/api/bookings/stats',
     BY_ID: (id: string) => `/api/bookings/${id}`,
+    HISTORY: (id: string) => `/api/bookings/${id}/history`,
   },
   TRANSACTIONS: {
     BASE: '/api/transactions',
@@ -26,8 +28,16 @@ export const ENDPOINTS = {
     SALES: '/api/creams/sales',
     BY_ID: (id: string) => `/api/creams/${id}`,
   },
+  WHATSAPP: {
+    BASE: '/api/whatsapp-templates',
+    LOGS: '/api/whatsapp-templates/logs',
+    SEND: '/api/whatsapp-templates/send',
+    DUPLICATE: (id: string) => `/api/whatsapp-templates/${id}/duplicate`,
+    BY_ID: (id: string) => `/api/whatsapp-templates/${id}`,
+  },
   TEAM: {
     USERS: '/api/team/users',
+    USER_BY_ID: (id: string) => `/api/team/users/${id}`,
     SHIFTS: '/api/team/shifts',
     SHIFT_BY_ID: (id: string) => `/api/team/shifts/${id}`,
   },

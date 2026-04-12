@@ -1,31 +1,55 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import useSWR from 'swr';
 import { format, startOfWeek, addDays, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Clock } from 'lucide-react';
-import { bookingService } from '@/services/booking.service';
-import { ENDPOINTS } from '@/api/endpoints';
+import { ChevronLeft, ChevronRight, Plus, Clock, Search, MessageCircle } from 'lucide-react';
 import BookingModal from '@/components/modals/BookingModal';
-import type { Booking } from '@/types';
+import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
+import ExportButtons from '@/components/feedback/ExportButtons';
+import StatePanel from '@/components/feedback/StatePanel';
+import { useBookings } from '@/hooks/domain';
+import type { Booking } from '@/types/booking';
+import { useAuth } from '@/context/AuthContext';
+import { canSendWhatsApp } from '@/utils/permissions';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);
 
 export default function AgendaPage() {
+  const { user } = useAuth();
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [whatsAppBooking, setWhatsAppBooking] = useState<Booking | null>(null);
+  const [search, setSearch] = useState('');
+  const canSendMessages = canSendWhatsApp(user?.role);
 
   const monthStr = format(weekStart, 'yyyy-MM');
-  const { data: bookings, mutate } = useSWR<Booking[]>(
-    [ENDPOINTS.BOOKINGS.BASE, monthStr],
-    () => bookingService.getAll(monthStr)
-  );
+  const { data: bookings, mutate, isLoading, error } = useBookings(monthStr);
 
   const weekDays = useMemo(() =>
     eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) }),
     [weekStart]
   );
+
+  const filteredBookings = useMemo(() => {
+    if (!bookings) return [];
+    const normalizedSearch = search.trim().toLowerCase();
+    if (!normalizedSearch) return bookings;
+
+    return bookings.filter((booking) => {
+      const haystack = [
+        booking.customer?.firstName,
+        booking.customer?.lastName,
+        booking.artist?.name,
+        booking.type,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearch);
+    });
+  }, [bookings, search]);
 
   return (
     <div className="flex-1 flex flex-col gap-6 h-[calc(100vh-140px)]">
@@ -56,6 +80,43 @@ export default function AgendaPage() {
           <span>Nuovo Appuntamento</span>
         </button>
       </div>
+      <div className="flex justify-end">
+        <ExportButtons
+          filenameBase="agenda"
+          title="Agenda Studio"
+          rows={filteredBookings}
+          columns={[
+            {
+              label: 'Data',
+              value: (booking: Booking) =>
+                format(parseISO(booking.date), 'dd/MM/yyyy HH:mm', { locale: it }),
+            },
+            {
+              label: 'Cliente',
+              value: (booking: Booking) =>
+                `${booking.customer?.firstName || ''} ${booking.customer?.lastName || ''}`.trim(),
+            },
+            { label: 'Artista', value: (booking: Booking) => booking.artist?.name || '' },
+            { label: 'Tipo', value: (booking: Booking) => booking.type },
+            { label: 'Durata', value: (booking: Booking) => booking.duration },
+            { label: 'Stato', value: (booking: Booking) => booking.status },
+          ]}
+          filtersLabel={`Settimana: ${format(weekStart, 'dd/MM/yyyy')} - Ricerca: ${search || 'nessuna'}`}
+        />
+      </div>
+
+      <div className="glass-panel p-4">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cerca per cliente, artista o tipo appuntamento..."
+            className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent"
+          />
+        </div>
+      </div>
 
       {/* Calendar grid */}
       <div className="flex-1 glass-panel p-0 overflow-hidden flex flex-col">
@@ -80,6 +141,33 @@ export default function AgendaPage() {
         </div>
 
         {/* Time grid */}
+        {isLoading ? (
+          <div className="p-6">
+            <StatePanel
+              variant="loading"
+              title="Carico l'agenda"
+              description="Sto recuperando gli appuntamenti della settimana."
+            />
+          </div>
+        ) : null}
+        {error ? (
+          <div className="p-6">
+            <StatePanel
+              variant="error"
+              title="Impossibile caricare l'agenda"
+              description="Controlla la connessione o riprova tra poco."
+            />
+          </div>
+        ) : null}
+        {!isLoading && !error && filteredBookings.length === 0 ? (
+          <div className="p-6">
+            <StatePanel
+              variant="empty"
+              title="Nessun appuntamento trovato"
+              description={search ? 'Nessun risultato per i filtri attivi.' : 'Questa settimana non ha appuntamenti pianificati.'}
+            />
+          </div>
+        ) : null}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-[80px_repeat(7,1fr)] min-h-200">
             {/* Hours column */}
@@ -98,7 +186,7 @@ export default function AgendaPage() {
                   <div key={hour} className="h-20 border-b border-surface-border/30 group-hover:bg-white/[0.01] transition-colors" />
                 ))}
 
-                {bookings
+                {filteredBookings
                   ?.filter(b => isSameDay(parseISO(b.date), day))
                   .map(booking => {
                     const d = new Date(booking.date);
@@ -111,6 +199,19 @@ export default function AgendaPage() {
                         className="absolute left-1 right-1 rounded-xl p-2 text-[10px] overflow-hidden border-l-4 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform z-10"
                         style={{ top: `${top}px`, height: `${height}px`, backgroundColor: `${color}20`, borderColor: color }}
                       >
+                        {canSendMessages && booking.customer?.id && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setWhatsAppBooking(booking);
+                            }}
+                            className="absolute right-1 top-1 rounded-md bg-black/20 p-1 text-emerald-200 transition hover:bg-black/35"
+                            title="Apri WhatsApp"
+                          >
+                            <MessageCircle size={12} />
+                          </button>
+                        )}
                         <div className="font-bold text-white truncate">{booking.customer?.firstName} {booking.customer?.lastName}</div>
                         <div className="text-text-secondary opacity-80 uppercase tracking-tighter truncate">{booking.type} • {booking.artist?.name}</div>
                       </div>
@@ -123,6 +224,11 @@ export default function AgendaPage() {
       </div>
 
       <BookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => mutate()} />
+      <WhatsAppSendModal
+        isOpen={!!whatsAppBooking}
+        onClose={() => setWhatsAppBooking(null)}
+        booking={whatsAppBooking}
+      />
     </div>
   );
 }

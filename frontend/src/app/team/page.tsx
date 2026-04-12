@@ -1,70 +1,89 @@
 "use client";
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { teamService } from '@/services/team.service';
-import { ENDPOINTS } from '@/api/endpoints';
 import DataTable, { Column } from '@/components/data-display/DataTable';
 import StaffModal from '@/components/modals/StaffModal';
 import ShiftModal from '@/components/modals/ShiftModal';
 import PageHeader from '@/components/layout/PageHeader';
+import ExportButtons from '@/components/feedback/ExportButtons';
+import StatePanel from '@/components/feedback/StatePanel';
 import { useAuth } from '@/context/AuthContext';
-import { UsersRound, CalendarDays, Plus, Clock, Trash2 } from 'lucide-react';
+import { UsersRound, CalendarDays, Plus, Trash2, Search } from 'lucide-react';
 import { startOfWeek, format } from 'date-fns';
-import type { User, Shift } from '@/types';
-import toast from 'react-hot-toast';
+import { useTeamShifts, useTeamUsers } from '@/hooks/domain';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import type { User, Shift } from '@/types/team';
+import { canManageShifts, canManageStaff } from '@/utils/permissions';
+import { notifyError, notifySuccess } from '@/utils/toast';
 
 export default function TeamPage() {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'USER' | 'ARTIST'>('ALL');
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(search, 250);
+  const canManageUsers = canManageStaff(user?.role);
+  const canManageShiftData = canManageShifts(user?.role);
 
-  const { data: users, isLoading: loadingUsers, mutate: mutateUsers } = useSWR<User[]>(
-    ENDPOINTS.TEAM.USERS,
-    () => teamService.getUsers()
-  );
+  const { data: usersResult, isLoading: loadingUsers, mutate: mutateUsers, error: usersError } = useTeamUsers({
+    search: debouncedSearch,
+    role: roleFilter === 'ALL' ? undefined : roleFilter,
+    page,
+  });
+  const { data: shifts, isLoading: loadingShifts, mutate: mutateShifts, error: shiftsError } = useTeamShifts(week);
+  const filteredUsers = usersResult?.data || [];
 
-  const { data: shifts, isLoading: loadingShifts, mutate: mutateShifts } = useSWR<Shift[]>(
-    [ENDPOINTS.TEAM.SHIFTS, week],
-    () => teamService.getShifts(week)
-  );
-
-  const columns = [
-    { key: 'name', header: 'Nome Artista/Staff', render: (val: string) => (
+  const columns: Column<User>[] = [
+    { key: 'name', header: 'Nome', render: (val) => (
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-sm">
-          {val[0]}
+          {String(val ?? '?')[0]}
         </div>
-        <span className="font-bold text-white">{val}</span>
+        <span className="font-bold text-white">{String(val ?? '')}</span>
       </div>
-    ),
-  },
-  {
-    key: 'role',
-    header: 'Ruolo',
-    render: (val: string) => (
+    )},
+    { key: 'role', header: 'Ruolo', render: (val) => (
       <span className="text-accent uppercase text-[10px] tracking-widest font-bold bg-accent/5 px-2 py-1 rounded-full border border-accent/20">
-        {val}
+        {String(val ?? '')}
       </span>
-    ),
-  },
-  {
-    key: 'phone',
-    header: 'Telefono',
-    render: (val: string) => <span className="text-text-secondary text-sm">{val || '—'}</span>,
-  },
-];
+    )},
+    { key: 'phone', header: 'Telefono', render: (val) => <span className="text-text-secondary text-sm">{String(val || '—')}</span> },
+    { key: 'id', header: '', render: (_val, user: User) => (
+      canManageUsers ? (
+        <button
+          onClick={() => handleDeleteUser(user.id, user.name)}
+          className="p-2 text-danger opacity-0 group-hover:opacity-100 hover:bg-danger/10 rounded-lg transition-all"
+          title="Rimuovi dal team"
+        >
+          <Trash2 size={16} />
+        </button>
+      ) : null
+    )},
+  ];
+
+  const handleDeleteUser = async (id: string, name: string) => {
+    if (!confirm(`Rimuovere "${name}" dal team?`)) return;
+    try {
+      await teamService.deleteUser(id);
+      notifySuccess(`${name} rimosso dal team`);
+      mutateUsers();
+    } catch (err: unknown) {
+      notifyError(err, 'Errore durante l\'eliminazione');
+    }
+  };
 
   const handleDeleteShift = async (id: string) => {
     if (!confirm('Eliminare questo turno?')) return;
     try {
       await teamService.deleteShift(id);
-      toast.success('Turno eliminato');
+      notifySuccess('Turno eliminato');
       mutateShifts();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Errore durante l\'eliminazione';
-      toast.error(message);
+      notifyError(err, 'Errore durante l\'eliminazione');
     }
   };
 
@@ -74,26 +93,109 @@ export default function TeamPage() {
         title="Team & Turni"
         subtitle="Organizza i collaboratori e le disponibilità dello studio"
         actions={
-          <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
-            <Plus size={20} />
-            <span>Aggiungi Staff</span>
-          </button>
+          <>
+            <ExportButtons
+              filenameBase="team"
+              title="Team"
+              rows={filteredUsers}
+              columns={[
+                { label: 'Nome', value: (entry: User) => entry.name },
+                { label: 'Email', value: (entry: User) => entry.email },
+                { label: 'Ruolo', value: (entry: User) => entry.role },
+                { label: 'Telefono', value: (entry: User) => entry.phone || '' },
+              ]}
+              filtersLabel={`Ricerca: ${search || 'nessuna'} - Ruolo: ${roleFilter}`}
+              resolveRows={async () => {
+                const response = await teamService.getUsers({
+                  search: debouncedSearch,
+                  role: roleFilter === 'ALL' ? undefined : roleFilter,
+                  page: 1,
+                  limit: 1000,
+                });
+                return response.data;
+              }}
+            />
+            <ExportButtons
+              filenameBase="turni"
+              title="Turni"
+              rows={shifts || []}
+              columns={[
+                { label: 'Collaboratore', value: (shift: Shift) => shift.user?.name || '' },
+                { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
+                { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek },
+                {
+                  label: 'Orario',
+                  value: (shift: Shift) => (shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`),
+                },
+              ]}
+              filtersLabel={`Settimana: ${week}`}
+            />
+            {canManageUsers ? (
+              <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
+                <Plus size={20} />
+                <span>Aggiungi Staff</span>
+              </button>
+            ) : null}
+          </>
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
         <div className="glass-panel p-6 flex flex-col gap-6">
           <div className="flex items-center gap-2">
             <UsersRound className="text-accent" size={20} />
             <h2 className="text-xl font-outfit">Collaboratori</h2>
           </div>
+          <div className="flex flex-col gap-3 md:flex-row">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Cerca per nome, email o telefono..."
+                className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent"
+              />
+            </div>
+            <select
+              value={roleFilter}
+              onChange={(e) => {
+                setRoleFilter(e.target.value as 'ALL' | 'ADMIN' | 'USER' | 'ARTIST');
+                setPage(1);
+              }}
+              className="rounded-xl border border-surface-border bg-white/5 px-4 py-3 text-white outline-none transition focus:border-accent"
+            >
+              <option value="ALL">Tutti i ruoli</option>
+              <option value="ADMIN">Admin</option>
+              <option value="USER">Segreteria</option>
+              <option value="ARTIST">Artist</option>
+            </select>
+          </div>
           <div className="flex-1 overflow-hidden">
-            <DataTable
-              data={users || []}
-              columns={columns}
-              isLoading={loadingUsers}
-              emptyMessage="Nessun collaboratore trovato."
-            />
+            {usersError ? (
+              <StatePanel
+                variant="error"
+                title="Impossibile caricare il team"
+                description="Riprova tra qualche secondo."
+              />
+            ) : (
+              <DataTable
+                data={filteredUsers}
+                columns={columns}
+                isLoading={loadingUsers}
+                emptyMessage="Nessun collaboratore trovato."
+                pagination={{
+                  page: usersResult?.page ?? 1,
+                  totalPages: usersResult?.totalPages ?? 1,
+                  total: usersResult?.total ?? 0,
+                  onPrev: () => setPage((prev) => Math.max(1, prev - 1)),
+                  onNext: () => setPage((prev) => Math.min(usersResult?.totalPages ?? 1, prev + 1)),
+                }}
+              />
+            )}
           </div>
         </div>
 
@@ -111,14 +213,25 @@ export default function TeamPage() {
               />
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+            <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
             {loadingShifts ? (
-              <div className="text-text-secondary text-center mt-10 italic">Caricamento turni...</div>
+              <StatePanel
+                variant="loading"
+                title="Carico i turni"
+                description="Sto recuperando la matrice della settimana."
+              />
+            ) : shiftsError ? (
+              <StatePanel
+                variant="error"
+                title="Impossibile caricare i turni"
+                description="Riprova tra poco."
+              />
             ) : !shifts?.length ? (
-              <div className="flex flex-col items-center justify-center h-40 text-text-secondary gap-3 bg-white/2 rounded-3xl border border-dashed border-surface-border">
-                <Clock size={32} className="opacity-20" />
-                <span className="text-sm">Nessun turno per questa settimana.</span>
-              </div>
+              <StatePanel
+                variant="empty"
+                title="Nessun turno per questa settimana"
+                description="Pianifica il primo turno per iniziare."
+              />
             ) : (
                shifts.map((s) => (
                  <div key={s.id} className="p-4 bg-white/5 border border-surface-border rounded-2xl flex justify-between items-center hover:border-accent/40 transition group">
@@ -131,18 +244,22 @@ export default function TeamPage() {
                         <span className="text-[10px] text-text-secondary uppercase tracking-widest">{s.isOff ? 'Giorno Libero' : `${s.startTime} - ${s.endTime}`}</span>
                      </div>
                    </div>
-                   <button onClick={() => handleDeleteShift(s.id)} className="p-2 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/10 rounded-lg">
-                      <Trash2 size={16} />
-                   </button>
+                   {canManageShiftData ? (
+                     <button onClick={() => handleDeleteShift(s.id)} className="p-2 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/10 rounded-lg">
+                        <Trash2 size={16} />
+                     </button>
+                   ) : null}
                  </div>
                ))
             )}
           </div>
 
-          <button onClick={() => setIsShiftModalOpen(true)} className="glass-btn w-full mt-2 py-4 flex items-center justify-center gap-2">
-            <Plus size={18} />
-            <span>Pianifica Turno</span>
-          </button>
+          {canManageShiftData ? (
+            <button onClick={() => setIsShiftModalOpen(true)} className="glass-btn w-full mt-2 py-4 flex items-center justify-center gap-2">
+              <Plus size={18} />
+              <span>Pianifica Turno</span>
+            </button>
+          ) : null}
         </div>
       </div>
 

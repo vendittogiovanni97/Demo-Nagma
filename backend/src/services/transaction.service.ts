@@ -5,9 +5,9 @@ import { validate, CreateTransactionSchema } from '../utils/validators';
 const repository = new TransactionRepository();
 
 export class TransactionService {
-  async getTransactions(type?: string, month?: string) {
+  async getTransactions(type?: string, month?: string, search?: string, page = 1, limit = 20) {
     const enumType = type?.toUpperCase() as TransactionType | undefined;
-    return repository.findAll(enumType, month);
+    return repository.findAllPaged({ type: enumType, monthStr: month, search, page, limit });
   }
 
   async createTransaction(body: unknown) {
@@ -28,7 +28,7 @@ export class TransactionService {
   async getSummary(month?: string) {
     const rows = await repository.getSummary(month);
     const result = { totalIncome: 0, totalExpense: 0, balance: 0 };
-    rows.forEach((row: any) => {
+    rows.forEach((row) => {
       if (row.type === 'INCOME') result.totalIncome = row._sum.amount ?? 0;
       if (row.type === 'EXPENSE') result.totalExpense = row._sum.amount ?? 0;
     });

@@ -1,21 +1,25 @@
+import type { Role } from '@/types/team';
+
 export interface LoginCredentials {
   email: string;
   password: string;
+}
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
 }
 
 export interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role?: 'ADMIN' | 'USER' | 'ARTIST';
+  role?: Role;
 }
 
 export interface AuthResponse {
   token: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
+  user: AuthUser;
 }

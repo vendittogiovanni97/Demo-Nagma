@@ -1,65 +1,148 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import prisma from './utils/prisma';
-import { AppError } from './utils/AppError';
+import type { Server } from 'http';
 
-import authRoutes from './routes/auth.routes';
-import customerRoutes from './routes/customer.routes';
-import transactionRoutes from './routes/transaction.routes';
-import bookingRoutes from './routes/booking.routes';
-import teamRoutes from './routes/team.routes';
-import creamRoutes from './routes/cream.routes';
+import prisma from './utils/prisma';
+import { createApp } from './app';
+import { isDebugHttpEnabled, logger } from './utils/logger';
 
 dotenv.config();
 
-// Verifica variabili d'ambiente critiche prima di avviare
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET non configurato. Aggiungilo al file .env');
+const RESTART_DELAY_MS = 10_000;
+const port = Number(process.env.PORT || 3001);
+
+let server: Server | null = null;
+let restartTimer: NodeJS.Timeout | null = null;
+let isRestarting = false;
+let isShuttingDown = false;
+
+function validateEnv() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET non configurato. Aggiungilo al file .env');
+  }
+
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL non configurato. Aggiungilo al file .env');
+  }
 }
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL non configurato. Aggiungilo al file .env');
+
+async function stopServer() {
+  if (server) {
+    await new Promise<void>((resolve, reject) => {
+      server?.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+    server = null;
+    logger.info('HTTP server chiuso correttamente');
+  }
+
+  await prisma.$disconnect();
+  logger.info('Connessione Prisma chiusa');
 }
 
-const app = express();
-const port = process.env.PORT || 3001;
+async function startServer() {
+  validateEnv();
 
-// CORS: permette solo le origini dichiarate in .env (default: localhost:3000)
-const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000').split(',');
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
+  const app = createApp();
 
-app.use(express.json());
+  await prisma.$connect();
+  logger.info('Connessione Prisma aperta');
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/team', teamRoutes);
-app.use('/api/creams', creamRoutes);
+  await new Promise<void>((resolve, reject) => {
+    const nextServer = app.listen(port, () => {
+      server = nextServer;
+      logger.info('Server avviato', {
+        port,
+        env: process.env.NODE_ENV || 'development',
+        debugHttp: isDebugHttpEnabled(),
+      });
+      resolve();
+    });
 
-// Health check
-app.get('/health', async (_req: Request, res: Response) => {
+    nextServer.on('error', reject);
+  });
+}
+
+async function scheduleRestart(reason: string, error?: unknown) {
+  if (isShuttingDown || isRestarting) return;
+
+  isRestarting = true;
+  logger.error('Crash rilevato, preparo riavvio controllato', { reason });
+  if (error) {
+    logger.errorWithStack('Dettaglio crash', error, { reason });
+  }
+
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', db: 'connected' });
-  } catch {
-    res.status(500).json({ message: 'Connessione al database fallita' });
+    await stopServer();
+  } catch (shutdownError) {
+    logger.errorWithStack('Errore durante lo stop prima del riavvio', shutdownError);
   }
+
+  logger.warn('Riavvio pianificato', {
+    delaySeconds: RESTART_DELAY_MS / 1000,
+    reason,
+  });
+
+  restartTimer = setTimeout(() => {
+    restartTimer = null;
+    isRestarting = false;
+
+    logger.info('Tentativo di riavvio automatico in corso');
+    void boot();
+  }, RESTART_DELAY_MS);
+}
+
+async function shutdown(signal: string) {
+  if (isShuttingDown) return;
+
+  isShuttingDown = true;
+  logger.warn('Segnale di arresto ricevuto', { signal });
+
+  if (restartTimer) {
+    clearTimeout(restartTimer);
+    restartTimer = null;
+  }
+
+  try {
+    await stopServer();
+    logger.info('Arresto completato');
+    process.exit(0);
+  } catch (error) {
+    logger.errorWithStack('Errore durante l\'arresto del server', error, { signal });
+    process.exit(1);
+  }
+}
+
+async function boot() {
+  try {
+    logger.info('Avvio backend in corso');
+    await startServer();
+  } catch (error) {
+    await scheduleRestart('errore durante l\'avvio', error);
+  }
+}
+
+process.on('uncaughtException', (error) => {
+  logger.errorWithStack('uncaughtException intercettata', error);
+  void scheduleRestart('uncaughtException', error);
 });
 
-// Global error handler
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  if (err instanceof AppError) {
-    return res.status(err.status).json({ message: err.message });
-  }
-  console.error(err);
-  res.status(500).json({ message: 'Errore interno del server' });
+process.on('unhandledRejection', (reason) => {
+  logger.error('unhandledRejection intercettata', { reason });
+  void scheduleRestart('unhandledRejection', reason);
 });
 
-app.listen(port, () => {
-  console.log(`Server in ascolto sulla porta ${port}`);
+process.on('SIGINT', () => {
+  void shutdown('SIGINT');
 });
+
+process.on('SIGTERM', () => {
+  void shutdown('SIGTERM');
+});
+
+void boot();

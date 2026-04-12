@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { creamService } from '@/services/cream.service';
-import { teamService } from '@/services/team.service';
-import { ENDPOINTS } from '@/api/endpoints';
-import type { Cream, User } from '@/types';
+import { useTeamUsers } from '@/hooks/domain';
+import { useAuth } from '@/context/AuthContext';
+import type { Cream } from '@/types/cream';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
 import { Plus } from 'lucide-react';
-import toast from 'react-hot-toast';
+import StatePanel from '@/components/feedback/StatePanel';
+import { canManageInventory } from '@/utils/permissions';
+import { notifyError, notifySuccess } from '@/utils/toast';
 
 interface SaleModalProps {
   isOpen: boolean;
@@ -21,10 +22,10 @@ interface SaleModalProps {
 }
 
 export default function SaleModal({ isOpen, onClose, cream, onSuccess }: SaleModalProps) {
-  const { data: artists } = useSWR<User[]>(
-    isOpen ? ENDPOINTS.TEAM.USERS : null,
-    () => teamService.getUsers()
-  );
+  const { user } = useAuth();
+  const canManage = canManageInventory(user?.role);
+  const { data: artistsResult } = useTeamUsers({ page: 1, limit: 1000, enabled: isOpen });
+  const artists = artistsResult?.data;
 
   const [sellerId, setSellerId] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -33,7 +34,7 @@ export default function SaleModal({ isOpen, onClose, cream, onSuccess }: SaleMod
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cream || !sellerId) {
-      toast.error('Seleziona un venditore');
+      notifyError(new Error('Seleziona un venditore'), 'Seleziona un venditore');
       return;
     }
 
@@ -45,14 +46,13 @@ export default function SaleModal({ isOpen, onClose, cream, onSuccess }: SaleMod
         quantity: Number(quantity),
         totalPrice: cream.price * Number(quantity),
       });
-      toast.success('Vendita registrata!');
+      notifySuccess(`Vendita di ${quantity}x "${cream.name}" registrata!`);
       onSuccess();
       setSellerId('');
       setQuantity('1');
       onClose();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Errore nella registrazione';
-      toast.error(message);
+      notifyError(error, 'Errore nella registrazione');
     } finally {
       setLoading(false);
     }
@@ -60,6 +60,13 @@ export default function SaleModal({ isOpen, onClose, cream, onSuccess }: SaleMod
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Vendita: ${cream?.name || ''}`} maxWidth="max-w-md">
+      {!canManage ? (
+        <StatePanel
+          variant="error"
+          title="Permessi insufficienti"
+          description="Solo admin e segreteria possono registrare vendite di magazzino."
+        />
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-5">
         <FormSelect
           label="Venduto da (Artista)"
@@ -92,6 +99,7 @@ export default function SaleModal({ isOpen, onClose, cream, onSuccess }: SaleMod
 
         <SubmitButton loading={loading} label="Conferma Vendita" icon={Plus} />
       </form>
+      )}
     </Modal>
   );
 }

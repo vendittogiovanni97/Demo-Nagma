@@ -2,12 +2,50 @@ import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
 
 export class UserRepository {
-  async findAll() {
-    return prisma.user.findMany({
-      where: { deletedAt: null },
-      orderBy: { name: 'asc' },
-      omit: { password: true },
-    });
+  async findAllPaged({
+    search,
+    role,
+    page = 1,
+    limit = 20,
+  }: {
+    search?: string;
+    role?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const where: Prisma.UserWhereInput = { deletedAt: null };
+
+    if (role === 'ADMIN' || role === 'USER' || role === 'ARTIST') {
+      where.role = role;
+    }
+
+    if (search?.trim()) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const [data, total] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { name: 'asc' },
+        omit: { password: true },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
   }
 
   async findById(id: string) {
@@ -33,4 +71,3 @@ export class UserRepository {
     });
   }
 }
-

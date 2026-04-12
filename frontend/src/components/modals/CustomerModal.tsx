@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { User, Phone, Mail, FileText, Save } from 'lucide-react';
+import { User, Phone, Mail, FileText, Save, MessageCircle } from 'lucide-react';
 import { customerService } from '@/services/customer.service';
-import type { Customer, CreateCustomerData } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import StatePanel from '@/components/feedback/StatePanel';
+import type { Customer, CreateCustomerData } from '@/types/customer';
 import Modal from './Modal';
+import WhatsAppSendModal from './WhatsAppSendModal';
 import FormInput from '../forms/FormInput';
 import FormTextarea from '../forms/FormTextarea';
 import SubmitButton from '../forms/SubmitButton';
-import toast from 'react-hot-toast';
+import { canManageCustomers, canSendWhatsApp } from '@/utils/permissions';
+import { notifyError, notifySuccess } from '@/utils/toast';
+import { validateCustomerData } from '@/utils/validation';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +23,7 @@ interface Props {
 }
 
 export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: Props) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<CreateCustomerData>({
     firstName: '',
     lastName: '',
@@ -26,6 +32,9 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     notes: ''
   });
   const [loading, setLoading] = useState(false);
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const canManage = canManageCustomers(user?.role);
+  const canSend = canSendWhatsApp(user?.role);
 
   useEffect(() => {
     setFormData(customer
@@ -36,30 +45,53 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationError = validateCustomerData(formData);
+    if (validationError) {
+      notifyError(new Error(validationError), validationError);
+      return;
+    }
+
     setLoading(true);
     try {
       if (customer) {
         await customerService.update(customer.id, formData);
-        toast.success('Cliente aggiornato');
+        notifySuccess('Cliente aggiornato');
       } else {
         await customerService.create(formData);
-        toast.success('Cliente creato');
+        notifySuccess('Cliente creato');
       }
       onSuccess();
       onClose();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Errore durante l\'operazione';
-      toast.error(message);
+      notifyError(error, 'Errore durante l\'operazione');
     } finally {
       setLoading(false);
     }
   };
 
-  const inputCls = 'w-full bg-white/5 border border-surface-border rounded-xl p-3 text-white focus:outline-none focus:border-accent transition-all';
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={customer ? 'Modifica Cliente' : 'Nuovo Cliente'}>
+      {!canManage ? (
+        <StatePanel
+          variant="error"
+          title="Permessi insufficienti"
+          description="Solo admin e segreteria possono modificare l'anagrafica clienti."
+        />
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-6">
+        {customer && canSend ? (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsWhatsAppOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/15"
+            >
+              <MessageCircle size={16} />
+              <span>Invia WhatsApp</span>
+            </button>
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-2 gap-4">
           <FormInput
             label="Nome"
@@ -106,6 +138,13 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
           icon={Save}
         />
       </form>
+      )}
+
+      <WhatsAppSendModal
+        isOpen={isWhatsAppOpen}
+        onClose={() => setIsWhatsAppOpen(false)}
+        customer={customer}
+      />
     </Modal>
   );
 }

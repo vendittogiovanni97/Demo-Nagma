@@ -1,40 +1,57 @@
 "use client";
 
-import { useState } from 'react';
-import useSWR from 'swr';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { customerService } from '@/services/customer.service';
-import { ENDPOINTS } from '@/api/endpoints';
-import { Search, UserPlus, Phone, Mail, MoreHorizontal, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, UserPlus, Phone, Mail, MoreHorizontal, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Skeleton } from '@/components/feedback/Skeleton';
-import type { Customer } from '@/types';
+import ExportButtons from '@/components/feedback/ExportButtons';
+import StatePanel from '@/components/feedback/StatePanel';
+import type { Customer } from '@/types/customer';
 import PageHeader from '@/components/layout/PageHeader';
 import CustomerModal from '@/components/modals/CustomerModal';
-import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
+import { useCustomers } from '@/hooks/domain';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { canManageCustomers, canSendWhatsApp } from '@/utils/permissions';
+import { notifyError, notifySuccess } from '@/utils/toast';
 
 export default function CustomersPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const debouncedSearch = useDebouncedValue(search, 250);
+  const canManage = canManageCustomers(user?.role);
+  const canSendMessages = canSendWhatsApp(user?.role);
 
-  const { data: result, mutate, isLoading } = useSWR(
-    [ENDPOINTS.CUSTOMERS.BASE, search, page],
-    () => customerService.getAll(search, page)
-  );
+  const { data: result, mutate, isLoading, error } = useCustomers({ search: debouncedSearch, page });
   const customers = result?.data;
   const totalPages = result?.totalPages ?? 1;
+  const exportColumns = useMemo(() => [
+    { label: 'Nome', value: (customer: Customer) => `${customer.firstName} ${customer.lastName}` },
+    { label: 'Telefono', value: (customer: Customer) => customer.phone },
+    { label: 'Email', value: (customer: Customer) => customer.email || '' },
+    { label: 'Note', value: (customer: Customer) => customer.notes || '' },
+    {
+      label: 'Creato il',
+      value: (customer: Customer) =>
+        format(new Date(customer.createdAt), 'dd/MM/yyyy', { locale: it }),
+    },
+    { label: 'Appuntamenti', value: (customer: Customer) => customer._count?.bookings || 0 },
+  ], []);
 
   const handleDelete = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
       try {
         await customerService.delete(id);
-        toast.success('Cliente eliminato');
+        notifySuccess('Cliente eliminato');
         mutate();
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Errore durante l\'eliminazione';
-        toast.error(message);
+        notifyError(err, 'Errore durante l\'eliminazione');
       }
     }
   };
@@ -117,13 +134,28 @@ export default function CustomersPage() {
         title="Anagrafica Clienti"
         subtitle="Gestisci i tuoi contatti e visualizza la loro storia"
         actions={
-          <button
-            onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
-            className="btn-primary flex items-center gap-2 px-6"
-          >
-            <UserPlus size={20} />
-            <span>Nuovo Cliente</span>
-          </button>
+          <>
+            <ExportButtons
+              filenameBase="clienti"
+              title="Anagrafica Clienti"
+              rows={customers || []}
+              columns={exportColumns}
+              filtersLabel={`Ricerca: ${debouncedSearch || 'nessuna'} - Pagina: ${page}`}
+              resolveRows={async () => {
+                const response = await customerService.getAll(debouncedSearch, 1, 1000);
+                return response.data;
+              }}
+            />
+            {canManage ? (
+              <button
+                onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
+                className="btn-primary flex items-center gap-2 px-6"
+              >
+                <UserPlus size={20} />
+                <span>Nuovo Cliente</span>
+              </button>
+            ) : null}
+          </>
         }
       />
 
@@ -143,6 +175,15 @@ export default function CustomersPage() {
 
       <div className="flex-1 overflow-hidden">
         <div className="glass-panel h-full flex flex-col overflow-hidden">
+          {error ? (
+            <div className="p-6">
+              <StatePanel
+                variant="error"
+                title="Impossibile caricare i clienti"
+                description="Riprova tra qualche secondo o aggiorna la pagina."
+              />
+            </div>
+          ) : null}
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -167,7 +208,7 @@ export default function CustomersPage() {
                   ))
                 ) : (
                   customers?.map((customer) => (
-                    <tr key={customer.id} className="border-b border-surface-border/50 hover:bg-white/[0.02] transition-colors group">
+                    <tr key={customer.id} className="border-b border-surface-border/50 hover:bg-white/2 transition-colors group">
                       <td className="p-5">
                         <div className="flex flex-col">
                           <span className="text-white font-bold font-outfit">{customer.firstName} {customer.lastName}</span>
@@ -207,20 +248,33 @@ export default function CustomersPage() {
                           >
                             <Eye size={18} />
                           </button>
-                          <button
-                            onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
-                            className="p-2 hover:bg-white/10 rounded-lg text-accent transition"
-                            title="Modifica"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(customer.id)}
-                            className="p-2 hover:bg-danger/20 rounded-lg text-danger transition"
-                            title="Elimina"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          {canSendMessages ? (
+                            <Link
+                              href={`/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`}
+                              className="p-2 hover:bg-white/10 rounded-lg text-emerald-300 transition"
+                              title="Invia WhatsApp"
+                            >
+                              <MessageCircle size={18} />
+                            </Link>
+                          ) : null}
+                          {canManage ? (
+                            <>
+                              <button
+                                onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
+                                className="p-2 hover:bg-white/10 rounded-lg text-accent transition"
+                                title="Modifica"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(customer.id)}
+                                className="p-2 hover:bg-danger/20 rounded-lg text-danger transition"
+                                title="Elimina"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                         <MoreHorizontal className="group-hover:hidden text-text-secondary ml-auto" />
                       </td>
@@ -229,8 +283,12 @@ export default function CustomersPage() {
                 )}
                 {!isLoading && (!customers || customers.length === 0) && (
                   <tr>
-                    <td colSpan={5} className="p-20 text-center text-text-secondary italic">
-                      Nessun cliente trovato
+                    <td colSpan={5} className="p-8">
+                      <StatePanel
+                        variant="empty"
+                        title="Nessun cliente trovato"
+                        description={debouncedSearch ? 'Prova a cambiare ricerca o svuotare i filtri.' : 'Quando aggiungi il primo cliente lo vedrai qui.'}
+                      />
                     </td>
                   </tr>
                 )}

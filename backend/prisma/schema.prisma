@@ -20,6 +20,7 @@ model User {
   bookings      Booking[]
   shifts        Shift[]
   creamSales    CreamSale[]
+  whatsappLogs  WhatsAppMessageLog[]
 }
 
 enum Role {
@@ -39,6 +40,7 @@ model Customer {
   createdAt     DateTime    @default(now())
   bookings      Booking[]
   creamSales    CreamSale[]
+  whatsappLogs  WhatsAppMessageLog[]
 }
 
 model Booking {
@@ -60,6 +62,7 @@ model Booking {
   deletedAt       DateTime?       // soft delete
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  whatsappLogs    WhatsAppMessageLog[]
 }
 
 enum BookingStatus {
@@ -145,6 +148,34 @@ model FormTemplate {
 model WhatsAppTemplate {
   id          String    @id @default(cuid())
   name        String    // es. "Conferma Appuntamento", "Reminder 24h"
+  category    String?
   body        String    // testo con variabili {{nome}}, {{data}}, ecc.
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  logs        WhatsAppMessageLog[]
+}
+
+model WhatsAppMessageLog {
+  id              String                @id @default(cuid())
+  template        WhatsAppTemplate?     @relation(fields: [templateId], references: [id])
+  templateId      String?
+  booking         Booking?              @relation(fields: [bookingId], references: [id])
+  bookingId       String?
+  customer        Customer?             @relation(fields: [customerId], references: [id])
+  customerId      String?
+  createdBy       User                  @relation(fields: [createdById], references: [id])
+  createdById     String
+  recipientName   String?
+  recipientPhone  String
+  templateName    String?
+  message         String
+  status          WhatsAppMessageStatus @default(MANUAL_SENT)
+  variablesJson   Json?
+  createdAt       DateTime              @default(now())
+}
+
+enum WhatsAppMessageStatus {
+  MANUAL_SENT
+  FAILED
 }

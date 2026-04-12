@@ -2,11 +2,28 @@ import prisma from '../utils/prisma';
 import { Prisma, TransactionType } from '@prisma/client';
 
 export class TransactionRepository {
-  async findAll(type?: TransactionType, monthStr?: string) {
+  async findAllPaged({
+    type,
+    monthStr,
+    search,
+    page = 1,
+    limit = 20,
+  }: {
+    type?: TransactionType;
+    monthStr?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const whereClause: Prisma.TransactionWhereInput = { deletedAt: null };
     if (type) whereClause.type = type;
+    if (search?.trim()) {
+      whereClause.OR = [
+        { description: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-    // Filtro mese basico, es: '2026-03'
     if (monthStr) {
       const start = new Date(`${monthStr}-01T00:00:00.000Z`);
       const end = new Date(start);
@@ -14,10 +31,24 @@ export class TransactionRepository {
       whereClause.date = { gte: start, lt: end };
     }
 
-    return prisma.transaction.findMany({
-      where: whereClause,
-      orderBy: { date: 'desc' }
-    });
+    const skip = (page - 1) * limit;
+    const [data, total] = await prisma.$transaction([
+      prisma.transaction.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { date: 'desc' },
+      }),
+      prisma.transaction.count({ where: whereClause }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
   }
 
   async create(data: Prisma.TransactionCreateInput) {

@@ -33,6 +33,7 @@ export default function FormSelect({
       <label className="text-text-secondary text-sm flex items-center gap-2 px-1">
         {Icon && <Icon size={14} />}
         {label}
+        {required && <span className="text-red-400">*</span>}
       </label>
       <select
         required={required}

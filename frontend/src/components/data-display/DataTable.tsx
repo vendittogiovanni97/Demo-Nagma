@@ -7,7 +7,7 @@ import { TableSkeleton } from '../feedback/Skeleton';
 export interface Column<T> {
   key: string;
   header: string;
-  render?: (value: any, item: T) => React.ReactNode;
+  render?: (value: unknown, item: T) => React.ReactNode;
 }
 
 interface Pagination {
@@ -26,7 +26,7 @@ interface DataTableProps<T> {
   pagination?: Pagination;
 }
 
-export default function DataTable<T extends Record<string, any>>({
+export default function DataTable<T extends { id?: string | number }>({
   data,
   columns,
   isLoading,
@@ -62,11 +62,13 @@ export default function DataTable<T extends Record<string, any>>({
             {data.map((row, rowIdx) => (
               <tr
                 key={row.id ?? rowIdx}
-                className="hover:bg-white/2 transition-colors border-b border-surface-border/50 last:border-0"
+                className="group hover:bg-white/2 transition-colors border-b border-surface-border/50 last:border-0"
               >
                 {columns.map((col, colIdx) => (
                   <td key={col.key || colIdx} className="py-4 px-6 text-sm text-white">
-                    {col.render ? col.render(row[col.key], row) : row[col.key]}
+                    {col.render
+                      ? col.render((row as Record<string, unknown>)[col.key], row)
+                      : String((row as Record<string, unknown>)[col.key] ?? '')}
                   </td>
                 ))}
               </tr>

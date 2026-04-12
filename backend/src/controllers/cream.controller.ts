@@ -1,63 +1,45 @@
 import { Request, Response } from 'express';
 import { CreamService } from '../services/cream.service';
+import { asyncHandler } from '../utils/async-handler';
 
 const service = new CreamService();
 
 export class CreamController {
-  getAll = async (req: Request, res: Response) => {
-    try {
-      const data = await service.getCreams();
-      res.json(data);
-    } catch (e: any) {
-      res.status(e.status ?? 500).json({ message: e.message });
-    }
-  };
+  getAll = asyncHandler(async (req: Request, res: Response) => {
+    const data = await service.getCreams(
+      req.query.search as string | undefined,
+      req.query.stockStatus as string | undefined,
+      req.query.page ? Number(req.query.page) : 1,
+      req.query.limit ? Number(req.query.limit) : 12
+    );
+    res.json(data);
+  });
 
-  create = async (req: Request, res: Response) => {
-    try {
-      const data = await service.createCream(req.body);
-      res.status(201).json(data);
-    } catch (e: any) {
-      res.status(e.status ?? 500).json({ message: e.message });
-    }
-  };
+  create = asyncHandler(async (req: Request, res: Response) => {
+    const data = await service.createCream(req.body);
+    res.status(201).json(data);
+  });
 
-  update = async (req: Request, res: Response) => {
-    try {
-      const data = await service.updateCream(String(req.params.id), req.body);
-      res.json(data);
-    } catch (e: any) {
-      res.status(e.status ?? 500).json({ message: e.message });
-    }
-  };
+  update = asyncHandler(async (req: Request, res: Response) => {
+    const data = await service.updateCream(String(req.params.id), req.body);
+    res.json(data);
+  });
 
-  delete = async (req: Request, res: Response) => {
-    try {
-      await service.deleteCream(String(req.params.id));
-      res.status(204).send();
-    } catch (e: any) {
-      res.status(e.status ?? 500).json({ message: e.message });
-    }
-  };
+  delete = asyncHandler(async (req: Request, res: Response) => {
+    await service.deleteCream(String(req.params.id));
+    res.status(204).send();
+  });
 
-  getSales = async (req: Request, res: Response) => {
-    try {
-      const data = await service.getSales(
-        req.query.sellerId as string | undefined,
-        req.query.month as string | undefined
-      );
-      res.json(data);
-    } catch (e: any) {
-      res.status(e.status ?? 500).json({ message: e.message });
-    }
-  };
+  getSales = asyncHandler(async (req: Request, res: Response) => {
+    const data = await service.getSales(
+      req.query.sellerId as string | undefined,
+      req.query.month as string | undefined
+    );
+    res.json(data);
+  });
 
-  registerSale = async (req: Request, res: Response) => {
-    try {
-      const data = await service.registerSale(req.body);
-      res.status(201).json(data);
-    } catch (e: any) {
-      res.status(e.status ?? 500).json({ message: e.message });
-    }
-  };
+  registerSale = asyncHandler(async (req: Request, res: Response) => {
+    const data = await service.registerSale(req.body);
+    res.status(201).json(data);
+  });
 }

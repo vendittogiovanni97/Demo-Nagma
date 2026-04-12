@@ -1,12 +1,13 @@
 import prisma from '../utils/prisma';
 import { CreamRepository } from '../repositories/cream.repository';
 import { validate, CreateCreamSchema, UpdateCreamSchema, RegisterSaleSchema } from '../utils/validators';
+import { AppError } from '../utils/AppError';
 
 const repo = new CreamRepository();
 
 export class CreamService {
-  async getCreams() {
-    return repo.findAll();
+  async getCreams(search?: string, stockStatus?: string, page = 1, limit = 12) {
+    return repo.findAllPaged({ search, stockStatus, page, limit });
   }
 
   async createCream(body: unknown) {
@@ -39,10 +40,14 @@ export class CreamService {
     return prisma.$transaction(async (tx) => {
       const cream = await tx.cream.findUnique({ where: { id: data.creamId } });
       if (!cream || cream.deletedAt) {
-        throw { status: 404, message: 'Prodotto non trovato' };
+        throw new AppError('Prodotto non trovato', 404, 'NOT_FOUND');
       }
       if (cream.stock < data.quantity) {
-        throw { status: 400, message: `Stock insufficiente: disponibili ${cream.stock} pz, richiesti ${data.quantity}` };
+        throw new AppError(
+          `Stock insufficiente: disponibili ${cream.stock} pz, richiesti ${data.quantity}`,
+          400,
+          'INSUFFICIENT_STOCK'
+        );
       }
 
       await tx.cream.update({

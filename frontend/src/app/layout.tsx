@@ -4,14 +4,20 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
+import { branding } from '@/config/branding';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 
 export const metadata: Metadata = {
-  title: 'Nagma Tattoo | CRM',
-  description: 'Gestionale Completo Nagma Tattoo Studio',
+  title: branding.portalName,
+  description: branding.portalDescription,
+  icons: {
+    icon: branding.portalLogo,
+    shortcut: branding.portalLogo,
+    apple: branding.portalLogo,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <GlobalErrorBoundary>
             <Navbar />
-            <main className="px-[5%] pb-8 min-h-screen flex flex-col pt-28">
+            <main className="px-[2%] min-h-screen flex flex-col pt-29">
               {children}
             </main>
           </GlobalErrorBoundary>

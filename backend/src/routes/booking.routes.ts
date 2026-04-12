@@ -11,6 +11,7 @@ router.use(authMiddleware);
 router.get('/stats', controller.getStats);
 router.get('/', controller.getAll);
 router.post('/', controller.create);
+router.get('/:id/history', controller.getHistory);
 router.put('/:id', controller.update);
 router.delete('/:id', controller.delete);
 

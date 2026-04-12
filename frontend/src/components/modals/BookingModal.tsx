@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { bookingService } from '@/services/booking.service';
-import { customerService } from '@/services/customer.service';
-import { teamService } from '@/services/team.service';
-import { ENDPOINTS } from '@/api/endpoints';
-import type { Customer, User, CreateBookingData } from '@/types';
+import { useCustomers, useTeamUsers } from '@/hooks/domain';
+import type { CreateBookingData } from '@/types/booking';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import toast from 'react-hot-toast';
+import { notifyError, notifySuccess } from '@/utils/toast';
+import { validateBookingData } from '@/utils/validation';
 
 interface Props {
   isOpen: boolean;
@@ -28,32 +26,31 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
   const [type, setType] = useState('Tattoo');
   const [loading, setLoading] = useState(false);
 
-  const { data: customers } = useSWR<Customer[]>(
-    isOpen ? ENDPOINTS.CUSTOMERS.BASE : null,
-    () => customerService.getAll()
-  );
-  const { data: artists } = useSWR<User[]>(
-    isOpen ? ENDPOINTS.TEAM.USERS : null,
-    () => teamService.getUsers()
-  );
+  const { data: customerResult } = useCustomers({ page: 1, limit: 1000, enabled: isOpen });
+  const { data: artistsResult } = useTeamUsers({ page: 1, limit: 1000, enabled: isOpen });
+  const customers = customerResult?.data;
+  const artists = artistsResult?.data;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId || !artistId || !date || !time) {
-      return toast.error('Compila tutti i campi obbligatori');
+    const bookingDate = date && time ? new Date(`${date}T${time}`).toISOString() : '';
+    const data: CreateBookingData = {
+      customerId,
+      artistId,
+      date: bookingDate,
+      duration: Number(duration),
+      type,
+    };
+    const validationError = validateBookingData({ ...data, time });
+    if (validationError) {
+      notifyError(new Error(validationError), validationError);
+      return;
     }
 
     setLoading(true);
     try {
-      const data: CreateBookingData = {
-        customerId,
-        artistId,
-        date: new Date(`${date}T${time}`).toISOString(),
-        duration: Number(duration),
-        type,
-      };
       await bookingService.create(data);
-      toast.success('Prenotazione confermata!');
+      notifySuccess(`Prenotazione del ${date} alle ${time} confermata!`);
       setCustomerId('');
       setArtistId('');
       setDate('');
@@ -63,8 +60,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Errore nella prenotazione';
-      toast.error(message);
+      notifyError(error, 'Errore nella prenotazione');
     } finally {
       setLoading(false);
     }
@@ -75,7 +71,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
     <Modal isOpen={isOpen} onClose={onClose} title="Nuova Prenotazione">
       <form className="space-y-4" onSubmit={handleSubmit}>
         <FormSelect
-          label="Cliente *"
+          label="Cliente"
           value={customerId}
           onChange={setCustomerId}
           placeholder="Seleziona cliente..."
@@ -87,13 +83,13 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
         />
 
         <div className="grid grid-cols-2 gap-4">
-          <FormInput label="Data *" type="date" required value={date} onChange={setDate} />
-          <FormInput label="Ora *" type="time" required value={time} onChange={setTime} />
+          <FormInput label="Data" type="date" required value={date} onChange={setDate} />
+          <FormInput label="Ora" type="time" required value={time} onChange={setTime} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormSelect
-            label="Artista *"
+            label="Artista"
             value={artistId}
             onChange={setArtistId}
             placeholder="Seleziona artista..."

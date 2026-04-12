@@ -35,7 +35,8 @@ export interface MonthlyTrend {
 
 export interface ArtistPerformance {
   artistId: string;
-  _sum: {
-    price: number;
-  };
+  artistName: string;
+  artistColor: string | null;
+  bookings: number;
+  revenue: number;
 }

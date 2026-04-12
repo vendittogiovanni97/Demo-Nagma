@@ -37,6 +37,16 @@ export interface CreateBookingData {
   notes?: string;
 }
 
+export interface BookingHistory {
+  id: string;
+  bookingId: string;
+  action: string;
+  oldDate?: string;
+  newDate?: string;
+  changedBy: string;
+  changedAt: string;
+}
+
 export interface BookingStats {
   total: number;
   confirmed: number;

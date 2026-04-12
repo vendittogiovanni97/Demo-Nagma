@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { Lock, Mail, Loader2 } from 'lucide-react';
+import { branding } from '@/config/branding';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,7 +18,7 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-    } catch (error) {
+    } catch {
       // Errore gestito internamente dal context con toast
     } finally {
       setLoading(false);
@@ -24,14 +26,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="glass-panel w-full max-w-md p-10 flex flex-col items-center">
-        <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mb-6 border border-accent/30 shadow-[0_0_30px_rgba(0,191,255,0.2)]">
-          <Lock className="text-accent" size={32} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background p-6 overflow-hidden">
+      <div className="w-full max-w-md flex flex-col items-center">
+        <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mb-6 border border-accent/30 shadow-[0_0_30px_rgba(0,191,255,0.2)] overflow-hidden">
+          <Image
+            src={branding.portalLogo}
+            alt={branding.portalName}
+            width={56}
+            height={56}
+            className="h-14 w-14 object-contain"
+          />
         </div>
-        
+
         <h1 className="text-3xl font-outfit font-bold text-white mb-2">Benvenuto</h1>
-        <p className="text-text-secondary text-sm mb-8">Nagma Tattoo Studio Management</p>
+        <p className="text-text-secondary text-sm mb-1">{branding.portalName}</p>
+        <p className="text-text-secondary text-sm mb-8">{branding.portalLoginTagline}</p>
 
         <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
           <div className="relative">
@@ -69,7 +78,7 @@ export default function LoginPage() {
 
         <div className="mt-8 text-center">
           <p className="text-xs text-text-secondary tracking-widest uppercase">
-            © 2026 Nagma Tattoo CRM
+            © 2026 {branding.portalName}
           </p>
         </div>
       </div>

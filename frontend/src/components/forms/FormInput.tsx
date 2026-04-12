@@ -34,6 +34,7 @@ export default function FormInput({
       <label className="text-text-secondary text-sm flex items-center gap-2 px-1">
         {Icon && <Icon size={14} />}
         {label}
+        {required && <span className="text-red-400">*</span>}
       </label>
       <input
         type={type}

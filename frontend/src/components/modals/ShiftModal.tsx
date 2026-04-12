@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { teamService } from '@/services/team.service';
-import { ENDPOINTS } from '@/api/endpoints';
-import type { User, CreateShiftData } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { useTeamUsers } from '@/hooks/domain';
+import type { CreateShiftData } from '@/types/team';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import toast from 'react-hot-toast';
+import StatePanel from '@/components/feedback/StatePanel';
+import { canManageShifts } from '@/utils/permissions';
+import { notifyError, notifySuccess } from '@/utils/toast';
 
 interface Props {
   isOpen: boolean;
@@ -29,20 +31,20 @@ const DAYS = [
 ];
 
 export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Props) {
+  const { user } = useAuth();
   const [userId, setUserId] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState('0');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('18:00');
   const [loading, setLoading] = useState(false);
+  const canManage = canManageShifts(user?.role);
 
-  const { data: users } = useSWR<User[]>(
-    isOpen ? ENDPOINTS.TEAM.USERS : null,
-    () => teamService.getUsers()
-  );
+  const { data: usersResult } = useTeamUsers({ page: 1, limit: 1000, enabled: isOpen });
+  const users = usersResult?.data;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) return toast.error('Seleziona un collaboratore');
+    if (!userId) return notifyError(new Error('Seleziona un collaboratore'), 'Seleziona un collaboratore');
     setLoading(true);
     try {
       const data: CreateShiftData = {
@@ -53,7 +55,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
         endTime,
       };
       await teamService.createShift(data);
-      toast.success('Turno pianificato');
+      notifySuccess('Turno pianificato');
       setUserId('');
       setDayOfWeek('0');
       setStartTime('09:00');
@@ -61,8 +63,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Errore nella creazione turno';
-      toast.error(message);
+      notifyError(err, 'Errore nella creazione turno');
     } finally {
       setLoading(false);
     }
@@ -70,6 +71,13 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Pianifica Turno">
+      {!canManage ? (
+        <StatePanel
+          variant="error"
+          title="Permessi insufficienti"
+          description="Solo admin e segreteria possono gestire i turni."
+        />
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormSelect
           label="Collaboratore *"
@@ -94,6 +102,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
 
         <SubmitButton loading={loading} label="Salva Turno" />
       </form>
+      )}
     </Modal>
   );
 }

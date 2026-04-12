@@ -2,19 +2,60 @@ import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
 
 export class BookingRepository {
-  async findAll(monthStr?: string) {
-    const where: Prisma.BookingWhereInput = { deletedAt: null };
+  private buildBaseWhere(monthStr?: string): Prisma.BookingWhereInput {
+    const where: Prisma.BookingWhereInput = {
+      deletedAt: null,
+      // Escludi prenotazioni il cui cliente o artista è stato soft-deleted.
+      customer: { is: { deletedAt: null } },
+      artist: { is: { deletedAt: null } },
+    };
     if (monthStr) {
       const start = new Date(`${monthStr}-01T00:00:00.000Z`);
       const end = new Date(start);
       end.setMonth(end.getMonth() + 1);
       where.date = { gte: start, lt: end };
     }
+    return where;
+  }
+
+  async findAll(monthStr?: string) {
     return prisma.booking.findMany({
-      where,
+      where: this.buildBaseWhere(monthStr),
       orderBy: { date: 'asc' },
-      include: { customer: true, artist: true }
+      include: { customer: true, artist: true },
     });
+  }
+
+  async findAllPaged({
+    monthStr,
+    page = 1,
+    limit = 20,
+  }: {
+    monthStr?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const where = this.buildBaseWhere(monthStr);
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await prisma.$transaction([
+      prisma.booking.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { date: 'desc' },
+        include: { customer: true, artist: true },
+      }),
+      prisma.booking.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
   }
 
   async getStats(monthStr?: string) {

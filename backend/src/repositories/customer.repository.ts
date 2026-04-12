@@ -49,9 +49,20 @@ export class CustomerRepository {
     return prisma.customer.findFirst({
       where: { id, deletedAt: null },
       include: {
-        bookings: { where: { deletedAt: null }, orderBy: { date: 'desc' } },
+        bookings: {
+          where: {
+            deletedAt: null,
+            // Nascondi prenotazioni di artisti soft-deleted dalla scheda cliente.
+            artist: { is: { deletedAt: null } },
+          },
+          orderBy: { date: 'desc' },
+        },
         creamSales: {
-          where: { deletedAt: null },
+          where: {
+            deletedAt: null,
+            // Nascondi vendite di prodotti soft-deleted dallo storico cliente.
+            cream: { is: { deletedAt: null } },
+          },
           include: { cream: true },
           orderBy: { createdAt: 'desc' },
         },

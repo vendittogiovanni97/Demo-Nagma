@@ -10,6 +10,10 @@ export class BookingService {
     return repository.findAll(month);
   }
 
+  async getBookingsPaged(month: string | undefined, page: number, limit: number) {
+    return repository.findAllPaged({ monthStr: month, page, limit });
+  }
+
   async getStats(month?: string) {
     return repository.getStats(month);
   }

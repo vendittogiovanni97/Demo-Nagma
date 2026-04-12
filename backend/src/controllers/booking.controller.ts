@@ -7,7 +7,17 @@ const service = new BookingService();
 
 export class BookingController {
   getAll = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.getBookings(req.query.month as string | undefined);
+    const month = req.query.month as string | undefined;
+    // Paginazione opzionale: se page o limit sono presenti, ritorna shape paginata.
+    // Altrimenti shape flat (retrocompatibile con la calendar view dell'agenda).
+    if (req.query.page || req.query.limit) {
+      const page = req.query.page ? Number(req.query.page) : 1;
+      const limit = req.query.limit ? Number(req.query.limit) : 20;
+      const data = await service.getBookingsPaged(month, page, limit);
+      res.json(data);
+      return;
+    }
+    const data = await service.getBookings(month);
     res.json(data);
   });
 

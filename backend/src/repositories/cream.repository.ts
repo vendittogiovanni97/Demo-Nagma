@@ -46,7 +46,12 @@ export class CreamRepository {
   }
 
   async findSales(sellerId?: string, monthStr?: string) {
-    const where: Prisma.CreamSaleWhereInput = { deletedAt: null };
+    const where: Prisma.CreamSaleWhereInput = {
+      deletedAt: null,
+      // Escludi vendite di prodotti o venditori soft-deleted.
+      cream: { is: { deletedAt: null } },
+      seller: { is: { deletedAt: null } },
+    };
     if (sellerId) where.sellerId = sellerId;
     if (monthStr) {
       const start = new Date(`${monthStr}-01T00:00:00.000Z`);

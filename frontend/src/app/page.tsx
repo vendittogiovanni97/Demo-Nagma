@@ -20,17 +20,33 @@ import useSWR from 'swr';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
+        <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
+
+  return <DashboardContent />;
+}
+
+function DashboardContent() {
+  const router = useRouter();
   const [financeDate, setFinanceDate] = useState(new Date());
   const [bookingDate, setBookingDate] = useState(new Date());
   const financeMonthStr = format(financeDate, 'yyyy-MM');
   const bookingMonthStr = format(bookingDate, 'yyyy-MM');
-  const { isAuthenticated } = useAuth();
-  const [authChecked, setAuthChecked] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAuthChecked(true);
-  }, []);
 
   const { data: financeSummary, isLoading: isFinanceLoading } = useSWR<FinanceSummary>(
     [ENDPOINTS.TRANSACTIONS.SUMMARY, financeMonthStr],
@@ -54,22 +70,6 @@ export default function DashboardPage() {
   const totalExpense = financeSummary?.totalExpense ?? 0;
   const financeMonthLabel = format(financeDate, 'MMM yyyy', { locale: it });
   const bookingMonthLabel = format(bookingDate, 'MMM yyyy', { locale: it });
-
-  useEffect(() => {
-    if (authChecked && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [authChecked, isAuthenticated, router]);
-
-  if (!authChecked) {
-    return (
-      <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
-        <Skeleton className="h-20 w-full" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">

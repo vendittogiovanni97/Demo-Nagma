@@ -1,13 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
 import { authService } from '@/services/auth.service';
 import type { AuthUser, LoginCredentials } from '@/types/auth';
 import type { Role } from '@/types/team';
+import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
 import { hasRequiredRole } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
+import { useRouter } from 'next/navigation';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -63,9 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user);
       setCurrentUser(response.user);
       setIsAuthenticated(true);
+      setIsLoading(false);
 
       notifySuccess('Accesso effettuato!');
-      router.push('/');
     } catch (error: unknown) {
       notifyError(error, 'Credenziali non valide');
       throw error;

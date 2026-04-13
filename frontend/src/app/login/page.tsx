@@ -4,14 +4,22 @@ import { branding } from '@/config/branding';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +27,7 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
+      router.push('/');
     } catch {
       // Errore gestito internamente dal context con toast
     } finally {

@@ -2,13 +2,14 @@
 
 import { branding } from '@/config/branding';
 import { useAuth } from '@/context/AuthContext';
-import { Loader2, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
@@ -58,13 +59,21 @@ export default function LoginPage() {
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[rgba(255,255,255,0.03)] border border-surface-border text-white pl-12 pr-4 py-4 rounded-[15px] focus:border-accent focus:outline-none transition-colors"
+              className="w-full bg-[rgba(255,255,255,0.03)] border border-surface-border text-white pl-12 pr-12 py-4 rounded-[15px] focus:border-accent focus:outline-none transition-colors"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white transition-colors cursor-pointer"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           <button

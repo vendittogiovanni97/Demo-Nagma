@@ -1,0 +1,6 @@
+NEXT_PUBLIC_PORTAL_NAME="Nagma Tattoo CRM"
+NEXT_PUBLIC_PORTAL_SHORT_NAME="Nagma"
+NEXT_PUBLIC_PORTAL_DESCRIPTION="Gestionale completo Nagma Tattoo Studio"
+NEXT_PUBLIC_PORTAL_LOGIN_TAGLINE="Nagma Tattoo Studio Management"
+NEXT_PUBLIC_PORTAL_LOGO="/logo.svg"
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3001"

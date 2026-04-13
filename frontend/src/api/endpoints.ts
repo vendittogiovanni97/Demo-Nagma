@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:3001';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export const ENDPOINTS = {
   AUTH: {
@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   CUSTOMERS: {
     BASE: '/api/customers',
     BY_ID: (id: string) => `/api/customers/${id}`,
+    SUMMARY: (id: string) => `/api/customers/${id}/summary`,
   },
   BOOKINGS: {
     BASE: '/api/bookings',

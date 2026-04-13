@@ -1,0 +1,140 @@
+// swagger.ts — Swagger/OpenAPI configuration
+// Uses dynamic require because swagger-jsdoc is a CommonJS-only package.
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const swaggerJsdoc = require('swagger-jsdoc');
+
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Nagma Tattoo CRM API',
+      version: '1.0.0',
+      description: 'API documentation for Nagma Tattoo CRM - Gestionale completo per studio tatuaggi',
+      contact: {
+        name: 'Nagma Team',
+      },
+    },
+    servers: [
+      {
+        url: 'http://localhost:3001',
+        description: 'Development server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Inserisci il token JWT senza il prefisso "Bearer "',
+        },
+      },
+      schemas: {
+        Error: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            message: { type: 'string' },
+            requestId: { type: 'string', format: 'uuid' },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                statusCode: { type: 'integer' },
+                details: { type: 'array', items: { type: 'object' } },
+              },
+            },
+          },
+        },
+        User: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'cuid' },
+            name: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            role: { type: 'string', enum: ['ADMIN', 'USER', 'ARTIST'] },
+            phone: { type: 'string' },
+            color: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Customer: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'cuid' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' },
+            phone: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            notes: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Booking: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'cuid' },
+            customerId: { type: 'string' },
+            artistId: { type: 'string' },
+            date: { type: 'string', format: 'date-time' },
+            duration: { type: 'integer', description: 'Durata in minuti' },
+            status: { type: 'string', enum: ['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED'] },
+            type: { type: 'string', description: 'Tipo servizio (Tattoo, Touch-up, Consulenza)' },
+            price: { type: 'number' },
+            deposit: { type: 'number' },
+            notes: { type: 'string' },
+          },
+        },
+        Transaction: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'cuid' },
+            type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
+            category: { type: 'string' },
+            description: { type: 'string' },
+            amount: { type: 'number' },
+            date: { type: 'string', format: 'date-time' },
+            artistId: { type: 'string' },
+          },
+        },
+        Cream: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'cuid' },
+            name: { type: 'string' },
+            brand: { type: 'string' },
+            price: { type: 'number' },
+            stock: { type: 'integer' },
+          },
+        },
+        PaginatedResponse: {
+          type: 'object',
+          properties: {
+            data: { type: 'array', items: { type: 'object' } },
+            total: { type: 'integer' },
+            page: { type: 'integer' },
+            limit: { type: 'integer' },
+            totalPages: { type: 'integer' },
+          },
+        },
+      },
+    },
+    tags: [
+      { name: 'Auth', description: 'Autenticazione e gestione sessione' },
+      { name: 'Customers', description: 'Anagrafica clienti' },
+      { name: 'Bookings', description: 'Appuntamenti e prenotazioni' },
+      { name: 'Transactions', description: 'Transazioni finanziarie' },
+      { name: 'Team', description: 'Gestione team e turni' },
+      { name: 'Creams', description: 'Prodotti e vendite creme' },
+      { name: 'WhatsApp', description: 'Template e invio messaggi WhatsApp' },
+      { name: 'Health', description: 'Health check' },
+    ],
+  },
+  apis: [
+    './src/routes/*.ts',
+    './src/controllers/*.ts',
+  ],
+};
+
+export const swaggerSpec = swaggerJsdoc(options);

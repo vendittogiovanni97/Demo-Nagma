@@ -1,18 +1,20 @@
-import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import crypto from 'crypto';
+import express, { NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 
-import prisma from './utils/prisma';
+import { swaggerSpec } from './config/swagger';
+import authRoutes from './routes/auth.routes';
+import bookingRoutes from './routes/booking.routes';
+import creamRoutes from './routes/cream.routes';
+import customerRoutes from './routes/customer.routes';
+import teamRoutes from './routes/team.routes';
+import transactionRoutes from './routes/transaction.routes';
+import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
 import { AppError } from './utils/AppError';
 import { getRequestContext, isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
-import authRoutes from './routes/auth.routes';
-import customerRoutes from './routes/customer.routes';
-import transactionRoutes from './routes/transaction.routes';
-import bookingRoutes from './routes/booking.routes';
-import teamRoutes from './routes/team.routes';
-import creamRoutes from './routes/cream.routes';
-import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
+import prisma from './utils/prisma';
 
 export function createApp() {
   const app = express();
@@ -90,6 +92,13 @@ export function createApp() {
   app.use('/api/team', teamRoutes);
   app.use('/api/creams', creamRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
+
+  // Swagger API Docs
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Nagma Tattoo CRM - API Docs',
+  }));
 
   app.get('/health', async (_req: Request, res: Response) => {
     try {

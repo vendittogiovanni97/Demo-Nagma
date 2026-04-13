@@ -1,6 +1,6 @@
 import { CustomerRepository } from '../repositories/customer.repository';
 import { AppError } from '../utils/AppError';
-import { validate, CreateCustomerSchema, UpdateCustomerSchema } from '../utils/validators';
+import { CreateCustomerSchema, UpdateCustomerSchema, validate } from '../utils/validators';
 
 const repository = new CustomerRepository();
 
@@ -13,6 +13,12 @@ export class CustomerService {
     const customer = await repository.findById(id);
     if (!customer) throw new AppError('Cliente non trovato.', 404);
     return customer;
+  }
+
+  async getCustomerSummary(id: string) {
+    const summary = await repository.getCustomerSummary(id);
+    if (!summary) throw new AppError('Cliente non trovato.', 404);
+    return summary;
   }
 
   async createCustomer(body: unknown) {

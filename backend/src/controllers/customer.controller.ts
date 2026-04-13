@@ -18,6 +18,11 @@ export class CustomerController {
     res.json(data);
   });
 
+  getSummary = asyncHandler(async (req: Request, res: Response) => {
+    const data = await service.getCustomerSummary(String(req.params.id));
+    res.json(data);
+  });
+
   create = asyncHandler(async (req: Request, res: Response) => {
     const data = await service.createCustomer(req.body);
     res.status(201).json(data);

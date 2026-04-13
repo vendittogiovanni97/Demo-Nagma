@@ -1,6 +1,6 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import type { Customer, CreateCustomerData } from '@/types/customer';
+import type { CreateCustomerData, Customer, CustomerSummary } from '@/types/customer';
 import type { PaginatedResponse } from '@/types/pagination';
 
 export const customerService = {
@@ -13,6 +13,9 @@ export const customerService = {
   },
   getById: async (id: string): Promise<Customer> => {
     return apiClient.get<Customer>(ENDPOINTS.CUSTOMERS.BY_ID(id));
+  },
+  getSummary: async (id: string): Promise<CustomerSummary> => {
+    return apiClient.get<CustomerSummary>(ENDPOINTS.CUSTOMERS.SUMMARY(id));
   },
   create: async (data: CreateCustomerData) => {
     return apiClient.post(ENDPOINTS.CUSTOMERS.BASE, data);

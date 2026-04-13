@@ -31,3 +31,7 @@ dist-ssr
 # Next.js
 .next
 out
+
+
+.qwen
+.claude

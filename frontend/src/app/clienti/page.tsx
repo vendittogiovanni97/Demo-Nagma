@@ -1,22 +1,22 @@
 "use client";
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { customerService } from '@/services/customer.service';
-import { Search, UserPlus, Phone, Mail, MoreHorizontal, Eye, Edit, Trash2, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { Skeleton } from '@/components/feedback/Skeleton';
 import ExportButtons from '@/components/feedback/ExportButtons';
+import { Skeleton } from '@/components/feedback/Skeleton';
 import StatePanel from '@/components/feedback/StatePanel';
-import type { Customer } from '@/types/customer';
 import PageHeader from '@/components/layout/PageHeader';
 import CustomerModal from '@/components/modals/CustomerModal';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers } from '@/hooks/domain';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { customerService } from '@/services/customer.service';
+import type { Customer } from '@/types/customer';
 import { canManageCustomers, canSendWhatsApp } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Edit, Eye, Mail, MessageCircle, MoreHorizontal, Phone, Search, Trash2, UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 
 export default function CustomersPage() {
   const { user } = useAuth();
@@ -241,13 +241,13 @@ export default function CustomersPage() {
                       </td>
                       <td className="p-5 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
+                          <Link
+                            href={`/clienti/${customer.id}`}
                             className="p-2 hover:bg-white/10 rounded-lg text-white transition"
                             title="Dettagli"
                           >
                             <Eye size={18} />
-                          </button>
+                          </Link>
                           {canSendMessages ? (
                             <Link
                               href={`/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`}

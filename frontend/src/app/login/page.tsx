@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { useAuth } from '@/context/AuthContext';
-import { Lock, Mail, Loader2 } from 'lucide-react';
 import { branding } from '@/config/branding';
+import { useAuth } from '@/context/AuthContext';
+import { Loader2, Lock, Mail } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -26,7 +26,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background p-6 overflow-hidden">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-background p-6 overflow-hidden">
       <div className="w-full max-w-md flex flex-col items-center">
         <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mb-6 border border-accent/30 shadow-[0_0_30px_rgba(0,191,255,0.2)] overflow-hidden">
           <Image

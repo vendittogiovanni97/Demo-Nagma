@@ -7,6 +7,9 @@ CREATE TYPE "BookingStatus" AS ENUM ('CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'C
 -- CreateEnum
 CREATE TYPE "TransactionType" AS ENUM ('INCOME', 'EXPENSE');
 
+-- CreateEnum
+CREATE TYPE "WhatsAppMessageStatus" AS ENUM ('MANUAL_SENT', 'FAILED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -145,46 +148,31 @@ CREATE TABLE "WhatsAppTemplate" (
     "body" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "WhatsAppTemplate_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "WhatsAppMessageLog" (
+    "id" TEXT NOT NULL,
+    "templateId" TEXT,
+    "bookingId" TEXT,
+    "customerId" TEXT,
+    "createdById" TEXT NOT NULL,
+    "recipientName" TEXT,
+    "recipientPhone" TEXT NOT NULL,
+    "templateName" TEXT,
+    "message" TEXT NOT NULL,
+    "status" "WhatsAppMessageStatus" NOT NULL DEFAULT 'MANUAL_SENT',
+    "variablesJson" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "WhatsAppMessageLog_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
-CREATE INDEX "Booking_customerId_idx" ON "Booking"("customerId");
-
--- CreateIndex
-CREATE INDEX "Booking_artistId_idx" ON "Booking"("artistId");
-
--- CreateIndex
-CREATE INDEX "Booking_status_idx" ON "Booking"("status");
-
--- CreateIndex
-CREATE INDEX "Booking_date_idx" ON "Booking"("date");
-
--- CreateIndex
-CREATE INDEX "BookingHistory_bookingId_idx" ON "BookingHistory"("bookingId");
-
--- CreateIndex
-CREATE INDEX "Shift_userId_idx" ON "Shift"("userId");
-
--- CreateIndex
-CREATE INDEX "Transaction_type_idx" ON "Transaction"("type");
-
--- CreateIndex
-CREATE INDEX "Transaction_date_idx" ON "Transaction"("date");
-
--- CreateIndex
-CREATE INDEX "CreamSale_creamId_idx" ON "CreamSale"("creamId");
-
--- CreateIndex
-CREATE INDEX "CreamSale_sellerId_idx" ON "CreamSale"("sellerId");
-
--- CreateIndex
-CREATE INDEX "CreamSale_customerId_idx" ON "CreamSale"("customerId");
 
 -- AddForeignKey
 ALTER TABLE "Booking" ADD CONSTRAINT "Booking_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -206,3 +194,15 @@ ALTER TABLE "CreamSale" ADD CONSTRAINT "CreamSale_sellerId_fkey" FOREIGN KEY ("s
 
 -- AddForeignKey
 ALTER TABLE "CreamSale" ADD CONSTRAINT "CreamSale_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WhatsAppMessageLog" ADD CONSTRAINT "WhatsAppMessageLog_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "WhatsAppTemplate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WhatsAppMessageLog" ADD CONSTRAINT "WhatsAppMessageLog_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WhatsAppMessageLog" ADD CONSTRAINT "WhatsAppMessageLog_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WhatsAppMessageLog" ADD CONSTRAINT "WhatsAppMessageLog_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

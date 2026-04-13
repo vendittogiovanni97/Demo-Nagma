@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import { format, startOfWeek, addDays, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Clock, Search, MessageCircle } from 'lucide-react';
-import BookingModal from '@/components/modals/BookingModal';
-import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import ExportButtons from '@/components/feedback/ExportButtons';
 import StatePanel from '@/components/feedback/StatePanel';
+import BookingModal from '@/components/modals/BookingModal';
+import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
+import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/hooks/domain';
 import type { Booking } from '@/types/booking';
-import { useAuth } from '@/context/AuthContext';
 import { canSendWhatsApp } from '@/utils/permissions';
+import { addDays, addWeeks, eachDayOfInterval, format, isSameDay, parseISO, startOfWeek, subWeeks } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Clock, MessageCircle, Plus, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);
 
@@ -183,7 +183,7 @@ export default function AgendaPage() {
             {weekDays.map((day) => (
               <div key={day.toISOString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
                 {HOURS.map(hour => (
-                  <div key={hour} className="h-20 border-b border-surface-border/30 group-hover:bg-white/[0.01] transition-colors" />
+                  <div key={hour} className="h-20 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
                 ))}
 
                 {filteredBookings

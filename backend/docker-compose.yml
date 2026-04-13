@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nagma-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nagmadb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root123
+    ports:
+      - '5432:5432'
+    volumes:
+      - nagma_data:/var/lib/postgresql/data
+
+volumes:
+  nagma_data:

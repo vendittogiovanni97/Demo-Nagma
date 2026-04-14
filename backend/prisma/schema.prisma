@@ -87,6 +87,7 @@ model Shift {
   dayOfWeek Int       // 0=Lun, 1=Mar, ... 6=Dom
   startTime String    // "09:00"
   endTime   String    // "18:00"
+  label     String?   // "Mattina", "Pomeriggio", "Tutta la giornata", "Riposo"
   isOff     Boolean   @default(false)
   notes     String?
   deletedAt DateTime? // soft delete

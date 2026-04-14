@@ -40,7 +40,6 @@ export default function AgendaPage() {
         booking.customer?.firstName,
         booking.customer?.lastName,
         booking.artist?.name,
-        booking.type,
       ]
         .filter(Boolean)
         .join(' ')
@@ -111,8 +110,6 @@ export default function AgendaPage() {
                   `${booking.customer?.firstName || ''} ${booking.customer?.lastName || ''}`.trim(),
               },
               { label: 'Artista', value: (booking: Booking) => booking.artist?.name || '' },
-              { label: 'Tipo', value: (booking: Booking) => booking.type },
-              { label: 'Durata', value: (booking: Booking) => booking.duration },
               { label: 'Stato', value: (booking: Booking) => booking.status },
             ]}
             filtersLabel={`Settimana: ${format(weekStart, 'dd/MM/yyyy')} - Ricerca: ${search || 'nessuna'}`}
@@ -212,7 +209,7 @@ export default function AgendaPage() {
                     .map(booking => {
                       const d = new Date(booking.date);
                       const top = ((d.getHours() - 9) * 64) + (d.getMinutes() * 64 / 60);
-                      const height = (booking.duration ?? 60) * 64 / 60;
+                      const height = 64; // default 60 minutes
                       const color = booking.artist?.color ?? 'var(--color-accent)';
                       return (
                         <div
@@ -234,7 +231,7 @@ export default function AgendaPage() {
                             </button>
                           )}
                           <div className="font-bold text-white truncate leading-tight mb-0.5">{booking.customer?.firstName} {booking.customer?.lastName}</div>
-                          <div className="text-text-secondary opacity-80 uppercase tracking-tighter truncate leading-tight text-[10px]">{booking.type} • {booking.artist?.name}</div>
+                          <div className="text-text-secondary opacity-80 uppercase tracking-tighter truncate leading-tight text-[10px]">{booking.artist?.name}</div>
                         </div>
                       );
                     })}

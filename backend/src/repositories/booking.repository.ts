@@ -114,7 +114,7 @@ export class BookingRepository {
         AND "deletedAt" IS NULL
         AND "status" <> 'CANCELLED'
         AND "date" < ${end}
-        AND ("date" + ("duration" || ' minutes')::interval) > ${start}
+        AND ("date" + (${config.defaultBookingDurationMinutes} || ' minutes')::interval) > ${start}
         ${excludeId ? Prisma.sql`AND id <> ${excludeId}` : Prisma.empty}
       LIMIT 1
     `);

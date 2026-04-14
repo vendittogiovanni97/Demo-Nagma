@@ -5,9 +5,7 @@ export interface Booking {
   customerId: string;
   artistId: string;
   date: string;
-  duration: number;
   status: BookingStatus;
-  type: string;
   price?: number;
   deposit?: number;
   notes?: string;
@@ -30,8 +28,6 @@ export interface CreateBookingData {
   customerId: string;
   artistId: string;
   date: string;
-  duration: number;
-  type: string;
   price?: number;
   deposit?: number;
   notes?: string;

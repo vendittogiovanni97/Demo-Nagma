@@ -23,9 +23,8 @@ export class BookingService {
   async createBooking(body: unknown, changedBy: string = 'system') {
     const data = validate(CreateBookingSchema, body);
     const startDate = new Date(data.date);
-    const duration = data.duration ?? config.defaultBookingDurationMinutes;
 
-    await this.assertNoConflict(data.artistId, startDate, duration);
+    await this.assertNoConflict(data.artistId, startDate, config.defaultBookingDurationMinutes);
 
     return prisma.$transaction(async (tx) => {
       const booking = await tx.booking.create({
@@ -33,8 +32,6 @@ export class BookingService {
           customer: { connect: { id: data.customerId } },
           artist: { connect: { id: data.artistId } },
           date: startDate,
-          duration,
-          type: data.type ?? config.defaultBookingType,
           price: data.price ?? null,
           deposit: data.deposit ?? null,
           notes: data.notes,
@@ -63,13 +60,12 @@ export class BookingService {
       throw new AppError('Prenotazione non trovata', 404, 'NOT_FOUND');
     }
 
-    // Conflict check se cambia data, durata o artista
+    // Conflict check se cambia data o artista
     const newDate = data.date ? new Date(data.date) : oldBooking.date;
-    const newDuration = data.duration ?? oldBooking.duration;
     const newStatus = data.status ?? oldBooking.status;
 
-    if (newStatus !== 'CANCELLED' && (data.date || data.duration)) {
-      await this.assertNoConflict(oldBooking.artistId, newDate, newDuration, id);
+    if (newStatus !== 'CANCELLED' && data.date) {
+      await this.assertNoConflict(oldBooking.artistId, newDate, config.defaultBookingDurationMinutes, id);
     }
 
     return prisma.$transaction(async (tx) => {
@@ -114,7 +110,7 @@ export class BookingService {
           data: {
             type: 'INCOME',
             category: 'Tatuaggio',
-            description: `Incasso prenotazione ${booking.type} — Cliente ID: ${booking.customerId}`,
+            description: `Incasso prenotazione — Cliente ID: ${booking.customerId}`,
             amount: studioProfit,
             date: new Date(),
           },
@@ -134,6 +130,47 @@ export class BookingService {
 
   async deleteBooking(id: string) {
     return repository.softDelete(id);
+  }
+
+  async getAvailableArtists(dateIso: string) {
+    const date = new Date(dateIso);
+    // Convert to HH:mm for comparison
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+    
+    // Day of week: 0=Lun, 1=Mar, ... 6=Dom
+    const jsDay = date.getDay();
+    const dayOfWeek = (jsDay + 6) % 7;
+
+    // 1. Trova tutti gli artisti con un turno attivo che copre questo orario
+    const activeShifts = await prisma.shift.findMany({
+      where: {
+        dayOfWeek,
+        isOff: false,
+        startTime: { lte: timeStr },
+        endTime: { gt: timeStr },
+        deletedAt: null,
+      },
+      include: { user: { select: { id: true, name: true, color: true } } }
+    });
+
+    const potentialArtists = activeShifts.map(s => s.user).filter(Boolean);
+    
+    // 2. Filtra chi ha già una prenotazione che si sovrappone
+    const availableArtists = [];
+    for (const artist of potentialArtists) {
+      const conflict = await repository.findOverlapping(
+        artist!.id, 
+        date, 
+        config.defaultBookingDurationMinutes
+      );
+      if (!conflict) {
+        availableArtists.push(artist);
+      }
+    }
+
+    return availableArtists;
   }
 
   private async assertNoConflict(

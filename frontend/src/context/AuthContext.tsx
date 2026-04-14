@@ -21,40 +21,49 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const initialToken = getToken();
-  const [user, setCurrentUser] = useState<AuthUser | null>(() => getUser());
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!initialToken);
-  const [isLoading, setIsLoading] = useState(() => !!initialToken);
+  const [user, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (!initialToken) return;
-
+    const token = getToken();
+    const savedUser = getUser();
     let isMounted = true;
 
-    const loadProfile = async () => {
-      try {
-        const profile = await authService.me();
-        if (!isMounted) return;
-        setUser(profile);
-        setCurrentUser(profile);
-        setIsAuthenticated(true);
-      } catch {
-        if (!isMounted) return;
-        clearSession();
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-      } finally {
-        if (isMounted) setIsLoading(false);
+    if (token) {
+      setIsAuthenticated(true);
+      if (savedUser) {
+        setCurrentUser(savedUser);
       }
-    };
 
-    void loadProfile();
+      // Re-valida il profilo dal server se abbiamo un token
+      const loadProfile = async () => {
+        try {
+          const profile = await authService.me();
+          if (!isMounted) return;
+          setUser(profile);
+          setCurrentUser(profile);
+          setIsAuthenticated(true);
+        } catch {
+          if (!isMounted) return;
+          clearSession();
+          setCurrentUser(null);
+          setIsAuthenticated(false);
+        } finally {
+          if (isMounted) setIsLoading(false);
+        }
+      };
+      
+      void loadProfile();
+    } else {
+      setIsLoading(false);
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [initialToken]);
+  }, []);
 
   const login = async (credentials: LoginCredentials) => {
     try {

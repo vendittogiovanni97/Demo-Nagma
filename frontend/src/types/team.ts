@@ -26,6 +26,7 @@ export interface Shift {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
+  label?: string;
   isOff: boolean;
   notes?: string;
   user?: Pick<User, 'id' | 'name' | 'color'>;
@@ -35,8 +36,9 @@ export interface CreateShiftData {
   userId: string;
   weekStart: string;
   dayOfWeek: number;
-  startTime: string;
-  endTime: string;
+  startTime?: string;
+  endTime?: string;
+  label?: string;
   isOff?: boolean;
   notes?: string;
 }

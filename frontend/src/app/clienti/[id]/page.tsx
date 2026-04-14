@@ -236,7 +236,7 @@ export default function CustomerDetailPage() {
                   <div className="mt-4 pt-4 border-t border-surface-border">
                     <p className="text-xs text-text-secondary mb-1">Ultimo servizio</p>
                     <p className="text-sm text-white">
-                      {summary.lastBooking.type} — {summary.lastBooking.artist.name}
+                      Appuntamento — {summary.lastBooking.artist.name}
                     </p>
                     <p className="text-xs text-text-secondary">
                       {format(new Date(summary.lastBooking.date), 'dd MMM yyyy', { locale: it })}
@@ -280,7 +280,7 @@ export default function CustomerDetailPage() {
                           style={{ backgroundColor: (booking.artist as { color?: string })?.color || '#6b7280' }}
                         />
                         <div>
-                          <p className="text-sm font-bold text-white">{booking.type}</p>
+                          <p className="text-sm font-bold text-white">Appuntamento</p>
                           <p className="text-xs text-text-secondary">
                             {(booking.artist as { name?: string })?.name}
                           </p>
@@ -291,7 +291,7 @@ export default function CustomerDetailPage() {
                           {format(new Date(booking.date), 'dd MMM', { locale: it })}
                         </p>
                         <p className="text-xs text-text-secondary">
-                          {format(new Date(booking.date), 'HH:mm')} · {booking.duration}min
+                          {format(new Date(booking.date), 'HH:mm')}
                         </p>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[booking.status]}`}>
                           {STATUS_LABELS[booking.status]}
@@ -320,7 +320,6 @@ export default function CustomerDetailPage() {
                     <thead>
                       <tr className="text-text-secondary text-xs uppercase tracking-wider border-b border-surface-border">
                         <th className="pb-2 font-bold">Data</th>
-                        <th className="pb-2 font-bold">Tipo</th>
                         <th className="pb-2 font-bold">Artista</th>
                         <th className="pb-2 font-bold text-right">Prezzo</th>
                         <th className="pb-2 font-bold text-right">Stato</th>
@@ -332,7 +331,6 @@ export default function CustomerDetailPage() {
                           <td className="py-2 text-white">
                             {format(new Date(booking.date), 'dd MMM yyyy', { locale: it })}
                           </td>
-                          <td className="py-2 text-text-secondary">{booking.type}</td>
                           <td className="py-2 text-text-secondary">
                             {(booking.artist as { name?: string })?.name}
                           </td>

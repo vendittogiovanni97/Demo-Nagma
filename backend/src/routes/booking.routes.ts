@@ -29,6 +29,7 @@ router.use(authMiddleware);
  *         description: Statistiche appuntamenti
  */
 router.get('/stats', controller.getStats);
+router.get('/available-artists', controller.getAvailable);
 
 /**
  * @swagger

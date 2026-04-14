@@ -29,6 +29,7 @@ export const createShiftSchema = z.object({
   dayOfWeek: z.number().int().min(0).max(6),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
+  label: z.string().optional(),
   isOff: z.boolean().optional(),
   notes: z.string().optional(),
 });
@@ -38,6 +39,7 @@ export const updateShiftSchema = z.object({
   dayOfWeek: z.number().int().min(0).max(6).optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
+  label: z.string().optional(),
   isOff: z.boolean().optional(),
   notes: z.string().optional(),
 });

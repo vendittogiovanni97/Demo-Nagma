@@ -21,4 +21,7 @@ export const bookingService = {
   delete: async (id: string) => {
     return apiClient.delete(ENDPOINTS.BOOKINGS.BY_ID(id));
   },
+  getAvailableArtists: async (date: string): Promise<any[]> => {
+    return apiClient.get<any[]>(`${ENDPOINTS.BOOKINGS.BASE}/available-artists`, { date });
+  },
 };

@@ -90,7 +90,7 @@ export default function TodayAgendaWidget({
                     {booking.customer?.firstName} {booking.customer?.lastName}
                   </div>
                   <div className="text-xs text-text-secondary">
-                    {booking.type} · {booking.artist?.name}
+                    {booking.artist?.name}
                   </div>
                 </div>
               </div>

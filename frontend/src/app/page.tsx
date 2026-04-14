@@ -39,19 +39,33 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const [financeDate, setFinanceDate] = useState(new Date());
-  const [bookingDate, setBookingDate] = useState(new Date());
-  const financeMonthStr = format(financeDate, 'yyyy-MM');
-  const bookingMonthStr = format(bookingDate, 'yyyy-MM');
+  const [financeDate, setFinanceDate] = useState<Date | null>(null);
+  const [bookingDate, setBookingDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setFinanceDate(new Date());
+    setBookingDate(new Date());
+  }, []);
 
   const { data: financeSummary, isLoading: isFinanceLoading } = useSWR<FinanceSummary>(
-    [ENDPOINTS.TRANSACTIONS.SUMMARY, financeMonthStr],
-    () => transactionService.getSummary(financeMonthStr)
+    financeDate ? [ENDPOINTS.TRANSACTIONS.SUMMARY, format(financeDate, 'yyyy-MM')] : null,
+    ([, monthStr]) => transactionService.getSummary(monthStr as string)
   );
 
-  const { data: bookingStats, isLoading: isStatsLoading } = useBookingStats(bookingMonthStr);
-  const { data: dailyBookings, isLoading: isDailyLoading } = useBookings(bookingMonthStr);
+  const bookingMonthStr = bookingDate ? format(bookingDate, 'yyyy-MM') : null;
+  const { data: bookingStats, isLoading: isStatsLoading } = useBookingStats(bookingMonthStr ?? '');
+  const { data: dailyBookings, isLoading: isDailyLoading } = useBookings(bookingMonthStr ?? '');
 
+  if (!financeDate || !bookingDate) {
+    return (
+      <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    );
+  }
+
+  const financeMonthStr = format(financeDate, 'yyyy-MM');
   const totalIncome = financeSummary?.totalIncome ?? 0;
   const totalExpense = financeSummary?.totalExpense ?? 0;
   const netBalance = totalIncome - totalExpense;

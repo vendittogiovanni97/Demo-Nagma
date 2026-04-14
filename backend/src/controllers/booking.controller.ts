@@ -47,4 +47,11 @@ export class BookingController {
     await service.deleteBooking(String(req.params.id));
     res.status(204).send();
   });
+
+  getAvailable = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const date = req.query.date as string;
+    if (!date) return res.status(400).json({ message: 'Data obbligatoria' });
+    const data = await service.getAvailableArtists(date);
+    res.json(data);
+  });
 }

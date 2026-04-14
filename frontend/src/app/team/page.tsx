@@ -222,7 +222,7 @@ export default function TeamPage() {
                               className="text-sm font-bold block"
                               style={{ color: shift.isOff ? '#ef4444' : userColor }}
                             >
-                              {shift.isOff ? 'Riposo' : `${shift.startTime} - ${shift.endTime}`}
+                              {shift.label || (shift.isOff ? 'Riposo' : `${shift.startTime} - ${shift.endTime}`)}
                             </span>
 
                             {canManageShiftData && (

@@ -1,14 +1,14 @@
 "use client";
 
-import { DEFAULT_BOOKING_TYPE, EXPORT_FETCH_LIMIT } from '@/config/defaults';
-import { useCustomers, useTeamUsers } from '@/hooks/domain';
+import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
+import { useCustomers } from '@/hooks/domain';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { bookingService } from '@/services/booking.service';
 import type { CreateBookingData } from '@/types/booking';
 import type { FieldDef } from '@/types/form-template';
 import { notifyError, notifySuccess } from '@/utils/toast';
 import { validateBookingData } from '@/utils/validation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
@@ -46,11 +46,40 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  const [availableArtists, setAvailableArtists] = useState<any[]>([]);
+  const [loadingArtists, setLoadingArtists] = useState(false);
+
   const { data: customerResult } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
-  const { data: artistsResult } = useTeamUsers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const { data: templates } = useFormTemplates();
   const customers = customerResult?.data;
-  const artists = artistsResult?.data;
+
+  // Carica artisti disponibili quando cambiano data o ora
+  useEffect(() => {
+    if (date && time && isOpen) {
+      const fetchAvailable = async () => {
+        setLoadingArtists(true);
+        try {
+          // Creiamo una data ISO pulita per il backend
+          const isoDate = new Date(`${date}T${time}`).toISOString();
+          const data = await bookingService.getAvailableArtists(isoDate);
+          setAvailableArtists(data);
+          
+          // Se l'artista precedentemente selezionato non è più disponibile, resettalo
+          if (artistId && !data.find((a: any) => a.id === artistId)) {
+            setArtistId('');
+          }
+        } catch (err) {
+          notifyError(err, 'Errore nel recupero artisti disponibili');
+        } finally {
+          setLoadingArtists(false);
+        }
+      };
+      fetchAvailable();
+    } else {
+      setAvailableArtists([]);
+      setArtistId('');
+    }
+  }, [date, time, isOpen]);
 
   const dynamicFields = useMemo<FieldDef[]>(() => {
     if (!templates || templates.length === 0) return [];
@@ -88,7 +117,12 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const bookingDate = date && time ? new Date(`${date}T${time}`).toISOString() : '';
+    if (!customerId || !artistId || !date || !time) {
+      notifyError(new Error('Compila tutti i campi obbligatori'), 'Campi mancanti');
+      return;
+    }
+
+    const bookingDate = new Date(`${date}T${time}`).toISOString();
 
     const formData: Record<string, unknown> = {};
     formData.artistPercentage = percentuale;
@@ -103,12 +137,11 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
       customerId,
       artistId,
       date: bookingDate,
-      duration: 60,
-      type: DEFAULT_BOOKING_TYPE,
       price: prezzoNum || undefined,
       deposit: Number(deposit) || undefined,
       formData,
     };
+
     const validationError = validateBookingData({ ...data, time });
     if (validationError) {
       notifyError(new Error(validationError), validationError);
@@ -118,7 +151,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
     setLoading(true);
     try {
       await bookingService.create(data);
-      notifySuccess(`Prenotazione del ${date} alle ${time} confermata!`);
+      notifySuccess(`Prenotazione confermata!`);
       resetForm();
       onSuccess?.();
       onClose();
@@ -132,51 +165,63 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuova Prenotazione" maxWidth="max-w-4xl">
       <form className="space-y-5" onSubmit={handleSubmit}>
-        {/* Riga 1: Cliente + Artista */}
-        <div className="grid grid-cols-2 gap-4">
-          <FormSelect
-            label="Cliente"
-            value={customerId}
-            onChange={setCustomerId}
-            placeholder="Seleziona cliente..."
-            required
-            options={(customers || []).map((c) => ({
-              value: c.id,
-              label: `${c.firstName} ${c.lastName}`,
-            }))}
-          />
-          <FormSelect
-            label="Artista"
-            value={artistId}
-            onChange={setArtistId}
-            placeholder="Seleziona artista..."
-            required
-            options={(artists || []).map((a) => ({
-              value: a.id,
-              label: a.name,
-            }))}
-          />
+        
+        {/* Step 1: Data e Ora */}
+        <div className="bg-white/5 border border-surface-border p-4 rounded-xl space-y-4">
+          <h3 className="text-xs font-bold text-accent uppercase tracking-wider">1. Quando vuoi prenotare?</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput label="Data *" type="date" required value={date} onChange={setDate} />
+            <FormInput label="Ora *" type="time" required value={time} onChange={setTime} />
+          </div>
         </div>
 
-        {/* Riga 2: Data + Ora + Prezzo + Acconto */}
-        <div className="grid grid-cols-4 gap-4">
-          <FormInput label="Data" type="date" required value={date} onChange={setDate} />
-          <FormInput label="Ora" type="time" required value={time} onChange={setTime} />
+        {/* Step 2: Cliente e Artista (filtrato) */}
+        <div className={`p-4 rounded-xl border transition-all duration-300 ${(!date || !time) ? 'opacity-50 grayscale pointer-events-none bg-black/20 border-transparent' : 'bg-white/5 border-surface-border'}`}>
+          <h3 className="text-xs font-bold text-accent uppercase tracking-wider mb-4">2. Chi coinvolge?</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormSelect
+              label="Cliente *"
+              value={customerId}
+              onChange={setCustomerId}
+              placeholder="Seleziona cliente..."
+              required
+              options={(customers || []).map((c) => ({
+                value: c.id,
+                label: `${c.firstName} ${c.lastName}`,
+              }))}
+            />
+            <FormSelect
+              label="Artista Disponibile *"
+              value={artistId}
+              onChange={setArtistId}
+              disabled={loadingArtists || availableArtists.length === 0}
+              placeholder={loadingArtists ? 'Ricerca disponibilità...' : availableArtists.length === 0 ? 'Nessun artista libero' : 'Seleziona artista...'}
+              required
+              options={availableArtists.map((a) => ({
+                value: a.id,
+                label: a.name,
+              }))}
+            />
+          </div>
+          {date && time && !loadingArtists && availableArtists.length === 0 && (
+            <p className="text-[10px] text-danger mt-2 italic">Attenzione: nessun artista ha un turno che copre questo orario o sono tutti occupati.</p>
+          )}
+        </div>
+
+        {/* Step 3: Dettagli Economici */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <FormInput label="Prezzo Finale (€)" type="number" value={price} onChange={setPrice} placeholder="0.00" min={0} step="0.01" />
           <FormInput label="Acconto (€)" type="number" value={deposit} onChange={setDeposit} placeholder="0.00" min={0} step="0.01" />
-        </div>
+          
+          <FormSelect
+            label="% Artista"
+            value={percentualeMode}
+            onChange={setPercentualeMode}
+            options={PERCENTUALE_OPTIONS}
+          />
 
-        {/* Riga 3: Percentuale + calcolati */}
-        <div className="grid grid-cols-3 gap-4 items-end">
-          <div>
-            <FormSelect
-              label="% Artista"
-              value={percentualeMode}
-              onChange={setPercentualeMode}
-              options={PERCENTUALE_OPTIONS}
-            />
-            {percentualeMode === 'custom' && (
-              <div className="mt-2">
+          <div className="flex flex-col justify-end">
+             {percentualeMode === 'custom' && (
                 <FormInput
                   label="% libera"
                   type="number"
@@ -186,20 +231,23 @@ export default function BookingModal({ isOpen, onClose, onSuccess }: Props) {
                   min={0}
                   max={100}
                 />
-              </div>
             )}
           </div>
+        </div>
+
+        {/* Riassunto economico */}
+        <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/5 border border-surface-border rounded-xl p-3 text-center">
-            <p className="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Artista ({percentuale}%)</p>
+            <p className="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Quota Artista ({percentuale}%)</p>
             <p className="text-xl font-bold text-orange-400">€{prezzoArtista.toFixed(2)}</p>
           </div>
           <div className="bg-white/5 border border-surface-border rounded-xl p-3 text-center">
-            <p className="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Guadagno ({100 - percentuale}%)</p>
+            <p className="text-[10px] text-text-secondary uppercase tracking-wider mb-1">Guadagno Studio ({100 - percentuale}%)</p>
             <p className="text-xl font-bold text-green-400">€{guadagno.toFixed(2)}</p>
           </div>
         </div>
 
-        {/* Campi dinamici dal FormTemplate — layout a griglia */}
+        {/* Campi dinamici */}
         {dynamicFields.length > 0 && (
           <div className="border-t border-surface-border pt-4">
             <h3 className="text-sm font-semibold text-white mb-3">Dettagli Progetto</h3>

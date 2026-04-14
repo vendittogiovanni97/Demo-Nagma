@@ -34,25 +34,73 @@ export class TeamService {
 
   async createShift(body: unknown) {
     const data = validate(CreateShiftSchema, body);
+    
+    let { startTime, endTime, isOff } = data;
+    
+    if (data.label) {
+      if (data.label === 'Mattina') {
+        startTime = '09:00';
+        endTime = '13:00';
+        isOff = false;
+      } else if (data.label === 'Pomeriggio') {
+        startTime = '14:00';
+        endTime = '19:00';
+        isOff = false;
+      } else if (data.label === 'Tutta la giornata') {
+        startTime = '09:00';
+        endTime = '19:00';
+        isOff = false;
+      } else if (data.label === 'Riposo') {
+        startTime = '';
+        endTime = '';
+        isOff = true;
+      }
+    }
+
     return shiftRepo.create({
       user: { connect: { id: data.userId } },
       weekStart: new Date(data.weekStart),
       dayOfWeek: data.dayOfWeek,
-      startTime: data.startTime ?? '',
-      endTime: data.endTime ?? '',
-      isOff: data.isOff ?? false,
+      startTime: startTime ?? '',
+      endTime: endTime ?? '',
+      label: data.label,
+      isOff: isOff ?? false,
       notes: data.notes,
     });
   }
 
   async updateShift(id: string, body: unknown) {
     const data = validate(UpdateShiftSchema, body);
+    
+    let { startTime, endTime, isOff } = data;
+    
+    if (data.label) {
+      if (data.label === 'Mattina') {
+        startTime = '09:00';
+        endTime = '13:00';
+        isOff = false;
+      } else if (data.label === 'Pomeriggio') {
+        startTime = '14:00';
+        endTime = '19:00';
+        isOff = false;
+      } else if (data.label === 'Tutta la giornata') {
+        startTime = '09:00';
+        endTime = '19:00';
+        isOff = false;
+      } else if (data.label === 'Riposo') {
+        startTime = '';
+        endTime = '';
+        isOff = true;
+      }
+    }
+
     const updateData: Prisma.ShiftUpdateInput = {
       ...(data.weekStart ? { weekStart: new Date(data.weekStart) } : {}),
       ...(data.dayOfWeek !== undefined ? { dayOfWeek: data.dayOfWeek } : {}),
-      ...(data.startTime !== undefined ? { startTime: data.startTime } : {}),
-      ...(data.endTime !== undefined ? { endTime: data.endTime } : {}),
-      ...(data.isOff !== undefined ? { isOff: data.isOff } : {}),
+      ...(startTime !== undefined ? { startTime } : {}),
+      ...(endTime !== undefined ? { endTime } : {}),
+      ...(data.label !== undefined ? { label: data.label } : {}),
+      ...(isOff !== undefined ? { isOff } : {}),
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
     };
 

@@ -33,7 +33,7 @@ dist-ssr
 out
 
 
-.qwen
-.claude
-image
-CLAUDE.md
+#.qwen
+#.claude
+#image
+#CLAUDE.md

@@ -24,9 +24,6 @@ async function main() {
   // ── Template WhatsApp (dati di sistema) ──
   const templates = [
     { name: 'Conferma Appuntamento', category: 'Conferma', body: 'Ciao {{nome}}! Ti confermiamo l\'appuntamento per il {{data}} alle {{ora}}. A presto! 🎨' },
-    { name: 'Reminder 24h', category: 'Reminder', body: 'Ciao {{nome}}, ti ricordiamo che domani hai appuntamento alle {{ora}}. Per qualsiasi info siamo a disposizione! 📞' },
-    { name: 'Auguri Compleanno', category: 'Marketing', body: 'Tanti auguri {{nome}}! 🎂 Per festeggiare ecco uno sconto del 10% sul tuo prossimo tattoo!' },
-    { name: 'Follow-up Post Tattoo', category: 'Follow-up', body: 'Ciao {{nome}}, come sta andando la guarigione? Ricorda di applicare la crema come consigliato. Per dubbi scrivici! 💚' },
   ];
 
   for (const t of templates) {

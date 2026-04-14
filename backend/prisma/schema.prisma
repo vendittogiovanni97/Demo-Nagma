@@ -48,9 +48,7 @@ model Booking {
   artist          User            @relation(fields: [artistId], references: [id])
   artistId        String
   date            DateTime
-  duration        Int             // minuti
   status          BookingStatus   @default(CONFIRMED)
-  type            String          // es. "Tattoo", "Touch-up", "Consulenza"
   price           Float?
   deposit         Float?
   notes           String?

@@ -35,6 +35,10 @@ export const ENDPOINTS = {
     DUPLICATE: (id: string) => `/api/whatsapp-templates/${id}/duplicate`,
     BY_ID: (id: string) => `/api/whatsapp-templates/${id}`,
   },
+  STAFF: {
+    BASE: '/api/staff',
+    BY_ID: (id: string) => `/api/staff/${id}`,
+  },
   TEAM: {
     USERS: '/api/team/users',
     USER_BY_ID: (id: string) => `/api/team/users/${id}`,

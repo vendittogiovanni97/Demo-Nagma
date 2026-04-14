@@ -17,7 +17,6 @@ model User {
   color         String?     // colore calendario per il collaboratore
   deletedAt     DateTime?   // soft delete
   createdAt     DateTime    @default(now())
-  bookings      Booking[]
   shifts        Shift[]
   whatsappLogs  WhatsAppMessageLog[]
 }
@@ -26,6 +25,17 @@ enum Role {
   ADMIN
   USER
   ARTIST
+}
+
+model Staff {
+  id        String    @id @default(cuid())
+  name      String
+  type      String    // es. "TATTOO_ARTIST", "PIERCER", ecc.
+  color     String    // colore HEX per l'agenda
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  bookings  Booking[]
 }
 
 model Customer {
@@ -45,8 +55,8 @@ model Booking {
   id              String          @id @default(cuid())
   customer        Customer        @relation(fields: [customerId], references: [id])
   customerId      String
-  artist          User            @relation(fields: [artistId], references: [id])
-  artistId        String
+  artist          Staff?          @relation(fields: [artistId], references: [id])
+  artistId        String?
   date            DateTime
   status          BookingStatus   @default(CONFIRMED)
   price           Float?

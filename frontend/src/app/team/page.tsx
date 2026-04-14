@@ -11,10 +11,11 @@ import { canManageShifts, canManageStaff } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
 import { addDays, addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+const SHIFT_LABELS = ['Mattina', 'Pomeriggio', 'Tutta la giornata', 'Riposo'];
 
 export default function TeamPage() {
   const { user } = useAuth();
@@ -25,6 +26,8 @@ export default function TeamPage() {
   // Shift modal state
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [shiftModalData, setShiftModalData] = useState<{ userId?: string, dayOfWeek?: number }>({});
+  const [updatingShiftId, setUpdatingShiftId] = useState<string | null>(null);
+  const [isAddingShift, setIsAddingShift] = useState<string | null>(null); // userId-dayIndex
 
   const canManageUsers = canManageStaff(user?.role);
   const canManageShiftData = canManageShifts(user?.role);
@@ -72,6 +75,49 @@ export default function TeamPage() {
     setIsShiftModalOpen(true);
   };
 
+  const handleCycleShift = async (shift: Shift) => {
+    if (!canManageShiftData || updatingShiftId) return;
+
+    const currentLabel = shift.label || 'Mattina';
+    const currentIndex = SHIFT_LABELS.indexOf(currentLabel);
+    const nextIndex = (currentIndex + 1) % SHIFT_LABELS.length;
+    const nextLabel = SHIFT_LABELS[nextIndex];
+
+    setUpdatingShiftId(shift.id);
+    try {
+      await teamService.updateShift(shift.id, {
+        label: nextLabel,
+        isOff: nextLabel === 'Riposo',
+      });
+      await mutateShifts();
+    } catch (err: unknown) {
+      notifyError(err, 'Errore nell\'aggiornamento del turno');
+    } finally {
+      setUpdatingShiftId(null);
+    }
+  };
+
+  const handleQuickAddShift = async (userId: string, dayOfWeek: number) => {
+    if (!canManageShiftData || isAddingShift) return;
+
+    const key = `${userId}-${dayOfWeek}`;
+    setIsAddingShift(key);
+    try {
+      await teamService.createShift({
+        userId,
+        weekStart: week,
+        dayOfWeek,
+        label: 'Mattina',
+        isOff: false,
+      });
+      await mutateShifts();
+    } catch (err: unknown) {
+      notifyError(err, 'Errore nella creazione del turno');
+    } finally {
+      setIsAddingShift(null);
+    }
+  };
+
   if (usersError || shiftsError) {
     return (
       <div className="flex-1 flex items-center justify-center p-6">
@@ -104,7 +150,7 @@ export default function TeamPage() {
           <button onClick={handlePrevWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white">
             <ChevronLeft size={20} />
           </button>
-          <span className="text-white font-bold min-w-[200px] text-center tracking-wide">
+          <span className="text-white font-bold min-w-50 text-center tracking-wide">
             {format(parseISO(week), 'd MMM', { locale: it })} - {format(addDays(parseISO(week), 6), 'd MMM yyyy', { locale: it })}
           </span>
           <button onClick={handleNextWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white">
@@ -144,8 +190,8 @@ export default function TeamPage() {
 
       {/* Grid Container */}
       <div className="glass-panel flex-1 rounded-2xl flex flex-col overflow-hidden w-full relative">
-        <div className="overflow-x-auto flex-1 w-full min-h-[500px]">
-          <div className="min-w-[1000px] h-full flex flex-col pb-4">
+        <div className="overflow-x-auto flex-1 w-full min-h-125">
+          <div className="min-w-250 h-full flex flex-col pb-4">
             {/* Header Row */}
             <div className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/50 bg-black/20 sticky top-0 z-10 backdrop-blur-md">
               <div className="py-5 px-6 text-sm font-bold text-text-secondary uppercase tracking-widest">Collaboratore</div>
@@ -159,7 +205,7 @@ export default function TeamPage() {
 
             {/* loading state */}
             {(loadingUsers || loadingShifts) && (
-               <div className="flex-1 min-h-[300px] flex items-center justify-center text-text-secondary font-bold">
+               <div className="flex-1 min-h-75 flex items-center justify-center text-text-secondary font-bold">
                  <div className="animate-pulse">Caricamento griglia in corso...</div>
                </div>
             )}
@@ -175,7 +221,7 @@ export default function TeamPage() {
               const userColor = u.color || '#3b82f6'; // fallback to a blue if no color
 
               return (
-                <div key={u.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-[100px]">
+                <div key={u.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-25">
                   {/* User Cell - Sticky inside row maybe? Nah let's just make it visually clean */}
                   <div className="py-4 px-6 flex items-center gap-4 relative z-0">
                     <div
@@ -207,23 +253,30 @@ export default function TeamPage() {
                     return (
                       <div
                         key={dayIndex}
-                        className="p-3 border-l border-surface-border/20 relative group/cell flex flex-col justify-center min-h-[100px] hover:bg-white-[0.01]"
+                        className="p-3 border-l border-surface-border/20 relative group/cell flex flex-col justify-center min-h-25 hover:bg-white-[0.01]"
                       >
                         {shift ? (
                           <div
-                            className="relative rounded-xl p-3 text-center border transition-all duration-300 hover:scale-[1.02] cursor-default"
+                            onClick={() => handleCycleShift(shift)}
+                            className={`relative rounded-xl p-3 text-center border transition-all duration-300 hover:scale-[1.02] ${updatingShiftId === shift.id ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:shadow-lg'}`}
                             style={{
                               backgroundColor: shift.isOff ? 'rgba(239, 68, 68, 0.1)' : `${userColor}15`,
                               borderColor: shift.isOff ? 'rgba(239, 68, 68, 0.3)' : `${userColor}40`,
-                              boxShadow: `0 8px 24px ${userColor}10`
+                              boxShadow: updatingShiftId === shift.id ? 'none' : `0 8px 24px ${userColor}10`
                             }}
                           >
-                            <span
-                              className="text-sm font-bold block"
-                              style={{ color: shift.isOff ? '#ef4444' : userColor }}
-                            >
-                              {shift.label || (shift.isOff ? 'Riposo' : `${shift.startTime} - ${shift.endTime}`)}
-                            </span>
+                            <div className="flex flex-col items-center justify-center min-h-10">
+                              {updatingShiftId === shift.id ? (
+                                <Loader2 size={18} className="animate-spin text-white/50" />
+                              ) : (
+                                <span
+                                  className="text-sm font-bold block"
+                                  style={{ color: shift.isOff ? '#ef4444' : userColor }}
+                                >
+                                  {shift.label || (shift.isOff ? 'Riposo' : `${shift.startTime} - ${shift.endTime}`)}
+                                </span>
+                              )}
+                            </div>
 
                             {canManageShiftData && (
                               <button
@@ -231,7 +284,7 @@ export default function TeamPage() {
                                   e.stopPropagation();
                                   handleDeleteShift(shift.id);
                                 }}
-                                className="absolute -top-2 -right-2 p-1.5 bg-surface rounded-full text-text-secondary hover:text-white hover:bg-danger opacity-0 group-hover/cell:opacity-100 transition-all shadow-md border border-surface-border"
+                                className="absolute -top-2 -right-2 p-1.5 bg-surface rounded-full text-text-secondary hover:text-white hover:bg-danger opacity-0 group-hover/cell:opacity-100 transition-all shadow-md border border-surface-border z-10"
                                 title="Elimina turno"
                               >
                                 <Trash2 size={14} />
@@ -239,14 +292,26 @@ export default function TeamPage() {
                             )}
                           </div>
                         ) : (
-                          // Empty Cell Add Button
+                          // Empty Cell Quick Add / Modal
                           canManageShiftData ? (
-                            <button
-                              onClick={() => openAddShift(u.id, dayIndex)}
-                              className="absolute inset-2 md:inset-3 rounded-xl border-2 border-dashed border-white/5 text-white/0 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all flex flex-col items-center justify-center opacity-0 group-hover/cell:opacity-100"
-                            >
-                              <Plus size={20} className="mb-1" />
-                            </button>
+                            <div className="absolute inset-2 md:inset-3 flex items-center justify-center">
+                              {isAddingShift === `${u.id}-${dayIndex}` ? (
+                                <Loader2 size={24} className="animate-spin text-white/20" />
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleQuickAddShift(u.id, dayIndex)}
+                                    className="w-full h-full rounded-xl border-2 border-dashed border-white/5 text-white/0 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all flex flex-col items-center justify-center opacity-0 group-hover/cell:opacity-100"
+                                    title="Aggiungi Mattina (Doppio click per opzioni)"
+                                    onDoubleClick={() => openAddShift(u.id, dayIndex)}
+                                  >
+                                    <Plus size={20} />
+                                    <span className="text-[10px] mt-1 font-bold">MATTINA</span>
+                                  </button>
+                                  {/* Small hint button for modal if needed, but let's keep it clean with dblclick */}
+                                </>
+                              )}
+                            </div>
                           ) : null
                         )}
                       </div>

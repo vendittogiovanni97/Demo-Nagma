@@ -53,7 +53,6 @@ export class CustomerRepository {
         bookings: {
           where: {
             deletedAt: null,
-            artist: { is: { deletedAt: null } },
           },
           include: {
             artist: {

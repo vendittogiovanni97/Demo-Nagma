@@ -1,17 +1,22 @@
 "use client";
 
 import { useState } from 'react';
-import { teamService } from '@/services/team.service';
+import { staffService } from '@/services/staff.service';
 import { useAuth } from '@/context/AuthContext';
 import StatePanel from '@/components/feedback/StatePanel';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import { ROLE_OPTIONS } from '@/config/roles';
 import { canManageStaff } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
-import { parseRole, validateStaffData } from '@/utils/validation';
+import { validateStaffData } from '@/utils/validation';
+
+const STAFF_TYPE_OPTIONS = [
+  { value: 'TATTOO_ARTIST', label: 'Tatuatore' },
+  { value: 'PIERCER', label: 'Piercer' },
+  { value: 'OTHER', label: 'Altro' },
+] as const;
 
 interface Props {
   isOpen: boolean;
@@ -21,24 +26,14 @@ interface Props {
 export default function StaffModal({ isOpen, onClose }: Props) {
   const { user } = useAuth();
   const [name, setName] = useState('');
-  const [role, setRole] = useState('ARTIST');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [type, setType] = useState('TATTOO_ARTIST');
   const [color, setColor] = useState('#00BFFF');
   const [loading, setLoading] = useState(false);
   const canManage = canManageStaff(user?.role);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
-      name,
-      email,
-      password,
-      role: parseRole(role),
-      phone: phone || undefined,
-      color,
-    };
+    const payload = { name, type, color };
     const validationError = validateStaffData(payload);
     if (validationError) {
       notifyError(new Error(validationError), validationError);
@@ -47,13 +42,10 @@ export default function StaffModal({ isOpen, onClose }: Props) {
 
     setLoading(true);
     try {
-      await teamService.createUser(payload);
+      await staffService.create(payload);
       notifySuccess(`${name} aggiunto al team!`);
       setName('');
-      setRole('ARTIST');
-      setPhone('');
-      setEmail('');
-      setPassword('');
+      setType('TATTOO_ARTIST');
       setColor('#00BFFF');
       onClose();
     } catch (error: unknown) {
@@ -69,7 +61,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
         <StatePanel
           variant="error"
           title="Permessi insufficienti"
-          description="Solo un admin può creare nuovi utenti del team."
+          description="Solo un admin può creare nuovi membri dello staff."
         />
       ) : (
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -81,37 +73,11 @@ export default function StaffModal({ isOpen, onClose }: Props) {
           placeholder="Nome del collaboratore..."
         />
 
-        <FormInput
-          label="Email"
-          type="email"
-          required
-          value={email}
-          onChange={setEmail}
-          placeholder="email@studio.it"
-        />
-
-        <FormInput
-          label="Password"
-          type="password"
-          required
-          value={password}
-          onChange={setPassword}
-          placeholder="Password iniziale..."
-        />
-
         <FormSelect
-          label="Ruolo"
-          value={role}
-          onChange={setRole}
-          options={[...ROLE_OPTIONS]}
-        />
-
-        <FormInput
-          label="Telefono"
-          type="tel"
-          value={phone}
-          onChange={setPhone}
-          placeholder="+39 333..."
+          label="Tipo"
+          value={type}
+          onChange={setType}
+          options={[...STAFF_TYPE_OPTIONS]}
         />
 
         <div className="space-y-2">

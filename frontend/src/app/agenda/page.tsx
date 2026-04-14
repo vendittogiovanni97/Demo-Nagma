@@ -5,11 +5,13 @@ import ExportModal from '@/components/modals/ExportModal';
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/hooks/domain';
+import { bookingService } from '@/services/booking.service';
 import type { Booking } from '@/types/booking';
 import { canSendWhatsApp } from '@/utils/permissions';
+import { notifyError, notifySuccess } from '@/utils/toast';
 import { addDays, addWeeks, eachDayOfInterval, format, isSameDay, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Clock, MessageCircle, Plus, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, MessageCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);
@@ -19,6 +21,7 @@ export default function AgendaPage() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [whatsAppBooking, setWhatsAppBooking] = useState<Booking | null>(null);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [search, setSearch] = useState('');
   const canSendMessages = canSendWhatsApp(user?.role);
 
@@ -49,6 +52,22 @@ export default function AgendaPage() {
     });
   }, [bookings, search]);
 
+  const handleDeleteBooking = async (id: string) => {
+    if (!confirm('Sei sicuro di voler eliminare questa prenotazione?')) return;
+    try {
+      await bookingService.delete(id);
+      notifySuccess('Prenotazione eliminata');
+      mutate();
+    } catch (err: unknown) {
+      notifyError(err, 'Errore nell\'eliminazione');
+    }
+  };
+
+  const handleEditBooking = (booking: Booking) => {
+    setEditingBooking(booking);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="flex-1 flex flex-col gap-6">
       {/* Header: Title left, Search center, Actions right */}
@@ -74,7 +93,7 @@ export default function AgendaPage() {
           </div>
           <button
             onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-            className="text-xs font-bold uppercase tracking-wider px-3 py-2 bg-white/5 border border-surface-border rounded-lg hover:bg-accent hover:text-black transition-colors flex-shrink-0"
+            className="text-xs font-bold uppercase tracking-wider px-3 py-2 bg-white/5 border border-surface-border rounded-lg hover:bg-accent hover:text-black transition-colors shrink-0"
           >
             Oggi
           </button>
@@ -114,7 +133,13 @@ export default function AgendaPage() {
             ]}
             filtersLabel={`Settimana: ${format(weekStart, 'dd/MM/yyyy')} - Ricerca: ${search || 'nessuna'}`}
           />
-          <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
+          <button
+            onClick={() => {
+              setEditingBooking(null);
+              setIsModalOpen(true);
+            }}
+            className="btn-primary flex items-center gap-2 px-6"
+          >
             <Plus size={20} />
             <span>Nuovo</span>
           </button>
@@ -150,7 +175,7 @@ export default function AgendaPage() {
               <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
                 <Clock size={24} className="text-accent" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Carico l'agenda</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Carico l&apos agenda</h3>
               <p className="text-sm text-text-secondary">Sto recuperando gli appuntamenti della settimana.</p>
             </div>
           </div>
@@ -162,7 +187,7 @@ export default function AgendaPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Impossibile caricare l'agenda</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Impossibile caricare l&apos agenda</h3>
               <p className="text-sm text-text-secondary">Controlla la connessione o riprova tra poco.</p>
             </div>
           </div>
@@ -191,7 +216,7 @@ export default function AgendaPage() {
               {/* Hours column */}
               <div className="border-r border-surface-border bg-white/1">
                 {HOURS.map(h => (
-                  <div key={h} className="h-16 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
+                  <div key={h} className="h-25 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
                     {h}:00
                   </div>
                 ))}
@@ -201,37 +226,81 @@ export default function AgendaPage() {
               {weekDays.map((day) => (
                 <div key={day.toISOString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
                   {HOURS.map(hour => (
-                    <div key={hour} className="h-16 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
+                    <div key={hour} className="h-25 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
                   ))}
 
                   {filteredBookings
                     ?.filter(b => isSameDay(parseISO(b.date), day))
                     .map(booking => {
                       const d = new Date(booking.date);
-                      const top = ((d.getHours() - 9) * 64) + (d.getMinutes() * 64 / 60);
-                      const height = 64; // default 60 minutes
+                      const top = ((d.getHours() - 9) * 100) + (d.getMinutes() * 100 / 60);
+                      const height = 100;
                       const color = booking.artist?.color ?? 'var(--color-accent)';
                       return (
                         <div
                           key={booking.id}
-                          className="absolute left-1 right-1 rounded-lg p-2 text-xs overflow-hidden border-l-2 shadow-md cursor-pointer hover:scale-[1.02] transition-transform z-10"
-                          style={{ top: `${top}px`, height: `${height}px`, backgroundColor: `${color}20`, borderColor: color }}
+                          className="absolute left-1 right-1 rounded-xl p-3 text-xs border-l-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md cursor-default group/card transition-all duration-300 hover:z-20 border"
+                          style={{
+                            top: `${top}px`,
+                            height: `${height}px`,
+                            backgroundColor: `${color}28`,
+                            borderColor: `${color}40`,
+                            borderLeftColor: color
+                          }}
                         >
-                          {canSendMessages && booking.customer?.id && (
+                          {/* Actions column */}
+                          <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                            {canSendMessages && booking.customer?.id && (
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setWhatsAppBooking(booking);
+                                }}
+                                className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-sm cursor-pointer hover:scale-110 active:scale-95"
+                                title="WhatsApp"
+                              >
+                                <MessageCircle size={14} />
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                setWhatsAppBooking(booking);
+                                handleEditBooking(booking);
                               }}
-                              className="absolute right-1 top-1 rounded bg-black/20 p-1 text-emerald-200 transition hover:bg-black/35"
-                              title="Apri WhatsApp"
+                              className="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm cursor-pointer hover:scale-110 active:scale-95"
+                              title="Modifica"
                             >
-                              <MessageCircle size={12} />
+                              <Pencil size={14} />
                             </button>
-                          )}
-                          <div className="font-bold text-white truncate leading-tight mb-0.5">{booking.customer?.firstName} {booking.customer?.lastName}</div>
-                          <div className="text-text-secondary opacity-80 uppercase tracking-tighter truncate leading-tight text-[10px]">{booking.artist?.name}</div>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleDeleteBooking(booking.id);
+                              }}
+                              className="w-6 h-6 rounded-lg bg-danger/20 text-danger flex items-center justify-center hover:bg-danger hover:text-white transition-all shadow-sm cursor-pointer hover:scale-110 active:scale-95"
+                              title="Elimina"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+
+                          <div className="flex flex-col h-full justify-between pr-8">
+                            <div>
+                              <div className="font-bold text-white text-sm truncate leading-tight mb-0.5">
+                                {booking.customer?.firstName} {booking.customer?.lastName}
+                              </div>
+                              <div className="font-semibold uppercase tracking-[0.5px] truncate leading-tight text-xs" style={{ color }}>
+                                <span>●</span> {booking.artist?.name}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary/60">
+                              <Clock size={10} />
+                              <span>{format(new Date(booking.date), 'HH:mm')}</span>
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
@@ -242,7 +311,15 @@ export default function AgendaPage() {
         )}
       </div>
 
-      <BookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => mutate()} />
+      <BookingModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingBooking(null);
+        }}
+        onSuccess={() => mutate()}
+        booking={editingBooking}
+      />
       <WhatsAppSendModal
         isOpen={!!whatsAppBooking}
         onClose={() => setWhatsAppBooking(null)}

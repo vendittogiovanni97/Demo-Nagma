@@ -6,9 +6,8 @@ export class BookingRepository {
   private buildBaseWhere(monthStr?: string): Prisma.BookingWhereInput {
     const where: Prisma.BookingWhereInput = {
       deletedAt: null,
-      // Escludi prenotazioni il cui cliente o artista è stato soft-deleted.
+      // Escludi prenotazioni il cui cliente è stato soft-deleted.
       customer: { is: { deletedAt: null } },
-      artist: { is: { deletedAt: null } },
     };
     if (monthStr) {
       const start = new Date(`${monthStr}-01T00:00:00.000Z`);

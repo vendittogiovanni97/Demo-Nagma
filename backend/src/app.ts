@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes';
 import bookingRoutes from './routes/booking.routes';
 import customerRoutes from './routes/customer.routes';
 import formTemplateRoutes from './routes/form-template.routes';
+import staffRoutes from './routes/staff.routes';
 import teamRoutes from './routes/team.routes';
 import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
@@ -90,6 +91,7 @@ export function createApp() {
   app.use('/api/customers', customerRoutes);
   app.use('/api/transactions', transactionRoutes);
   app.use('/api/bookings', bookingRoutes);
+  app.use('/api/staff', staffRoutes);
   app.use('/api/team', teamRoutes);
   app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);

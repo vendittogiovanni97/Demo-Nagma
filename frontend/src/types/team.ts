@@ -19,6 +19,23 @@ export interface CreateUserData {
   color?: string;
 }
 
+export type StaffType = 'TATTOO_ARTIST' | 'PIERCER' | 'OTHER';
+
+export interface Staff {
+  id: string;
+  name: string;
+  type: StaffType;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStaffData {
+  name: string;
+  type: string;
+  color: string;
+}
+
 export interface Shift {
   id: string;
   userId: string;

@@ -1,6 +1,7 @@
 import {
   createBookingSchema,
   createCustomerSchema,
+  createStaffSchema,
   createTransactionSchema,
   createUserSchema,
   createWhatsAppTemplateSchema,
@@ -8,7 +9,7 @@ import {
 } from '@/schemas';
 import type { CreateBookingData } from '@/types/booking';
 import type { CreateCustomerData } from '@/types/customer';
-import type { CreateUserData, Role } from '@/types/team';
+import type { CreateStaffData, CreateUserData, Role } from '@/types/team';
 import type { CreateTransactionData } from '@/types/transaction';
 import type { CreateWhatsAppTemplateData, SendWhatsAppMessageData } from '@/types/whatsapp';
 
@@ -32,8 +33,8 @@ export function validateTransactionData(data: CreateTransactionData) {
   return getFirstIssueMessage(createTransactionSchema.safeParse(data));
 }
 
-export function validateStaffData(data: CreateUserData) {
-  return getFirstIssueMessage(createUserSchema.safeParse(data));
+export function validateStaffData(data: CreateStaffData) {
+  return getFirstIssueMessage(createStaffSchema.safeParse(data));
 }
 
 export function validateWhatsAppTemplateData(data: CreateWhatsAppTemplateData) {

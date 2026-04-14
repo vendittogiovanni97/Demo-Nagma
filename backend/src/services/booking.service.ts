@@ -4,7 +4,6 @@ import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
 import { validate, CreateBookingSchema, UpdateBookingSchema } from '../utils/validators';
 import { AppError } from '../utils/AppError';
-import { getStartOfWeek } from '../utils/date-utils';
 
 const repository = new BookingRepository();
 
@@ -65,7 +64,7 @@ export class BookingService {
     const newDate = data.date ? new Date(data.date) : oldBooking.date;
     const newStatus = data.status ?? oldBooking.status;
 
-    if (newStatus !== 'CANCELLED' && data.date) {
+    if (newStatus !== 'CANCELLED' && data.date && oldBooking.artistId) {
       await this.assertNoConflict(oldBooking.artistId, newDate, config.defaultBookingDurationMinutes, id);
     }
 
@@ -135,41 +134,23 @@ export class BookingService {
 
   async getAvailableArtists(dateIso: string) {
     const date = new Date(dateIso);
-    // Convert to HH:mm for comparison
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const timeStr = `${hours}:${minutes}`;
-    
-    // Day of week: 0=Lun, 1=Mar, ... 6=Dom
-    const jsDay = date.getDay();
-    const dayOfWeek = (jsDay + 6) % 7;
-    const weekStart = getStartOfWeek(date);
 
-    // 1. Trova tutti gli artisti con un turno attivo che copre questo orario
-    const activeShifts = await prisma.shift.findMany({
-      where: {
-        weekStart: { equals: weekStart },
-        dayOfWeek,
-        isOff: false,
-        startTime: { lte: timeStr },
-        endTime: { gt: timeStr },
-        deletedAt: null,
-      },
-      include: { user: { select: { id: true, name: true, color: true } } }
+    // 1. Prendi tutti i membri dello Staff
+    const allStaff = await prisma.staff.findMany({
+      select: { id: true, name: true, color: true },
+      orderBy: { name: 'asc' },
     });
 
-    const potentialArtists = activeShifts.map(s => s.user).filter(Boolean);
-    
     // 2. Filtra chi ha già una prenotazione che si sovrappone
     const availableArtists = [];
-    for (const artist of potentialArtists) {
+    for (const staff of allStaff) {
       const conflict = await repository.findOverlapping(
-        artist!.id, 
-        date, 
+        staff.id,
+        date,
         config.defaultBookingDurationMinutes
       );
       if (!conflict) {
-        availableArtists.push(artist);
+        availableArtists.push(staff);
       }
     }
 

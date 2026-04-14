@@ -1,6 +1,6 @@
-import prisma from '../utils/prisma';
 import { Prisma, TransactionType } from '@prisma/client';
 import { config } from '../config/env';
+import prisma from '../utils/prisma';
 
 export class TransactionRepository {
   async findAllPaged({
@@ -117,7 +117,7 @@ export class TransactionRepository {
     });
 
     // Arricchisci con i nomi degli artisti
-    const artistIds = stats.map(s => s.artistId);
+    const artistIds = stats.map(s => s.artistId).filter((id): id is string => id !== null);
     const artists = await prisma.user.findMany({
       where: { id: { in: artistIds } },
       select: { id: true, name: true, color: true },
@@ -126,8 +126,8 @@ export class TransactionRepository {
 
     return stats.map(s => ({
       artistId: s.artistId,
-      artistName: artistMap[s.artistId]?.name ?? 'Sconosciuto',
-      artistColor: artistMap[s.artistId]?.color ?? null,
+      artistName: s.artistId ? (artistMap[s.artistId]?.name ?? 'Sconosciuto') : 'Sconosciuto',
+      artistColor: s.artistId ? (artistMap[s.artistId]?.color ?? null) : null,
       bookings: s._count.id,
       revenue: s._sum.price ?? 0,
     }));

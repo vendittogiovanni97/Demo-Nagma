@@ -46,6 +46,6 @@ export function validateWhatsAppSendData(data: SendWhatsAppMessageData) {
 }
 
 export function parseRole(value: string): Role {
-  if (value === 'ADMIN' || value === 'USER') return value;
+  if (value === 'SUPER_ADMIN' || value === 'ADMIN' || value === 'USER') return value;
   return 'ARTIST';
 }

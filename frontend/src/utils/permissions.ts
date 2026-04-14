@@ -1,6 +1,7 @@
 import {
   CUSTOMER_MANAGEMENT_ROLES,
   FINANCE_MANAGEMENT_ROLES,
+  FORM_TEMPLATE_MANAGEMENT_ROLES,
   INVENTORY_MANAGEMENT_ROLES,
   SHIFT_MANAGEMENT_ROLES,
   STAFF_MANAGEMENT_ROLES,
@@ -40,4 +41,8 @@ export function canManageWhatsAppTemplates(role: Role | null | undefined) {
 
 export function canSendWhatsApp(role: Role | null | undefined) {
   return hasRequiredRole(role, WHATSAPP_SEND_ROLES);
+}
+
+export function canManageFormTemplates(role: Role | null | undefined) {
+  return hasRequiredRole(role, FORM_TEMPLATE_MANAGEMENT_ROLES);
 }

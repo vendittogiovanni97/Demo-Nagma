@@ -2,7 +2,7 @@
 
 import { branding } from "@/config/branding";
 import { useAuth } from "@/context/AuthContext";
-import { canSendWhatsApp } from "@/utils/permissions";
+import { canManageFormTemplates, canSendWhatsApp } from "@/utils/permissions";
 import * as Popover from "@radix-ui/react-popover";
 import {
   Calendar,
@@ -182,7 +182,7 @@ export default function Navbar() {
               </div>
 
               <nav className="flex flex-col gap-1">
-                {user?.role === 'ADMIN' && (
+                {canManageFormTemplates(user?.role) && (
                   <Link
                     href="/form-templates"
                     onClick={() => setIsUserMenuOpen(false)}

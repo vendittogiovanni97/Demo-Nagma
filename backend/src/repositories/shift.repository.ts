@@ -2,11 +2,12 @@ import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
 
 export class ShiftRepository {
-  async findByWeek(weekStart: Date) {
+  async findByWeek(weekStart: Date, excludeRoles?: string[]) {
     return prisma.shift.findMany({
-      where: { 
+      where: {
         weekStart: { equals: weekStart },
-        deletedAt: null
+        deletedAt: null,
+        ...(excludeRoles?.length ? { user: { role: { notIn: excludeRoles as any } } } : {}),
       },
       include: { user: { omit: { password: true } } }
     });

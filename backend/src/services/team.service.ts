@@ -12,7 +12,13 @@ const shiftRepo = new ShiftRepository();
 
 export class TeamService {
   async getAllUsers(search?: string, role?: string, page = 1, limit = 20) {
-    return userRepo.findAllPaged({ search, role, page, limit });
+    return userRepo.findAllPaged({
+      search,
+      role,
+      excludeRoles: ['ADMIN', 'SUPER_ADMIN'],
+      page,
+      limit,
+    });
   }
 
   async createUser(body: unknown) {
@@ -30,7 +36,7 @@ export class TeamService {
 
   async getShifts(weekStart?: string) {
     if (!weekStart) throw new AppError('Il parametro weekStart è obbligatorio (es. "2026-03-30").', 400);
-    return shiftRepo.findByWeek(new Date(weekStart));
+    return shiftRepo.findByWeek(new Date(weekStart), ['ADMIN', 'SUPER_ADMIN']);
   }
 
   async createShift(body: unknown) {

@@ -6,18 +6,22 @@ export class UserRepository {
   async findAllPaged({
     search,
     role,
+    excludeRoles,
     page = 1,
     limit = config.defaultPageLimit,
   }: {
     search?: string;
     role?: string;
+    excludeRoles?: string[];
     page?: number;
     limit?: number;
   }) {
     const where: Prisma.UserWhereInput = { deletedAt: null };
 
-    if (role === 'ADMIN' || role === 'USER' || role === 'ARTIST') {
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'USER' || role === 'ARTIST') {
       where.role = role;
+    } else if (excludeRoles?.length) {
+      where.role = { notIn: excludeRoles as any };
     }
 
     if (search?.trim()) {

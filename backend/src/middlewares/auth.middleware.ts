@@ -50,7 +50,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 };
 
 export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user?.role !== 'ADMIN') {
+  if (req.user?.role !== 'ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
     logger.warn('Accesso negato: route adminOnly', {
       requestId: req.requestId,
       method: req.method,
@@ -68,7 +68,7 @@ export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) =
 
 export const requireRoles = (...roles: Role[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user || (!roles.includes(req.user.role) && req.user.role !== 'SUPER_ADMIN')) {
       logger.warn('Accesso negato: ruolo non autorizzato', {
         requestId: req.requestId,
         method: req.method,

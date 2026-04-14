@@ -7,8 +7,8 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth.routes';
 import bookingRoutes from './routes/booking.routes';
-import creamRoutes from './routes/cream.routes';
 import customerRoutes from './routes/customer.routes';
+import formTemplateRoutes from './routes/form-template.routes';
 import teamRoutes from './routes/team.routes';
 import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
@@ -91,7 +91,7 @@ export function createApp() {
   app.use('/api/transactions', transactionRoutes);
   app.use('/api/bookings', bookingRoutes);
   app.use('/api/team', teamRoutes);
-  app.use('/api/creams', creamRoutes);
+  app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
 
   // Swagger API Docs

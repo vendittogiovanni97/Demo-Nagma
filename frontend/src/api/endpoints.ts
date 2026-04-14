@@ -24,10 +24,9 @@ export const ENDPOINTS = {
     PERFORMANCE: '/api/transactions/performance',
     BY_ID: (id: string) => `/api/transactions/${id}`,
   },
-  CREAMS: {
-    BASE: '/api/creams',
-    SALES: '/api/creams/sales',
-    BY_ID: (id: string) => `/api/creams/${id}`,
+  FORM_TEMPLATES: {
+    BASE: '/api/form-templates',
+    BY_ID: (id: string) => `/api/form-templates/${id}`,
   },
   WHATSAPP: {
     BASE: '/api/whatsapp-templates',

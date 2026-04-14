@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
@@ -37,6 +38,7 @@ export class BookingService {
           price: data.price ?? null,
           deposit: data.deposit ?? null,
           notes: data.notes,
+          formData: data.formData ? (data.formData as Prisma.InputJsonValue) : undefined,
         },
       });
 
@@ -71,9 +73,13 @@ export class BookingService {
     }
 
     return prisma.$transaction(async (tx) => {
+      const { formData: rawFormData, ...rest } = data;
       const booking = await tx.booking.update({
         where: { id },
-        data,
+        data: {
+          ...rest,
+          ...(rawFormData !== undefined && { formData: rawFormData as Prisma.InputJsonValue }),
+        },
       });
 
       const action =
@@ -93,17 +99,23 @@ export class BookingService {
 
       // Se la prenotazione è completata e ha un prezzo, genera automaticamente
       // una transazione di incasso (idempotente: solo se non era già COMPLETED).
+      // Usa il guadagno studio (studioProfit da formData) se presente, altrimenti il prezzo pieno.
       if (
         data.status === 'COMPLETED' &&
         oldBooking.status !== 'COMPLETED' &&
         booking.price
       ) {
+        const fd = booking.formData as Record<string, unknown> | null;
+        const studioProfit = fd && typeof fd.studioProfit === 'number'
+          ? fd.studioProfit
+          : booking.price;
+
         await tx.transaction.create({
           data: {
             type: 'INCOME',
             category: 'Tatuaggio',
             description: `Incasso prenotazione ${booking.type} — Cliente ID: ${booking.customerId}`,
-            amount: booking.price,
+            amount: studioProfit,
             date: new Date(),
           },
         });

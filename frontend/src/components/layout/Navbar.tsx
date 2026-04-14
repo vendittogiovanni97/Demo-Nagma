@@ -6,10 +6,10 @@ import { canSendWhatsApp } from "@/utils/permissions";
 import * as Popover from "@radix-ui/react-popover";
 import {
   Calendar,
+  FileText,
   LayoutGrid,
   LogOut,
   MessageSquare,
-  Package,
   Plus,
   Users,
   UsersRound,
@@ -93,7 +93,6 @@ export default function Navbar() {
     { name: "Home", href: "/", icon: LayoutGrid },
     { name: "Agenda", href: "/agenda", icon: Calendar },
     { name: "Clienti", href: "/clienti", icon: Users },
-    { name: "Inventario", href: "/creams", icon: Package },
     { name: "Team", href: "/team", icon: UsersRound },
   ];
 
@@ -101,6 +100,7 @@ export default function Navbar() {
   const canWhatsApp = canSendWhatsApp(user?.role);
 
   return (
+    <>
     <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
       <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
         <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
@@ -181,6 +181,16 @@ export default function Navbar() {
               </div>
 
               <nav className="flex flex-col gap-1">
+                {user?.role === 'ADMIN' && (
+                  <Link
+                    href="/form-templates"
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                  >
+                    <FileText size={16} />
+                    <span>Form Template</span>
+                  </Link>
+                )}
                 {canWhatsApp && (
                   <Link
                     href="/whatsapp"
@@ -206,8 +216,9 @@ export default function Navbar() {
           </Popover.Portal>
         </Popover.Root>
       </div>
-
-      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
     </nav>
+
+    <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+  </>
   );
 }

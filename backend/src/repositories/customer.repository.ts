@@ -62,14 +62,6 @@ export class CustomerRepository {
           },
           orderBy: { date: 'desc' },
         },
-        creamSales: {
-          where: {
-            deletedAt: null,
-            cream: { is: { deletedAt: null } },
-          },
-          include: { cream: { select: { id: true, name: true } } },
-          orderBy: { createdAt: 'desc' },
-        },
         whatsappLogs: {
           where: {
             createdAt: { gte: new Date(Date.now() - config.whatsappLogsRetentionDays * 24 * 60 * 60 * 1000) },
@@ -98,7 +90,6 @@ export class CustomerRepository {
         _count: {
           select: {
             bookings: { where: { deletedAt: null } },
-            creamSales: { where: { deletedAt: null } },
           },
         },
       },

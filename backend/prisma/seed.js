@@ -37,6 +37,45 @@ async function main() {
   }
   console.log('✅ Template WhatsApp creati');
 
+  // ── Form Template di default per Booking ──
+  const bookingFormSchema = [
+    {
+      type: 'select',
+      name: 'tattooStyle',
+      label: 'Stile Tatuaggio',
+      options: ['Realistico', 'Tradizionale', 'Neotradizionale', 'Acquerello', 'Blackwork', 'Minimal', 'Giapponese', 'Lettering', 'Geometrico', 'Altro'],
+    },
+    {
+      type: 'text',
+      name: 'progettoTipo',
+      label: 'Tipo di Progetto',
+    },
+    {
+      type: 'select',
+      name: 'grandezza',
+      label: 'Grandezza',
+      options: ['Piccolo (< 10cm)', 'Medio (10-20cm)', 'Grande (20-30cm)', 'Extra Large (> 30cm)'],
+    },
+    {
+      type: 'text',
+      name: 'posizione',
+      label: 'Posizione corpo',
+    },
+  ];
+
+  const schemaB64 = Buffer.from(JSON.stringify(bookingFormSchema)).toString('base64');
+
+  const existingTemplate = await prisma.formTemplate.findFirst({ where: { name: 'Scheda Prenotazione Tattoo' } });
+  if (!existingTemplate) {
+    await prisma.formTemplate.create({
+      data: {
+        name: 'Scheda Prenotazione Tattoo',
+        schemaB64,
+      },
+    });
+  }
+  console.log('✅ Form Template prenotazione creato');
+
   console.log('\n🎉 Seed completato con successo!');
   console.log('\n📋 Credenziali accesso:');
   console.log('   Admin:   admin@nagma.it / admin123');

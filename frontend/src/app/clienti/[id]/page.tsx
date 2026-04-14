@@ -10,7 +10,6 @@ import {
     Edit,
     Mail,
     MessageCircle,
-    Package,
     Phone,
     TrendingUp,
     User
@@ -24,7 +23,6 @@ import StatePanel from '@/components/feedback/StatePanel';
 import CustomerModal from '@/components/modals/CustomerModal';
 import { useAuth } from '@/context/AuthContext';
 import { customerService } from '@/services/customer.service';
-import type { CreamSale } from '@/types/cream';
 import type { Customer, CustomerSummary, WhatsAppLog } from '@/types/customer';
 import { canManageCustomers } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
@@ -64,7 +62,6 @@ export default function CustomerDetailPage() {
   );
 
   const bookings = customer?.bookings || [];
-  const creamSales = customer?.creamSales || [];
   const whatsappLogs = customer?.whatsappLogs || [];
 
   const upcomingBookings = bookings.filter(
@@ -233,10 +230,6 @@ export default function CustomerDetailPage() {
                     <p className="text-2xl font-bold text-purple-400">{summary.upcomingBookings}</p>
                     <p className="text-xs text-text-secondary mt-1">Futuri</p>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-orange-400">{summary._count.creamSales}</p>
-                    <p className="text-xs text-text-secondary mt-1">Prodotti</p>
-                  </div>
                 </div>
 
                 {summary.lastBooking && (
@@ -358,39 +351,6 @@ export default function CustomerDetailPage() {
                 </div>
               )}
             </div>
-
-            {/* Prodotti Acquistati */}
-            {creamSales.length > 0 && (
-              <div className="glass-panel p-6">
-                <h2 className="text-lg font-bold font-outfit mb-4 flex items-center gap-2">
-                  <Package size={18} className="text-accent" />
-                  Prodotti Acquistati
-                </h2>
-                <div className="space-y-2">
-                  {creamSales.map((sale: CreamSale) => (
-                    <div
-                      key={sale.id}
-                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
-                    >
-                      <div>
-                        <p className="text-sm font-bold text-white">
-                          {(sale.cream as { name?: string })?.name}
-                        </p>
-                        <p className="text-xs text-text-secondary">
-                          Qtà: {sale.quantity}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-white font-bold">€{sale.totalPrice.toFixed(2)}</p>
-                        <p className="text-xs text-text-secondary">
-                          {format(new Date(sale.createdAt), 'dd MMM yyyy', { locale: it })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Ultimi WhatsApp */}
             {whatsappLogs.length > 0 && (

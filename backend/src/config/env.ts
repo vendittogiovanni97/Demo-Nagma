@@ -26,8 +26,6 @@ export const config = {
 
   // Paginazione
   defaultPageLimit: envInt('DEFAULT_PAGE_LIMIT', 20),
-  creamsPageLimit: envInt('CREAMS_PAGE_LIMIT', 12),
-
   // Business
   defaultBookingDurationMinutes: envInt('DEFAULT_BOOKING_DURATION_MINUTES', 60),
   defaultBookingType: envStr('DEFAULT_BOOKING_TYPE', 'Tattoo'),

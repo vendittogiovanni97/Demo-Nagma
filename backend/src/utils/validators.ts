@@ -2,20 +2,19 @@ import { z } from 'zod';
 import { AppError } from './AppError';
 import {
   createBookingSchema,
-  createCreamSchema,
   createCustomerSchema,
+  createFormTemplateSchema,
   createShiftSchema,
   createTransactionSchema,
   createUserSchema,
   createWhatsAppTemplateSchema,
   loginSchema,
   listWhatsAppLogsSchema,
-  registerSaleSchema,
   registerSchema,
   sendWhatsAppMessageSchema,
   updateBookingSchema,
-  updateCreamSchema,
   updateCustomerSchema,
+  updateFormTemplateSchema,
   updateShiftSchema,
   updateWhatsAppTemplateSchema,
 } from '../schemas';
@@ -41,9 +40,8 @@ export const UpdateCustomerSchema = updateCustomerSchema;
 export const CreateBookingSchema = createBookingSchema;
 export const UpdateBookingSchema = updateBookingSchema;
 export const CreateTransactionSchema = createTransactionSchema;
-export const CreateCreamSchema = createCreamSchema;
-export const UpdateCreamSchema = updateCreamSchema;
-export const RegisterSaleSchema = registerSaleSchema;
+export const CreateFormTemplateSchema = createFormTemplateSchema;
+export const UpdateFormTemplateSchema = updateFormTemplateSchema;
 export const CreateUserSchema = createUserSchema;
 export const CreateShiftSchema = createShiftSchema;
 export const UpdateShiftSchema = updateShiftSchema;

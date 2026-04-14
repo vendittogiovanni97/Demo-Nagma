@@ -19,7 +19,6 @@ model User {
   createdAt     DateTime    @default(now())
   bookings      Booking[]
   shifts        Shift[]
-  creamSales    CreamSale[]
   whatsappLogs  WhatsAppMessageLog[]
 }
 
@@ -39,7 +38,6 @@ model Customer {
   deletedAt     DateTime?   // soft delete
   createdAt     DateTime    @default(now())
   bookings      Booking[]
-  creamSales    CreamSale[]
   whatsappLogs  WhatsAppMessageLog[]
 }
 
@@ -112,30 +110,6 @@ model Transaction {
 enum TransactionType {
   INCOME
   EXPENSE
-}
-
-model Cream {
-  id          String      @id @default(cuid())
-  name        String
-  brand       String?
-  price       Float
-  stock       Int         @default(0)
-  deletedAt   DateTime?   // soft delete
-  sales       CreamSale[]
-}
-
-model CreamSale {
-  id          String    @id @default(cuid())
-  cream       Cream     @relation(fields: [creamId], references: [id])
-  creamId     String
-  seller      User      @relation(fields: [sellerId], references: [id])
-  sellerId    String
-  customer    Customer? @relation(fields: [customerId], references: [id])
-  customerId  String?
-  quantity    Int
-  totalPrice  Float
-  deletedAt   DateTime? // soft delete
-  createdAt   DateTime  @default(now())
 }
 
 model FormTemplate {

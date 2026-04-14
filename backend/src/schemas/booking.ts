@@ -11,6 +11,7 @@ export const createBookingSchema = z.object({
   price: z.number().positive().optional(),
   deposit: z.number().positive().optional(),
   notes: z.string().optional(),
+  formData: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const updateBookingSchema = z.object({
@@ -21,4 +22,5 @@ export const updateBookingSchema = z.object({
   price: z.number().positive().optional(),
   deposit: z.number().positive().optional(),
   notes: z.string().optional(),
+  formData: z.record(z.string(), z.unknown()).optional(),
 });

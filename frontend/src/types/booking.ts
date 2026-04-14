@@ -11,10 +11,6 @@ export interface Booking {
   price?: number;
   deposit?: number;
   notes?: string;
-  tattooStyle?: string;
-  progettoTipo?: string;
-  grandezza?: string;
-  posizione?: string;
   formData?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
@@ -39,10 +35,7 @@ export interface CreateBookingData {
   price?: number;
   deposit?: number;
   notes?: string;
-  tattooStyle?: string;
-  progettoTipo?: string;
-  grandezza?: string;
-  posizione?: string;
+  formData?: Record<string, unknown>;
 }
 
 export interface BookingHistory {

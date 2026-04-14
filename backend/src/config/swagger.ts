@@ -98,14 +98,13 @@ const options = {
             artistId: { type: 'string' },
           },
         },
-        Cream: {
+        FormTemplate: {
           type: 'object',
           properties: {
             id: { type: 'string', format: 'cuid' },
             name: { type: 'string' },
-            brand: { type: 'string' },
-            price: { type: 'number' },
-            stock: { type: 'integer' },
+            schemaB64: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' },
           },
         },
         PaginatedResponse: {
@@ -126,7 +125,7 @@ const options = {
       { name: 'Bookings', description: 'Appuntamenti e prenotazioni' },
       { name: 'Transactions', description: 'Transazioni finanziarie' },
       { name: 'Team', description: 'Gestione team e turni' },
-      { name: 'Creams', description: 'Prodotti e vendite creme' },
+      { name: 'FormTemplates', description: 'Template form dinamici' },
       { name: 'WhatsApp', description: 'Template e invio messaggi WhatsApp' },
       { name: 'Health', description: 'Health check' },
     ],

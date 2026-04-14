@@ -1,6 +1,5 @@
 import {
   createBookingSchema,
-  createCreamSchema,
   createCustomerSchema,
   createTransactionSchema,
   createUserSchema,
@@ -8,7 +7,6 @@ import {
   sendWhatsAppMessageSchema,
 } from '@/schemas';
 import type { CreateBookingData } from '@/types/booking';
-import type { CreateCreamData } from '@/types/cream';
 import type { CreateCustomerData } from '@/types/customer';
 import type { CreateUserData, Role } from '@/types/team';
 import type { CreateTransactionData } from '@/types/transaction';
@@ -32,10 +30,6 @@ export function validateBookingData(data: CreateBookingData & { time?: string })
 
 export function validateTransactionData(data: CreateTransactionData) {
   return getFirstIssueMessage(createTransactionSchema.safeParse(data));
-}
-
-export function validateCreamData(data: CreateCreamData) {
-  return getFirstIssueMessage(createCreamSchema.safeParse(data));
 }
 
 export function validateStaffData(data: CreateUserData) {

@@ -5,7 +5,6 @@
 
 // Paginazione
 export const DEFAULT_PAGE_LIMIT = 20;
-export const CREAMS_PAGE_LIMIT = 12;
 export const EXPORT_FETCH_LIMIT = 1000;
 
 // Ricerca

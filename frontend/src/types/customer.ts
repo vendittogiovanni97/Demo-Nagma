@@ -1,5 +1,4 @@
 import type { Booking } from './booking';
-import type { CreamSale } from './cream';
 
 export interface Customer {
   id: string;
@@ -13,7 +12,6 @@ export interface Customer {
     bookings: number;
   };
   bookings?: Booking[];
-  creamSales?: CreamSale[];
   whatsappLogs?: WhatsAppLog[];
 }
 
@@ -46,7 +44,6 @@ export interface CustomerSummary {
   };
   _count: {
     bookings: number;
-    creamSales: number;
   };
 }
 

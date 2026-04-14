@@ -1,6 +1,6 @@
 export * from './useBookings';
-export * from './useCreams';
 export * from './useCustomers';
+export * from './useFormTemplates';
 export * from './useTeam';
 export * from './useTransactions';
 export * from './useWhatsApp';

@@ -3,6 +3,9 @@
 import type { Column } from '@/components/data-display/DataTable';
 import DataTable from '@/components/data-display/DataTable';
 import StatCard from '@/components/data-display/StatCard';
+import StatePanel from '@/components/feedback/StatePanel';
+import SearchInput from '@/components/forms/SearchInput';
+import PageHeader from '@/components/layout/PageHeader';
 import type { ExportFilter } from '@/components/modals/ExportModal';
 import ExportModal from '@/components/modals/ExportModal';
 import TransactionModal from '@/components/modals/TransactionModal';
@@ -16,7 +19,7 @@ import { canManageFinance } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function SpesePage() {
@@ -71,28 +74,73 @@ export default function SpesePage() {
 
   return (
     <div className="flex-1 flex flex-col gap-6">
-      {/* Header: Title left, Search + Filter center, Actions right */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Title */}
-        <div>
-          <h1 className="text-2xl font-outfit font-bold text-white">Gestione Finanze</h1>
-        </div>
-
-        {/* Search + Filter - Center */}
-        <div className="flex-1 max-w-2xl mx-auto flex gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
+      <PageHeader
+        title="Gestione Finanze"
+        actions={
+          <>
+            <ExportModal
+              filenameBase="finanze"
+              title="Gestione Finanze"
+              rows={transactions}
+              columns={[
+                {
+                  label: 'Data',
+                  value: (transaction: Transaction) =>
+                    format(new Date(transaction.date), 'dd/MM/yyyy', { locale: it }),
+                },
+                { label: 'Descrizione', value: (transaction: Transaction) => transaction.description },
+                { label: 'Categoria', value: (transaction: Transaction) => transaction.category },
+                { label: 'Tipo', value: (transaction: Transaction) => transaction.type },
+                { label: 'Importo', value: (transaction: Transaction) => transaction.amount.toFixed(2) },
+              ]}
+              filters={[
+                {
+                  key: 'month',
+                  label: 'Mese',
+                  type: 'month',
+                  value: month,
+                  onChange: (v) => { setMonth(v); setPage(1); },
+                },
+                {
+                  key: 'type',
+                  label: 'Tipo',
+                  type: 'select',
+                  value: typeFilter,
+                  options: [
+                    { label: 'Tutti i tipi', value: 'ALL' },
+                    { label: 'Entrate', value: 'INCOME' },
+                    { label: 'Uscite', value: 'EXPENSE' },
+                  ],
+                  onChange: (v) => { setTypeFilter(v as 'ALL' | 'INCOME' | 'EXPENSE'); setPage(1); },
+                },
+              ] satisfies ExportFilter[]}
+              filtersLabel={`Mese: ${month} - Tipo: ${typeFilter}`}
+              resolveRows={async () => {
+                const response = await transactionService.getAll({
+                  month,
+                  type: typeFilter === 'ALL' ? undefined : typeFilter,
+                  search: debouncedSearch,
+                  page: 1,
+                  limit: EXPORT_FETCH_LIMIT,
+                });
+                return response.data;
               }}
-              placeholder="Cerca per descrizione o categoria..."
-              className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent"
             />
-          </div>
+            {canManage ? (
+              <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
+                <Plus size={20} />
+                <span>Nuovo Movimento</span>
+              </button>
+            ) : null}
+          </>
+        }
+      >
+        <div className="flex-1 max-w-2xl mx-auto flex gap-3">
+          <SearchInput
+            value={search}
+            onChange={(v) => { setSearch(v); setPage(1); }}
+            placeholder="Cerca per descrizione o categoria..."
+          />
           <select
             value={typeFilter}
             onChange={(e) => {
@@ -106,65 +154,7 @@ export default function SpesePage() {
             <option value="EXPENSE">Uscite</option>
           </select>
         </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          <ExportModal
-            filenameBase="finanze"
-            title="Gestione Finanze"
-            rows={transactions}
-            columns={[
-              {
-                label: 'Data',
-                value: (transaction: Transaction) =>
-                  format(new Date(transaction.date), 'dd/MM/yyyy', { locale: it }),
-              },
-              { label: 'Descrizione', value: (transaction: Transaction) => transaction.description },
-              { label: 'Categoria', value: (transaction: Transaction) => transaction.category },
-              { label: 'Tipo', value: (transaction: Transaction) => transaction.type },
-              { label: 'Importo', value: (transaction: Transaction) => transaction.amount.toFixed(2) },
-            ]}
-            filters={[
-              {
-                key: 'month',
-                label: 'Mese',
-                type: 'month',
-                value: month,
-                onChange: (v) => { setMonth(v); setPage(1); },
-              },
-              {
-                key: 'type',
-                label: 'Tipo',
-                type: 'select',
-                value: typeFilter,
-                options: [
-                  { label: 'Tutti i tipi', value: 'ALL' },
-                  { label: 'Entrate', value: 'INCOME' },
-                  { label: 'Uscite', value: 'EXPENSE' },
-                ],
-                onChange: (v) => { setTypeFilter(v as 'ALL' | 'INCOME' | 'EXPENSE'); setPage(1); },
-              },
-            ] satisfies ExportFilter[]}
-            filtersLabel={`Mese: ${month} - Tipo: ${typeFilter}`}
-            resolveRows={async () => {
-              const response = await transactionService.getAll({
-                month,
-                type: typeFilter === 'ALL' ? undefined : typeFilter,
-                search: debouncedSearch,
-                page: 1,
-                limit: EXPORT_FETCH_LIMIT,
-              });
-              return response.data;
-            }}
-          />
-          {canManage ? (
-            <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
-              <Plus size={20} />
-              <span>Nuovo Movimento</span>
-            </button>
-          ) : null}
-        </div>
-      </div>
+      </PageHeader>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -188,17 +178,12 @@ export default function SpesePage() {
       {/* Table */}
       <div className="glass-panel flex-1 p-6 rounded-2xl">
         {error ? (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center max-w-md">
-              <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Impossibile caricare i movimenti</h3>
-              <p className="text-sm text-text-secondary">Riprova tra poco o aggiorna la pagina.</p>
-            </div>
-          </div>
+          <StatePanel
+            variant="error"
+            fullPage
+            title="Impossibile caricare i movimenti"
+            description="Riprova tra poco o aggiorna la pagina."
+          />
         ) : (
           <DataTable
             data={transactions}

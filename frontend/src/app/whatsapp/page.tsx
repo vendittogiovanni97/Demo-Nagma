@@ -1,9 +1,11 @@
 "use client";
 
-import { Edit, MessageCircle, Plus, Search, Trash2 } from 'lucide-react';
+import { Edit, MessageCircle, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import StatePanel from '@/components/feedback/StatePanel';
+import SearchInput from '@/components/forms/SearchInput';
+import PageHeader from '@/components/layout/PageHeader';
 import WhatsAppTemplateModal from '@/components/modals/WhatsAppTemplateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useWhatsAppTemplates } from '@/hooks/domain';
@@ -39,11 +41,7 @@ export default function WhatsAppTemplatesPage() {
   if (!canManageTemplates) {
     return (
       <div className="flex-1 flex flex-col gap-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-outfit font-bold text-white">WhatsApp Templates</h1>
-          </div>
-        </div>
+        <PageHeader title="WhatsApp Templates" />
         <StatePanel
           variant="error"
           title="Accesso limitato"
@@ -55,26 +53,9 @@ export default function WhatsAppTemplatesPage() {
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-outfit font-bold text-white">WhatsApp Templates</h1>
-        </div>
-
-        <div className="flex-1 max-w-md mx-auto">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type="text"
-              value={templateSearch}
-              onChange={(e) => setTemplateSearch(e.target.value)}
-              placeholder="Cerca template..."
-              className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        title="WhatsApp Templates"
+        actions={
           <button
             onClick={() => {
               setEditingTemplate(null);
@@ -85,14 +66,24 @@ export default function WhatsAppTemplatesPage() {
             <Plus size={20} />
             <span>Nuovo Template</span>
           </button>
+        }
+      >
+        <div className="flex-1 max-w-md mx-auto">
+          <SearchInput
+            value={templateSearch}
+            onChange={setTemplateSearch}
+            placeholder="Cerca template..."
+          />
         </div>
-      </div>
+      </PageHeader>
 
       {/* Main Content: Template Grid */}
       <div className="glass-panel flex-1 rounded-2xl flex flex-col overflow-hidden p-6 relative">
         <div className="mb-6 border-b border-surface-border/50 pb-4">
           <h2 className="text-xl font-outfit font-bold text-white">Gestione Template</h2>
-          <p className="text-sm text-text-secondary mt-1">Crea e modifica i modelli di messaggio pronti da inviare dall'agenda.</p>
+          <p className="text-sm text-text-secondary mt-1">
+          {"Crea e modifica i modelli di messaggio pronti da inviare dall'agenda."}
+        </p>
         </div>
 
         {templatesLoading ? (
@@ -106,7 +97,7 @@ export default function WhatsAppTemplatesPage() {
             </div>
             <p className="text-lg font-bold text-white">Nessun template trovato</p>
             <p className="text-sm text-text-secondary mt-2 text-center max-w-md">
-              Crea il tuo primo template WhatsApp per inviare messaggi rapidi ai clienti direttamente dall'agenda.
+              {"Crea il tuo primo template WhatsApp per inviare messaggi rapidi ai clienti direttamente dall'agenda."}
             </p>
             <button
                onClick={() => setIsTemplateModalOpen(true)}
@@ -150,7 +141,7 @@ export default function WhatsAppTemplatesPage() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="bg-black/20 rounded-xl p-4 flex-1 text-sm text-text-secondary italic line-clamp-6 mb-3">
                    {template.body}
                 </div>

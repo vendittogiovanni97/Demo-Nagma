@@ -1,5 +1,7 @@
 "use client";
 
+import StatePanel from '@/components/feedback/StatePanel';
+import PageHeader from '@/components/layout/PageHeader';
 import ExportModal from '@/components/modals/ExportModal';
 import ShiftModal from '@/components/modals/ShiftModal';
 import StaffModal from '@/components/modals/StaffModal';
@@ -120,17 +122,12 @@ export default function TeamPage() {
 
   if (usersError || shiftsError) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-white mb-2">Impossibile caricare i dati</h3>
-          <p className="text-sm text-text-secondary">Riprova tra qualche secondo.</p>
-        </div>
-      </div>
+      <StatePanel
+        variant="error"
+        fullPage
+        title="Impossibile caricare i dati"
+        description="Riprova tra qualche secondo."
+      />
     );
   }
 
@@ -139,12 +136,39 @@ export default function TeamPage() {
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-outfit font-bold text-white">Team & Turni</h1>
-        </div>
-
+      <PageHeader
+        title="Team & Turni"
+        actions={
+          <>
+            <ExportModal
+              filenameBase="turni"
+              title="Turni Settimanali"
+              rows={shifts || []}
+              columns={[
+                { label: 'Collaboratore', value: (shift: Shift) => shift.user?.name || '' },
+                { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
+                { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek.toString() },
+                {
+                  label: 'Orario',
+                  value: (shift: Shift) => (shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`),
+                },
+              ]}
+            />
+            {canManageShiftData && (
+               <button onClick={() => openAddShift()} className="btn-secondary flex items-center gap-2 px-4">
+                 <Plus size={20} />
+                 <span>Turno</span>
+               </button>
+            )}
+            {canManageUsers && (
+              <button onClick={() => setIsStaffModalOpen(true)} className="btn-primary flex items-center gap-2 px-4">
+                <Plus size={20} />
+                <span>Staff</span>
+              </button>
+            )}
+          </>
+        }
+      >
         {/* Date Navigation */}
         <div className="flex items-center gap-4 bg-surface/50 border border-surface-border rounded-xl px-2 py-1 shadow-lg backdrop-blur-md">
           <button onClick={handlePrevWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white">
@@ -157,36 +181,7 @@ export default function TeamPage() {
             <ChevronRight size={20} />
           </button>
         </div>
-
-        <div className="flex items-center gap-3">
-          <ExportModal
-            filenameBase="turni"
-            title="Turni Settimanali"
-            rows={shifts || []}
-            columns={[
-              { label: 'Collaboratore', value: (shift: Shift) => shift.user?.name || '' },
-              { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
-              { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek.toString() },
-              {
-                label: 'Orario',
-                value: (shift: Shift) => (shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`),
-              },
-            ]}
-          />
-          {canManageShiftData && (
-             <button onClick={() => openAddShift()} className="btn-secondary flex items-center gap-2 px-4">
-               <Plus size={20} />
-               <span>Turno</span>
-             </button>
-          )}
-          {canManageUsers && (
-            <button onClick={() => setIsStaffModalOpen(true)} className="btn-primary flex items-center gap-2 px-4">
-              <Plus size={20} />
-              <span>Staff</span>
-            </button>
-          )}
-        </div>
-      </div>
+      </PageHeader>
 
       {/* Grid Container */}
       <div className="glass-panel flex-1 rounded-2xl flex flex-col overflow-hidden w-full relative">

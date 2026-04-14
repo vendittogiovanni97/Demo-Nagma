@@ -1,6 +1,9 @@
 "use client";
 
 import { Skeleton } from '@/components/feedback/Skeleton';
+import StatePanel from '@/components/feedback/StatePanel';
+import SearchInput from '@/components/forms/SearchInput';
+import PageHeader from '@/components/layout/PageHeader';
 import CustomerModal from '@/components/modals/CustomerModal';
 import ExportModal from '@/components/modals/ExportModal';
 import { DEBOUNCE_SEARCH_DELAY, EXPORT_FETCH_LIMIT } from '@/config/defaults';
@@ -13,7 +16,7 @@ import { canManageCustomers, canSendWhatsApp } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Edit, Eye, Mail, MessageCircle, Phone, Search, Trash2, UserPlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Eye, Mail, MessageCircle, Phone, Trash2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
@@ -57,66 +60,51 @@ export default function CustomersPage() {
 
   return (
     <div className="flex-1 flex flex-col gap-6">
-      {/* Header: Title left, Search center, Actions right */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Title */}
-        <div>
-          <h1 className="text-2xl font-outfit font-bold text-white">Anagrafica Clienti</h1>
-        </div>
-
-        {/* Search - Center */}
-        <div className="flex-1 max-w-md mx-auto">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type="text"
-              placeholder="Cerca per nome, cognome o telefono..."
-              className="w-full bg-white/5 border border-surface-border rounded-xl py-3 pl-11 pr-4 text-white focus:outline-none focus:border-accent transition-all"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+      <PageHeader
+        title="Anagrafica Clienti"
+        actions={
+          <>
+            <ExportModal
+              filenameBase="clienti"
+              title="Anagrafica Clienti"
+              rows={customers || []}
+              columns={exportColumns}
+              filtersLabel={`Ricerca: ${debouncedSearch || 'nessuna'}`}
+              resolveRows={async () => {
+                const response = await customerService.getAll(debouncedSearch, 1, EXPORT_FETCH_LIMIT);
+                return response.data;
+              }}
             />
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          <ExportModal
-            filenameBase="clienti"
-            title="Anagrafica Clienti"
-            rows={customers || []}
-            columns={exportColumns}
-            filtersLabel={`Ricerca: ${debouncedSearch || 'nessuna'}`}
-            resolveRows={async () => {
-              const response = await customerService.getAll(debouncedSearch, 1, EXPORT_FETCH_LIMIT);
-              return response.data;
-            }}
+            {canManage ? (
+              <button
+                onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
+                className="btn-primary flex items-center gap-2 px-6"
+              >
+                <UserPlus size={20} />
+                <span>Nuovo Cliente</span>
+              </button>
+            ) : null}
+          </>
+        }
+      >
+        <div className="flex-1 max-w-md mx-auto">
+          <SearchInput
+            value={search}
+            onChange={(v) => { setSearch(v); setPage(1); }}
+            placeholder="Cerca per nome, cognome o telefono..."
           />
-          {canManage ? (
-            <button
-              onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
-              className="btn-primary flex items-center gap-2 px-6"
-            >
-              <UserPlus size={20} />
-              <span>Nuovo Cliente</span>
-            </button>
-          ) : null}
         </div>
-      </div>
+      </PageHeader>
 
       {/* Table */}
       <div className="glass-panel flex-1 flex flex-col overflow-hidden rounded-2xl">
         {error ? (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center max-w-md">
-              <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Impossibile caricare i clienti</h3>
-              <p className="text-sm text-text-secondary">Riprova tra qualche secondo o aggiorna la pagina.</p>
-            </div>
-          </div>
+          <StatePanel
+            variant="error"
+            fullPage
+            title="Impossibile caricare i clienti"
+            description="Riprova tra qualche secondo o aggiorna la pagina."
+          />
         ) : null}
 
         <div className="overflow-x-auto custom-scrollbar flex-1">
@@ -144,21 +132,14 @@ export default function CustomersPage() {
               ) : !customers || customers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-20">
-                    <div className="text-center">
-                      <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-10 h-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg font-bold text-white mb-2">
-                        {debouncedSearch ? 'Nessun risultato trovato' : 'Nessun cliente presente'}
-                      </h3>
-                      <p className="text-sm text-text-secondary max-w-sm mx-auto">
-                        {debouncedSearch
-                          ? 'Prova a modificare i termini di ricerca.'
-                          : 'Clicca "Nuovo Cliente" per aggiungere il primo contatto.'}
-                      </p>
-                    </div>
+                    <StatePanel
+                      variant="empty"
+                      title={debouncedSearch ? 'Nessun risultato trovato' : 'Nessun cliente presente'}
+                      description={debouncedSearch
+                        ? 'Prova a modificare i termini di ricerca.'
+                        : 'Clicca "Nuovo Cliente" per aggiungere il primo contatto.'}
+                      className="border-none bg-transparent"
+                    />
                   </td>
                 </tr>
               ) : (

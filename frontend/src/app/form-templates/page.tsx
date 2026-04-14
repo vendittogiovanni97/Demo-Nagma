@@ -1,5 +1,6 @@
 "use client";
 
+import PageHeader from '@/components/layout/PageHeader';
 import { useAuth } from '@/context/AuthContext';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { formTemplateService } from '@/services/form-template.service';
@@ -7,7 +8,7 @@ import type { FieldDef, FormTemplate } from '@/types/form-template';
 import { notifyError, notifySuccess } from '@/utils/toast';
 import { Check, Edit3, FileText, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function decodeFields(schemaB64: string): FieldDef[] {
   try {
@@ -33,9 +34,9 @@ function FieldEditor({ field, onChange, onRemove }: FieldEditorProps) {
   return (
     <div className="relative bg-white/5 border border-surface-border rounded-xl p-5 group transition-all hover:border-accent/30 hover:bg-white/10">
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          type="button" 
-          onClick={onRemove} 
+        <button
+          type="button"
+          onClick={onRemove}
           className="p-1.5 bg-black/40 text-text-secondary hover:text-danger hover:bg-danger/20 rounded-lg transition-colors"
           title="Elimina campo"
         >
@@ -95,7 +96,7 @@ function FieldEditor({ field, onChange, onRemove }: FieldEditorProps) {
                     onChange={(e) => onChange({ ...field, required: e.target.checked })}
                     className="peer appearance-none w-5 h-5 border-2 border-surface-border rounded bg-black/40 checked:bg-accent checked:border-accent transition-colors"
                   />
-                  <Check size={14} className="absolute text-black opacity-0 peer-checked:opacity-100 pointer-events-none stroke-[3]" />
+                  <Check size={14} className="absolute text-black opacity-0 peer-checked:opacity-100 pointer-events-none stroke-3" />
                </div>
               <span className="text-sm font-semibold text-white">Campo Obbligatorio</span>
             </label>
@@ -216,30 +217,29 @@ export default function FormTemplatesPage() {
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-outfit font-bold text-white">Workspace Template</h1>
-        </div>
-        <button
-          onClick={handleNewTemplate}
-          className="btn-primary flex items-center gap-2 px-6"
-        >
-          <Plus size={20} />
-          <span>Nuovo Template</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Workspace Template"
+        actions={
+          <button
+            onClick={handleNewTemplate}
+            className="btn-primary flex items-center gap-2 px-6"
+          >
+            <Plus size={20} />
+            <span>Nuovo Template</span>
+          </button>
+        }
+      />
 
       {/* Main Content Layout */}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6">
-        
+
         {/* Left Column: Template List */}
         <div className="glass-panel w-full lg:w-1/3 flex flex-col rounded-2xl p-5 border border-surface-border">
           <div className="mb-4">
              <h2 className="text-lg font-outfit font-bold text-white">Raccoglitore</h2>
              <p className="text-xs text-text-secondary mt-1">Scegli un form da modificare</p>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
             {(!templates || templates.length === 0) && (
               <div className="flex flex-col items-center justify-center h-40 text-center">
@@ -247,11 +247,11 @@ export default function FormTemplatesPage() {
                  <p className="text-text-secondary text-sm font-semibold">Nessun template creato.</p>
               </div>
             )}
-            
+
             {templates?.map((t) => {
               const isSelected = selectedId === t.id;
               const fieldCount = decodeFields(t.schemaB64).length;
-              
+
               return (
                 <div
                   key={t.id}
@@ -264,7 +264,7 @@ export default function FormTemplatesPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-accent text-black' : 'bg-surface border border-surface-border text-white'}`}>
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-accent text-black' : 'bg-surface border border-surface-border text-white'}`}>
                          <FileText size={18} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -272,7 +272,7 @@ export default function FormTemplatesPage() {
                         <div className="text-text-secondary text-xs mt-0.5.">Ultima modifica recente</div>
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -283,7 +283,7 @@ export default function FormTemplatesPage() {
                       <Trash2 size={16} />
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between border-t border-surface-border/50 pt-3">
                      <span className="text-xs font-semibold uppercase tracking-widest text-text-secondary">
                         Campi
@@ -299,10 +299,10 @@ export default function FormTemplatesPage() {
         </div>
 
         {/* Right Column: Editor */}
-        <div className="glass-panel flex-1 w-full flex flex-col rounded-2xl relative border border-surface-border/50 min-h-[500px] overflow-hidden">
+        <div className="glass-panel flex-1 w-full flex flex-col rounded-2xl relative border border-surface-border/50 min-h-125 overflow-hidden">
           {(selectedId || isCreating) ? (
             <div className="flex flex-col h-full">
-               
+
                {/* Editor Header */}
                <div className="p-6 pb-4 border-b border-surface-border/50 bg-black/20 flex flex-col gap-4">
                   <div className="flex justify-between items-center">
@@ -314,7 +314,7 @@ export default function FormTemplatesPage() {
                         <X size={20} />
                      </button>
                   </div>
-                  
+
                   <input
                      type="text"
                      value={templateName}
@@ -354,7 +354,7 @@ export default function FormTemplatesPage() {
                               onRemove={() => handleRemoveField(idx)}
                            />
                         ))}
-                        
+
                         <button
                            onClick={handleAddField}
                            className="w-full py-4 rounded-xl border border-dashed border-accent text-accent font-bold text-sm hover:bg-accent/10 transition-colors flex items-center justify-center gap-2 mt-4"

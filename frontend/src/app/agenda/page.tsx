@@ -1,8 +1,7 @@
 "use client";
 
-import ExportButtons from '@/components/feedback/ExportButtons';
-import StatePanel from '@/components/feedback/StatePanel';
 import BookingModal from '@/components/modals/BookingModal';
+import ExportModal from '@/components/modals/ExportModal';
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/hooks/domain';
@@ -52,175 +51,198 @@ export default function AgendaPage() {
   }, [bookings, search]);
 
   return (
-    <div className="flex-1 flex flex-col gap-6 h-[calc(100vh-140px)]">
-      {/* Header */}
-      <div className="flex justify-between items-center bg-surface p-4 rounded-[25px] border border-surface-border shadow-xl">
-        <div className="flex items-center gap-4">
+    <div className="flex-1 flex flex-col gap-6">
+      {/* Header: Title left, Search center, Actions right */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Title */}
+        <div>
           <h1 className="text-2xl font-outfit font-bold text-white">Agenda Studio</h1>
-          <div className="flex items-center bg-white/5 rounded-xl p-1 border border-surface-border">
-            <button onClick={() => setWeekStart(w => subWeeks(w, 1))} className="p-2 hover:bg-white/10 rounded-lg transition">
-              <ChevronLeft size={20} />
+        </div>
+
+        {/* Search + Week Nav - Center */}
+        <div className="flex-1 max-w-3xl mx-auto flex items-center gap-3">
+          {/* Week navigation */}
+          <div className="flex items-center bg-white/5 rounded-lg p-0.5 border border-surface-border">
+            <button onClick={() => setWeekStart(w => subWeeks(w, 1))} className="p-2 hover:bg-white/10 rounded-md transition">
+              <ChevronLeft size={16} />
             </button>
-            <span className="px-4 font-bold text-sm min-w-40 text-center uppercase tracking-widest text-accent">
+            <span className="px-3 font-bold text-xs min-w-32 text-center uppercase tracking-widest text-accent">
               {format(weekStart, 'dd MMM', { locale: it })} — {format(addDays(weekStart, 6), 'dd MMM yyyy', { locale: it })}
             </span>
-            <button onClick={() => setWeekStart(w => addWeeks(w, 1))} className="p-2 hover:bg-white/10 rounded-lg transition">
-              <ChevronRight size={20} />
+            <button onClick={() => setWeekStart(w => addWeeks(w, 1))} className="p-2 hover:bg-white/10 rounded-md transition">
+              <ChevronRight size={16} />
             </button>
           </div>
           <button
             onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-            className="text-xs font-bold uppercase tracking-widest px-4 py-2 bg-white/5 border border-surface-border rounded-xl hover:bg-accent hover:text-black transition-colors"
+            className="text-xs font-bold uppercase tracking-wider px-3 py-2 bg-white/5 border border-surface-border rounded-lg hover:bg-accent hover:text-black transition-colors flex-shrink-0"
           >
             Oggi
           </button>
-        </div>
-        <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
-          <Plus size={20} />
-          <span>Nuovo Appuntamento</span>
-        </button>
-      </div>
-      <div className="flex justify-end">
-        <ExportButtons
-          filenameBase="agenda"
-          title="Agenda Studio"
-          rows={filteredBookings}
-          columns={[
-            {
-              label: 'Data',
-              value: (booking: Booking) =>
-                format(parseISO(booking.date), 'dd/MM/yyyy HH:mm', { locale: it }),
-            },
-            {
-              label: 'Cliente',
-              value: (booking: Booking) =>
-                `${booking.customer?.firstName || ''} ${booking.customer?.lastName || ''}`.trim(),
-            },
-            { label: 'Artista', value: (booking: Booking) => booking.artist?.name || '' },
-            { label: 'Tipo', value: (booking: Booking) => booking.type },
-            { label: 'Durata', value: (booking: Booking) => booking.duration },
-            { label: 'Stato', value: (booking: Booking) => booking.status },
-          ]}
-          filtersLabel={`Settimana: ${format(weekStart, 'dd/MM/yyyy')} - Ricerca: ${search || 'nessuna'}`}
-        />
-      </div>
 
-      <div className="glass-panel p-4">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cerca per cliente, artista o tipo appuntamento..."
-            className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent"
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cerca cliente, artista..."
+              className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent"
+            />
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          <ExportModal
+            filenameBase="agenda"
+            title="Agenda Studio"
+            rows={filteredBookings}
+            columns={[
+              {
+                label: 'Data',
+                value: (booking: Booking) =>
+                  format(parseISO(booking.date), 'dd/MM/yyyy HH:mm', { locale: it }),
+              },
+              {
+                label: 'Cliente',
+                value: (booking: Booking) =>
+                  `${booking.customer?.firstName || ''} ${booking.customer?.lastName || ''}`.trim(),
+              },
+              { label: 'Artista', value: (booking: Booking) => booking.artist?.name || '' },
+              { label: 'Tipo', value: (booking: Booking) => booking.type },
+              { label: 'Durata', value: (booking: Booking) => booking.duration },
+              { label: 'Stato', value: (booking: Booking) => booking.status },
+            ]}
+            filtersLabel={`Settimana: ${format(weekStart, 'dd/MM/yyyy')} - Ricerca: ${search || 'nessuna'}`}
           />
+          <button onClick={() => setIsModalOpen(true)} className="btn-primary flex items-center gap-2 px-6">
+            <Plus size={20} />
+            <span>Nuovo</span>
+          </button>
         </div>
       </div>
 
       {/* Calendar grid */}
-      <div className="flex-1 glass-panel p-0 overflow-hidden flex flex-col">
+      <div className="flex-1 glass-panel p-0 overflow-hidden flex flex-col min-h-0 rounded-2xl">
         {/* Day headers */}
-        <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-surface-border bg-white/2">
-          <div className="p-4 border-r border-surface-border flex items-center justify-center">
-            <Clock size={18} className="text-text-secondary" />
+        <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-surface-border bg-white/2">
+          <div className="py-3 border-r border-surface-border flex items-center justify-center">
+            <Clock size={16} className="text-text-secondary" />
           </div>
           {weekDays.map(day => (
             <div
               key={day.toISOString()}
-              className={`p-4 text-center border-r border-surface-border last:border-r-0 ${isSameDay(day, new Date()) ? 'bg-accent/10' : ''}`}
+              className={`py-3 text-center border-r border-surface-border last:border-r-0 ${isSameDay(day, new Date()) ? 'bg-accent/10' : ''}`}
             >
-              <div className="text-[10px] text-text-secondary uppercase tracking-[2px] font-bold mb-1">
+              <div className="text-[10px] text-text-secondary uppercase tracking-[2px] font-bold">
                 {format(day, 'EEE', { locale: it })}
               </div>
-              <div className={`text-xl font-outfit font-black ${isSameDay(day, new Date()) ? 'text-accent' : 'text-white'}`}>
+              <div className={`text-lg font-outfit font-black ${isSameDay(day, new Date()) ? 'text-accent' : 'text-white'}`}>
                 {format(day, 'dd')}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Time grid */}
+        {/* Loading state */}
         {isLoading ? (
-          <div className="p-6">
-            <StatePanel
-              variant="loading"
-              title="Carico l'agenda"
-              description="Sto recuperando gli appuntamenti della settimana."
-            />
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <Clock size={24} className="text-accent" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Carico l'agenda</h3>
+              <p className="text-sm text-text-secondary">Sto recuperando gli appuntamenti della settimana.</p>
+            </div>
           </div>
-        ) : null}
-        {error ? (
-          <div className="p-6">
-            <StatePanel
-              variant="error"
-              title="Impossibile caricare l'agenda"
-              description="Controlla la connessione o riprova tra poco."
-            />
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center max-w-md">
+              <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Impossibile caricare l'agenda</h3>
+              <p className="text-sm text-text-secondary">Controlla la connessione o riprova tra poco.</p>
+            </div>
           </div>
-        ) : null}
-        {!isLoading && !error && filteredBookings.length === 0 ? (
-          <div className="p-6">
-            <StatePanel
-              variant="empty"
-              title="Nessun appuntamento trovato"
-              description={search ? 'Nessun risultato per i filtri attivi.' : 'Questa settimana non ha appuntamenti pianificati.'}
-            />
+        ) : filteredBookings.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center max-w-md">
+              <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">
+                {search ? 'Nessun risultato trovato' : 'Nessun appuntamento questa settimana'}
+              </h3>
+              <p className="text-sm text-text-secondary">
+                {search
+                  ? 'Prova a modificare i termini di ricerca.'
+                  : 'Clicca "Nuovo" per aggiungere il primo appuntamento.'}
+              </p>
+            </div>
           </div>
-        ) : null}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-[80px_repeat(7,1fr)] min-h-200">
-            {/* Hours column */}
-            <div className="border-r border-surface-border bg-white/1">
-              {HOURS.map(h => (
-                <div key={h} className="h-20 border-b border-surface-border/30 flex items-start justify-center pt-2 text-[10px] font-bold text-text-secondary">
-                  {h}:00
+        ) : (
+          /* Time grid */
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+              {/* Hours column */}
+              <div className="border-r border-surface-border bg-white/1">
+                {HOURS.map(h => (
+                  <div key={h} className="h-16 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
+                    {h}:00
+                  </div>
+                ))}
+              </div>
+
+              {/* Day columns */}
+              {weekDays.map((day) => (
+                <div key={day.toISOString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
+                  {HOURS.map(hour => (
+                    <div key={hour} className="h-16 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
+                  ))}
+
+                  {filteredBookings
+                    ?.filter(b => isSameDay(parseISO(b.date), day))
+                    .map(booking => {
+                      const d = new Date(booking.date);
+                      const top = ((d.getHours() - 9) * 64) + (d.getMinutes() * 64 / 60);
+                      const height = (booking.duration ?? 60) * 64 / 60;
+                      const color = booking.artist?.color ?? 'var(--color-accent)';
+                      return (
+                        <div
+                          key={booking.id}
+                          className="absolute left-1 right-1 rounded-lg p-2 text-xs overflow-hidden border-l-2 shadow-md cursor-pointer hover:scale-[1.02] transition-transform z-10"
+                          style={{ top: `${top}px`, height: `${height}px`, backgroundColor: `${color}20`, borderColor: color }}
+                        >
+                          {canSendMessages && booking.customer?.id && (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setWhatsAppBooking(booking);
+                              }}
+                              className="absolute right-1 top-1 rounded bg-black/20 p-1 text-emerald-200 transition hover:bg-black/35"
+                              title="Apri WhatsApp"
+                            >
+                              <MessageCircle size={12} />
+                            </button>
+                          )}
+                          <div className="font-bold text-white truncate leading-tight mb-0.5">{booking.customer?.firstName} {booking.customer?.lastName}</div>
+                          <div className="text-text-secondary opacity-80 uppercase tracking-tighter truncate leading-tight text-[10px]">{booking.type} • {booking.artist?.name}</div>
+                        </div>
+                      );
+                    })}
                 </div>
               ))}
             </div>
-
-            {/* Day columns */}
-            {weekDays.map((day) => (
-              <div key={day.toISOString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
-                {HOURS.map(hour => (
-                  <div key={hour} className="h-20 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
-                ))}
-
-                {filteredBookings
-                  ?.filter(b => isSameDay(parseISO(b.date), day))
-                  .map(booking => {
-                    const d = new Date(booking.date);
-                    const top = ((d.getHours() - 9) * 80) + (d.getMinutes() * 80 / 60);
-                    const height = (booking.duration ?? 60) * 80 / 60;
-                    const color = booking.artist?.color ?? 'var(--color-accent)';
-                    return (
-                      <div
-                        key={booking.id}
-                        className="absolute left-1 right-1 rounded-xl p-2 text-[10px] overflow-hidden border-l-4 shadow-xl cursor-pointer hover:scale-[1.02] transition-transform z-10"
-                        style={{ top: `${top}px`, height: `${height}px`, backgroundColor: `${color}20`, borderColor: color }}
-                      >
-                        {canSendMessages && booking.customer?.id && (
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setWhatsAppBooking(booking);
-                            }}
-                            className="absolute right-1 top-1 rounded-md bg-black/20 p-1 text-emerald-200 transition hover:bg-black/35"
-                            title="Apri WhatsApp"
-                          >
-                            <MessageCircle size={12} />
-                          </button>
-                        )}
-                        <div className="font-bold text-white truncate">{booking.customer?.firstName} {booking.customer?.lastName}</div>
-                        <div className="text-text-secondary opacity-80 uppercase tracking-tighter truncate">{booking.type} • {booking.artist?.name}</div>
-                      </div>
-                    );
-                  })}
-              </div>
-            ))}
           </div>
-        </div>
+        )}
       </div>
 
       <BookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => mutate()} />

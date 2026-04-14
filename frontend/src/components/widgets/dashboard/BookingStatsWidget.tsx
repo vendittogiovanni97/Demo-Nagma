@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, RefreshCw, XCircle } from 'lucide-react';
 
 import BentoCard from '@/components/data-display/BentoCard';
 import { Skeleton } from '@/components/feedback/Skeleton';
@@ -30,27 +30,51 @@ export default function BookingStatsWidget({
     <BentoCard
       className={className}
       header={
-        <div className="flex justify-between items-center">
-          <button onClick={onPreviousMonth} className="p-2 hover:bg-white/5 rounded-lg">
-            <ArrowLeft size={14} />
-          </button>
-          <span className="text-[10px] font-bold text-accent uppercase">{monthLabel}</span>
-          <button onClick={onNextMonth} className="p-2 hover:bg-white/5 rounded-lg">
-            <ArrowRight size={14} />
-          </button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-accent/10 text-accent">
+              <Calendar size={18} />
+            </div>
+            <h3 className="text-lg font-outfit font-semibold">Prenotazioni</h3>
+          </div>
+          <div className="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border">
+            <button onClick={onPreviousMonth} className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent">
+              <ArrowLeft size={14} />
+            </button>
+            <span className="text-xs font-semibold text-accent px-2 min-w-20 text-center">{monthLabel}</span>
+            <button onClick={onNextMonth} className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent">
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
       }
-      contentClassName="flex flex-col justify-between"
     >
       {isLoading ? (
-        <Skeleton className="h-20" />
+        <Skeleton className="h-52" />
       ) : (
-        <div>
-          <div className="text-4xl font-outfit font-bold text-white">{total}</div>
-          <div className="text-xs text-text-secondary uppercase mt-1">Prenotazioni Totali</div>
-          <div className="flex justify-between mt-4 pt-4 border-t border-white/5">
-            <span className="text-danger text-xs font-bold">{cancelled} Canc.</span>
-            <span className="text-success text-xs font-bold">{completed} Fatti</span>
+        <div className="flex h-52 flex-col justify-center p-4">
+          {/* Total */}
+          <div className="text-center p-4 rounded-xl bg-white/5 border border-surface-border mb-3">
+            <div className="text-4xl font-bold text-white font-outfit mb-1">{total}</div>
+            <div className="text-xs text-text-secondary uppercase tracking-wider">Totale Prenotazioni</div>
+          </div>
+
+          {/* Updated & Cancelled */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-accent/5 border border-accent/20">
+              <div className="flex items-center gap-2 mb-2">
+                <RefreshCw size={16} className="text-accent" />
+                <span className="text-xs text-text-secondary uppercase tracking-wider">Aggiornate</span>
+              </div>
+              <div className="text-2xl font-bold text-accent font-outfit">{completed}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-danger/5 border border-danger/20">
+              <div className="flex items-center gap-2 mb-2">
+                <XCircle size={16} className="text-danger" />
+                <span className="text-xs text-text-secondary uppercase tracking-wider">Annullate</span>
+              </div>
+              <div className="text-2xl font-bold text-danger font-outfit">{cancelled}</div>
+            </div>
           </div>
         </div>
       )}

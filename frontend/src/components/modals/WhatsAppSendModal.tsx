@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import StatePanel from '@/components/feedback/StatePanel';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
@@ -43,7 +44,7 @@ export default function WhatsAppSendModal({
   const { data: templates, isLoading: templatesLoading, error: templatesError } = useWhatsAppTemplates({
     enabled: isOpen && canSend,
   });
-  const { data: customersResult } = useCustomers({ page: 1, limit: 1000, enabled: isOpen && canSend });
+  const { data: customersResult } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen && canSend });
   const customers = useMemo(() => customersResult?.data || [], [customersResult]);
 
   const selectedCustomer = useMemo(

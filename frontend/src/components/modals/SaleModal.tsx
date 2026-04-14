@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import { creamService } from '@/services/cream.service';
 import { useTeamUsers } from '@/hooks/domain';
 import { useAuth } from '@/context/AuthContext';
@@ -24,7 +25,7 @@ interface SaleModalProps {
 export default function SaleModal({ isOpen, onClose, cream, onSuccess }: SaleModalProps) {
   const { user } = useAuth();
   const canManage = canManageInventory(user?.role);
-  const { data: artistsResult } = useTeamUsers({ page: 1, limit: 1000, enabled: isOpen });
+  const { data: artistsResult } = useTeamUsers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const artists = artistsResult?.data;
 
   const [sellerId, setSellerId] = useState('');

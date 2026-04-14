@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, DollarSign, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 import BentoCard from '@/components/data-display/BentoCard';
@@ -25,9 +26,11 @@ export default function FinanceOverviewWidget({
   onPreviousMonth,
   onNextMonth,
 }: FinanceOverviewWidgetProps) {
+  const [showData, setShowData] = useState(true);
+
   const financeData = [
-    { name: 'Entrate', value: totalIncome || 0.01, color: '#00BFFF' },
-    { name: 'Uscite', value: totalExpense || 0.01, color: '#ff5252' },
+    { name: 'Entrate', value: showData ? (totalIncome || 0.01) : 0.01, color: '#00BFFF' },
+    { name: 'Uscite', value: showData ? (totalExpense || 0.01) : 0.01, color: '#ff5252' },
   ];
 
   const hasMonthControls = Boolean(monthLabel && onPreviousMonth && onNextMonth);
@@ -37,62 +40,93 @@ export default function FinanceOverviewWidget({
       className={className}
       header={
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xl font-outfit">Panoramica Finanziaria</h3>
-          {hasMonthControls && (
-            <div className="flex items-center gap-0.5 bg-white/5 rounded-full px-0.5 py-0.5 border border-surface-border h-7">
-              <button
-                onClick={onPreviousMonth}
-                className="p-1 hover:bg-white/5 rounded-full text-text-secondary hover:text-accent transition-colors"
-                aria-label="Mese precedente"
-              >
-                <ArrowLeft size={12} />
-              </button>
-              <span className="text-[10px] font-bold text-accent uppercase px-1.5 min-w-13 text-center leading-none">
-                {monthLabel}
-              </span>
-              <button
-                onClick={onNextMonth}
-                className="p-1 hover:bg-white/5 rounded-full text-text-secondary hover:text-accent transition-colors"
-                aria-label="Mese successivo"
-              >
-                <ArrowRight size={12} />
-              </button>
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-accent/10 text-accent">
+              <DollarSign size={18} />
             </div>
-          )}
+            <h3 className="text-lg font-outfit font-semibold">Panoramica Finanziaria</h3>
+          </div>
+          <div className="flex items-center gap-3">
+            {hasMonthControls && (
+              <div className="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border">
+                <button
+                  onClick={onPreviousMonth}
+                  className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent"
+                  aria-label="Mese precedente"
+                >
+                  <ArrowLeft size={14} />
+                </button>
+                <span className="text-xs font-semibold text-accent px-2 min-w-20 text-center">
+                  {monthLabel}
+                </span>
+                <button
+                  onClick={onNextMonth}
+                  className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent"
+                  aria-label="Mese successivo"
+                >
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => setShowData(!showData)}
+              className="p-2 hover:bg-white/5 rounded-lg transition-colors text-text-secondary hover:text-accent border border-surface-border"
+              title={showData ? 'Nascondi dati' : 'Mostra dati'}
+            >
+              {showData ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
+          </div>
         </div>
       }
     >
       {isLoading ? (
-        <Skeleton className="h-48" />
+        <Skeleton className="h-52" />
       ) : (
-        <div className="flex h-48 flex-1 items-center gap-4">
-          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200} initialDimension={{ width: 1, height: 1 }}>
-            <PieChart>
-              <Pie
-                data={financeData}
-                innerRadius={50}
-                outerRadius={70}
-                paddingAngle={5}
-                dataKey="value"
-                stroke="transparent"
-              >
-                {financeData.map((entry, index) => (
-                  <Cell key={`finance-cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <RechartsTooltip
-                contentStyle={{ background: '#0a0a0a', border: '1px solid rgba(0,191,255,0.2)' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="w-1/2 flex flex-col gap-4">
-            <div>
-              <div className="text-[10px] text-text-secondary uppercase tracking-widest">Entrate</div>
-              <div className="text-xl text-white font-bold font-outfit">EUR {totalIncome.toFixed(2)}</div>
+        <div className="flex h-52 items-center gap-6">
+          <div className="flex-1 min-w-50">
+            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
+              <PieChart>
+                <Pie
+                  data={financeData}
+                  innerRadius={55}
+                  outerRadius={75}
+                  paddingAngle={4}
+                  dataKey="value"
+                  stroke="transparent"
+                >
+                  {financeData.map((entry, index) => (
+                    <Cell key={`finance-cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip
+                  contentStyle={{
+                    background: 'rgba(10, 10, 10, 0.95)',
+                    border: '1px solid rgba(0,191,255,0.2)',
+                    borderRadius: '12px',
+                    padding: '8px 12px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-white/5 border border-surface-border">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-accent" />
+                <span className="text-xs text-text-secondary uppercase tracking-wider">Entrate</span>
+              </div>
+              <div className="text-xl font-bold text-white font-outfit">
+                {showData ? `€ ${totalIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€ ••••••'}
+              </div>
             </div>
-            <div>
-              <div className="text-[10px] text-text-secondary uppercase tracking-widest">Uscite</div>
-              <div className="text-xl text-danger font-bold font-outfit">EUR {totalExpense.toFixed(2)}</div>
+            <div className="p-4 rounded-xl bg-white/5 border border-surface-border">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-danger" />
+                <span className="text-xs text-text-secondary uppercase tracking-wider">Uscite</span>
+              </div>
+              <div className="text-xl font-bold text-danger font-outfit">
+                {showData ? `€ ${totalExpense.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€ ••••••'}
+              </div>
             </div>
           </div>
         </div>

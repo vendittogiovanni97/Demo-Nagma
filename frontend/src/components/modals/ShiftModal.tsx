@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { DEFAULT_SHIFT_END, DEFAULT_SHIFT_START, EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import { teamService } from '@/services/team.service';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamUsers } from '@/hooks/domain';
@@ -34,12 +35,12 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
   const { user } = useAuth();
   const [userId, setUserId] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState('0');
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('18:00');
+  const [startTime, setStartTime] = useState(DEFAULT_SHIFT_START);
+  const [endTime, setEndTime] = useState(DEFAULT_SHIFT_END);
   const [loading, setLoading] = useState(false);
   const canManage = canManageShifts(user?.role);
 
-  const { data: usersResult } = useTeamUsers({ page: 1, limit: 1000, enabled: isOpen });
+  const { data: usersResult } = useTeamUsers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const users = usersResult?.data;
 
   const handleSubmit = async (e: React.FormEvent) => {

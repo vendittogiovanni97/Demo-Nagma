@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
@@ -24,12 +25,13 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       await login({ email, password });
       router.push('/');
     } catch {
-      // Errore gestito internamente dal context con toast
+      setError('Email o password non validi');
     } finally {
       setLoading(false);
     }
@@ -92,6 +94,10 @@ export default function LoginPage() {
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : 'Accedi'}
           </button>
+
+          {error && (
+            <p className="text-danger text-sm text-center mt-1">{error}</p>
+          )}
         </form>
 
         <div className="mt-8 text-center">

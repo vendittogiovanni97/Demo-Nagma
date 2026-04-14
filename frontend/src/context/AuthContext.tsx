@@ -67,7 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       notifySuccess('Accesso effettuato!');
     } catch (error: unknown) {
-      notifyError(error, 'Credenziali non valide');
       throw error;
     }
   };

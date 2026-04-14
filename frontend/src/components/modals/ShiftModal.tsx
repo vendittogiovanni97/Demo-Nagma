@@ -19,6 +19,8 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
   weekStart: string;
+  initialUserId?: string;
+  initialDayOfWeek?: number;
 }
 
 const DAYS = [
@@ -31,12 +33,13 @@ const DAYS = [
   { value: '6', label: 'Domenica' },
 ];
 
-export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Props) {
+export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, initialUserId, initialDayOfWeek }: Props) {
   const { user } = useAuth();
-  const [userId, setUserId] = useState('');
-  const [dayOfWeek, setDayOfWeek] = useState('0');
+  const [userId, setUserId] = useState(initialUserId || '');
+  const [dayOfWeek, setDayOfWeek] = useState(initialDayOfWeek !== undefined ? initialDayOfWeek.toString() : '0');
   const [startTime, setStartTime] = useState(DEFAULT_SHIFT_START);
   const [endTime, setEndTime] = useState(DEFAULT_SHIFT_END);
+  const [isOff, setIsOff] = useState(false);
   const [loading, setLoading] = useState(false);
   const canManage = canManageShifts(user?.role);
 
@@ -54,6 +57,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
         dayOfWeek: Number(dayOfWeek),
         startTime,
         endTime,
+        isOff,
       };
       await teamService.createShift(data);
       notifySuccess('Turno pianificato');
@@ -61,6 +65,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
       setDayOfWeek('0');
       setStartTime('09:00');
       setEndTime('18:00');
+      setIsOff(false);
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -69,6 +74,17 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
       setLoading(false);
     }
   };
+
+  // Aggiorna gli state interni quando cambiano le prop (se modale viene riaperta)
+  // use effect non ideal ma Next 19 / React lo gestirebbe diversamente. Per sicurezza facciamo un derivato:
+  // React 18/19: se isOpen cambia da false a true, dobbiamo resettare ai props.
+  // Invece di useEffect, React 19 suggerisce key reset, ma andiamo sul sicuro con prop syncing basico.
+  if (isOpen && initialUserId && userId !== initialUserId && !loading) {
+     setUserId(initialUserId);
+  }
+  if (isOpen && initialDayOfWeek !== undefined && dayOfWeek !== initialDayOfWeek.toString() && !loading) {
+     setDayOfWeek(initialDayOfWeek.toString());
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Pianifica Turno">
@@ -96,10 +112,25 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart }: Pr
           options={DAYS}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormInput label="Inizio" type="time" value={startTime} onChange={setStartTime} required />
-          <FormInput label="Fine" type="time" value={endTime} onChange={setEndTime} required />
+        <div className="flex items-center gap-2 px-1">
+          <input 
+            type="checkbox" 
+            id="isOff" 
+            checked={isOff} 
+            onChange={(e) => setIsOff(e.target.checked)}
+            className="w-4 h-4 rounded border-surface-border bg-white/5 text-accent focus:ring-accent accent-accent transition-colors"
+          />
+          <label htmlFor="isOff" className="text-white text-sm cursor-pointer select-none">
+            Imposta come giorno libero (riposo)
+          </label>
         </div>
+
+        {!isOff && (
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput label="Inizio" type="time" value={startTime} onChange={setStartTime} required={!isOff} />
+            <FormInput label="Fine" type="time" value={endTime} onChange={setEndTime} required={!isOff} />
+          </div>
+        )}
 
         <SubmitButton loading={loading} label="Salva Turno" />
       </form>

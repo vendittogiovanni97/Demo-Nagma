@@ -61,6 +61,7 @@ export default function Navbar() {
   // 2️⃣  Se l’utente non è autenticato, mostriamo comunque un <nav>
   // --------------------------------------------------------------
   if (!isAuthenticated) {
+    if (pathname === '/login') return null; // Nascondiamo doppi loghi
     return (
       <nav
         className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]"

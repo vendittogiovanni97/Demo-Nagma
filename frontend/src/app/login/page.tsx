@@ -38,9 +38,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-background p-6 overflow-hidden">
-      <div className="w-full max-w-md flex flex-col items-center">
-        <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mb-6 border border-accent/30 shadow-[0_0_30px_rgba(0,191,255,0.2)] overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[70vh]">
+      <div className="w-full max-w-md flex flex-col items-center p-8 glass-panel animate-in fade-in zoom-in duration-500">
+        <div className="w-20 h-20 bg-black/40 rounded-full flex items-center justify-center mb-6 border border-surface-border shadow-xl overflow-hidden">
           <Image
             src={branding.portalLogo}
             alt={branding.portalName}
@@ -100,7 +100,7 @@ export default function LoginPage() {
           )}
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <p className="text-xs text-text-secondary tracking-widest uppercase">
             © 2026 {branding.portalName}
           </p>

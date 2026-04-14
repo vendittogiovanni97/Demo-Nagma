@@ -7,11 +7,10 @@ import { useAuth } from '@/context/AuthContext';
 import StatePanel from '@/components/feedback/StatePanel';
 import type { Customer, CreateCustomerData } from '@/types/customer';
 import Modal from './Modal';
-import WhatsAppSendModal from './WhatsAppSendModal';
 import FormInput from '../forms/FormInput';
 import FormTextarea from '../forms/FormTextarea';
 import SubmitButton from '../forms/SubmitButton';
-import { canManageCustomers, canSendWhatsApp } from '@/utils/permissions';
+import { canManageCustomers } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
 import { validateCustomerData } from '@/utils/validation';
 
@@ -32,9 +31,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     notes: ''
   });
   const [loading, setLoading] = useState(false);
-  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const canManage = canManageCustomers(user?.role);
-  const canSend = canSendWhatsApp(user?.role);
 
   useEffect(() => {
     setFormData(customer
@@ -79,18 +76,6 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
         />
       ) : (
       <form onSubmit={handleSubmit} className="space-y-6">
-        {customer && canSend ? (
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => setIsWhatsAppOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/15"
-            >
-              <MessageCircle size={16} />
-              <span>Invia WhatsApp</span>
-            </button>
-          </div>
-        ) : null}
 
         <div className="grid grid-cols-2 gap-4">
           <FormInput
@@ -139,12 +124,6 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
         />
       </form>
       )}
-
-      <WhatsAppSendModal
-        isOpen={isWhatsAppOpen}
-        onClose={() => setIsWhatsAppOpen(false)}
-        customer={customer}
-      />
     </Modal>
   );
 }

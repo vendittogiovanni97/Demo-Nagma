@@ -211,3 +211,27 @@ Gia consolidato:
 - quando si modifica WhatsApp, riusare il composer condiviso
 - quando si modifica logging backend, mantenere `DEBUG_HTTP` opt-in
 - quando si modifica backend core, preservare la separazione tra `app.ts` e `index.ts`
+
+---
+
+## 🔥 Operazioni di Sviluppo (Cheat Sheet)
+
+### Gestione Database
+| Comando | Descrizione |
+|---|---|
+| `npx prisma db push` | Sincronizza lo schema su un database resettato o nuovo |
+| `npx prisma migrate dev` | Crea una migrazione per modifiche allo schema |
+| `npx prisma studio` | Visualizza i dati in locale |
+| `npm run db:seed` | Inserisce dati di test e Admin (`admin@nagma.it` / `admin123`) |
+
+### Docker Infrastruttura
+| Comando | Descrizione |
+|---|---|
+| `docker compose -f backend/docker-compose.yml up -d` | Avvia il container Postgres |
+| `docker compose -f backend/docker-compose.yml down` | Ferma il container e libera le porte |
+
+### Linting e Qualità
+| Comando | Descrizione |
+|---|---|
+| `npx tsc --noEmit` | Verifica i tipi TypeScript (da lanciare in frontend/backend) |
+| `npm run lint` | Esegue l'analisi statica del codice |

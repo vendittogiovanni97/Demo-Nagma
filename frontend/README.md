@@ -52,13 +52,28 @@ frontend/src/
 
 ## Avvio locale
 
+### 1. Prerequisiti
+- **Node.js**: consigliata versione >= 20. Usa `nvm use` se è presente un file `.nvmrc`.
+- **Backend**: Il server backend deve essere attivo (default su `http://localhost:3001`).
+
+### 2. Installazione
 ```bash
 cd frontend
 npm install
+```
+
+### 3. Sviluppo
+```bash
 npm run dev
 ```
 
 App disponibile su `http://localhost:3000`.
+
+## 🔑 Credenziali di Accesso Default
+Se il database è stato popolato, puoi accedere come Admin:
+- **Email:** `admin@nagma.it`
+- **Password:** `admin123`
+
 
 ## Variabili ambiente
 

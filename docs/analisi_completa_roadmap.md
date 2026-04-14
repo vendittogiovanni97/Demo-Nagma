@@ -14,6 +14,9 @@ Demo-Nagma/
 ├── backend/       → Express 5 + TypeScript + Prisma 6 + PostgreSQL
 ├── schemas/       → Zod schemas condivisi tra FE e BE
 └── docs/          → Documentazione
+
+> [!TIP]
+> Per la guida all'avvio e la lista dei comandi rapidi, consulta il [README principale](../README.md).
 ```
 
 ### Stack Tecnologico

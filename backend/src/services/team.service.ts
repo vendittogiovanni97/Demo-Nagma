@@ -5,6 +5,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { ShiftRepository } from '../repositories/shift.repository';
 import { AppError } from '../utils/AppError';
 import { validate, CreateUserSchema, CreateShiftSchema, UpdateShiftSchema } from '../utils/validators';
+import { getStartOfWeek, parseUTCDate } from '../utils/date-utils';
 
 const userRepo = new UserRepository();
 const shiftRepo = new ShiftRepository();
@@ -59,7 +60,7 @@ export class TeamService {
 
     return shiftRepo.create({
       user: { connect: { id: data.userId } },
-      weekStart: new Date(data.weekStart),
+      weekStart: getStartOfWeek(parseUTCDate(data.weekStart)),
       dayOfWeek: data.dayOfWeek,
       startTime: startTime ?? '',
       endTime: endTime ?? '',
@@ -95,7 +96,7 @@ export class TeamService {
     }
 
     const updateData: Prisma.ShiftUpdateInput = {
-      ...(data.weekStart ? { weekStart: new Date(data.weekStart) } : {}),
+      ...(data.weekStart ? { weekStart: getStartOfWeek(parseUTCDate(data.weekStart)) } : {}),
       ...(data.dayOfWeek !== undefined ? { dayOfWeek: data.dayOfWeek } : {}),
       ...(startTime !== undefined ? { startTime } : {}),
       ...(endTime !== undefined ? { endTime } : {}),

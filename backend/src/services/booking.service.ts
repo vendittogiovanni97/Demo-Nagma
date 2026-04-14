@@ -4,6 +4,7 @@ import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
 import { validate, CreateBookingSchema, UpdateBookingSchema } from '../utils/validators';
 import { AppError } from '../utils/AppError';
+import { getStartOfWeek } from '../utils/date-utils';
 
 const repository = new BookingRepository();
 
@@ -142,10 +143,12 @@ export class BookingService {
     // Day of week: 0=Lun, 1=Mar, ... 6=Dom
     const jsDay = date.getDay();
     const dayOfWeek = (jsDay + 6) % 7;
+    const weekStart = getStartOfWeek(date);
 
     // 1. Trova tutti gli artisti con un turno attivo che copre questo orario
     const activeShifts = await prisma.shift.findMany({
       where: {
+        weekStart: { equals: weekStart },
         dayOfWeek,
         isOff: false,
         startTime: { lte: timeStr },

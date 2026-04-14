@@ -58,7 +58,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
     try {
       const data: CreateShiftData = {
         userId,
-        weekStart: new Date(`${weekStart}T00:00:00Z`).toISOString(),
+        weekStart, // Già in formato YYYY-MM-DD
         dayOfWeek: Number(dayOfWeek),
         label,
         isOff: label === 'Riposo',

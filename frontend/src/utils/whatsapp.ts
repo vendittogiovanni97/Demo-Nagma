@@ -50,7 +50,6 @@ export function getBookingVariableValue(
     return new Date(booking.date).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   }
   if (normalized === 'artista') return booking?.artist?.name || '';
-  if (normalized === 'tipo' || normalized === 'servizio') return booking?.type || '';
 
   return '';
 }

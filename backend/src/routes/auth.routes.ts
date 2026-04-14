@@ -1,15 +1,14 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import { config } from '../config/env';
 import { login, me, register } from '../controllers/auth.controller';
 import { adminOnly, authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-// Rate limit per il login: max 5 tentativi falliti ogni 15 minuti per IP.
-// I tentativi riusciti non vengono conteggiati (skipSuccessfulRequests).
 const loginRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 5,
+  windowMs: config.loginRateLimitWindowMs,
+  limit: config.loginRateLimitMaxAttempts,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,

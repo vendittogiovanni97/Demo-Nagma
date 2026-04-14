@@ -3,11 +3,12 @@ import type { Server } from 'http';
 
 import prisma from './utils/prisma';
 import { createApp } from './app';
+import { config } from './config/env';
 import { isDebugHttpEnabled, logger } from './utils/logger';
 
 dotenv.config();
 
-const RESTART_DELAY_MS = 10_000;
+const RESTART_DELAY_MS = config.restartDelayMs;
 const port = Number(process.env.PORT || 3001);
 
 let server: Server | null = null;

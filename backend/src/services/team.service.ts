@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { Prisma } from '@prisma/client';
+import { config } from '../config/env';
 import { UserRepository } from '../repositories/user.repository';
 import { ShiftRepository } from '../repositories/shift.repository';
 import { AppError } from '../utils/AppError';
@@ -18,7 +19,7 @@ export class TeamService {
     const exists = await userRepo.findByEmail(data.email);
     if (exists) throw new AppError('Email già in uso.', 400);
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, config.bcryptSaltRounds);
     return userRepo.create({ ...data, password: hashedPassword });
   }
 

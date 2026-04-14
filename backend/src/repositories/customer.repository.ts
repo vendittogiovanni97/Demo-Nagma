@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { config } from '../config/env';
 import prisma from '../utils/prisma';
 
 const baseInclude = {
@@ -21,7 +22,7 @@ function buildWhere(search?: string): Prisma.CustomerWhereInput {
 }
 
 export class CustomerRepository {
-  async findAllPaged(search?: string, page = 1, limit = 20) {
+  async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit) {
     const where = buildWhere(search);
     const skip = (page - 1) * limit;
 
@@ -71,13 +72,13 @@ export class CustomerRepository {
         },
         whatsappLogs: {
           where: {
-            createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+            createdAt: { gte: new Date(Date.now() - config.whatsappLogsRetentionDays * 24 * 60 * 60 * 1000) },
           },
           include: {
             template: { select: { id: true, name: true } },
           },
           orderBy: { createdAt: 'desc' },
-          take: 10,
+          take: config.whatsappLogsFetchLimit,
         },
       },
     });

@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
+import { config } from '../config/env';
 
 export class BookingRepository {
   private buildBaseWhere(monthStr?: string): Prisma.BookingWhereInput {
@@ -29,7 +30,7 @@ export class BookingRepository {
   async findAllPaged({
     monthStr,
     page = 1,
-    limit = 20,
+    limit = config.defaultPageLimit,
   }: {
     monthStr?: string;
     page?: number;

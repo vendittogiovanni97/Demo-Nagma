@@ -12,6 +12,7 @@ import customerRoutes from './routes/customer.routes';
 import teamRoutes from './routes/team.routes';
 import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
+import { config } from './config/env';
 import { AppError } from './utils/AppError';
 import { getRequestContext, isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
 import prisma from './utils/prisma';
@@ -29,7 +30,7 @@ export function createApp() {
     credentials: true,
   }));
 
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: config.jsonPayloadLimit }));
 
   app.use((req, res, next) => {
     const requestId = crypto.randomUUID();

@@ -1,4 +1,5 @@
 import prisma from '../utils/prisma';
+import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
 import { validate, CreateBookingSchema, UpdateBookingSchema } from '../utils/validators';
 import { AppError } from '../utils/AppError';
@@ -21,7 +22,7 @@ export class BookingService {
   async createBooking(body: unknown, changedBy: string = 'system') {
     const data = validate(CreateBookingSchema, body);
     const startDate = new Date(data.date);
-    const duration = data.duration ?? 60;
+    const duration = data.duration ?? config.defaultBookingDurationMinutes;
 
     await this.assertNoConflict(data.artistId, startDate, duration);
 
@@ -32,7 +33,7 @@ export class BookingService {
           artist: { connect: { id: data.artistId } },
           date: startDate,
           duration,
-          type: data.type ?? 'Tattoo',
+          type: data.type ?? config.defaultBookingType,
           price: data.price ?? null,
           deposit: data.deposit ?? null,
           notes: data.notes,

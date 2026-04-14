@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma';
 import { Prisma, TransactionType } from '@prisma/client';
+import { config } from '../config/env';
 
 export class TransactionRepository {
   async findAllPaged({
@@ -7,7 +8,7 @@ export class TransactionRepository {
     monthStr,
     search,
     page = 1,
-    limit = 20,
+    limit = config.defaultPageLimit,
   }: {
     type?: TransactionType;
     monthStr?: string;

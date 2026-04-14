@@ -1,12 +1,13 @@
 import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
+import { config } from '../config/env';
 
 export class UserRepository {
   async findAllPaged({
     search,
     role,
     page = 1,
-    limit = 20,
+    limit = config.defaultPageLimit,
   }: {
     search?: string;
     role?: string;

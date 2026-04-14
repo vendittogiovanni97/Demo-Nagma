@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { config } from '../config/env';
 import { TransactionService } from '../services/transaction.service';
 import { asyncHandler } from '../utils/async-handler';
 
@@ -22,7 +23,7 @@ export class TransactionController {
   });
 
   getTrends = asyncHandler(async (req: Request, res: Response) => {
-    const months = req.query.months ? Number(req.query.months) : 6;
+    const months = req.query.months ? Number(req.query.months) : config.defaultTrendsMonths;
     const data = await service.getTrends(months);
     res.json(data);
   });

@@ -1,12 +1,13 @@
 import prisma from '../utils/prisma';
 import { Prisma } from '@prisma/client';
+import { config } from '../config/env';
 
 export class CreamRepository {
   async findAllPaged({
     search,
     stockStatus,
     page = 1,
-    limit = 12,
+    limit = config.creamsPageLimit,
   }: {
     search?: string;
     stockStatus?: string;

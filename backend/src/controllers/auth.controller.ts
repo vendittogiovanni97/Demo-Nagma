@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma';
 import { validate, LoginSchema, RegisterSchema } from '../utils/validators';
+import { config } from '../config/env';
 import { AppError } from '../utils/AppError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
@@ -18,7 +19,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET!,
-    { expiresIn: '8h' }
+    { expiresIn: config.jwtExpiry }
   );
 
   res.json({
@@ -33,7 +34,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) throw new AppError('Utente già registrato con questa email.', 400, 'DUPLICATE_EMAIL');
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, config.bcryptSaltRounds);
   const user = await prisma.user.create({
     data: { name, email, password: hashedPassword, role: role ?? 'ARTIST' },
   });

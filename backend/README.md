@@ -4,10 +4,12 @@ Server Express.js per il CRM Nagma Tattoo, con integrazione Prisma per PostgreSQ
 
 ## Stack Tecnologico
 
+- **Node.js:** 24 LTS
+- **npm:** 11+
 - **Runtime:** Node.js + TypeScript
 - **Framework:** Express.js 5
-- **ORM:** Prisma 6
-- **Database:** PostgreSQL (via Docker)
+- **ORM:** Prisma 7
+- **Database:** PostgreSQL 17 (via Docker)
 - **Security:** JWT, Bcryptjs, Helmet, CORS, Rate Limit
 - **Logging:** Strutturato con `requestId` e supporto `DEBUG_HTTP`
 

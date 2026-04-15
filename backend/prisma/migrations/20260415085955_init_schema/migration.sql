@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER', 'ARTIST');
+CREATE TYPE "Role" AS ENUM ('SUPER_ADMIN', 'ADMIN', 'USER', 'ARTIST');
 
 -- CreateEnum
 CREATE TYPE "BookingStatus" AS ENUM ('CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED');
@@ -26,6 +26,18 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Staff" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "color" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Staff_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Customer" (
     "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
@@ -43,11 +55,9 @@ CREATE TABLE "Customer" (
 CREATE TABLE "Booking" (
     "id" TEXT NOT NULL,
     "customerId" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "artistId" TEXT,
     "date" TIMESTAMP(3) NOT NULL,
-    "duration" INTEGER NOT NULL,
     "status" "BookingStatus" NOT NULL DEFAULT 'CONFIRMED',
-    "type" TEXT NOT NULL,
     "price" DOUBLE PRECISION,
     "deposit" DOUBLE PRECISION,
     "notes" TEXT,
@@ -81,6 +91,7 @@ CREATE TABLE "Shift" (
     "dayOfWeek" INTEGER NOT NULL,
     "startTime" TEXT NOT NULL,
     "endTime" TEXT NOT NULL,
+    "label" TEXT,
     "isOff" BOOLEAN NOT NULL DEFAULT false,
     "notes" TEXT,
     "deletedAt" TIMESTAMP(3),
@@ -102,32 +113,6 @@ CREATE TABLE "Transaction" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Cream" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "brand" TEXT,
-    "price" DOUBLE PRECISION NOT NULL,
-    "stock" INTEGER NOT NULL DEFAULT 0,
-    "deletedAt" TIMESTAMP(3),
-
-    CONSTRAINT "Cream_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "CreamSale" (
-    "id" TEXT NOT NULL,
-    "creamId" TEXT NOT NULL,
-    "sellerId" TEXT NOT NULL,
-    "customerId" TEXT,
-    "quantity" INTEGER NOT NULL,
-    "totalPrice" DOUBLE PRECISION NOT NULL,
-    "deletedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "CreamSale_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -178,22 +163,13 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 ALTER TABLE "Booking" ADD CONSTRAINT "Booking_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Booking" ADD CONSTRAINT "Booking_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "Staff"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "BookingHistory" ADD CONSTRAINT "BookingHistory_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Shift" ADD CONSTRAINT "Shift_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CreamSale" ADD CONSTRAINT "CreamSale_creamId_fkey" FOREIGN KEY ("creamId") REFERENCES "Cream"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CreamSale" ADD CONSTRAINT "CreamSale_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CreamSale" ADD CONSTRAINT "CreamSale_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WhatsAppMessageLog" ADD CONSTRAINT "WhatsAppMessageLog_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "WhatsAppTemplate"("id") ON DELETE SET NULL ON UPDATE CASCADE;

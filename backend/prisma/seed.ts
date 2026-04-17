@@ -120,20 +120,9 @@ async function seedFormTemplates(): Promise<void> {
  * Seed Staff reale dello studio Nagma
  */
 async function seedDefaultStaff(): Promise<void> {
-  const members: { name: string; type: StaffType; color: string; shifts?: any }[] = [
+  const members = [
     // Collaboratori
-    { 
-      name: 'Giuseppe Savoia',   
-      type: StaffType.COLLABORATORE, 
-      color: '#3b82f6',
-      shifts: {
-        "2026-04-13": {
-          "0": { "label": "Mattina", "startTime": "09:00", "endTime": "13:00", "isOff": false },
-          "1": { "label": "Pomeriggio", "startTime": "14:00", "endTime": "19:00", "isOff": false },
-          "2": { "label": "Tutta la giornata", "startTime": "09:00", "endTime": "19:00", "isOff": false },
-        }
-      }
-    },
+    { name: 'Giuseppe Savoia',   type: StaffType.COLLABORATORE, color: '#3b82f6' },
     { name: 'Aniello Gozzi',     type: StaffType.COLLABORATORE, color: '#10b981' },
     { name: 'Pietro Russo',      type: StaffType.COLLABORATORE, color: '#f59e0b' },
     { name: 'Lorenzo Vignone',   type: StaffType.COLLABORATORE, color: '#ef4444' },
@@ -151,7 +140,28 @@ async function seedDefaultStaff(): Promise<void> {
     }
   }
 
-  console.log('✅ Staff creato (5 collaboratori + 3 apprendisti)');
+  // Seed shifts for Giuseppe Savoia
+  const giuseppe = await prisma.staff.findFirst({ where: { name: 'Giuseppe Savoia' } });
+  if (giuseppe) {
+    const shiftDate = new Date('2026-04-13');
+    const shifts = [
+      { date: shiftDate, startTime: '09:00', endTime: '13:00' },
+      { date: shiftDate, startTime: '14:00', endTime: '19:00' },
+    ];
+
+    for (const shift of shifts) {
+      const existing = await prisma.shift.findFirst({
+        where: { staffId: giuseppe.id, date: shift.date, startTime: shift.startTime }
+      });
+      if (!existing) {
+        await prisma.shift.create({
+          data: { ...shift, staffId: giuseppe.id }
+        });
+      }
+    }
+  }
+
+  console.log('✅ Staff creato (5 collaboratori + 3 apprendisti + turni');
 }
 
 /**

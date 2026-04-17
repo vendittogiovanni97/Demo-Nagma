@@ -57,17 +57,181 @@ npm run dev          # http://localhost:3000
 
 ---
 
-## Comandi utili
+## Prisma 7 — Gestione database
 
-### Database (da `backend/`)
+### 🔑 Cosa devi sapere su Prisma 7
+
+**Prisma 7** è una versione completamente riscritta con architettura a microservizi. Differenze chiave da v6:
+
+| Aspetto | Prisma 6 | Prisma 7 |
+|---------|----------|---------|
+| **Config** | `prisma/schema.prisma` | `prisma.config.ts` + `schema.prisma` |
+| **URL database** | `schema.prisma` → `datasource.url` | **`prisma.config.ts`** → `datasource.url` |
+| **Adapter** | Non esiste | **@prisma/adapter-pg** per PostgreSQL nativo |
+| **Client** | Importa da `@prisma/client` | Stesso (generato automaticamente) |
+
+### 📋 File principali
+
+```
+backend/
+├── prisma.config.ts           # ⭐ NUOVO: Configurazione Prisma 7
+├── prisma/
+│   ├── schema.prisma          # Schema (senza url!)
+│   └── seed.ts                # Seed dati iniziali
+└── src/
+    └── db.ts                  # ⭐ NUOVO: Istanza PrismaClient con adapter
+```
+
+### 🚀 Comandi Prisma — Con spiegazione
 
 ```bash
-npx prisma migrate dev --name nome_modifica   # nuova migrazione
-npx prisma migrate deploy                      # applica migrazioni in prod
-npx prisma db push                             # sync schema senza migrazione (dev rapido)
-npx prisma studio                              # UI per esplorare i dati
-npm run db:seed                                # seed dati iniziali
+# ════════════════════════════════════════════════════════════════
+# 1️⃣  GENERARE IL CLIENT (eseguire SOLO una volta)
+# ════════════════════════════════════════════════════════════════
+npx prisma generate
+# Cosa fa:
+# • Legge schema.prisma
+# • Genera TypeScript types in node_modules/@prisma/client
+# • Crea il PrismaClient con tutti i model type-safe
+# ⚠️  DEVE essere eseguito PRIMA di qualsiasi operazione database
+
+# ════════════════════════════════════════════════════════════════
+# 2️⃣  PUSH SCHEMA AL DATABASE (development rapido)
+# ════════════════════════════════════════════════════════════════
+npx prisma db push
+# Cosa fa:
+# • Sincronizza schema.prisma direttamente al database
+# • NON crea file di migrazione
+# • ⚡ Più veloce per development iterativo
+# ⚠️  NON per produzione (usa migrate deploy invece)
+
+# ════════════════════════════════════════════════════════════════
+# 3️⃣  CREARE UNA MIGRAZIONE (for production-safe changes)
+# ════════════════════════════════════════════════════════════════
+npx prisma migrate dev --name aggiungere_campoX
+# Cosa fa:
+# • Crea file migrazione in prisma/migrations/
+# • Applica la migrazione al database locale
+# • Genera Prisma Client types
+# Esempio nomi:
+#   --name add_email_field
+#   --name create_shifts_table
+#   --name soft_delete_users
+
+# ════════════════════════════════════════════════════════════════
+# 4️⃣  APPLICARE MIGRAZIONI IN PRODUZIONE
+# ════════════════════════════════════════════════════════════════
+npx prisma migrate deploy
+# Cosa fa:
+# • Applica TUTTE le migrazioni che ancora non sono applicate
+# • Nessun prompt interattivo (sicuro per CI/CD)
+# • ⚠️  Usa SOLO in produzione, non in development
+
+# ════════════════════════════════════════════════════════════════
+# 5️⃣  POPULARE DATABASE (seeding)
+# ════════════════════════════════════════════════════════════════
+npm run db:seed
+# Cosa fa:
+# • Esegue prisma/seed.ts
+# • Inserisce dati iniziali (admin, staff, template)
+# • Usa PrismaClient con adapter-pg
+
+# ════════════════════════════════════════════════════════════════
+# 6️⃣  RESET COMPLETO DATABASE (⚠️  Cancella tutto!)
+# ════════════════════════════════════════════════════════════════
+npm run db:reset
+# Cosa fa:
+# • 🔥 Elimina TUTTO il database
+# • Riesegue TUTTE le migrazioni da zero
+# • Esegue seed (db:seed)
+# ⚠️  Usa SOLO in development quando schema è rotto
+
+# ════════════════════════════════════════════════════════════════
+# 7️⃣  ESPLORARE DATI (UI Web)
+# ════════════════════════════════════════════════════════════════
+npx prisma studio
+# Cosa fa:
+# • Apre http://localhost:5555
+# • Interface grafica per visualizzare/editare dati
+# • Perfetto per debugging e test
+
+# ════════════════════════════════════════════════════════════════
+# 8️⃣  VISUALIZZARE MIGRAZIONI
+# ════════════════════════════════════════════════════════════════
+npx prisma migrate status
+# Mostra:
+# • Migrazioni applicate ✅
+# • Migrazioni pending ⏳
+# • Data di applicazione
 ```
+
+### 📊 Workflow tipico di development
+
+```bash
+# Inizio giornata — database pulito
+npm run db:reset
+npm run dev
+
+# Durante development — nuova feature con tabella
+# 1. Modifica schema.prisma
+# 2. Crea migrazione
+npx prisma migrate dev --name aggiungere_feature
+
+# 3. Codice TypeScript automaticamente type-safe 🎉
+# 4. Testa feature
+
+# Se schema è "rotto" durante development
+npm run db:reset
+
+# Prima di git push
+npx prisma migrate status  # verifica pending migrations
+git add prisma/migrations/ # commit migration file
+```
+
+### 🛠️ Troubleshooting Prisma
+
+**❌ Errore: "PrismaClientInitializationError"**
+```bash
+# Soluzione: Genera il client
+npx prisma generate
+```
+
+**❌ Errore: "Unknown argument" in seed**
+```bash
+# Causa: Schema è cambiato ma client non è rigenerato
+# Soluzione:
+npm run db:reset
+```
+
+**❌ Migrazioni "stuck" in pendenza**
+```bash
+npx prisma migrate status       # vedi cosa è pending
+npx prisma migrate resolve --rolled-back <migration_name>  # reset migration
+npx prisma migrate dev          # ricrea da zero
+```
+
+**❌ Disconnessione database durante seed**
+```bash
+# Verifica DATABASE_URL in .env
+cat .env | grep DATABASE_URL
+# Verifica che Docker PostgreSQL è running
+docker compose ps
+```
+
+### 📚 Comandi npm (package.json shortcuts)
+
+```bash
+npm run db:seed          # = tsx prisma/seed.ts
+npm run db:migrate       # = prisma migrate dev
+npm run db:migrate:prod  # = prisma migrate deploy
+npm run db:reset         # = prisma migrate reset + seed
+npm run db:push          # = prisma db push
+npm run db:studio        # = prisma studio
+```
+
+---
+
+## Build & Deployment
 
 ### Build
 

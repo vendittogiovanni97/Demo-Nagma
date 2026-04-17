@@ -1,13 +1,13 @@
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export interface Transaction {
-  id: string;
+  id: number;
   type: TransactionType;
   category: string;
   description: string;
   amount: number;
   date: string;
-  artistId?: string;
+  artistId?: number;
   attachmentUrl?: string;
   createdAt: string;
 }
@@ -18,7 +18,7 @@ export interface CreateTransactionData {
   description: string;
   amount: number;
   date?: string;
-  artistId?: string;
+  artistId?: number;
 }
 
 export interface FinanceSummary {
@@ -34,7 +34,7 @@ export interface MonthlyTrend {
 }
 
 export interface ArtistPerformance {
-  artistId: string;
+  artistId: number;
   artistName: string;
   artistColor: string | null;
   bookings: number;

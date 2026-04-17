@@ -1,33 +1,35 @@
 import { Response } from 'express';
-import { FormTemplateService } from '../services/form-template.service';
+import { FormTemplateRepository } from '../repositories/form-template.repository';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { validate, createFormTemplateSchema, updateFormTemplateSchema } from '../schemas';
 import { asyncHandler } from '../utils/async-handler';
+import { AppError } from '../utils/AppError';
 
-const service = new FormTemplateService();
+const repo = new FormTemplateRepository();
 
 export class FormTemplateController {
   getAll = asyncHandler(async (_req: AuthRequest, res: Response) => {
-    const data = await service.getAll();
-    res.json(data);
+    res.json(await repo.findAll());
   });
 
   getById = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.getById(String(req.params.id));
-    res.json(data);
+    const template = await repo.findById(Number(req.params.id));
+    if (!template) throw new AppError('Template non trovato', 404, 'NOT_FOUND');
+    res.json(template);
   });
 
   create = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.create(req.body);
-    res.status(201).json(data);
+    const data = validate(createFormTemplateSchema, req.body);
+    res.status(201).json(await repo.create(data));
   });
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.update(String(req.params.id), req.body);
-    res.json(data);
+    const data = validate(updateFormTemplateSchema, req.body);
+    res.json(await repo.update(Number(req.params.id), data));
   });
 
   delete = asyncHandler(async (req: AuthRequest, res: Response) => {
-    await service.delete(String(req.params.id));
+    await repo.delete(Number(req.params.id));
     res.status(204).send();
   });
 }

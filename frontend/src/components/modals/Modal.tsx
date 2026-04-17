@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 interface ModalProps {
   isOpen: boolean;
@@ -31,9 +32,13 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
       <div className={`bg-[#0a0a0a] border border-surface-border rounded-2xl w-full ${maxWidth} shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300`}>
         <div className="p-8 border-b border-surface-border flex justify-between items-center bg-white/[0.02]">
           <h3 className="text-2xl font-outfit text-white font-semibold">{title}</h3>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition">
-            <X size={24} className="text-text-secondary" />
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            icon={<X size={24} className="text-text-secondary" />}
+            className="p-2"
+          />
         </div>
         <div className="p-8">
           {children}

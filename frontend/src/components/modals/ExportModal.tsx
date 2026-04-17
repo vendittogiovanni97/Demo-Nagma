@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { Download, FileSpreadsheet, FileText, FileDown, Loader2 } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, FileDown } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import Modal from './Modal';
 import type { ExportColumn } from '@/utils/export';
 import { exportRowsToCsv, exportRowsToPdf, exportRowsToXlsx } from '@/utils/export';
@@ -69,15 +70,15 @@ export default function ExportModal<T>({
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="glass"
+        size="md"
         disabled={rows.length === 0}
         onClick={() => setIsOpen(true)}
-        className="glass-btn flex items-center gap-2 px-5 disabled:cursor-not-allowed disabled:opacity-50"
+        icon={<FileDown size={18} />}
       >
-        <FileDown size={18} />
-        <span>Esporta</span>
-      </button>
+        Esporta
+      </Button>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Esporta Dati">
         <div className="flex flex-col gap-6">
@@ -134,18 +135,20 @@ export default function ExportModal<T>({
             <div className="flex flex-col gap-2">
               {formats.map((f) => {
                 const Icon = f.icon;
+                const isSelected = format === f.value;
                 return (
                   <button
                     key={f.value}
                     type="button"
                     onClick={() => setFormat(f.value)}
                     className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-                      format === f.value
+                      isSelected
                         ? 'border-accent bg-accent/10 text-white'
                         : 'border-surface-border bg-white/2 text-text-secondary hover:border-white/20'
                     }`}
+                    aria-pressed={isSelected}
                   >
-                    <Icon size={22} className={format === f.value ? 'text-accent' : ''} />
+                    <Icon size={22} className={isSelected ? 'text-accent' : ''} />
                     <div className="flex flex-col text-left">
                       <span className="font-bold text-sm">{f.label}</span>
                       <span className="text-xs text-text-secondary">{f.desc}</span>
@@ -163,24 +166,18 @@ export default function ExportModal<T>({
           </div>
 
           {/* Export button */}
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
             onClick={() => void handleExport()}
             disabled={isExporting || rows.length === 0}
-            className="btn-primary w-full py-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            isLoading={isExporting}
+            loadingLabel="Esportazione in corso..."
+            icon={isExporting ? undefined : <Download size={20} />}
           >
-            {isExporting ? (
-              <>
-                <Loader2 className="animate-spin" size={20} />
-                Esportazione in corso...
-              </>
-            ) : (
-              <>
-                <Download size={20} />
-                Esporta {formats.find(f => f.value === format)?.label}
-              </>
-            )}
-          </button>
+            {!isExporting && `Esporta ${formats.find(f => f.value === format)?.label}`}
+          </Button>
         </div>
       </Modal>
     </>

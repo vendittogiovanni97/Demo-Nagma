@@ -2,56 +2,46 @@ import { Response } from 'express';
 import { BookingService } from '../services/booking.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
+import { parsePageQuery } from '../utils/date-utils';
 
 const service = new BookingService();
 
 export class BookingController {
   getAll = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const month = req.query.month as string | undefined;
-    // Paginazione opzionale: se page o limit sono presenti, ritorna shape paginata.
-    // Altrimenti shape flat (retrocompatibile con la calendar view dell'agenda).
+    const { month, page, limit } = parsePageQuery(req.query);
     if (req.query.page || req.query.limit) {
-      const page = req.query.page ? Number(req.query.page) : 1;
-      const limit = req.query.limit ? Number(req.query.limit) : 20;
-      const data = await service.getBookingsPaged(month, page, limit);
-      res.json(data);
+      res.json(await service.getBookingsPaged(month, page, limit));
       return;
     }
-    const data = await service.getBookings(month);
-    res.json(data);
+    res.json(await service.getBookings(month));
   });
 
   getStats = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.getStats(req.query.month as string | undefined);
-    res.json(data);
+    res.json(await service.getStats(req.query.month as string | undefined));
   });
 
   create = asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id ?? 'system';
-    const data = await service.createBooking(req.body, userId);
-    res.status(201).json(data);
+    res.status(201).json(await service.createBooking(req.body, userId));
   });
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id ?? 'system';
-    const data = await service.updateBooking(String(req.params.id), req.body, userId);
-    res.json(data);
+    res.json(await service.updateBooking(Number(req.params.id), req.body, userId));
   });
 
   getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.getHistory(String(req.params.id));
-    res.json(data);
+    res.json(await service.getHistory(Number(req.params.id)));
   });
 
   delete = asyncHandler(async (req: AuthRequest, res: Response) => {
-    await service.deleteBooking(String(req.params.id));
+    await service.deleteBooking(Number(req.params.id));
     res.status(204).send();
   });
 
   getAvailable = asyncHandler(async (req: AuthRequest, res: Response) => {
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Data obbligatoria' });
-    const data = await service.getAvailableArtists(date);
-    res.json(data);
+    res.json(await service.getAvailableArtists(date));
   });
 }

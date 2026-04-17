@@ -4,31 +4,32 @@ import { Skeleton } from '@/components/feedback/Skeleton';
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
+import PaginationControls from '@/components/feedback/PaginationControls';
+import Avatar from '@/components/data-display/Avatar';
+import Button from '@/components/ui/Button';
 import CustomerModal from '@/components/modals/CustomerModal';
 import ExportModal from '@/components/modals/ExportModal';
 import { DEBOUNCE_SEARCH_DELAY, EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers } from '@/hooks/domain';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { customerService } from '@/services/customer.service';
 import type { Customer } from '@/types/customer';
-import { canManageCustomers, canSendWhatsApp } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Edit, Eye, Mail, MessageCircle, Phone, Trash2, UserPlus } from 'lucide-react';
+import { Edit, Eye, Mail, MessageCircle, Phone, Trash2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 export default function CustomersPage() {
-  const { user } = useAuth();
+  const { can } = useAuth();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
-  const canManage = canManageCustomers(user?.role);
-  const canSendMessages = canSendWhatsApp(user?.role);
+  const { deleteItem } = useDeleteConfirm();
 
   const { data: result, mutate, isLoading, error } = useCustomers({ search: debouncedSearch, page });
   const customers = result?.data;
@@ -46,16 +47,14 @@ export default function CustomersPage() {
     { label: 'Appuntamenti', value: (customer: Customer) => customer._count?.bookings || 0 },
   ], []);
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
-      try {
-        await customerService.delete(id);
-        notifySuccess('Cliente eliminato');
-        mutate();
-      } catch (err: unknown) {
-        notifyError(err, 'Errore durante l\'eliminazione');
-      }
-    }
+  const handleDelete = async (id: number) => {
+    await deleteItem({
+      confirmMessage: 'Sei sicuro di voler eliminare questo cliente?',
+      action: () => customerService.delete(id),
+      successMessage: 'Cliente eliminato',
+      errorMessage: 'Errore durante l\'eliminazione',
+      onSuccess: mutate,
+    });
   };
 
   return (
@@ -75,14 +74,14 @@ export default function CustomersPage() {
                 return response.data;
               }}
             />
-            {canManage ? (
-              <button
+            {can.manageCustomers ? (
+              <Button
+                variant="primary"
+                icon={UserPlus}
                 onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
-                className="btn-primary flex items-center gap-2 px-6"
               >
-                <UserPlus size={20} />
-                <span>Nuovo Cliente</span>
-              </button>
+                Nuovo Cliente
+              </Button>
             ) : null}
           </>
         }
@@ -147,9 +146,7 @@ export default function CustomersPage() {
                   <tr key={customer.id} className="border-b border-surface-border/50 hover:bg-white/2 transition-colors group">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent font-bold text-sm shrink-0">
-                          {customer.firstName.charAt(0)}{customer.lastName.charAt(0)}
-                        </div>
+                        <Avatar firstName={customer.firstName} lastName={customer.lastName} />
                         <div>
                           <div className="text-white font-semibold">{customer.firstName} {customer.lastName}</div>
                           {customer.notes && (
@@ -193,7 +190,7 @@ export default function CustomersPage() {
                         >
                           <Eye size={16} />
                         </Link>
-                        {canSendMessages ? (
+                        {can.sendWhatsApp ? (
                           <Link
                             href={`/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`}
                             className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-emerald-400 transition"
@@ -202,22 +199,24 @@ export default function CustomersPage() {
                             <MessageCircle size={16} />
                           </Link>
                         ) : null}
-                        {canManage ? (
+                        {can.manageCustomers ? (
                           <>
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
-                              className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-accent transition"
+                              icon={<Edit size={16} />}
+                              className="p-2"
                               title="Modifica"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
+                            />
+                            <Button
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleDelete(customer.id)}
-                              className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-danger transition"
+                              icon={<Trash2 size={16} />}
+                              className="p-2"
                               title="Elimina"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            />
                           </>
                         ) : null}
                       </div>
@@ -231,26 +230,15 @@ export default function CustomersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-surface-border bg-white/2">
-            <span className="text-sm text-text-secondary">
-              Pagina {page} di {totalPages} · {result?.total ?? 0} clienti
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="p-2 rounded-lg border border-surface-border hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="p-2 rounded-lg border border-surface-border hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+          <div className="bg-white/2 border-t border-surface-border">
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              total={result?.total ?? 0}
+              onPrev={() => setPage(p => Math.max(1, p - 1))}
+              onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+              label="clienti"
+            />
           </div>
         )}
       </div>

@@ -1,33 +1,37 @@
 "use client";
 
-import { Loader2 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { ReactNode } from 'react';
+import Button from '@/components/ui/Button';
 
 interface SubmitButtonProps {
   loading: boolean;
   label: string;
   loadingLabel?: string;
-  icon?: LucideIcon;
+  icon?: ReactNode;
+  variant?: 'primary' | 'secondary' | 'danger';
+  disabled?: boolean;
 }
 
-export default function SubmitButton({ loading, label, loadingLabel, icon: Icon }: SubmitButtonProps) {
+export default function SubmitButton({
+  loading,
+  label,
+  loadingLabel,
+  icon,
+  variant = 'primary',
+  disabled = false,
+}: SubmitButtonProps) {
   return (
-    <button
+    <Button
       type="submit"
-      disabled={loading}
-      className="btn-primary w-full py-4 flex items-center justify-center gap-2 mt-4 text-lg disabled:opacity-60"
+      variant={variant}
+      size="lg"
+      isLoading={loading}
+      loadingLabel={loadingLabel || 'Salvataggio...'}
+      icon={icon}
+      fullWidth
+      disabled={disabled}
     >
-      {loading ? (
-        <>
-          <Loader2 className="animate-spin" size={24} />
-          <span>{loadingLabel || 'Salvataggio...'}</span>
-        </>
-      ) : (
-        <>
-          {Icon && <Icon size={24} />}
-          <span>{label}</span>
-        </>
-      )}
-    </button>
+      {label}
+    </Button>
   );
 }

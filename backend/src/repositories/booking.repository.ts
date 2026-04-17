@@ -1,30 +1,53 @@
-import prisma from '../utils/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, Booking } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
+import { getMonthRange, paginate } from '../utils/date-utils';
+import prisma, { softDelete } from '../utils/prisma';
 
-export class BookingRepository {
+export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCreateInput, Prisma.BookingUpdateInput> {
+  constructor(prismaClient: PrismaClient = prisma) {
+    super(prismaClient);
+  }
+
   private buildBaseWhere(monthStr?: string): Prisma.BookingWhereInput {
     const where: Prisma.BookingWhereInput = {
       deletedAt: null,
-      // Escludi prenotazioni il cui cliente è stato soft-deleted.
       customer: { is: { deletedAt: null } },
     };
     if (monthStr) {
-      const start = new Date(`${monthStr}-01T00:00:00.000Z`);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 1);
-      where.date = { gte: start, lt: end };
+      where.date = getMonthRange(monthStr);
     }
     return where;
   }
 
-  async findAll(monthStr?: string) {
-    return prisma.booking.findMany({
-      where: this.buildBaseWhere(monthStr),
+  async create(data: Prisma.BookingCreateInput): Promise<Booking> {
+    return this.prisma.booking.create({ data });
+  }
+
+  async findById(id: string): Promise<Booking | null> {
+    return this.prisma.booking.findUnique({ where: { id: parseInt(id) } });
+  }
+
+  async findAll(): Promise<Booking[]> {
+    return this.prisma.booking.findMany({
+      where: this.buildBaseWhere(),
       orderBy: { date: 'asc' },
       include: { customer: true, artist: true },
     });
   }
+
+  async update(id: string, data: Prisma.BookingUpdateInput): Promise<Booking> {
+    return this.prisma.booking.update({ where: { id: parseInt(id) }, data });
+  }
+
+  async delete(id: string): Promise<void> {
+    await softDelete(this.prisma.booking, parseInt(id));
+  }
+
+  // ============================================================================
+  // SPECIALIZED METHODS - Custom business logic
+  // ============================================================================
 
   async findAllPaged({
     monthStr,
@@ -38,36 +61,27 @@ export class BookingRepository {
     const where = this.buildBaseWhere(monthStr);
     const skip = (page - 1) * limit;
 
-    const [data, total] = await prisma.$transaction([
-      prisma.booking.findMany({
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.booking.findMany({
         where,
         skip,
         take: limit,
         orderBy: { date: 'desc' },
         include: { customer: true, artist: true },
       }),
-      prisma.booking.count({ where }),
+      this.prisma.booking.count({ where }),
     ]);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    };
+    return paginate(data, total, page, limit);
   }
 
   async getStats(monthStr?: string) {
     const where: Prisma.BookingWhereInput = { deletedAt: null };
     if (monthStr) {
-      const start = new Date(`${monthStr}-01T00:00:00.000Z`);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 1);
-      where.createdAt = { gte: start, lt: end }; // Dati dipendenti da creazione, non da quando viene svolto
+      where.createdAt = getMonthRange(monthStr);
     }
 
-    const grouped = await prisma.booking.groupBy({
+    const grouped = await this.prisma.booking.groupBy({
       by: ['status'],
       where,
       _count: { _all: true },
@@ -78,65 +92,35 @@ export class BookingRepository {
       return acc;
     }, {});
 
-    const confirmed = counts.CONFIRMED ?? 0;
-    const cancelled = counts.CANCELLED ?? 0;
-    const rescheduled = counts.RESCHEDULED ?? 0;
-    const completed = counts.COMPLETED ?? 0;
-    const total = confirmed + cancelled + rescheduled + completed
-      + Object.entries(counts)
-          .filter(([k]) => !['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED'].includes(k))
-          .reduce((sum, [, v]) => sum + v, 0);
-
-    return { total, confirmed, cancelled, rescheduled, completed, month: monthStr };
+    return {
+      total: Object.values(counts).reduce((sum, v) => sum + v, 0),
+      confirmed: counts.CONFIRMED ?? 0,
+      cancelled: counts.CANCELLED ?? 0,
+      rescheduled: counts.RESCHEDULED ?? 0,
+      completed: counts.COMPLETED ?? 0,
+      month: monthStr,
+    };
   }
 
-  /**
-   * Trova prenotazioni dello stesso artista che si sovrappongono all'intervallo
-   * [start, start + durationMinutes). Esclude eventualmente un id (per gli update)
-   * e ignora le prenotazioni cancellate o soft-deleted.
-   */
   async findOverlapping(
-    artistId: string,
+    artistId: number,
     start: Date,
     durationMinutes: number,
-    excludeId?: string
+    excludeId?: number
   ) {
     const end = new Date(start.getTime() + durationMinutes * 60_000);
 
-    // Una prenotazione esistente (existingStart, existingEnd) si sovrappone
-    // se existingStart < end AND existingEnd > start.
-    // Poiché Prisma non ha una colonna "end", usiamo un raw query basato su
-    // (date + duration*interval). Filtriamo lato DB per coerenza.
-    const conflicts = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+    const conflicts = await this.prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
       SELECT id FROM "Booking"
       WHERE "artistId" = ${artistId}
         AND "deletedAt" IS NULL
         AND "status" <> 'CANCELLED'
         AND "date" < ${end}
-        AND ("date" + (${config.defaultBookingDurationMinutes} || ' minutes')::interval) > ${start}
+        AND ("date" + ("duration" || ' minutes')::interval) > ${start}
         ${excludeId ? Prisma.sql`AND id <> ${excludeId}` : Prisma.empty}
       LIMIT 1
     `);
 
     return conflicts[0] ?? null;
-  }
-
-  async create(data: Prisma.BookingCreateInput) {
-    return prisma.booking.create({ data });
-  }
-
-  async update(id: string, data: Prisma.BookingUpdateInput) {
-    return prisma.booking.update({ where: { id }, data });
-  }
-
-  async findById(id: string) {
-    return prisma.booking.findUnique({ where: { id } });
-  }
-
-  async softDelete(id: string) {
-    return prisma.booking.update({
-      where: { id },
-      data: { deletedAt: new Date() }
-    });
   }
 }

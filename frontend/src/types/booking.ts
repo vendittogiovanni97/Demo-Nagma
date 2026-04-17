@@ -1,10 +1,11 @@
 export type BookingStatus = 'CONFIRMED' | 'CANCELLED' | 'RESCHEDULED' | 'COMPLETED';
 
 export interface Booking {
-  id: string;
-  customerId: string;
-  artistId: string;
+  id: number;
+  customerId: number;
+  artistId: number;
   date: string;
+  duration: number;
   status: BookingStatus;
   price?: number;
   deposit?: number;
@@ -13,21 +14,23 @@ export interface Booking {
   createdAt: string;
   updatedAt: string;
   customer?: {
-    id: string;
+    id: number;
     firstName: string;
     lastName: string;
+    phone?: string;
   };
   artist?: {
-    id: string;
+    id: number;
     name: string;
     color?: string;
   };
 }
 
 export interface CreateBookingData {
-  customerId: string;
-  artistId: string;
+  customerId: number;
+  artistId: number;
   date: string;
+  duration?: number;
   price?: number;
   deposit?: number;
   notes?: string;
@@ -35,8 +38,8 @@ export interface CreateBookingData {
 }
 
 export interface BookingHistory {
-  id: string;
-  bookingId: string;
+  id: number;
+  bookingId: number;
   action: string;
   oldDate?: string;
   newDate?: string;

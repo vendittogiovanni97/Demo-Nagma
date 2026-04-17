@@ -6,17 +6,17 @@ import { useMemo, useState } from 'react';
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
+import Button from '@/components/ui/Button';
 import WhatsAppTemplateModal from '@/components/modals/WhatsAppTemplateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useWhatsAppTemplates } from '@/hooks/domain';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { WhatsAppTemplate } from '@/types/whatsapp';
-import { canManageWhatsAppTemplates } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
 
 export default function WhatsAppTemplatesPage() {
-  const { user } = useAuth();
-  const canManageTemplates = canManageWhatsAppTemplates(user?.role);
+  const { can } = useAuth();
+  const canManageTemplates = can.manageWhatsAppTemplates;
 
   const [templateSearch, setTemplateSearch] = useState('');
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -27,15 +27,16 @@ export default function WhatsAppTemplatesPage() {
 
   const filteredTemplates = useMemo(() => templates || [], [templates]);
 
-  const handleDeleteTemplate = async (templateId: string) => {
-    if (!confirm('Eliminare questo template?')) return;
-    try {
-      await whatsappService.deleteTemplate(templateId);
-      notifySuccess('Template eliminato');
-      void mutateTemplates();
-    } catch (error: unknown) {
-      notifyError(error, 'Errore durante l\'eliminazione');
-    }
+  const { deleteItem } = useDeleteConfirm();
+
+  const handleDeleteTemplate = async (templateId: number) => {
+    await deleteItem({
+      confirmMessage: 'Eliminare questo template?',
+      action: () => whatsappService.deleteTemplate(templateId),
+      successMessage: 'Template eliminato',
+      errorMessage: 'Errore durante l\'eliminazione',
+      onSuccess: mutateTemplates,
+    });
   };
 
   if (!canManageTemplates) {
@@ -56,16 +57,16 @@ export default function WhatsAppTemplatesPage() {
       <PageHeader
         title="WhatsApp Templates"
         actions={
-          <button
+          <Button
+            variant="primary"
+            icon={Plus}
             onClick={() => {
               setEditingTemplate(null);
               setIsTemplateModalOpen(true);
             }}
-            className="btn-primary flex items-center gap-2 px-6"
           >
-            <Plus size={20} />
-            <span>Nuovo Template</span>
-          </button>
+            Nuovo Template
+          </Button>
         }
       >
         <div className="flex-1 max-w-md mx-auto">
@@ -87,9 +88,7 @@ export default function WhatsAppTemplatesPage() {
         </div>
 
         {templatesLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-             <div className="animate-spin rounded-full h-10 w-10 border-4 border-accent border-t-transparent" />
-          </div>
+          <StatePanel variant="loading" fullPage title="Caricamento template..." />
         ) : filteredTemplates.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-12">
             <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
@@ -99,13 +98,14 @@ export default function WhatsAppTemplatesPage() {
             <p className="text-sm text-text-secondary mt-2 text-center max-w-md">
               {"Crea il tuo primo template WhatsApp per inviare messaggi rapidi ai clienti direttamente dall'agenda."}
             </p>
-            <button
+            <Button
+               variant="primary"
+               icon={Plus}
                onClick={() => setIsTemplateModalOpen(true)}
-               className="btn-primary mt-6 flex items-center gap-2 px-6"
+               className="mt-6"
             >
-               <Plus size={20} />
-               <span>Crea Template</span>
-            </button>
+               Crea Template
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 overflow-y-auto custom-scrollbar pb-4">
@@ -122,23 +122,25 @@ export default function WhatsAppTemplatesPage() {
                     )}
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         setEditingTemplate(template);
                         setIsTemplateModalOpen(true);
                       }}
-                      className="p-2 bg-surface hover:bg-white/20 rounded-lg text-text-secondary hover:text-white transition"
+                      icon={<Edit size={16} />}
+                      className="p-2"
                       title="Modifica"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
+                    />
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDeleteTemplate(template.id)}
-                      className="p-2 bg-surface hover:bg-danger rounded-lg text-text-secondary hover:text-white transition"
+                      icon={<Trash2 size={16} />}
+                      className="p-2"
                       title="Elimina"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    />
                   </div>
                 </div>
 

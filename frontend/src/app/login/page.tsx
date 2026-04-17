@@ -2,7 +2,8 @@
 
 import { branding } from '@/config/branding';
 import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -77,34 +78,33 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-[rgba(255,255,255,0.03)] border border-surface-border text-white pl-12 pr-12 py-4 rounded-[15px] focus:border-accent focus:outline-none transition-colors"
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
+              icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white transition-colors cursor-pointer"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-2"
               tabIndex={-1}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+            />
           </div>
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="lg"
             disabled={loading}
-            className="btn-primary w-full py-4 flex items-center justify-center gap-2 mt-2"
+            isLoading={loading}
+            fullWidth
+            loadingLabel="Accesso in corso..."
           >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Accedi'}
-          </button>
+            Accedi
+          </Button>
 
           {error && (
             <p className="text-danger text-sm text-center mt-1">{error}</p>
           )}
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-text-secondary tracking-widest uppercase">
-            © 2026 {branding.portalName}
-          </p>
-        </div>
       </div>
     </div>
   );

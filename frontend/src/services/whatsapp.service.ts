@@ -17,13 +17,13 @@ export const whatsappService = {
   createTemplate: async (data: CreateWhatsAppTemplateData) => {
     return apiClient.post<WhatsAppTemplate>(ENDPOINTS.WHATSAPP.BASE, data);
   },
-  updateTemplate: async (id: string, data: Partial<CreateWhatsAppTemplateData>) => {
+  updateTemplate: async (id: number, data: Partial<CreateWhatsAppTemplateData>) => {
     return apiClient.put<WhatsAppTemplate>(ENDPOINTS.WHATSAPP.BY_ID(id), data);
   },
-  duplicateTemplate: async (id: string) => {
+  duplicateTemplate: async (id: number) => {
     return apiClient.post<WhatsAppTemplate>(ENDPOINTS.WHATSAPP.DUPLICATE(id), {});
   },
-  deleteTemplate: async (id: string) => {
+  deleteTemplate: async (id: number) => {
     return apiClient.delete(ENDPOINTS.WHATSAPP.BY_ID(id));
   },
   sendManualMessage: async (data: SendWhatsAppMessageData): Promise<SendWhatsAppMessageResponse> => {

@@ -24,7 +24,7 @@ export const createUserSchema = z.object({
 });
 
 export const createShiftSchema = z.object({
-  userId: nonEmptyString('userId è obbligatorio'),
+  staffId: z.coerce.number().int().positive('staffId non valido'),
   weekStart: nonEmptyString('weekStart è obbligatorio'),
   dayOfWeek: z.number().int().min(0).max(6),
   startTime: z.string().optional(),
@@ -42,4 +42,26 @@ export const updateShiftSchema = z.object({
   label: z.string().optional(),
   isOff: z.boolean().optional(),
   notes: z.string().optional(),
+});
+
+export const updateUserSchema = z.object({
+  name: nonEmptyString('Il nome è obbligatorio'),
+  email: z.string().email('Email non valida'),
+  role: roleSchema,
+  phone: z.string().optional(),
+  color: z.string().optional(),
+});
+
+export const resetPasswordSchema = z.object({
+  newPassword: z.string().min(6, 'La password deve avere almeno 6 caratteri'),
+});
+
+export const updateMeSchema = z.object({
+  name: nonEmptyString('Il nome è obbligatorio'),
+  phone: z.string().optional(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Password attuale obbligatoria'),
+  newPassword: z.string().min(6, 'La password deve avere almeno 6 caratteri'),
 });

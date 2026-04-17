@@ -10,9 +10,9 @@ import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormTextarea from '../forms/FormTextarea';
 import SubmitButton from '../forms/SubmitButton';
-import { canManageCustomers } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateCustomerData } from '@/utils/validation';
+import { validateData } from '@/utils/validation';
+import { createCustomerSchema } from '@/schemas';
 
 interface Props {
   isOpen: boolean;
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: Props) {
-  const { user } = useAuth();
+  const { can } = useAuth();
   const [formData, setFormData] = useState<CreateCustomerData>({
     firstName: '',
     lastName: '',
@@ -31,7 +31,6 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     notes: ''
   });
   const [loading, setLoading] = useState(false);
-  const canManage = canManageCustomers(user?.role);
 
   useEffect(() => {
     setFormData(customer
@@ -42,7 +41,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validationError = validateCustomerData(formData);
+    const validationError = validateData(createCustomerSchema, formData);
     if (validationError) {
       notifyError(new Error(validationError), validationError);
       return;
@@ -68,7 +67,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={customer ? 'Modifica Cliente' : 'Nuovo Cliente'}>
-      {!canManage ? (
+      {!can.manageCustomers ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

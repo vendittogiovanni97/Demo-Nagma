@@ -6,7 +6,7 @@ export interface LoginCredentials {
 }
 
 export interface AuthUser {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: Role;

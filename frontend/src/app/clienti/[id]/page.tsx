@@ -20,12 +20,13 @@ import useSWR from 'swr';
 
 import { Skeleton } from '@/components/feedback/Skeleton';
 import StatePanel from '@/components/feedback/StatePanel';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import CustomerModal from '@/components/modals/CustomerModal';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/customer.service';
 import type { Customer, CustomerSummary, WhatsAppLog } from '@/types/customer';
-import { canManageCustomers } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
 
 const STATUS_COLORS: Record<string, string> = {
   CONFIRMED: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
@@ -42,22 +43,23 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function CustomerDetailPage() {
+  const toast = useToast();
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
-  const id = params.id as string;
-  const canManage = canManageCustomers(user?.role);
+  const { can } = useAuth();
+  const idStr = params.id as string;
+  const id = Number(idStr);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   const { data: customer, isLoading: isLoadingCustomer, error: customerError, mutate: mutateCustomer } = useSWR<Customer>(
-    id ? `/api/customers/${id}` : null,
+    !isNaN(id) ? ENDPOINTS.CUSTOMERS.BY_ID(id) : null,
     () => customerService.getById(id)
   );
 
   const { data: summary, isLoading: isLoadingSummary } = useSWR<CustomerSummary>(
-    id ? `/api/customers/${id}/summary` : null,
+    !isNaN(id) ? ENDPOINTS.CUSTOMERS.SUMMARY(id) : null,
     () => customerService.getSummary(id)
   );
 
@@ -72,14 +74,15 @@ export default function CustomerDetailPage() {
   );
 
   const handleDelete = async () => {
-    if (!canManage) return;
+    if (!can.manageCustomers) return;
     if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
       try {
         await customerService.delete(id);
-        notifySuccess('Cliente eliminato');
+        toast.success('Cliente eliminato');
         router.push('/clienti');
       } catch (err: unknown) {
-        notifyError(err, 'Errore durante l\'eliminazione');
+        const errorMessage = err instanceof Error ? err.message : 'Errore durante l\'eliminazione';
+        toast.error(errorMessage);
       }
     }
   };
@@ -104,12 +107,13 @@ export default function CustomerDetailPage() {
           title="Cliente non trovato"
           description="Il cliente potrebbe essere stato eliminato o non esiste."
           action={
-            <button
+            <Button
+              variant="primary"
               onClick={() => router.push('/clienti')}
-              className="btn-primary mt-4"
+              className="mt-4"
             >
               Torna alla lista
-            </button>
+            </Button>
           }
         />
       </div>
@@ -120,33 +124,34 @@ export default function CustomerDetailPage() {
     <div className="flex-1 flex flex-col gap-6 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => router.push('/clienti')}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
+          icon={<ArrowLeft size={20} />}
+          className="p-2"
+        />
         <div className="flex-1">
           <h1 className="text-2xl font-bold font-outfit">
             {isLoadingCustomer ? <Skeleton variant="text" className="w-48" /> : `${customer?.firstName} ${customer?.lastName}`}
           </h1>
           <p className="text-sm text-text-secondary">Scheda cliente</p>
         </div>
-        {canManage ? (
+        {can.manageCustomers ? (
           <>
-            <button
+            <Button
+              variant="secondary"
+              icon={Edit}
               onClick={handleEdit}
-              className="btn-secondary flex items-center gap-2"
             >
-              <Edit size={16} />
               Modifica
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="danger"
               onClick={handleDelete}
-              className="btn-danger flex items-center gap-2"
             >
               Elimina
-            </button>
+            </Button>
           </>
         ) : null}
       </div>
@@ -293,9 +298,17 @@ export default function CustomerDetailPage() {
                         <p className="text-xs text-text-secondary">
                           {format(new Date(booking.date), 'HH:mm')}
                         </p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[booking.status]}`}>
+                        <Badge
+                          variant={
+                            booking.status === 'CONFIRMED' ? 'info' :
+                            booking.status === 'COMPLETED' ? 'success' :
+                            booking.status === 'CANCELLED' ? 'danger' :
+                            'warning'
+                          }
+                          size="xs"
+                        >
                           {STATUS_LABELS[booking.status]}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                   ))}
@@ -338,9 +351,17 @@ export default function CustomerDetailPage() {
                             {booking.price ? `€${booking.price.toFixed(0)}` : '—'}
                           </td>
                           <td className="py-2 text-right">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[booking.status]}`}>
+                            <Badge
+                              variant={
+                                booking.status === 'CONFIRMED' ? 'info' :
+                                booking.status === 'COMPLETED' ? 'success' :
+                                booking.status === 'CANCELLED' ? 'danger' :
+                                'warning'
+                              }
+                              size="xs"
+                            >
                               {STATUS_LABELS[booking.status]}
-                            </span>
+                            </Badge>
                           </td>
                         </tr>
                       ))}

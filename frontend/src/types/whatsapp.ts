@@ -1,5 +1,5 @@
 export interface WhatsAppTemplate {
-  id: string;
+  id: number;
   name: string;
   category?: string | null;
   body: string;
@@ -22,10 +22,10 @@ export interface RecommendedWhatsAppTemplate extends CreateWhatsAppTemplateData 
 export type WhatsAppMessageStatus = 'MANUAL_SENT' | 'FAILED';
 
 export interface WhatsAppMessageLog {
-  id: string;
-  templateId?: string | null;
-  customerId?: string | null;
-  bookingId?: string | null;
+  id: number;
+  templateId?: number | null;
+  customerId?: number | null;
+  bookingId?: number | null;
   recipientName?: string | null;
   recipientPhone: string;
   templateName?: string | null;
@@ -35,13 +35,13 @@ export interface WhatsAppMessageLog {
   variablesJson?: Record<string, string> | null;
   template?: WhatsAppTemplate | null;
   customer?: {
-    id: string;
+    id: number;
     firstName: string;
     lastName: string;
     phone: string;
   } | null;
   createdBy?: {
-    id: string;
+    id: number;
     name: string;
     email: string;
     role: string;
@@ -49,9 +49,9 @@ export interface WhatsAppMessageLog {
 }
 
 export interface SendWhatsAppMessageData {
-  templateId?: string;
-  customerId?: string;
-  bookingId?: string;
+  templateId?: number;
+  customerId?: number;
+  bookingId?: number;
   recipientName?: string;
   recipientPhone: string;
   message?: string;

@@ -1,5 +1,5 @@
 export interface FormTemplate {
-  id: string;
+  id: number;
   name: string;
   schemaB64: string;
   createdAt: string;

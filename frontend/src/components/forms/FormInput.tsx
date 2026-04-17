@@ -1,21 +1,31 @@
-"use client";
+'use client';
 
 import type { LucideIcon } from 'lucide-react';
+import Input from '@/components/ui/Input';
 
 interface FormInputProps {
   label: string;
   value: string | number;
   onChange: (value: string) => void;
-  type?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'time' | 'search' | 'tel' | 'url';
   placeholder?: string;
   required?: boolean;
   icon?: LucideIcon;
   min?: string | number;
   max?: string | number;
-  step?: string;
+  step?: string | number;
   disabled?: boolean;
+  error?: string;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'danger' | 'success';
+  className?: string;
+  pattern?: string;
 }
 
+/**
+ * FormInput - Wrapper compatibile del nuovo Input component da @/components/ui/Input
+ * Mantiene la backward compatibility con i componenti legacy che usano FormInput
+ */
 export default function FormInput({
   label,
   value,
@@ -23,31 +33,35 @@ export default function FormInput({
   type = 'text',
   placeholder,
   required,
-  icon: Icon,
+  icon,
   min,
   max,
   step,
   disabled,
+  error,
+  size = 'md',
+  variant = 'default',
+  className,
+  pattern,
 }: FormInputProps) {
   return (
-    <div className="space-y-2">
-      <label className="text-text-secondary text-sm flex items-center gap-2 px-1">
-        {Icon && <Icon size={14} />}
-        {label}
-        {required && <span className="text-red-400">*</span>}
-      </label>
-      <input
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        min={min}
-        max={max}
-        step={step}
-        disabled={disabled}
-        className="w-full bg-white/5 border border-surface-border rounded-xl p-3 text-white focus:outline-none focus:border-accent transition-all disabled:opacity-50"
-      />
-    </div>
+    <Input
+      label={label}
+      value={value}
+      onChange={onChange}
+      type={type as 'text' | 'email' | 'password' | 'number' | 'date' | 'time' | 'search' | 'tel' | 'url'}
+      placeholder={placeholder}
+      required={required}
+      icon={icon}
+      min={min}
+      max={max}
+      step={step}
+      disabled={disabled}
+      error={error}
+      size={size}
+      variant={variant}
+      className={className}
+      pattern={pattern}
+    />
   );
 }

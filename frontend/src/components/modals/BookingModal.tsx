@@ -3,11 +3,12 @@
 import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import { useCustomers } from '@/hooks/domain';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
+import { useToast } from '@/hooks/useToast';
 import { bookingService } from '@/services/booking.service';
 import type { Booking, CreateBookingData } from '@/types/booking';
 import type { FieldDef } from '@/types/form-template';
-import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateBookingData } from '@/utils/validation';
+import { validateData } from '@/utils/validation';
+import { createBookingSchema } from '@/schemas';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import FormInput from '../forms/FormInput';
@@ -23,10 +24,22 @@ interface Props {
 }
 
 interface AvailableArtist {
-  id: string;
+  id: number;
   name: string;
   color?: string | null;
 }
+
+const DURATA_OPTIONS = [
+  { value: '30', label: '30 min' },
+  { value: '60', label: '1h' },
+  { value: '90', label: '1h 30min' },
+  { value: '120', label: '2h' },
+  { value: '150', label: '2h 30min' },
+  { value: '180', label: '3h' },
+  { value: '240', label: '4h' },
+  { value: '300', label: '5h' },
+  { value: '360', label: '6h' },
+];
 
 const PERCENTUALE_OPTIONS = [
   { value: '10', label: '10%' },
@@ -43,10 +56,12 @@ const PERCENTUALE_OPTIONS = [
 ];
 
 export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Props) {
+  const toast = useToast();
   const [customerId, setCustomerId] = useState('');
   const [artistId, setArtistId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [duration, setDuration] = useState('120');
   const [price, setPrice] = useState('');
   const [deposit, setDeposit] = useState('');
   const [percentualeMode, setPercentualeMode] = useState('50');
@@ -64,10 +79,11 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
   useEffect(() => {
     if (booking && isOpen) {
       const d = new Date(booking.date);
-      setCustomerId(booking.customerId);
-      setArtistId(booking.artistId);
+      setCustomerId(booking.customerId.toString());
+      setArtistId(booking.artistId.toString());
       setDate(format(d, 'yyyy-MM-dd'));
       setTime(format(d, 'HH:mm'));
+      setDuration(booking.duration?.toString() || '120');
       setPrice(booking.price?.toString() || '');
       setDeposit(booking.deposit?.toString() || '');
 
@@ -96,11 +112,12 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
           const data = await bookingService.getAvailableArtists(isoDate);
           setAvailableArtists(data);
 
-          if (artistId && !data.find((a: AvailableArtist) => a.id === artistId)) {
+          if (artistId && !data.find((a: AvailableArtist) => a.id.toString() === artistId)) {
             setArtistId('');
           }
         } catch (err) {
-          notifyError(err, 'Errore nel recupero artisti disponibili');
+          const errorMessage = err instanceof Error ? err.message : 'Errore nel recupero artisti disponibili';
+          toast.error(errorMessage);
         } finally {
           setLoadingArtists(false);
         }
@@ -139,6 +156,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
     setArtistId('');
     setDate('');
     setTime('');
+    setDuration('120');
     setPrice('');
     setDeposit('');
     setPercentualeMode('50');
@@ -149,7 +167,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerId || !artistId || !date || !time) {
-      notifyError(new Error('Compila tutti i campi obbligatori'), 'Campi mancanti');
+      toast.error('Campi mancanti');
       return;
     }
 
@@ -165,17 +183,18 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
     }
 
     const data: CreateBookingData = {
-      customerId,
-      artistId,
+      customerId: Number(customerId),
+      artistId: Number(artistId),
       date: bookingDate,
+      duration: Number(duration) || undefined,
       price: prezzoNum || undefined,
       deposit: Number(deposit) || undefined,
       formData,
     };
 
-    const validationError = validateBookingData({ ...data, time });
+    const validationError = validateData(createBookingSchema, data);
     if (validationError) {
-      notifyError(new Error(validationError), validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -183,16 +202,17 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
     try {
       if (booking?.id) {
         await bookingService.update(booking.id, data);
-        notifySuccess(`Prenotazione aggiornata!`);
+        toast.success('Prenotazione aggiornata!');
       } else {
         await bookingService.create(data);
-        notifySuccess(`Prenotazione confermata!`);
+        toast.success('Prenotazione confermata!');
       }
       resetForm();
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      notifyError(error, booking?.id ? 'Errore nell\'aggiornamento' : 'Errore nella prenotazione');
+      const errorMessage = error instanceof Error ? error.message : (booking?.id ? 'Errore nell\'aggiornamento' : 'Errore nella prenotazione');
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -210,6 +230,14 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
               <FormInput label="Data *" type="date" required value={date} onChange={setDate} />
               <FormInput label="Ora *" type="time" required value={time} onChange={setTime} />
             </div>
+            <div>
+              <FormSelect
+                label="Durata sessione"
+                value={duration}
+                onChange={setDuration}
+                options={DURATA_OPTIONS}
+              />
+            </div>
           </div>
 
           {/* Step 2: Cliente e Artista */}
@@ -223,7 +251,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
                 placeholder="Seleziona..."
                 required
                 options={(customers || []).map((c) => ({
-                  value: c.id,
+                  value: c.id.toString(),
                   label: `${c.firstName} ${c.lastName}`,
                 }))}
               />
@@ -235,7 +263,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
                 placeholder={loadingArtists ? 'Ricerca...' : availableArtists.length === 0 ? 'Nessun artista' : 'Seleziona...'}
                 required
                 options={availableArtists.map((a) => ({
-                  value: a.id,
+                  value: a.id.toString(),
                   label: a.name,
                 }))}
               />

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 import BentoCard from '@/components/data-display/BentoCard';
+import Button from '@/components/ui/Button';
 import { Skeleton } from '@/components/feedback/Skeleton';
 
 interface FinanceOverviewWidgetProps {
@@ -49,32 +50,35 @@ export default function FinanceOverviewWidget({
           <div className="flex items-center gap-3">
             {hasMonthControls && (
               <div className="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onPreviousMonth}
-                  className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent"
+                  icon={<ArrowLeft size={14} />}
+                  className="p-1"
                   aria-label="Mese precedente"
-                >
-                  <ArrowLeft size={14} />
-                </button>
+                />
                 <span className="text-xs font-semibold text-accent px-2 min-w-20 text-center">
                   {monthLabel}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onNextMonth}
-                  className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent"
+                  icon={<ArrowRight size={14} />}
+                  className="p-1"
                   aria-label="Mese successivo"
-                >
-                  <ArrowRight size={14} />
-                </button>
+                />
               </div>
             )}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowData(!showData)}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors text-text-secondary hover:text-accent border border-surface-border"
+              icon={showData ? <Eye size={16} /> : <EyeOff size={16} />}
+              className="p-2 border border-surface-border"
               title={showData ? 'Nascondi dati' : 'Mostra dati'}
-            >
-              {showData ? <Eye size={16} /> : <EyeOff size={16} />}
-            </button>
+            />
           </div>
         </div>
       }

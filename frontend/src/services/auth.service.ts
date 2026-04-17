@@ -12,4 +12,10 @@ export const authService = {
   register: async (userData: RegisterData) => {
     return apiClient.post(ENDPOINTS.AUTH.REGISTER, userData);
   },
+  updateMe: async (data: { name?: string; phone?: string }): Promise<AuthUser> => {
+    return apiClient.put<AuthUser>(ENDPOINTS.AUTH.ME, data);
+  },
+  changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<void> => {
+    return apiClient.put<void>(`${ENDPOINTS.AUTH.ME}/password`, data);
+  },
 };

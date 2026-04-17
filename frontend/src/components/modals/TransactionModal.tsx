@@ -3,15 +3,15 @@
 import { useState } from 'react';
 import { transactionService } from '@/services/transaction.service';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
 import type { CreateTransactionData, TransactionType } from '@/types/transaction';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
 import StatePanel from '@/components/feedback/StatePanel';
-import { canManageFinance } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateTransactionData } from '@/utils/validation';
+import { validateData } from '@/utils/validation';
+import { createTransactionSchema } from '@/schemas';
 
 interface Props {
   isOpen: boolean;
@@ -19,12 +19,12 @@ interface Props {
 }
 
 export default function TransactionModal({ isOpen, onClose }: Props) {
-  const { user } = useAuth();
+  const toast = useToast();
+  const { can } = useAuth();
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('EXPENSE');
   const [loading, setLoading] = useState(false);
-  const canManage = canManageFinance(user?.role);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +34,9 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
       type,
       category: type === 'INCOME' ? 'Servizi' : 'Forniture',
     };
-    const validationError = validateTransactionData(data);
+    const validationError = validateData(createTransactionSchema, data);
     if (validationError) {
-      notifyError(new Error(validationError), validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -46,10 +46,11 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
       setDesc('');
       setAmount('');
       setType('EXPENSE');
-      notifySuccess(`${type === 'INCOME' ? 'Entrata' : 'Spesa'} di € ${Number(amount).toFixed(2)} registrata!`);
+      toast.success(`${type === 'INCOME' ? 'Entrata' : 'Spesa'} di € ${Number(amount).toFixed(2)} registrata!`);
       onClose();
     } catch (error: unknown) {
-      notifyError(error, 'Errore nel salvare la transazione');
+      const errorMessage = error instanceof Error ? error.message : 'Errore nel salvare la transazione';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -57,7 +58,7 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuova Voce Spesa / Entrata">
-      {!canManage ? (
+      {!can.manageFinance ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

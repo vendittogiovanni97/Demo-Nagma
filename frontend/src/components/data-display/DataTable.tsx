@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import { TableSkeleton } from '../feedback/Skeleton';
 
 export interface Column<T> {
@@ -83,20 +84,22 @@ export default function DataTable<T extends { id?: string | number }>({
             {pagination.total} risultati — pagina {pagination.page} di {pagination.totalPages}
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={pagination.onPrev}
               disabled={pagination.page <= 1}
-              className="p-2 rounded-lg border border-surface-border hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
+              icon={<ChevronLeft size={16} />}
+              className="p-2 border border-surface-border"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={pagination.onNext}
               disabled={pagination.page >= pagination.totalPages}
-              className="p-2 rounded-lg border border-surface-border hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
-            >
-              <ChevronRight size={16} />
-            </button>
+              icon={<ChevronRight size={16} />}
+              className="p-2 border border-surface-border"
+            />
           </div>
         </div>
       )}

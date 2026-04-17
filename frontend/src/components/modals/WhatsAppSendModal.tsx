@@ -8,15 +8,16 @@ import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 import FormTextarea from '@/components/forms/FormTextarea';
 import Modal from '@/components/modals/Modal';
+import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers, useWhatsAppTemplates } from '@/hooks/domain';
 import { useWhatsAppComposer } from '@/hooks/useWhatsAppComposer';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { Booking } from '@/types/booking';
 import type { Customer } from '@/types/customer';
-import { canSendWhatsApp } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateWhatsAppSendData } from '@/utils/validation';
+import { validateData } from '@/utils/validation';
+import { sendWhatsAppMessageSchema } from '@/schemas';
 
 interface WhatsAppSendModalProps {
   isOpen: boolean;
@@ -33,10 +34,13 @@ export default function WhatsAppSendModal({
   customer,
   booking,
 }: WhatsAppSendModalProps) {
-  const { user } = useAuth();
-  const canSend = canSendWhatsApp(user?.role);
+  const { can } = useAuth();
+  const canSend = can.sendWhatsApp;
+  // Keep as string for FormSelect compatibility; convert to number when sending
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
-  const [selectedCustomerId, setSelectedCustomerId] = useState(customer?.id || booking?.customer?.id || '');
+  const [selectedCustomerId, setSelectedCustomerId] = useState(
+    customer?.id?.toString() || booking?.customer?.id?.toString() || ''
+  );
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -49,21 +53,21 @@ export default function WhatsAppSendModal({
 
   const selectedCustomer = useMemo(
     () =>
-      customers.find((entry) => entry.id === selectedCustomerId) ||
+      customers.find((entry) => entry.id.toString() === selectedCustomerId) ||
       customer ||
       (booking?.customer
         ? {
             id: booking.customer.id,
             firstName: booking.customer.firstName,
             lastName: booking.customer.lastName,
-            phone: '',
+            phone: booking.customer.phone || '',
             createdAt: '',
           }
         : null),
     [customers, selectedCustomerId, customer, booking]
   );
 
-  const selectedTemplate = templates?.find((template) => template.id === selectedTemplateId) || null;
+  const selectedTemplate = templates?.find((template) => template.id.toString() === selectedTemplateId) || null;
   const {
     variables,
     setVariables,
@@ -82,7 +86,7 @@ export default function WhatsAppSendModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    setSelectedCustomerId(customer?.id || booking?.customer?.id || '');
+    setSelectedCustomerId(customer?.id?.toString() || booking?.customer?.id?.toString() || '');
     setRecipientName(
       customer
         ? `${customer.firstName} ${customer.lastName}`.trim()
@@ -90,13 +94,13 @@ export default function WhatsAppSendModal({
           ? `${booking.customer.firstName} ${booking.customer.lastName}`.trim()
           : ''
     );
-    setRecipientPhone(customer?.phone || '');
+    setRecipientPhone(customer?.phone || booking?.customer?.phone || '');
     resetComposer();
   }, [isOpen, customer, booking, resetComposer]);
 
   useEffect(() => {
     if (!templates?.length || selectedTemplateId) return;
-    setSelectedTemplateId(templates[0].id);
+    setSelectedTemplateId(templates[0].id.toString());
   }, [templates, selectedTemplateId]);
 
   useEffect(() => {
@@ -114,7 +118,7 @@ export default function WhatsAppSendModal({
 
     const payload = {
       templateId: selectedTemplate.id,
-      customerId: selectedCustomerId || customer?.id || booking?.customer?.id || undefined,
+      customerId: selectedCustomerId ? Number(selectedCustomerId) : (customer?.id || booking?.customer?.id || undefined),
       bookingId: booking?.id || undefined,
       recipientName: recipientName || undefined,
       recipientPhone,
@@ -122,7 +126,7 @@ export default function WhatsAppSendModal({
       variables,
     };
 
-    const validationError = validateWhatsAppSendData(payload);
+    const validationError = validateData(sendWhatsAppMessageSchema, payload);
     if (validationError) {
       notifyError(new Error(validationError), validationError);
       return;
@@ -173,7 +177,7 @@ export default function WhatsAppSendModal({
               options={(templates || [])
                 .filter((template) => template.isActive)
                 .map((template) => ({
-                  value: template.id,
+                  value: template.id.toString(),
                   label: template.name,
                 }))}
             />
@@ -183,7 +187,7 @@ export default function WhatsAppSendModal({
               onChange={setSelectedCustomerId}
               placeholder="Seleziona cliente..."
               options={customers.map((entry) => ({
-                value: entry.id,
+                value: entry.id.toString(),
                 label: `${entry.firstName} ${entry.lastName}`,
               }))}
             />
@@ -232,21 +236,23 @@ export default function WhatsAppSendModal({
           />
 
           <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="md"
               onClick={() => void handleSend()}
               disabled={isSending || !selectedTemplate}
-              className="btn-primary px-6 disabled:cursor-not-allowed disabled:opacity-60"
+              isLoading={isSending}
+              loadingLabel="Apro WhatsApp..."
             >
-              {isSending ? 'Apro WhatsApp...' : 'Apri WhatsApp'}
-            </button>
-            <button
-              type="button"
+              Apri WhatsApp
+            </Button>
+            <Button
+              variant="glass"
+              size="md"
               onClick={onClose}
-              className="rounded-xl border border-surface-border px-5 py-3 text-sm text-text-secondary transition hover:bg-white/5 hover:text-white"
             >
               Chiudi
-            </button>
+            </Button>
           </div>
         </div>
       )}

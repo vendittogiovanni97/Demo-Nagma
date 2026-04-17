@@ -1,12 +1,13 @@
 "use client";
 
 import PageHeader from '@/components/layout/PageHeader';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
+import { useToast } from '@/hooks/useToast';
 import { formTemplateService } from '@/services/form-template.service';
 import type { FieldDef, FormTemplate } from '@/types/form-template';
-import { canManageFormTemplates } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
 import { Check, Edit3, FileText, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -35,14 +36,15 @@ function FieldEditor({ field, onChange, onRemove }: FieldEditorProps) {
   return (
     <div className="relative bg-white/5 border border-surface-border rounded-xl p-5 group transition-all hover:border-accent/30 hover:bg-white/10">
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
+        <Button
+          variant="danger"
+          size="sm"
           type="button"
           onClick={onRemove}
-          className="p-1.5 bg-black/40 text-text-secondary hover:text-danger hover:bg-danger/20 rounded-lg transition-colors"
+          icon={<Trash2 size={16} />}
+          className="p-1.5"
           title="Elimina campo"
-        >
-          <Trash2 size={16} />
-        </button>
+        />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -122,17 +124,18 @@ function FieldEditor({ field, onChange, onRemove }: FieldEditorProps) {
 }
 
 export default function FormTemplatesPage() {
-  const { user } = useAuth();
+  const toast = useToast();
+  const { user, can } = useAuth();
   const router = useRouter();
   const { data: templates, mutate } = useFormTemplates();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [templateName, setTemplateName] = useState('');
   const [fields, setFields] = useState<FieldDef[]>([]);
   const [saving, setSaving] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    if (user && !canManageFormTemplates(user.role)) {
+    if (user && !can.manageFormTemplates) {
       router.push('/');
     }
   }, [user, router]);
@@ -172,12 +175,12 @@ export default function FormTemplatesPage() {
 
   const handleSave = async () => {
     if (!templateName.trim()) {
-      notifyError(new Error('Nome obbligatorio'), 'Inserisci un nome per il template prima di salvare.');
+      toast.error('Inserisci un nome per il template prima di salvare.');
       return;
     }
     const invalidFields = fields.filter((f) => !f.name.trim() || !f.label.trim());
     if (invalidFields.length > 0) {
-      notifyError(new Error('Campi incompleti'), 'Ogni campo deve avere "Identificativo" e "Etichetta" compilati.');
+      toast.error('Ogni campo deve avere "Identificativo" e "Etichetta" compilati.');
       return;
     }
 
@@ -186,48 +189,50 @@ export default function FormTemplatesPage() {
       const schemaB64 = encodeFields(fields);
       if (isCreating) {
         await formTemplateService.create({ name: templateName, schemaB64 });
-        notifySuccess('Nuovo template creato con successo.');
+        toast.success('Nuovo template creato con successo.');
       } else if (selectedId) {
         await formTemplateService.update(selectedId, { name: templateName, schemaB64 });
-        notifySuccess('Modifiche salvate.');
+        toast.success('Modifiche salvate.');
       }
       await mutate();
       if (isCreating) setIsCreating(false);
     } catch (error: unknown) {
-      notifyError(error, 'Errore nel salvataggio');
+      const errorMessage = error instanceof Error ? error.message : 'Errore nel salvataggio';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Sei sicuro di voler eliminare il template "${name}"?`)) return;
     try {
       await formTemplateService.delete(id);
-      notifySuccess('Template eliminato.');
+      toast.success('Template eliminato.');
       if (selectedId === id) {
         handleCloseEditor();
       }
       await mutate();
     } catch (error: unknown) {
-      notifyError(error, 'Errore nella cancellazione');
+      const errorMessage = error instanceof Error ? error.message : 'Errore nella cancellazione';
+      toast.error(errorMessage);
     }
   };
 
-  if (!canManageFormTemplates(user?.role)) return null;
+  if (!can.manageFormTemplates) return null;
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
       <PageHeader
         title="Workspace Template"
         actions={
-          <button
+          <Button
+            variant="primary"
+            icon={Plus}
             onClick={handleNewTemplate}
-            className="btn-primary flex items-center gap-2 px-6"
           >
-            <Plus size={20} />
-            <span>Nuovo Template</span>
-          </button>
+            Nuovo Template
+          </Button>
         }
       />
 
@@ -274,24 +279,25 @@ export default function FormTemplatesPage() {
                       </div>
                     </div>
 
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<Trash2 size={16} />}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(t.id, t.name);
                       }}
-                      className="text-text-secondary hover:text-danger opacity-0 group-hover:opacity-100 transition-all cursor-pointer p-1.5 hover:bg-danger/10 rounded"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
                   </div>
 
                   <div className="flex items-center justify-between border-t border-surface-border/50 pt-3">
                      <span className="text-xs font-semibold uppercase tracking-widest text-text-secondary">
                         Campi
                      </span>
-                     <span className="text-xs px-2 py-0.5 rounded-md bg-white/5 text-white font-mono">
+                     <Badge variant="secondary" size="xs">
                         {fieldCount}
-                     </span>
+                     </Badge>
                   </div>
                 </div>
               );
@@ -311,9 +317,12 @@ export default function FormTemplatesPage() {
                         {isCreating ? 'Creazione Nuovo' : 'Modalità Modifica'}
                         <Edit3 size={12} />
                      </span>
-                     <button onClick={handleCloseEditor} className="text-text-secondary hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors">
-                        <X size={20} />
-                     </button>
+                     <Button
+                        variant="ghost"
+                        icon={<X size={20} />}
+                        onClick={handleCloseEditor}
+                        className="p-1"
+                     />
                   </div>
 
                   <input
@@ -338,12 +347,12 @@ export default function FormTemplatesPage() {
                         <Plus size={40} className="text-text-secondary mb-3 opacity-50" />
                         <p className="text-white font-semibold mb-1">Nessun campo aggiunto</p>
                         <p className="text-sm text-text-secondary px-8 max-w-sm mb-6">Inizia ad aggiungere campi per costruire la struttura informativa del tuo template form.</p>
-                        <button
+                        <Button
+                           variant="secondary"
                            onClick={handleAddField}
-                           className="btn-secondary px-6"
                         >
                            Aggiungi il primo campo
-                        </button>
+                        </Button>
                      </div>
                   ) : (
                      <div className="space-y-4">
@@ -356,36 +365,34 @@ export default function FormTemplatesPage() {
                            />
                         ))}
 
-                        <button
+                        <Button
+                           variant="secondary"
+                           size="md"
+                           icon={<Plus size={18} />}
+                           fullWidth
                            onClick={handleAddField}
-                           className="w-full py-4 rounded-xl border border-dashed border-accent text-accent font-bold text-sm hover:bg-accent/10 transition-colors flex items-center justify-center gap-2 mt-4"
+                           className="mt-4"
                         >
-                           <Plus size={18} />
                            Aggiungi un altro campo
-                        </button>
+                        </Button>
                      </div>
                   )}
                </div>
 
                {/* Editor Footer / Actions */}
                <div className="p-6 bg-[#081018] border-t border-surface-border/50 flex justify-end gap-3 mt-auto sticky bottom-0 z-10">
-                  <button
+                  <Button
+                     variant="primary"
+                     size="md"
+                     icon={!saving && <Save size={18} />}
                      onClick={handleSave}
                      disabled={saving}
-                     className="btn-primary w-full md:w-auto px-8 py-3 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-wait"
+                     isLoading={saving}
+                     loadingLabel="Salvataggio..."
+                     className="w-full md:w-auto"
                   >
-                     {saving ? (
-                        <>
-                           <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                           <span>Salvataggio...</span>
-                        </>
-                     ) : (
-                        <>
-                           <Save size={18} className="group-hover:scale-110 transition-transform" />
-                           <span>{isCreating ? 'Pubblica Template' : 'Salva Modifiche'}</span>
-                        </>
-                     )}
-                  </button>
+                     {isCreating ? 'Pubblica Template' : 'Salva Modifiche'}
+                  </Button>
                </div>
             </div>
           ) : (
@@ -398,13 +405,14 @@ export default function FormTemplatesPage() {
                <p className="text-text-secondary text-sm max-w-sm mb-8 leading-relaxed">
                   Seleziona un template dal raccoglitore a sinistra per visualizzarne o modificarne la struttura, oppure creane uno partendo da zero.
                </p>
-               <button
+               <Button
+                  variant="primary"
+                  icon={Plus}
+                  size="lg"
                   onClick={handleNewTemplate}
-                  className="btn-primary flex items-center gap-2 px-8 py-3"
                >
-                  <Plus size={20} />
-                  <span>Nuovo Template</span>
-               </button>
+                  Nuovo Template
+               </Button>
             </div>
           )}
         </div>

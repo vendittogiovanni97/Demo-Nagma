@@ -10,31 +10,48 @@ router.use(authMiddleware);
 
 /**
  * @swagger
- * /api/team/users:
+ * /api/team/members:
  *   get:
- *     summary: Lista utenti del team
- *     description: Restituisce la lista di tutti gli utenti del team
+ *     summary: Lista componenti del team
+ *     description: Restituisce la lista di tutti i componenti dello staff (paginata)
  *     tags: [Team]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Filtro per nome
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *         description: Filtro per tipo staff (COLLABORATORE, APPRENDISTA)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numero della pagina
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Risultati per pagina
  *     responses:
  *       200:
- *         description: Lista utenti del team
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *         description: Lista componenti del team
  */
-router.get('/users', controller.getUsers);
+router.get('/members', controller.getUsers);
 
 /**
  * @swagger
- * /api/team/users:
+ * /api/team/members:
  *   post:
- *     summary: Crea utente del team
- *     description: Crea un nuovo utente del team (solo admin)
+ *     summary: Aggiungi membro al team
+ *     description: Aggiunge un nuovo componente allo staff (solo admin)
  *     tags: [Team]
  *     security:
  *       - bearerAuth: []
@@ -44,49 +61,33 @@ router.get('/users', controller.getUsers);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, email, password, role]
+ *             required: [name, type, color]
  *             properties:
  *               name:
  *                 type: string
- *                 example: Marco Bianchi
- *               email:
+ *                 example: Giuseppe Savoia
+ *               type:
  *                 type: string
- *                 format: email
- *                 example: marco@nagma.it
- *               password:
- *                 type: string
- *                 format: password
- *                 example: password123
- *               role:
- *                 type: string
- *                 enum: [ADMIN, USER, ARTIST]
- *                 example: ARTIST
- *               phone:
- *                 type: string
- *                 example: +39 333 987654
+ *                 enum: [COLLABORATORE, APPRENDISTA]
  *               color:
  *                 type: string
- *                 example: "#10b981"
+ *                 example: "#3b82f6"
  *     responses:
  *       201:
- *         description: Utente creato con successo
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
+ *         description: Membro creato con successo
  *       400:
  *         description: Dati non validi
  *       403:
  *         description: Non autorizzato
  */
-router.post('/users', requireRoles('ADMIN'), controller.createUser);
+router.post('/members', requireRoles('ADMIN'), controller.createUser);
 
 /**
  * @swagger
- * /api/team/users/{id}:
+ * /api/team/members/{id}:
  *   delete:
- *     summary: Elimina utente del team
- *     description: Elimina un utente del team (solo admin)
+ *     summary: Rimuovi membro dal team
+ *     description: Elimina un componente dello staff (solo admin)
  *     tags: [Team]
  *     security:
  *       - bearerAuth: []
@@ -95,17 +96,84 @@ router.post('/users', requireRoles('ADMIN'), controller.createUser);
  *         name: id
  *         required: true
  *         schema:
- *           type: string
- *         description: ID dell'utente
+ *           type: integer
+ *         description: ID dello staff
  *     responses:
  *       204:
- *         description: Utente eliminato
+ *         description: Membro rimosso
  *       404:
- *         description: Utente non trovato
+ *         description: Membro non trovato
  *       403:
  *         description: Non autorizzato
  */
-router.delete('/users/:id', requireRoles('ADMIN'), controller.deleteUser);
+router.delete('/members/:id', requireRoles('ADMIN'), controller.deleteUser);
+
+/**
+ * @swagger
+ * /api/team/members/{id}:
+ *   put:
+ *     summary: Aggiorna un membro del team
+ *     description: Aggiorna i dati di un componente dello staff (solo admin)
+ *     tags: [Team]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID dello staff
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               color:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Membro aggiornato con successo
+ */
+router.put('/members/:id', requireRoles('ADMIN'), controller.updateUser);
+
+/**
+ * @swagger
+ * /api/team/members/{id}/reset-password:
+ *   put:
+ *     summary: Resetta password (se applicabile)
+ *     description: Consente ad un admin di resettare la password (se il membro ha un account user collegato con lo stesso ID)
+ *     tags: [Team]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [newPassword]
+ *             properties:
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Operazione completata
+ */
+router.put('/members/:id/reset-password', requireRoles('ADMIN'), controller.resetPassword);
 
 /**
  * @swagger
@@ -144,7 +212,35 @@ router.delete('/users/:id', requireRoles('ADMIN'), controller.deleteUser);
  *               items:
  *                 $ref: '#/components/schemas/Shift'
  */
-router.get('/shifts', controller.getShifts);
+router.get('/shifts', controller.getAllShifts);
+
+/**
+ * @swagger
+ * /api/team/shifts/{staffId}:
+ *   get:
+ *     summary: Turni di uno staff
+ *     description: Restituisce i turni di uno specifico staff
+ *     tags: [Team]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: staffId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID dello staff
+ *     responses:
+ *       200:
+ *         description: Lista turni dello staff
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Shift'
+ */
+router.get('/shifts/:staffId', controller.getStaffShifts);
 
 /**
  * @swagger
@@ -185,7 +281,7 @@ router.get('/shifts', controller.getShifts);
  *       400:
  *         description: Dati non validi
  */
-router.post('/shifts', requireRoles('ADMIN', 'USER'), controller.createShift);
+router.post('/shifts', requireRoles('ADMIN', 'USER'), controller.createNewShift);
 
 /**
  * @swagger
@@ -251,6 +347,6 @@ router.put('/shifts/:id', requireRoles('ADMIN', 'USER'), controller.updateShift)
  *       404:
  *         description: Turno non trovato
  */
-router.delete('/shifts/:id', requireRoles('ADMIN', 'USER'), controller.deleteShift);
+router.delete('/shifts/:id', requireRoles('ADMIN', 'USER'), controller.deleteShiftById);
 
 export default router;

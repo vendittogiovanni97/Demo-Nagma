@@ -1,17 +1,18 @@
 import { TransactionRepository } from '../repositories/transaction.repository';
 import { TransactionType } from '@prisma/client';
-import { validate, CreateTransactionSchema } from '../utils/validators';
+import { config } from '../config/env';
+import { validate, createTransactionSchema } from '../schemas';
 
 const repository = new TransactionRepository();
 
 export class TransactionService {
-  async getTransactions(type?: string, month?: string, search?: string, page = 1, limit = 20) {
+  async getTransactions(type?: string, month?: string, search?: string, page = 1, limit = config.defaultPageLimit) {
     const enumType = type?.toUpperCase() as TransactionType | undefined;
     return repository.findAllPaged({ type: enumType, monthStr: month, search, page, limit });
   }
 
   async createTransaction(body: unknown) {
-    const data = validate(CreateTransactionSchema, body);
+    const data = validate(createTransactionSchema, body);
     return repository.create({
       type: data.type as TransactionType,
       category: data.category,
@@ -21,7 +22,7 @@ export class TransactionService {
     });
   }
 
-  async deleteTransaction(id: string) {
+  async deleteTransaction(id: number) {
     return repository.softDelete(id);
   }
 

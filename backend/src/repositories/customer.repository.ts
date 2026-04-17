@@ -1,6 +1,9 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, Customer } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
-import prisma from '../utils/prisma';
+import { paginate } from '../utils/date-utils';
+import prisma, { softDelete } from '../utils/prisma';
 
 const baseInclude = {
   _count: {
@@ -21,43 +24,24 @@ function buildWhere(search?: string): Prisma.CustomerWhereInput {
   };
 }
 
-export class CustomerRepository {
-  async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit) {
-    const where = buildWhere(search);
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await prisma.$transaction([
-      prisma.customer.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: baseInclude,
-      }),
-      prisma.customer.count({ where }),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+export class CustomerRepository extends BaseRepository<Customer, Prisma.CustomerCreateInput, Prisma.CustomerUpdateInput> {
+  constructor(prismaClient: PrismaClient = prisma) {
+    super(prismaClient);
   }
 
-  async findById(id: string) {
-    return prisma.customer.findFirst({
-      where: { id, deletedAt: null },
+  async create(data: Prisma.CustomerCreateInput): Promise<Customer> {
+    return this.prisma.customer.create({ data });
+  }
+
+  async findById(id: string): Promise<Customer | null> {
+    const customerId = parseInt(id);
+    return this.prisma.customer.findFirst({
+      where: { id: customerId, deletedAt: null },
       include: {
         bookings: {
-          where: {
-            deletedAt: null,
-          },
+          where: { deletedAt: null },
           include: {
-            artist: {
-              select: { id: true, name: true, color: true },
-            },
+            artist: { select: { id: true, name: true, color: true } },
           },
           orderBy: { date: 'desc' },
         },
@@ -75,8 +59,45 @@ export class CustomerRepository {
     });
   }
 
-  async getCustomerSummary(id: string) {
-    const customer = await prisma.customer.findFirst({
+  async findAll(): Promise<Customer[]> {
+    return this.prisma.customer.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async update(id: string, data: Prisma.CustomerUpdateInput): Promise<Customer> {
+    return this.prisma.customer.update({ where: { id: parseInt(id) }, data });
+  }
+
+  async delete(id: string): Promise<void> {
+    await softDelete(this.prisma.customer, parseInt(id));
+  }
+
+  // ============================================================================
+  // SPECIALIZED METHODS - Custom business logic
+  // ============================================================================
+
+  async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit) {
+    const where = buildWhere(search);
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.customer.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: baseInclude,
+      }),
+      this.prisma.customer.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
+  }
+
+  async getCustomerSummary(id: number) {
+    const customer = await this.prisma.customer.findFirst({
       where: { id, deletedAt: null },
       select: {
         id: true,
@@ -96,18 +117,18 @@ export class CustomerRepository {
 
     if (!customer) return null;
 
-    const [totalSpent, upcomingBookings, lastBooking] = await prisma.$transaction([
-      prisma.booking.aggregate({
+    const [totalSpent, upcomingBookings, lastBooking] = await this.prisma.$transaction([
+      this.prisma.booking.aggregate({
         where: { customerId: id, deletedAt: null, status: 'COMPLETED' },
         _sum: { price: true },
       }),
-      prisma.booking.count({
+      this.prisma.booking.count({
         where: { customerId: id, deletedAt: null, date: { gte: new Date() } },
       }),
-      prisma.booking.findFirst({
+      this.prisma.booking.findFirst({
         where: { customerId: id, deletedAt: null },
         orderBy: { date: 'desc' },
-        select: { date: true, type: true, status: true, artist: { select: { name: true } } },
+        select: { date: true, status: true, artist: { select: { name: true } } },
       }),
     ]);
 
@@ -117,20 +138,5 @@ export class CustomerRepository {
       upcomingBookings,
       lastBooking,
     };
-  }
-
-  async create(data: Prisma.CustomerCreateInput) {
-    return prisma.customer.create({ data });
-  }
-
-  async update(id: string, data: Prisma.CustomerUpdateInput) {
-    return prisma.customer.update({ where: { id }, data });
-  }
-
-  async softDelete(id: string) {
-    return prisma.customer.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
   }
 }

@@ -5,7 +5,7 @@ import { isDebugHttpEnabled, logger, sanitizeForLog } from '../utils/logger';
 
 export interface AuthRequest extends Request {
   user?: {
-    id: string;
+    id: number;
     email: string;
     role: Role;
   };

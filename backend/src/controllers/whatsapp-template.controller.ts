@@ -23,28 +23,22 @@ export class WhatsAppTemplateController {
   });
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.update(String(req.params.id), req.body);
+    const data = await service.update(Number(req.params.id), req.body);
     res.json(data);
   });
 
   duplicate = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.duplicate(String(req.params.id));
+    const data = await service.duplicate(Number(req.params.id));
     res.status(201).json(data);
   });
 
   sendManual = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ message: 'Sessione non valida' });
-      return;
-    }
-
-    const data = await service.sendManualMessage(req.body, userId);
+    const data = await service.sendManualMessage(req.body, req.user!.id);
     res.status(201).json(data);
   });
 
   delete = asyncHandler(async (req: AuthRequest, res: Response) => {
-    await service.delete(String(req.params.id));
+    await service.delete(Number(req.params.id));
     res.status(204).send();
   });
 }

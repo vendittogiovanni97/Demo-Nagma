@@ -7,7 +7,7 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(cuid())
+  id            Int         @id @default(autoincrement())
   name          String
   email         String      @unique
   password      String      // hashed password
@@ -16,7 +16,6 @@ model User {
   color         String?     // colore calendario per il collaboratore
   deletedAt     DateTime?   // soft delete
   createdAt     DateTime    @default(now())
-  shifts        Shift[]
   whatsappLogs  WhatsAppMessageLog[]
 }
 
@@ -27,19 +26,48 @@ enum Role {
   ARTIST
 }
 
+enum BookingAction {
+  CREATED
+  UPDATED
+  RESCHEDULED
+  CANCELLED
+}
+
+enum StaffType {
+  COLLABORATORE
+  APPRENDISTA
+}
+
 model Staff {
-  id        String    @id @default(cuid())
+  id        Int       @id @default(autoincrement())
   name      String
-  type      String    // es. "TATTOO_ARTIST", "PIERCER", ecc.
-  color     String    // colore HEX per l'agenda
+  type      StaffType
+  color     String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   bookings  Booking[]
+  shifts    Shift[]
+}
+
+model Shift {
+  id            String    @id @default(cuid())
+  date          DateTime
+  startTime     String
+  endTime       String
+  breakDuration Int?
+  notes         String?
+  staffId       Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  staff         Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId, date])
 }
 
 model Customer {
-  id            String      @id @default(cuid())
+  id            Int         @id @default(autoincrement())
   firstName     String
   lastName      String
   phone         String
@@ -49,26 +77,33 @@ model Customer {
   createdAt     DateTime    @default(now())
   bookings      Booking[]
   whatsappLogs  WhatsAppMessageLog[]
+
+  @@index([deletedAt, createdAt])
 }
 
 model Booking {
-  id              String          @id @default(cuid())
+  id              Int             @id @default(autoincrement())
   customer        Customer        @relation(fields: [customerId], references: [id])
-  customerId      String
+  customerId      Int
   artist          Staff?          @relation(fields: [artistId], references: [id])
-  artistId        String?
+  artistId        Int?
   date            DateTime
+  duration        Int             @default(120)  // durata in minuti
   status          BookingStatus   @default(CONFIRMED)
   price           Float?
   deposit         Float?
   notes           String?
-  outlookEventId  String?         // ID evento su Outlook per sincronizzazione
+  outlookEventId  String?         // riservato per futura integrazione Outlook
   formData        Json?           // dati dinamici da form in base64
   history         BookingHistory[]
   deletedAt       DateTime?       // soft delete
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   whatsappLogs    WhatsAppMessageLog[]
+
+  @@index([customerId, deletedAt])
+  @@index([artistId, date])
+  @@index([date])
 }
 
 enum BookingStatus {
@@ -79,41 +114,31 @@ enum BookingStatus {
 }
 
 model BookingHistory {
-  id          String    @id @default(cuid())
-  booking     Booking   @relation(fields: [bookingId], references: [id])
-  bookingId   String
-  action      String    // "CREATED", "RESCHEDULED", "CANCELLED"
+  id          Int            @id @default(autoincrement())
+  booking     Booking        @relation(fields: [bookingId], references: [id])
+  bookingId   Int
+  action      BookingAction
   oldDate     DateTime?
   newDate     DateTime?
   changedBy   String
-  changedAt   DateTime  @default(now())
+  changedAt   DateTime       @default(now())
 }
 
-model Shift {
-  id        String    @id @default(cuid())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
-  weekStart DateTime  // lunedì della settimana
-  dayOfWeek Int       // 0=Lun, 1=Mar, ... 6=Dom
-  startTime String    // "09:00"
-  endTime   String    // "18:00"
-  label     String?   // "Mattina", "Pomeriggio", "Tutta la giornata", "Riposo"
-  isOff     Boolean   @default(false)
-  notes     String?
-  deletedAt DateTime? // soft delete
-}
 
 model Transaction {
-  id            String            @id @default(cuid())
+  id            Int               @id @default(autoincrement())
   type          TransactionType
   category      String            // "Affitto", "Materiali", "Acconto", ecc.
   description   String
   amount        Float
   date          DateTime          @default(now())
-  artistId      String?
+  artistId      Int?              // @deprecated — non relazionato, mantenuto per retrocompatibilità
   attachmentUrl String?
   deletedAt     DateTime?         // soft delete come da regole globali utente
   createdAt     DateTime          @default(now())
+
+  @@index([date, type])
+  @@index([deletedAt])
 }
 
 enum TransactionType {
@@ -122,14 +147,24 @@ enum TransactionType {
 }
 
 model FormTemplate {
-  id          String    @id @default(cuid())
+  id          Int       @id @default(autoincrement())
   name        String    // es. "Scheda Cliente Standard", "Consenso Tattoo"
   schemaB64   String    // struttura del form in Base64
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SpesaLibera {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model WhatsAppTemplate {
-  id          String    @id @default(cuid())
+  id          Int       @id @default(autoincrement())
   name        String    // es. "Conferma Appuntamento", "Reminder 24h"
   category    String?
   body        String    // testo con variabili {{nome}}, {{data}}, ecc.
@@ -140,15 +175,15 @@ model WhatsAppTemplate {
 }
 
 model WhatsAppMessageLog {
-  id              String                @id @default(cuid())
+  id              Int                   @id @default(autoincrement())
   template        WhatsAppTemplate?     @relation(fields: [templateId], references: [id])
-  templateId      String?
+  templateId      Int?
   booking         Booking?              @relation(fields: [bookingId], references: [id])
-  bookingId       String?
+  bookingId       Int?
   customer        Customer?             @relation(fields: [customerId], references: [id])
-  customerId      String?
+  customerId      Int?
   createdBy       User                  @relation(fields: [createdById], references: [id])
-  createdById     String
+  createdById     Int
   recipientName   String?
   recipientPhone  String
   templateName    String?
@@ -156,6 +191,8 @@ model WhatsAppMessageLog {
   status          WhatsAppMessageStatus @default(MANUAL_SENT)
   variablesJson   Json?
   createdAt       DateTime              @default(now())
+
+  @@index([customerId, createdAt])
 }
 
 enum WhatsAppMessageStatus {

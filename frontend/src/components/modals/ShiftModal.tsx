@@ -1,25 +1,23 @@
 "use client";
 
-import { useState } from 'react';
-import { DEFAULT_SHIFT_END, DEFAULT_SHIFT_START, EXPORT_FETCH_LIMIT } from '@/config/defaults';
-import { teamService } from '@/services/team.service';
+import StatePanel from '@/components/feedback/StatePanel';
+import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import { useAuth } from '@/context/AuthContext';
-import { useTeamUsers } from '@/hooks/domain';
+import { useTeamMembers } from '@/hooks/domain';
+import { teamService } from '@/services/team.service';
 import type { CreateShiftData } from '@/types/team';
-import Modal from './Modal';
-import FormInput from '../forms/FormInput';
+import { notifyError, notifySuccess } from '@/utils/toast';
+import { useState } from 'react';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import StatePanel from '@/components/feedback/StatePanel';
-import { canManageShifts } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
+import Modal from './Modal';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   weekStart: string;
-  initialUserId?: string;
+  initialStaffId?: number;
   initialDayOfWeek?: number;
 }
 
@@ -33,16 +31,15 @@ const DAYS = [
   { value: '6', label: 'Domenica' },
 ];
 
-export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, initialUserId, initialDayOfWeek }: Props) {
-  const { user } = useAuth();
-  const [userId, setUserId] = useState(initialUserId || '');
+export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, initialStaffId, initialDayOfWeek }: Props) {
+  const { can } = useAuth();
+  const [staffId, setStaffId] = useState(initialStaffId !== undefined ? initialStaffId.toString() : '');
   const [dayOfWeek, setDayOfWeek] = useState(initialDayOfWeek !== undefined ? initialDayOfWeek.toString() : '0');
   const [label, setLabel] = useState('Mattina');
   const [loading, setLoading] = useState(false);
-  const canManage = canManageShifts(user?.role);
 
-  const { data: usersResult } = useTeamUsers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
-  const users = usersResult?.data;
+  const { data: membersResult } = useTeamMembers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
+  const members = membersResult?.data;
 
   const SHIFT_OPTIONS = [
     { value: 'Mattina', label: 'Mattina (09:00 - 13:00)' },
@@ -53,11 +50,11 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) return notifyError(new Error('Seleziona un collaboratore'), 'Seleziona un collaboratore');
+    if (!staffId) return notifyError(new Error('Seleziona un collaboratore'), 'Seleziona un collaboratore');
     setLoading(true);
     try {
       const data: CreateShiftData = {
-        userId,
+        staffId: Number(staffId),
         weekStart, // Già in formato YYYY-MM-DD
         dayOfWeek: Number(dayOfWeek),
         label,
@@ -65,7 +62,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
       };
       await teamService.createShift(data);
       notifySuccess('Turno pianificato');
-      setUserId('');
+      setStaffId('');
       setDayOfWeek('0');
       setLabel('Mattina');
       onSuccess();
@@ -78,8 +75,8 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
   };
 
   // Aggiorna gli state interni quando cambiano le prop (se modale viene riaperta)
-  if (isOpen && initialUserId && userId !== initialUserId && !loading) {
-     setUserId(initialUserId);
+  if (isOpen && initialStaffId !== undefined && staffId !== initialStaffId.toString() && !loading) {
+     setStaffId(initialStaffId.toString());
   }
   if (isOpen && initialDayOfWeek !== undefined && dayOfWeek !== initialDayOfWeek.toString() && !loading) {
      setDayOfWeek(initialDayOfWeek.toString());
@@ -87,7 +84,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Pianifica Turno">
-      {!canManage ? (
+      {!can.manageShifts ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"
@@ -97,11 +94,11 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
       <form onSubmit={handleSubmit} className="space-y-6">
         <FormSelect
           label="Collaboratore *"
-          value={userId}
-          onChange={setUserId}
+          value={staffId}
+          onChange={setStaffId}
           placeholder="Seleziona..."
           required
-          options={(users || []).map(u => ({ value: u.id, label: u.name }))}
+          options={(members || []).map(m => ({ value: m.id.toString(), label: m.name }))}
         />
 
         <FormSelect

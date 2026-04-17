@@ -12,13 +12,13 @@ export const bookingService = {
   create: async (data: CreateBookingData) => {
     return apiClient.post(ENDPOINTS.BOOKINGS.BASE, data);
   },
-  update: async (id: string, data: Partial<CreateBookingData> & { status?: string; price?: number }) => {
+  update: async (id: number, data: Partial<CreateBookingData> & { status?: string; price?: number }) => {
     return apiClient.put(ENDPOINTS.BOOKINGS.BY_ID(id), data);
   },
-  getHistory: async (id: string): Promise<BookingHistory[]> => {
+  getHistory: async (id: number): Promise<BookingHistory[]> => {
     return apiClient.get<BookingHistory[]>(ENDPOINTS.BOOKINGS.HISTORY(id));
   },
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.BOOKINGS.BY_ID(id));
   },
   getAvailableArtists: async (date: string): Promise<any[]> => {

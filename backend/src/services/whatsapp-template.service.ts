@@ -3,12 +3,12 @@ import type { WhatsAppMessageStatus } from '@prisma/client';
 import { WhatsAppTemplateRepository } from '../repositories/whatsapp-template.repository';
 import { AppError } from '../utils/AppError';
 import {
-  CreateWhatsAppTemplateSchema,
-  ListWhatsAppLogsSchema,
-  SendWhatsAppMessageSchema,
-  UpdateWhatsAppTemplateSchema,
+  createWhatsAppTemplateSchema,
+  listWhatsAppLogsSchema,
+  sendWhatsAppMessageSchema,
+  updateWhatsAppTemplateSchema,
   validate,
-} from '../utils/validators';
+} from '../schemas';
 
 const repo = new WhatsAppTemplateRepository();
 
@@ -51,7 +51,7 @@ export class WhatsAppTemplateService {
     const rawQuery = (typeof query === 'object' && query ? query : {}) as Record<string, unknown>;
 
     const filters = validate(
-      ListWhatsAppLogsSchema,
+      listWhatsAppLogsSchema,
       {
         ...rawQuery,
         page: rawQuery.page ? Number(rawQuery.page) : 1,
@@ -68,7 +68,7 @@ export class WhatsAppTemplateService {
   }
 
   async create(body: unknown) {
-    const data = validate(CreateWhatsAppTemplateSchema, body);
+    const data = validate(createWhatsAppTemplateSchema, body);
 
     return repo.create({
       name: data.name,
@@ -78,11 +78,11 @@ export class WhatsAppTemplateService {
     });
   }
 
-  async update(id: string, body: unknown) {
+  async update(id: number, body: unknown) {
     const existing = await repo.findById(id);
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
 
-    const data = validate(UpdateWhatsAppTemplateSchema, body);
+    const data = validate(updateWhatsAppTemplateSchema, body);
     return repo.update(id, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.category !== undefined ? { category: data.category || null } : {}),
@@ -91,13 +91,13 @@ export class WhatsAppTemplateService {
     });
   }
 
-  async delete(id: string) {
+  async delete(id: number) {
     const existing = await repo.findById(id);
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
     return repo.delete(id);
   }
 
-  async duplicate(id: string) {
+  async duplicate(id: number) {
     const existing = await repo.findById(id);
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
 
@@ -109,8 +109,8 @@ export class WhatsAppTemplateService {
     });
   }
 
-  async sendManualMessage(body: unknown, userId: string) {
-    const data = validate(SendWhatsAppMessageSchema, body);
+  async sendManualMessage(body: unknown, userId: number) {
+    const data = validate(sendWhatsAppMessageSchema, body);
     let templateBody = data.message || '';
     let templateName: string | null = null;
 

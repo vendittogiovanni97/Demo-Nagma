@@ -1,40 +1,51 @@
 import { Request, Response } from 'express';
-import { CustomerService } from '../services/customer.service';
+import { CustomerRepository } from '../repositories/customer.repository';
+import { validate, createCustomerSchema, updateCustomerSchema } from '../schemas';
 import { asyncHandler } from '../utils/async-handler';
+import { AppError } from '../utils/AppError';
+import { parsePageQuery } from '../utils/date-utils';
 
-const service = new CustomerService();
+const repo = new CustomerRepository();
 
 export class CustomerController {
   getAll = asyncHandler(async (req: Request, res: Response) => {
-    const search = req.query.search as string | undefined;
-    const page = req.query.page ? Number(req.query.page) : 1;
-    const limit = req.query.limit ? Number(req.query.limit) : 20;
-    const data = await service.getAllCustomers(search, page, limit);
-    res.json(data);
+    const { search, page, limit } = parsePageQuery(req.query);
+    res.json(await repo.findAllPaged(search, page, limit));
   });
 
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.getCustomerDetails(String(req.params.id));
-    res.json(data);
+    const customer = await repo.findById(Number(req.params.id));
+    if (!customer) throw new AppError('Cliente non trovato.', 404);
+    res.json(customer);
   });
 
   getSummary = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.getCustomerSummary(String(req.params.id));
-    res.json(data);
+    const summary = await repo.getCustomerSummary(Number(req.params.id));
+    if (!summary) throw new AppError('Cliente non trovato.', 404);
+    res.json(summary);
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.createCustomer(req.body);
-    res.status(201).json(data);
+    const data = validate(createCustomerSchema, req.body);
+    res.status(201).json(await repo.create({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      email: data.email || undefined,
+      notes: data.notes,
+    }));
   });
 
   update = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.updateCustomer(String(req.params.id), req.body);
-    res.json(data);
+    const data = validate(updateCustomerSchema, req.body);
+    res.json(await repo.update(Number(req.params.id), {
+      ...data,
+      email: data.email || undefined,
+    }));
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    await service.deleteCustomer(String(req.params.id));
+    await repo.softDelete(Number(req.params.id));
     res.status(204).send();
   });
 }

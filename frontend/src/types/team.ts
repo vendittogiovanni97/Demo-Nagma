@@ -1,7 +1,7 @@
 export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'USER' | 'ARTIST';
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: Role;
@@ -19,10 +19,10 @@ export interface CreateUserData {
   color?: string;
 }
 
-export type StaffType = 'TATTOO_ARTIST' | 'PIERCER' | 'OTHER';
+export type StaffType = 'COLLABORATORE' | 'APPRENDISTA';
 
 export interface Staff {
-  id: string;
+  id: number;
   name: string;
   type: StaffType;
   color: string;
@@ -37,8 +37,8 @@ export interface CreateStaffData {
 }
 
 export interface Shift {
-  id: string;
-  userId: string;
+  id: string; // Composite: staffId-weekStart-day
+  staffId: number;
   weekStart: string;
   dayOfWeek: number;
   startTime: string;
@@ -46,11 +46,11 @@ export interface Shift {
   label?: string;
   isOff: boolean;
   notes?: string;
-  user?: Pick<User, 'id' | 'name' | 'color'>;
+  staff?: Pick<Staff, 'id' | 'name' | 'color'>;
 }
 
 export interface CreateShiftData {
-  userId: string;
+  staffId: number;
   weekStart: string;
   dayOfWeek: number;
   startTime?: string;

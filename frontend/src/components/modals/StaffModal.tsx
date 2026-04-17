@@ -8,14 +8,13 @@ import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import { canManageStaff } from '@/utils/permissions';
 import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateStaffData } from '@/utils/validation';
+import { validateData } from '@/utils/validation';
+import { createStaffSchema } from '@/schemas';
 
 const STAFF_TYPE_OPTIONS = [
-  { value: 'TATTOO_ARTIST', label: 'Tatuatore' },
-  { value: 'PIERCER', label: 'Piercer' },
-  { value: 'OTHER', label: 'Altro' },
+  { value: 'COLLABORATORE', label: 'Collaboratore' },
+  { value: 'APPRENDISTA', label: 'Apprendista' },
 ] as const;
 
 interface Props {
@@ -24,17 +23,16 @@ interface Props {
 }
 
 export default function StaffModal({ isOpen, onClose }: Props) {
-  const { user } = useAuth();
+  const { can } = useAuth();
   const [name, setName] = useState('');
-  const [type, setType] = useState('TATTOO_ARTIST');
+  const [type, setType] = useState('COLLABORATORE');
   const [color, setColor] = useState('#00BFFF');
   const [loading, setLoading] = useState(false);
-  const canManage = canManageStaff(user?.role);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = { name, type, color };
-    const validationError = validateStaffData(payload);
+    const validationError = validateData(createStaffSchema, payload);
     if (validationError) {
       notifyError(new Error(validationError), validationError);
       return;
@@ -45,7 +43,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
       await staffService.create(payload);
       notifySuccess(`${name} aggiunto al team!`);
       setName('');
-      setType('TATTOO_ARTIST');
+      setType('COLLABORATORE');
       setColor('#00BFFF');
       onClose();
     } catch (error: unknown) {
@@ -57,7 +55,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Aggiungi Staff" maxWidth="max-w-md">
-      {!canManage ? (
+      {!can.manageStaff ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

@@ -6,10 +6,11 @@ import FormInput from '@/components/forms/FormInput';
 import FormTextarea from '@/components/forms/FormTextarea';
 import SubmitButton from '@/components/forms/SubmitButton';
 import Modal from '@/components/modals/Modal';
+import { useToast } from '@/hooks/useToast';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '@/types/whatsapp';
-import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateWhatsAppTemplateData } from '@/utils/validation';
+import { validateData } from '@/utils/validation';
+import { createWhatsAppTemplateSchema } from '@/schemas';
 
 interface WhatsAppTemplateModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export default function WhatsAppTemplateModal({
   onSuccess,
   template,
 }: WhatsAppTemplateModalProps) {
+  const toast = useToast();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [body, setBody] = useState('');
@@ -48,9 +50,9 @@ export default function WhatsAppTemplateModal({
       isActive,
     };
 
-    const validationError = validateWhatsAppTemplateData(payload);
+    const validationError = validateData(createWhatsAppTemplateSchema, payload);
     if (validationError) {
-      notifyError(new Error(validationError), validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -58,16 +60,17 @@ export default function WhatsAppTemplateModal({
     try {
       if (template) {
         await whatsappService.updateTemplate(template.id, payload);
-        notifySuccess('Template aggiornato');
+        toast.success('Template aggiornato');
       } else {
         await whatsappService.createTemplate(payload);
-        notifySuccess('Template creato');
+        toast.success('Template creato');
       }
 
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      notifyError(error, 'Errore durante il salvataggio del template');
+      const errorMessage = error instanceof Error ? error.message : 'Errore durante il salvataggio del template';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

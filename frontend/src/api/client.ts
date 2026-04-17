@@ -56,12 +56,31 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 }
 
 export const apiClient = {
-  get: <T>(url: string, params?: Record<string, string | number | undefined>) => 
+  get: <T>(url: string, params?: Record<string, string | number | undefined>) =>
     apiFetch<T>(url, { method: 'GET', params }),
-  post: <T>(url: string, body: unknown) => 
+  post: <T>(url: string, body: unknown) =>
     apiFetch<T>(url, { method: 'POST', body: JSON.stringify(body) }),
-  put: <T>(url: string, body: unknown) => 
+  put: <T>(url: string, body: unknown) =>
     apiFetch<T>(url, { method: 'PUT', body: JSON.stringify(body) }),
-  delete: <T>(url: string) => 
+  delete: <T>(url: string) =>
     apiFetch<T>(url, { method: 'DELETE' }),
 };
+
+/**
+ * Factory per creare un service CRUD base.
+ * Evita di riscrivere getAll/getById/create/update/delete per ogni entità.
+ */
+export function createCrudService<T>(basePath: string, byIdPath: (id: any) => string) {
+  return {
+    getAll: (params?: Record<string, string | number | undefined>) =>
+      apiClient.get<T[]>(basePath, params),
+    getById: (id: string | number) =>
+      apiClient.get<T>(byIdPath(id)),
+    create: <D = unknown>(data: D) =>
+      apiClient.post<T>(basePath, data),
+    update: <D = unknown>(id: string | number, data: D) =>
+      apiClient.put<T>(byIdPath(id), data),
+    delete: (id: string | number) =>
+      apiClient.delete(byIdPath(id)),
+  };
+}

@@ -1,9 +1,41 @@
-import type { Prisma, WhatsAppMessageStatus } from '@prisma/client';
-
+import type { Prisma, WhatsAppTemplate, WhatsAppMessageStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { BaseRepository } from './BaseRepository';
+import { paginate } from '../utils/date-utils';
 import prisma from '../utils/prisma';
 
-export class WhatsAppTemplateRepository {
-  async findAll(search?: string) {
+export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate, Prisma.WhatsAppTemplateCreateInput, Prisma.WhatsAppTemplateUpdateInput> {
+  constructor(prismaClient: PrismaClient = prisma) {
+    super(prismaClient);
+  }
+
+  async create(data: Prisma.WhatsAppTemplateCreateInput): Promise<WhatsAppTemplate> {
+    return this.prisma.whatsAppTemplate.create({ data });
+  }
+
+  async findById(id: string): Promise<WhatsAppTemplate | null> {
+    return this.prisma.whatsAppTemplate.findUnique({ where: { id: parseInt(id) } });
+  }
+
+  async findAll(): Promise<WhatsAppTemplate[]> {
+    return this.prisma.whatsAppTemplate.findMany({
+      orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async update(id: string, data: Prisma.WhatsAppTemplateUpdateInput): Promise<WhatsAppTemplate> {
+    return this.prisma.whatsAppTemplate.update({ where: { id: parseInt(id) }, data });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.whatsAppTemplate.delete({ where: { id: parseInt(id) } });
+  }
+
+  // ============================================================================
+  // SPECIALIZED METHODS - Custom business logic
+  // ============================================================================
+
+  async findAllWithSearch(search?: string) {
     const where: Prisma.WhatsAppTemplateWhereInput = search
       ? {
           OR: [
@@ -14,30 +46,14 @@ export class WhatsAppTemplateRepository {
         }
       : {};
 
-    return prisma.whatsAppTemplate.findMany({
+    return this.prisma.whatsAppTemplate.findMany({
       where,
       orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
     });
   }
 
-  async findById(id: string) {
-    return prisma.whatsAppTemplate.findUnique({ where: { id } });
-  }
-
-  async create(data: Prisma.WhatsAppTemplateCreateInput) {
-    return prisma.whatsAppTemplate.create({ data });
-  }
-
-  async update(id: string, data: Prisma.WhatsAppTemplateUpdateInput) {
-    return prisma.whatsAppTemplate.update({ where: { id }, data });
-  }
-
-  async delete(id: string) {
-    return prisma.whatsAppTemplate.delete({ where: { id } });
-  }
-
   async createLog(data: Prisma.WhatsAppMessageLogUncheckedCreateInput) {
-    return prisma.whatsAppMessageLog.create({
+    return this.prisma.whatsAppMessageLog.create({
       data,
       include: {
         template: true,
@@ -78,7 +94,7 @@ export class WhatsAppTemplateRepository {
     };
 
     const [data, total] = await Promise.all([
-      prisma.whatsAppMessageLog.findMany({
+      this.prisma.whatsAppMessageLog.findMany({
         where,
         include: {
           template: true,
@@ -92,15 +108,9 @@ export class WhatsAppTemplateRepository {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.whatsAppMessageLog.count({ where }),
+      this.prisma.whatsAppMessageLog.count({ where }),
     ]);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    };
+    return paginate(data, total, page, limit);
   }
 }

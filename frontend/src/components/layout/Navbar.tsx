@@ -11,6 +11,8 @@ import {
   LogOut,
   MessageSquare,
   Plus,
+  Receipt,
+  Settings,
   Users,
   UsersRound,
 } from "lucide-react";
@@ -18,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Button from "@/components/ui/Button";
 import BookingModal from "../modals/BookingModal";
 
 function getInitials(name?: string, email?: string) {
@@ -144,24 +147,27 @@ export default function Navbar() {
 
         <div className="w-px h-6.5 bg-surface-border" />
 
-        <button
+        <Button
+          variant="primary"
+          size="md"
+          icon={<Plus size={22} />}
           onClick={() => setIsBookingOpen(true)}
-          className="bg-accent text-black w-9.5 h-9.5 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-90 hover:shadow-[0_0_20px_var(--color-accent)] cursor-pointer"
-        >
-          <Plus size={22} />
-        </button>
+          className="w-9.5 h-9.5 p-0 rounded-full flex items-center justify-center"
+        />
 
         <div className="w-px h-6.5 bg-surface-border mx-1.5" />
 
         <Popover.Root open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
           <Popover.Trigger asChild>
-            <button
-              className="group flex items-center justify-center h-10.5 w-10.5 rounded-full bg-accent/15 border border-accent/40 text-accent text-xs font-bold uppercase tracking-wider hover:bg-accent/25 hover:scale-105 transition-all cursor-pointer"
+            <Button
+              variant="ghost"
+              size="md"
+              className="h-10.5 w-10.5 p-0 rounded-full bg-accent/15 border border-accent/40 flex items-center justify-center text-xs font-bold uppercase tracking-wider"
               title={user?.name || user?.email || "Profilo utente"}
               aria-label="Menu utente"
             >
               {initials}
-            </button>
+            </Button>
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content
@@ -182,6 +188,14 @@ export default function Navbar() {
               </div>
 
               <nav className="flex flex-col gap-1">
+                <Link
+                  href="/settings"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                >
+                  <Settings size={16} />
+                  <span>Impostazioni</span>
+                </Link>
                 {canManageFormTemplates(user?.role) && (
                   <Link
                     href="/form-templates"
@@ -202,16 +216,26 @@ export default function Navbar() {
                     <span>WhatsApp</span>
                   </Link>
                 )}
-                <button
+                <Link
+                  href="/spese-libere"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                >
+                  <Receipt size={16} />
+                  <span>Spese Libere</span>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<LogOut size={16} />}
                   onClick={() => {
                     setIsUserMenuOpen(false);
                     logout();
                   }}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors text-left"
+                  className="justify-start text-text-secondary hover:text-danger hover:bg-danger/10 px-3"
                 >
-                  <LogOut size={16} />
-                  <span>Logout</span>
-                </button>
+                  Logout
+                </Button>
               </nav>
             </Popover.Content>
           </Popover.Portal>

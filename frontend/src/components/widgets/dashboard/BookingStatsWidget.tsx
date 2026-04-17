@@ -3,6 +3,7 @@
 import { ArrowLeft, ArrowRight, Calendar, RefreshCw, XCircle } from 'lucide-react';
 
 import BentoCard from '@/components/data-display/BentoCard';
+import Button from '@/components/ui/Button';
 import { Skeleton } from '@/components/feedback/Skeleton';
 
 interface BookingStatsWidgetProps {
@@ -38,13 +39,21 @@ export default function BookingStatsWidget({
             <h3 className="text-lg font-outfit font-semibold">Prenotazioni</h3>
           </div>
           <div className="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border">
-            <button onClick={onPreviousMonth} className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent">
-              <ArrowLeft size={14} />
-            </button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPreviousMonth}
+              icon={<ArrowLeft size={14} />}
+              className="p-1"
+            />
             <span className="text-xs font-semibold text-accent px-2 min-w-20 text-center">{monthLabel}</span>
-            <button onClick={onNextMonth} className="p-1 hover:bg-white/5 rounded transition-colors text-text-secondary hover:text-accent">
-              <ArrowRight size={14} />
-            </button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onNextMonth}
+              icon={<ArrowRight size={14} />}
+              className="p-1"
+            />
           </div>
         </div>
       }

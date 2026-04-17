@@ -28,7 +28,6 @@ export const config = {
   defaultPageLimit: envInt('DEFAULT_PAGE_LIMIT', 20),
   // Business
   defaultBookingDurationMinutes: envInt('DEFAULT_BOOKING_DURATION_MINUTES', 60),
-  defaultBookingType: envStr('DEFAULT_BOOKING_TYPE', 'Tattoo'),
   defaultTrendsMonths: envInt('DEFAULT_TRENDS_MONTHS', 6),
   whatsappLogsRetentionDays: envInt('WHATSAPP_LOGS_RETENTION_DAYS', 30),
   whatsappLogsFetchLimit: envInt('WHATSAPP_LOGS_FETCH_LIMIT', 10),

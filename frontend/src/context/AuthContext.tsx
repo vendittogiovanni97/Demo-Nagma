@@ -4,10 +4,28 @@ import { authService } from '@/services/auth.service';
 import type { AuthUser, LoginCredentials } from '@/types/auth';
 import type { Role } from '@/types/team';
 import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
-import { hasRequiredRole } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
+import {
+  canManageCustomers,
+  canManageFinance,
+  canManageFormTemplates,
+  canManageShifts,
+  canManageStaff,
+  canManageWhatsAppTemplates,
+  canSendWhatsApp,
+  hasRequiredRole,
+} from '@/utils/permissions';
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+
+interface Permissions {
+  manageCustomers: boolean;
+  manageStaff: boolean;
+  manageShifts: boolean;
+  manageFinance: boolean;
+  manageWhatsAppTemplates: boolean;
+  sendWhatsApp: boolean;
+  manageFormTemplates: boolean;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -16,6 +34,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   hasRole: (roles: Role | Role[]) => boolean;
+  can: Permissions;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isMounted) setIsLoading(false);
         }
       };
-      
+
       void loadProfile();
     } else {
       setIsLoading(false);
@@ -74,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
       setIsLoading(false);
 
-      notifySuccess('Accesso effettuato!');
+      // Nota: Il toast verrà mostrato dal componente Login page che ha accesso a useToast
     } catch (error: unknown) {
       throw error;
     }
@@ -93,8 +112,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return hasRequiredRole(user?.role, allowedRoles);
   };
 
+  const can: Permissions = {
+    manageCustomers: canManageCustomers(user?.role),
+    manageStaff: canManageStaff(user?.role),
+    manageShifts: canManageShifts(user?.role),
+    manageFinance: canManageFinance(user?.role),
+    manageWhatsAppTemplates: canManageWhatsAppTemplates(user?.role),
+    sendWhatsApp: canSendWhatsApp(user?.role),
+    manageFormTemplates: canManageFormTemplates(user?.role),
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout, hasRole }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout, hasRole, can }}>
       {children}
     </AuthContext.Provider>
   );

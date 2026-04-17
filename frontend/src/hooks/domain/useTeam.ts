@@ -4,12 +4,12 @@ import useSWR from 'swr';
 
 import { ENDPOINTS } from '@/api/endpoints';
 import { teamService } from '@/services/team.service';
-import type { Shift, User } from '@/types/team';
+import type { Shift, Staff } from '@/types/team';
 import type { PaginatedResponse } from '@/types/pagination';
 
-interface UserHookOptions {
+interface MemberHookOptions {
   search?: string;
-  role?: string;
+  type?: string;
   page?: number;
   limit?: number;
   enabled?: boolean;
@@ -19,16 +19,16 @@ interface HookOptions {
   enabled?: boolean;
 }
 
-export function useTeamUsers({
+export function useTeamMembers({
   search,
-  role,
+  type,
   page = 1,
   limit = 20,
   enabled = true,
-}: UserHookOptions = {}) {
-  return useSWR<PaginatedResponse<User>>(
-    enabled ? [ENDPOINTS.TEAM.USERS, search, role, page, limit] : null,
-    () => teamService.getUsers({ search, role, page, limit })
+}: MemberHookOptions = {}) {
+  return useSWR<PaginatedResponse<Staff>>(
+    enabled ? [ENDPOINTS.TEAM.MEMBERS, search, type, page, limit] : null,
+    () => teamService.getMembers({ search, type: type, page, limit })
   );
 }
 

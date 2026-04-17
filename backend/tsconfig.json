@@ -11,11 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "..",
-    "ignoreDeprecations": "5.0",
-    "paths": {
-      "zod": ["./node_modules/zod"]
-    }
+    "rootDir": "."
   },
-  "include": ["src/**/*", "../schemas/**/*"]
+  "include": ["src/**/*"]
 }

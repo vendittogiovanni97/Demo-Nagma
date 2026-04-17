@@ -1,84 +1,139 @@
 # Nagma Tattoo CRM
 
-Nagma Tattoo CRM è una soluzione gestionale completa per studi di tatuaggi, progettata per gestire clienti, appuntamenti (con logica a turni), transazioni finanziarie, inventario e comunicazioni tramite WhatsApp.
+Gestionale completo per studi di tatuaggi. Clienti, agenda, turni team, finanze e WhatsApp — tutto in un unico posto.
 
-## 🏗️ Architettura
+## Stack
 
-Il progetto è strutturato come un monorepo:
+| Layer | Tecnologie |
+|-------|-----------|
+| Frontend | Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · SWR |
+| Backend | Express 5 · TypeScript · Prisma 7 · PostgreSQL 17 |
+| Infra | Docker · Docker Compose |
 
--   [`frontend/`](./frontend): Applicazione Next.js 16 (App Router) + React 19 + Tailwind CSS 4.
--   [`backend/`](./backend): Server Express 5 + TypeScript + Prisma 6 + PostgreSQL.
--   [`schemas/`](./schemas): Schemi di validazione Zod condivisi tra frontend e backend.
--   [`docs/`](./docs): Documentazione tecnica e roadmap.
+---
 
-Per maggiori dettagli tecnici consultare [Architettura](./docs/architettura.md).
+## Avvio rapido (Docker — per il cliente)
 
-## 🚀 Guida Rapida (Quick Start)
-
-### 1. Prerequisiti
-
--   **Node.js** (consigliato v20+ tramite `nvm`).
--   **Docker** (per il database PostgreSQL).
-
-### 2. Configurazione Environment
-
-Crea i file `.env` nelle rispettive cartelle partendo dagli esempi (se disponibili) o compilando i valori necessari.
-*Esempio Backend `.env`:*
-```env
-DATABASE_URL="postgresql://root:root123@localhost:5432/nagmadb?schema=public"
-JWT_SECRET="tua_secret"
-PORT=3001
-```
-
-### 3. Avvio Database e Infrastruttura
-
-Dalla root del progetto:
 ```bash
-docker compose -f backend/docker-compose.yml up -d
+# 1. Vai nella cartella del progetto
+cd Demo-Nagma
+
+# 2. Avvia tutto (primo avvio: ~2-3 min)
+docker compose up --build
+
+# 3. Apri il browser
+http://localhost:3000
 ```
 
-### 4. Setup Backend (Prisma & Seed)
+## Sviluppo locale
+
+### Prerequisiti
+- Node.js >= 24
+- Docker Desktop (per PostgreSQL)
+
+### 1. Avvia solo il database
+
+```bash
+cd backend
+docker compose up -d
+```
+
+### 2. Backend
 
 ```bash
 cd backend
 npm install
-npx prisma db push    # Sincronizza lo schema con il DB
-npm run db:seed       # Popola il DB con dati iniziali e Admin
-npm run dev           # Avvia il server in modalità sviluppo
+npm run db:seed      # popola DB con admin e dati iniziali
+npm run dev          # http://localhost:3001
 ```
 
-### 5. Setup Frontend
+### 3. Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev          # http://localhost:3000
 ```
 
-Il frontend sarà disponibile su `http://localhost:3000`.
+---
+
+## Comandi utili
+
+### Database (da `backend/`)
+
+```bash
+npx prisma migrate dev --name nome_modifica   # nuova migrazione
+npx prisma migrate deploy                      # applica migrazioni in prod
+npx prisma db push                             # sync schema senza migrazione (dev rapido)
+npx prisma studio                              # UI per esplorare i dati
+npm run db:seed                                # seed dati iniziali
+```
+
+### Build
+
+```bash
+npm run build    # compila (backend TS → dist/ | frontend → .next/)
+npm start        # avvia in modalità produzione
+npm run lint     # linting
+```
 
 ---
 
-## 🔑 Credenziali di Accesso Default
+## Struttura progetto
 
-Dopo aver eseguito il `seed`, puoi accedere con:
-- **Email:** `admin@nagma.it`
-- **Password:** `admin123`
+```
+Demo-Nagma/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/    # gestione richieste HTTP
+│   │   ├── services/       # logica di business
+│   │   ├── repositories/   # accesso dati (Prisma)
+│   │   ├── routes/         # endpoint e permessi
+│   │   ├── middlewares/    # auth, logging, errori
+│   │   └── utils/          # AppError, logger, prisma singleton
+│   └── prisma/             # schema e seed
+├── frontend/
+│   └── src/
+│       ├── app/            # pagine Next.js (App Router)
+│       ├── components/     # UI riutilizzabili
+│       ├── hooks/          # SWR hooks di dominio
+│       ├── services/       # chiamate API
+│       ├── types/          # TypeScript types
+│       └── utils/          # helpers condivisi
+├── docker-compose.yml      # orchestrazione completa
+└── image/                  # assets e logo studio
+```
 
 ---
 
-## 🛠️ Cheat Sheet Comandi Frequenti
+## Variabili d'ambiente
 
-### Database (nella cartella `backend`)
-- `npx prisma db push`: Sincronizza lo schema senza creare migration (veloce in dev).
-- `npx prisma migrate dev`: Crea e applica una nuova migration.
-- `npx prisma studio`: Interfaccia grafica per esplorare i dati del DB.
-- `npm run db:seed`: Esegue il popolamento dei dati.
+**`backend/.env`**
+```env
+DATABASE_URL="postgresql://root:root123@localhost:5432/nagmadb?schema=public"
+JWT_SECRET="cambia-questo-in-produzione"
+PORT=3001
+CORS_ORIGINS="http://localhost:3000"
+```
 
-### Docker
-- `docker compose -f backend/docker-compose.yml down`: Ferma il database.
-- `docker compose -f backend/docker-compose.yml up -d`: Avvia il database.
+**`frontend/.env`**
+```env
+NEXT_PUBLIC_PORTAL_NAME="Nagma Tattoo CRM"
+NEXT_PUBLIC_PORTAL_SHORT_NAME="Nagma"
+NEXT_PUBLIC_PORTAL_DESCRIPTION="Gestionale Nagma Tattoo Studio"
+NEXT_PUBLIC_PORTAL_LOGIN_TAGLINE="Nagma Tattoo Studio Management"
+NEXT_PUBLIC_PORTAL_LOGO="/logo.svg"
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3001"
+```
 
-### Sviluppo
-- `npm run dev`: Avvia il server (backend o frontend).
-- `npm run build`: Crea la build di produzione.
+---
+
+## Funzionalità principali
+
+- **Dashboard** — widget KPI, agenda del giorno, panoramica finanze
+- **Clienti** — anagrafica con ricerca, export CSV/XLSX, storico appuntamenti
+- **Agenda** — calendario settimanale per artista con colori, gestione prenotazioni
+- **Team & Turni** — griglia settimanale turni, gestione collaboratori
+- **Finanze** — entrate/uscite con categorie e report mensili
+- **WhatsApp** — template con variabili `{{nome}}`, anteprima, apertura `wa.me`, storico invii
+- **Form Template** — builder drag-drop per schede cliente personalizzate

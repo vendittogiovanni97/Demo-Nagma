@@ -1,7 +1,7 @@
 import type { Booking } from './booking';
 
 export interface Customer {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
   phone: string;
@@ -16,18 +16,18 @@ export interface Customer {
 }
 
 export interface WhatsAppLog {
-  id: string;
+  id: number;
   templateName?: string;
   recipientName?: string;
   recipientPhone: string;
   message: string;
   status: 'MANUAL_SENT' | 'FAILED';
   createdAt: string;
-  template?: { id: string; name: string };
+  template?: { id: number; name: string };
 }
 
 export interface CustomerSummary {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
   email?: string;

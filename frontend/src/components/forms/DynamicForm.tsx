@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Button from '@/components/ui/Button';
 
 type FieldDef = {
   type: 'text' | 'number' | 'date' | 'select' | 'checkbox';
@@ -95,7 +96,7 @@ export default function DynamicForm({ base64Schema, onSubmit, submitLabel = 'Sal
           )}
         </div>
       ))}
-      <button type="submit" className="btn-primary mt-2">{submitLabel}</button>
+      <Button type="submit" variant="primary" fullWidth>{submitLabel}</Button>
     </form>
   );
 }

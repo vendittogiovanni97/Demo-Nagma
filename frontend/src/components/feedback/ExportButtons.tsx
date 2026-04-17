@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 import type { ExportColumn } from '@/utils/export';
 import { exportRowsToCsv, exportRowsToPdf, exportRowsToXlsx } from '@/utils/export';
@@ -38,33 +39,33 @@ export default function ExportButtons<T>({
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        variant="glass"
+        size="md"
         disabled={isDisabled || isExporting}
         onClick={() => void withRows((data) => exportRowsToXlsx(filenameBase, data, columns))}
-        className="glass-btn flex items-center gap-2 px-5 disabled:cursor-not-allowed disabled:opacity-50"
+        icon={<FileSpreadsheet size={18} />}
       >
-        <FileSpreadsheet size={18} />
-        <span>XLSX</span>
-      </button>
-      <button
-        type="button"
+        XLSX
+      </Button>
+      <Button
+        variant="glass"
+        size="md"
         disabled={isDisabled || isExporting}
         onClick={() => void withRows((data) => exportRowsToCsv(filenameBase, data, columns))}
-        className="glass-btn flex items-center gap-2 px-5 disabled:cursor-not-allowed disabled:opacity-50"
+        icon={<Download size={18} />}
       >
-        <Download size={18} />
-        <span>CSV</span>
-      </button>
-      <button
-        type="button"
+        CSV
+      </Button>
+      <Button
+        variant="glass"
+        size="md"
         disabled={isDisabled || isExporting}
         onClick={() => void withRows((data) => exportRowsToPdf(filenameBase, title, data, columns, filtersLabel))}
-        className="glass-btn flex items-center gap-2 px-5 disabled:cursor-not-allowed disabled:opacity-50"
+        icon={<FileText size={18} />}
       >
-        <FileText size={18} />
-        <span>PDF</span>
-      </button>
+        PDF
+      </Button>
     </>
   );
 }

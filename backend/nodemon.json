@@ -2,5 +2,6 @@
   "watch": ["src"],
   "ext": "ts",
   "delay": "500ms",
-  "signal": "SIGTERM"
+  "signal": "SIGTERM",
+  "exec": "node -r ts-node/register src/index.ts"
 }

@@ -13,6 +13,7 @@ import staffRoutes from './routes/staff.routes';
 import teamRoutes from './routes/team.routes';
 import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
+import spesaLiberaRoutes from './routes/spesa-libera.routes';
 import { config } from './config/env';
 import { AppError } from './utils/AppError';
 import { getRequestContext, isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
@@ -95,6 +96,7 @@ export function createApp() {
   app.use('/api/team', teamRoutes);
   app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
+  app.use('/api/spese-libere', spesaLiberaRoutes);
 
   // Swagger API Docs
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

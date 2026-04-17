@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 interface PaginationControlsProps {
   page: number;
@@ -27,20 +28,22 @@ export default function PaginationControls({
         Pagina {page} di {totalPages} ({total} {label})
       </span>
       <div className="flex gap-2">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onPrev}
           disabled={page <= 1}
-          className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <button
+          icon={<ChevronLeft size={18} />}
+          className="p-0 w-auto"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onNext}
           disabled={page >= totalPages}
-          className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          <ChevronRight size={18} />
-        </button>
+          icon={<ChevronRight size={18} />}
+          className="p-0 w-auto"
+        />
       </div>
     </div>
   );

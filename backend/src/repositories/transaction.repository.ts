@@ -1,8 +1,42 @@
-import { Prisma, TransactionType } from '@prisma/client';
+import { Prisma, Transaction, TransactionType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
-import prisma from '../utils/prisma';
+import { getMonthRange, paginate } from '../utils/date-utils';
+import prisma, { softDelete } from '../utils/prisma';
 
-export class TransactionRepository {
+export class TransactionRepository extends BaseRepository<Transaction, Prisma.TransactionCreateInput, Prisma.TransactionUpdateInput> {
+  constructor(prismaClient: PrismaClient = prisma) {
+    super(prismaClient);
+  }
+
+  async create(data: Prisma.TransactionCreateInput): Promise<Transaction> {
+    return this.prisma.transaction.create({ data });
+  }
+
+  async findById(id: string): Promise<Transaction | null> {
+    return this.prisma.transaction.findUnique({ where: { id: parseInt(id) } });
+  }
+
+  async findAll(): Promise<Transaction[]> {
+    return this.prisma.transaction.findMany({
+      where: { deletedAt: null },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  async update(id: string, data: Prisma.TransactionUpdateInput): Promise<Transaction> {
+    return this.prisma.transaction.update({ where: { id: parseInt(id) }, data });
+  }
+
+  async delete(id: string): Promise<void> {
+    await softDelete(this.prisma.transaction, parseInt(id));
+  }
+
+  // ============================================================================
+  // SPECIALIZED METHODS - Custom business logic
+  // ============================================================================
+
   async findAllPaged({
     type,
     monthStr,
@@ -26,60 +60,34 @@ export class TransactionRepository {
     }
 
     if (monthStr) {
-      const start = new Date(`${monthStr}-01T00:00:00.000Z`);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 1);
-      whereClause.date = { gte: start, lt: end };
+      whereClause.date = getMonthRange(monthStr);
     }
 
     const skip = (page - 1) * limit;
-    const [data, total] = await prisma.$transaction([
-      prisma.transaction.findMany({
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.transaction.findMany({
         where: whereClause,
         skip,
         take: limit,
         orderBy: { date: 'desc' },
       }),
-      prisma.transaction.count({ where: whereClause }),
+      this.prisma.transaction.count({ where: whereClause }),
     ]);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    };
-  }
-
-  async create(data: Prisma.TransactionCreateInput) {
-    return prisma.transaction.create({ data });
-  }
-
-  async softDelete(id: string) {
-    return prisma.transaction.update({
-      where: { id },
-      data: { deletedAt: new Date() }
-    });
+    return paginate(data, total, page, limit);
   }
 
   async getSummary(monthStr?: string) {
-    const dove: Prisma.TransactionWhereInput = { deletedAt: null };
+    const where: Prisma.TransactionWhereInput = { deletedAt: null };
     if (monthStr) {
-      const start = new Date(`${monthStr}-01T00:00:00.000Z`);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 1);
-      dove.date = { gte: start, lt: end };
+      where.date = getMonthRange(monthStr);
     }
 
-    const res = await prisma.transaction.groupBy({
+    return this.prisma.transaction.groupBy({
       by: ['type'],
-      where: dove,
-      _sum: {
-        amount: true
-      }
+      where,
+      _sum: { amount: true },
     });
-    return res;
   }
 
   async getTrends(months: number = 6) {
@@ -87,38 +95,26 @@ export class TransactionRepository {
     const start = new Date();
     start.setMonth(start.getMonth() - months);
 
-    return prisma.transaction.findMany({
+    return this.prisma.transaction.findMany({
       where: {
         deletedAt: null,
         date: { gte: start, lte: end }
       },
-      select: {
-        type: true,
-        amount: true,
-        date: true
-      },
+      select: { type: true, amount: true, date: true },
       orderBy: { date: 'asc' }
     });
   }
 
   async getArtistPerformance() {
-    const stats = await prisma.booking.groupBy({
+    const stats = await this.prisma.booking.groupBy({
       by: ['artistId'],
-      where: {
-        deletedAt: null,
-        status: 'COMPLETED'
-      },
-      _count: {
-        id: true
-      },
-      _sum: {
-        price: true
-      }
+      where: { deletedAt: null, status: 'COMPLETED' },
+      _count: { id: true },
+      _sum: { price: true },
     });
 
-    // Arricchisci con i nomi degli artisti
-    const artistIds = stats.map(s => s.artistId).filter((id): id is string => id !== null);
-    const artists = await prisma.user.findMany({
+    const artistIds = stats.map(s => s.artistId).filter((id): id is number => id !== null);
+    const artists = await this.prisma.staff.findMany({
       where: { id: { in: artistIds } },
       select: { id: true, name: true, color: true },
     });

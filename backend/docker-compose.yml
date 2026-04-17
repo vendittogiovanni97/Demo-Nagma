@@ -1,3 +1,6 @@
+# Questo file è mantenuto per sviluppo locale solo DB.
+# Per il deploy completo usa il docker-compose.yml nella root del progetto.
+
 services:
   postgres:
     image: postgres:17-alpine

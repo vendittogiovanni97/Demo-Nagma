@@ -11,19 +11,19 @@ export const customerService = {
   ): Promise<PaginatedResponse<Customer>> => {
     return apiClient.get<PaginatedResponse<Customer>>(ENDPOINTS.CUSTOMERS.BASE, { search, page, limit });
   },
-  getById: async (id: string): Promise<Customer> => {
+  getById: async (id: number): Promise<Customer> => {
     return apiClient.get<Customer>(ENDPOINTS.CUSTOMERS.BY_ID(id));
   },
-  getSummary: async (id: string): Promise<CustomerSummary> => {
+  getSummary: async (id: number): Promise<CustomerSummary> => {
     return apiClient.get<CustomerSummary>(ENDPOINTS.CUSTOMERS.SUMMARY(id));
   },
   create: async (data: CreateCustomerData) => {
     return apiClient.post(ENDPOINTS.CUSTOMERS.BASE, data);
   },
-  update: async (id: string, data: Partial<CreateCustomerData>) => {
+  update: async (id: number, data: Partial<CreateCustomerData>) => {
     return apiClient.put(ENDPOINTS.CUSTOMERS.BY_ID(id), data);
   },
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.CUSTOMERS.BY_ID(id));
   },
 };

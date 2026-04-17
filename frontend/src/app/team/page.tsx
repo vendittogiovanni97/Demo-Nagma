@@ -2,45 +2,51 @@
 
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
+import WeekNavigator from '@/components/layout/WeekNavigator';
+import Avatar from '@/components/data-display/Avatar';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import ExportModal from '@/components/modals/ExportModal';
 import ShiftModal from '@/components/modals/ShiftModal';
 import StaffModal from '@/components/modals/StaffModal';
 import { useAuth } from '@/context/AuthContext';
-import { useTeamShifts, useTeamUsers } from '@/hooks/domain';
+import { useTeamShifts, useTeamMembers } from '@/hooks/domain';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
 import type { Shift } from '@/types/team';
-import { canManageShifts, canManageStaff } from '@/utils/permissions';
-import { notifyError, notifySuccess } from '@/utils/toast';
 import { addDays, addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 const SHIFT_LABELS = ['Mattina', 'Pomeriggio', 'Tutta la giornata', 'Riposo'];
 
 export default function TeamPage() {
-  const { user } = useAuth();
+  const toast = useToast();
+  const { can } = useAuth();
+  const { deleteItem } = useDeleteConfirm();
   // Using Monday as start of week
   const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
 
   // Shift modal state
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
-  const [shiftModalData, setShiftModalData] = useState<{ userId?: string, dayOfWeek?: number }>({});
+  const [shiftModalData, setShiftModalData] = useState<{ staffId?: number, dayOfWeek?: number }>({});
   const [updatingShiftId, setUpdatingShiftId] = useState<string | null>(null);
-  const [isAddingShift, setIsAddingShift] = useState<string | null>(null); // userId-dayIndex
+  const [isAddingShift, setIsAddingShift] = useState<string | null>(null); // staffId-dayIndex
 
-  const canManageUsers = canManageStaff(user?.role);
-  const canManageShiftData = canManageShifts(user?.role);
+  const canManageMembers = can.manageStaff;
+  const canManageShiftData = can.manageShifts;
 
-  // Fetch all users for the grid (assuming a max of 100 for now to avoid pagination in grid view)
-  const { data: usersResult, isLoading: loadingUsers, mutate: mutateUsers, error: usersError } = useTeamUsers({
+  // Fetch all members for the grid
+  const { data: membersResult, isLoading: loadingMembers, mutate: mutateMembers, error: membersError } = useTeamMembers({
     page: 1, limit: 100,
   });
   const { data: shifts, isLoading: loadingShifts, mutate: mutateShifts, error: shiftsError } = useTeamShifts(week);
 
-  const usersList = usersResult?.data || [];
+  const membersList = membersResult?.data || [];
 
   const handlePrevWeek = () => {
     setWeek(prev => format(subWeeks(parseISO(prev), 1), 'yyyy-MM-dd'));
@@ -50,30 +56,28 @@ export default function TeamPage() {
     setWeek(prev => format(addWeeks(parseISO(prev), 1), 'yyyy-MM-dd'));
   };
 
-  const handleDeleteUser = async (id: string, name: string) => {
-    if (!confirm(`Rimuovere "${name}" dal team?`)) return;
-    try {
-      await teamService.deleteUser(id);
-      notifySuccess(`${name} rimosso dal team`);
-      mutateUsers();
-    } catch (err: unknown) {
-      notifyError(err, 'Errore durante l\'eliminazione');
-    }
+  const handleDeleteMember = async (id: number, name: string) => {
+    await deleteItem({
+      confirmMessage: `Rimuovere "${name}" dal team?`,
+      action: () => teamService.deleteMember(id),
+      successMessage: `${name} rimosso dal team`,
+      errorMessage: 'Errore durante l\'eliminazione',
+      onSuccess: mutateMembers,
+    });
   };
 
   const handleDeleteShift = async (id: string) => {
-    if (!confirm('Eliminare questo turno?')) return;
-    try {
-      await teamService.deleteShift(id);
-      notifySuccess('Turno eliminato');
-      mutateShifts();
-    } catch (err: unknown) {
-      notifyError(err, 'Errore durante l\'eliminazione');
-    }
+    await deleteItem({
+      confirmMessage: 'Eliminare questo turno?',
+      action: () => teamService.deleteShift(id),
+      successMessage: 'Turno eliminato',
+      errorMessage: 'Errore durante l\'eliminazione',
+      onSuccess: mutateShifts,
+    });
   };
 
-  const openAddShift = (userId?: string, dayOfWeek?: number) => {
-    setShiftModalData({ userId, dayOfWeek });
+  const openAddShift = (staffId?: number, dayOfWeek?: number) => {
+    setShiftModalData({ staffId, dayOfWeek });
     setIsShiftModalOpen(true);
   };
 
@@ -93,20 +97,21 @@ export default function TeamPage() {
       });
       await mutateShifts();
     } catch (err: unknown) {
-      notifyError(err, 'Errore nell\'aggiornamento del turno');
+      const errorMessage = err instanceof Error ? err.message : 'Errore nell\'aggiornamento del turno';
+      toast.error(errorMessage);
     } finally {
       setUpdatingShiftId(null);
     }
   };
 
-  const handleQuickAddShift = async (userId: string, dayOfWeek: number) => {
+  const handleQuickAddShift = async (staffId: number, dayOfWeek: number) => {
     if (!canManageShiftData || isAddingShift) return;
 
-    const key = `${userId}-${dayOfWeek}`;
+    const key = `${staffId}-${dayOfWeek}`;
     setIsAddingShift(key);
     try {
       await teamService.createShift({
-        userId,
+        staffId,
         weekStart: week,
         dayOfWeek,
         label: 'Mattina',
@@ -114,13 +119,14 @@ export default function TeamPage() {
       });
       await mutateShifts();
     } catch (err: unknown) {
-      notifyError(err, 'Errore nella creazione del turno');
+      const errorMessage = err instanceof Error ? err.message : 'Errore nella creazione del turno';
+      toast.error(errorMessage);
     } finally {
       setIsAddingShift(null);
     }
   };
 
-  if (usersError || shiftsError) {
+  if (membersError || shiftsError) {
     return (
       <StatePanel
         variant="error"
@@ -145,7 +151,7 @@ export default function TeamPage() {
               title="Turni Settimanali"
               rows={shifts || []}
               columns={[
-                { label: 'Collaboratore', value: (shift: Shift) => shift.user?.name || '' },
+                { label: 'Collaboratore', value: (shift: Shift) => shift.staff?.name || '' },
                 { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
                 { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek.toString() },
                 {
@@ -155,32 +161,25 @@ export default function TeamPage() {
               ]}
             />
             {canManageShiftData && (
-               <button onClick={() => openAddShift()} className="btn-secondary flex items-center gap-2 px-4">
-                 <Plus size={20} />
-                 <span>Turno</span>
-               </button>
+               <Button variant="secondary" icon={Plus} onClick={() => openAddShift()} size="md">
+                 Turno
+               </Button>
             )}
-            {canManageUsers && (
-              <button onClick={() => setIsStaffModalOpen(true)} className="btn-primary flex items-center gap-2 px-4">
-                <Plus size={20} />
-                <span>Staff</span>
-              </button>
+            {canManageMembers && (
+              <Button variant="primary" icon={Plus} onClick={() => setIsStaffModalOpen(true)} size="md">
+                Staff
+              </Button>
             )}
           </>
         }
       >
-        {/* Date Navigation */}
-        <div className="flex items-center gap-4 bg-surface/50 border border-surface-border rounded-xl px-2 py-1 shadow-lg backdrop-blur-md">
-          <button onClick={handlePrevWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white">
-            <ChevronLeft size={20} />
-          </button>
-          <span className="text-white font-bold min-w-50 text-center tracking-wide">
-            {format(parseISO(week), 'd MMM', { locale: it })} - {format(addDays(parseISO(week), 6), 'd MMM yyyy', { locale: it })}
-          </span>
-          <button onClick={handleNextWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white">
-            <ChevronRight size={20} />
-          </button>
-        </div>
+        <WeekNavigator
+          weekStart={week}
+          onPrev={handlePrevWeek}
+          onNext={handleNextWeek}
+          format="short"
+          variant="header"
+        />
       </PageHeader>
 
       {/* Grid Container */}
@@ -199,51 +198,55 @@ export default function TeamPage() {
             </div>
 
             {/* loading state */}
-            {(loadingUsers || loadingShifts) && (
+            {(loadingMembers || loadingShifts) && (
                <div className="flex-1 min-h-75 flex items-center justify-center text-text-secondary font-bold">
                  <div className="animate-pulse">Caricamento griglia in corso...</div>
                </div>
             )}
 
-            {/* User Rows */}
-            {!loadingUsers && !loadingShifts && usersList.length === 0 && (
+            {/* Member Rows */}
+            {!loadingMembers && !loadingShifts && membersList.length === 0 && (
                <div className="flex-1 flex items-center justify-center text-text-secondary p-8">
                  Nessun membro del team trovato. Aggiungi il primo componente.
                </div>
             )}
 
-            {!loadingUsers && !loadingShifts && usersList.map(u => {
-              const userColor = u.color || '#3b82f6'; // fallback to a blue if no color
+            {!loadingMembers && !loadingShifts && membersList.map(m => {
+              const memberColor = m.color || '#3b82f6';
 
               return (
-                <div key={u.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-25">
-                  {/* User Cell - Sticky inside row maybe? Nah let's just make it visually clean */}
+                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-25">
                   <div className="py-4 px-6 flex items-center gap-4 relative z-0">
                     <div
                       className="w-1 absolute left-0 top-0 bottom-0 shadow-[0_0_10px_currentColor] opacity-70"
-                      style={{ backgroundColor: userColor, color: userColor }}
+                      style={{ backgroundColor: memberColor, color: memberColor }}
                     />
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-xl" style={{ backgroundColor: userColor }}>
-                      {u.name[0].toUpperCase()}
-                    </div>
+                    <Avatar name={m.name} color={memberColor} size="lg" />
                     <div className="flex flex-col flex-1 min-w-0 pr-2">
-                      <span className="text-white font-bold text-base truncate">{u.name}</span>
-                      <span className="text-xs text-text-secondary uppercase tracking-widest mt-0.5">{u.role}</span>
+                       <span className="text-white font-bold text-base truncate">{m.name}</span>
+                       <Badge
+                         variant={m.type === 'COLLABORATORE' ? 'primary' : 'secondary'}
+                         size="xs"
+                         className="w-fit mt-1"
+                       >
+                         {m.type}
+                       </Badge>
                     </div>
-                    {canManageUsers && (
-                      <button
-                        onClick={() => handleDeleteUser(u.id, u.name)}
-                        className="p-2 bg-danger/10 text-text-secondary hover:text-white hover:bg-danger absolute right-4 opacity-0 group-hover/row:opacity-100 transition-all rounded-lg"
+                    {canManageMembers && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDeleteMember(m.id, m.name)}
+                        icon={<Trash2 size={16} />}
+                        className="absolute right-4 opacity-0 group-hover/row:opacity-100 transition-all"
                         title="Rimuovi dal team"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      />
                     )}
                   </div>
 
                   {/* Days Cells */}
                   {DAYS.map((_, dayIndex) => {
-                    const shift = shifts?.find(s => s.userId === u.id && s.dayOfWeek === dayIndex);
+                    const shift = shifts?.find(s => s.staffId === m.id && s.dayOfWeek === dayIndex);
 
                     return (
                       <div
@@ -255,9 +258,9 @@ export default function TeamPage() {
                             onClick={() => handleCycleShift(shift)}
                             className={`relative rounded-xl p-3 text-center border transition-all duration-300 hover:scale-[1.02] ${updatingShiftId === shift.id ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:shadow-lg'}`}
                             style={{
-                              backgroundColor: shift.isOff ? 'rgba(239, 68, 68, 0.1)' : `${userColor}15`,
-                              borderColor: shift.isOff ? 'rgba(239, 68, 68, 0.3)' : `${userColor}40`,
-                              boxShadow: updatingShiftId === shift.id ? 'none' : `0 8px 24px ${userColor}10`
+                              backgroundColor: shift.isOff ? 'rgba(239, 68, 68, 0.1)' : `${memberColor}15`,
+                              borderColor: shift.isOff ? 'rgba(239, 68, 68, 0.3)' : `${memberColor}40`,
+                              boxShadow: updatingShiftId === shift.id ? 'none' : `0 8px 24px ${memberColor}10`
                             }}
                           >
                             <div className="flex flex-col items-center justify-center min-h-10">
@@ -266,7 +269,7 @@ export default function TeamPage() {
                               ) : (
                                 <span
                                   className="text-sm font-bold block"
-                                  style={{ color: shift.isOff ? '#ef4444' : userColor }}
+                                  style={{ color: shift.isOff ? '#ef4444' : memberColor }}
                                 >
                                   {shift.label || (shift.isOff ? 'Riposo' : `${shift.startTime} - ${shift.endTime}`)}
                                 </span>
@@ -274,36 +277,37 @@ export default function TeamPage() {
                             </div>
 
                             {canManageShiftData && (
-                              <button
+                              <Button
+                                variant="danger"
+                                size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteShift(shift.id);
                                 }}
-                                className="absolute -top-2 -right-2 p-1.5 bg-surface rounded-full text-text-secondary hover:text-white hover:bg-danger opacity-0 group-hover/cell:opacity-100 transition-all shadow-md border border-surface-border z-10"
+                                icon={<Trash2 size={14} />}
+                                className="absolute -top-2 -right-2 p-1.5 opacity-0 group-hover/cell:opacity-100 transition-all"
                                 title="Elimina turno"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              />
                             )}
                           </div>
                         ) : (
                           // Empty Cell Quick Add / Modal
                           canManageShiftData ? (
                             <div className="absolute inset-2 md:inset-3 flex items-center justify-center">
-                              {isAddingShift === `${u.id}-${dayIndex}` ? (
+                              {isAddingShift === `${m.id}-${dayIndex}` ? (
                                 <Loader2 size={24} className="animate-spin text-white/20" />
                               ) : (
                                 <>
-                                  <button
-                                    onClick={() => handleQuickAddShift(u.id, dayIndex)}
-                                    className="w-full h-full rounded-xl border-2 border-dashed border-white/5 text-white/0 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all flex flex-col items-center justify-center opacity-0 group-hover/cell:opacity-100"
+                                  <Button
+                                    variant="ghost"
+                                    onClick={() => handleQuickAddShift(m.id, dayIndex)}
+                                    className="w-full h-full rounded-xl border-2 border-dashed border-white/5 opacity-0 group-hover/cell:opacity-100"
                                     title="Aggiungi Mattina (Doppio click per opzioni)"
-                                    onDoubleClick={() => openAddShift(u.id, dayIndex)}
+                                    onDoubleClick={() => openAddShift(m.id, dayIndex)}
+                                    icon={<Plus size={20} />}
                                   >
-                                    <Plus size={20} />
-                                    <span className="text-[10px] mt-1 font-bold">MATTINA</span>
-                                  </button>
-                                  {/* Small hint button for modal if needed, but let's keep it clean with dblclick */}
+                                    <span className="text-[10px] font-bold">MATTINA</span>
+                                  </Button>
                                 </>
                               )}
                             </div>
@@ -319,14 +323,13 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <StaffModal isOpen={isStaffModalOpen} onClose={() => { setIsStaffModalOpen(false); mutateUsers(); }} />
-      {/* We pass the initial data to ShiftModal so it can pre-select user and day */}
+      <StaffModal isOpen={isStaffModalOpen} onClose={() => { setIsStaffModalOpen(false); mutateMembers(); }} />
       <ShiftModal
         isOpen={isShiftModalOpen}
         onClose={() => setIsShiftModalOpen(false)}
         onSuccess={() => mutateShifts()}
         weekStart={week}
-        initialUserId={shiftModalData.userId}
+        initialStaffId={shiftModalData.staffId}
         initialDayOfWeek={shiftModalData.dayOfWeek}
       />
     </div>

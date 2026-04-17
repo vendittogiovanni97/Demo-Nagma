@@ -2,40 +2,34 @@ import { Request, Response } from 'express';
 import { config } from '../config/env';
 import { TransactionService } from '../services/transaction.service';
 import { asyncHandler } from '../utils/async-handler';
+import { parsePageQuery } from '../utils/date-utils';
 
 const service = new TransactionService();
 
 export class TransactionController {
   getAll = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.getTransactions(
+    const { search, month, page, limit } = parsePageQuery(req.query);
+    res.json(await service.getTransactions(
       req.query.type as string | undefined,
-      req.query.month as string | undefined,
-      req.query.search as string | undefined,
-      req.query.page ? Number(req.query.page) : 1,
-      req.query.limit ? Number(req.query.limit) : 20
-    );
-    res.json(data);
+      month, search, page, limit,
+    ));
   });
 
   getSummary = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.getSummary(req.query.month as string | undefined);
-    res.json(data);
+    res.json(await service.getSummary(req.query.month as string | undefined));
   });
 
   getTrends = asyncHandler(async (req: Request, res: Response) => {
     const months = req.query.months ? Number(req.query.months) : config.defaultTrendsMonths;
-    const data = await service.getTrends(months);
-    res.json(data);
+    res.json(await service.getTrends(months));
   });
 
   getArtistPerformance = asyncHandler(async (_req: Request, res: Response) => {
-    const data = await service.getArtistPerformance();
-    res.json(data);
+    res.json(await service.getArtistPerformance());
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {
-    const data = await service.createTransaction(req.body);
-    res.status(201).json(data);
+    res.status(201).json(await service.createTransaction(req.body));
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {

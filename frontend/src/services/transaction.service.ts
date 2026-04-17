@@ -37,7 +37,7 @@ export const transactionService = {
   create: async (data: CreateTransactionData) => {
     return apiClient.post(ENDPOINTS.TRANSACTIONS.BASE, data);
   },
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.TRANSACTIONS.BY_ID(id));
   },
 };

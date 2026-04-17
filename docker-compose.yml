@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:17-alpine
+    container_name: nagma-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nagmadb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root123
+    ports:
+      - '5432:5432'
+    volumes:
+      - nagma_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nagma_network
+
+  # Express Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nagma-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database connection
+      DATABASE_URL: postgresql://root:root123@postgres:5432/nagmadb?schema=public
+
+      # JWT and Security
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+
+      # Server Config
+      PORT: 3001
+      NODE_ENV: ${NODE_ENV:-production}
+
+      # CORS - Accept requests from frontend container
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+
+      # Debug
+      DEBUG_HTTP: ${DEBUG_HTTP:-false}
+    ports:
+      - '3001:3001'
+    networks:
+      - nagma_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Next.js Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nagma-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # Frontend-specific variables
+      # NOTE: NEXT_PUBLIC_API_BASE_URL is used for:
+      # 1. Server-side requests (Node.js context): http://backend:3001
+      # 2. Client-side requests (Browser context): http://localhost:3001
+      # This docker-compose assumes localhost for browser access.
+      # For production/external access, adjust to your domain/IP.
+      NEXT_PUBLIC_PORTAL_NAME: ${NEXT_PUBLIC_PORTAL_NAME:-Nagma Tattoo CRM}
+      NEXT_PUBLIC_PORTAL_SHORT_NAME: ${NEXT_PUBLIC_PORTAL_SHORT_NAME:-Nagma}
+      NEXT_PUBLIC_PORTAL_DESCRIPTION: ${NEXT_PUBLIC_PORTAL_DESCRIPTION:-Gestionale completo Nagma Tattoo Studio}
+      NEXT_PUBLIC_PORTAL_LOGIN_TAGLINE: ${NEXT_PUBLIC_PORTAL_LOGIN_TAGLINE:-Nagma Tattoo Studio Management}
+      NEXT_PUBLIC_PORTAL_LOGO: ${NEXT_PUBLIC_PORTAL_LOGO:-/logo.svg}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001}
+    ports:
+      - '3000:3000'
+    networks:
+      - nagma_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+networks:
+  nagma_network:
+    driver: bridge
+
+volumes:
+  nagma_data:
+    driver: local

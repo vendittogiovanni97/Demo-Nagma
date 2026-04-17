@@ -7,6 +7,6 @@ export default defineConfig({
   },
   datasource: {
     provider: "postgresql",
-    url: process.env.DATABASE_URL || "postgresql://root:root123@localhost:5432/nagmadb?schema=public",
+    url: process.env.DATABASE_URL || "postgresql://root:root123@localhost:5432/nagmadb_?schema=public",
   },
 });

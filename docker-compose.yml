@@ -4,10 +4,10 @@ services:
   # PostgreSQL Database Service
   postgres:
     image: postgres:17-alpine
-    container_name: nagma-db
+    container_name: backend-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nagmadb
+      POSTGRES_DB: nagmadb_
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root123
     ports:

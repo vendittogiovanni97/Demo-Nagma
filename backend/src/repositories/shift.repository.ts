@@ -7,7 +7,7 @@ export type ShiftData = {
   endTime: string;
   breakDuration?: number;
   notes?: string;
-  staffId: string;
+  staffId: number;
 };
 
 export class ShiftRepository {
@@ -17,13 +17,8 @@ export class ShiftRepository {
     endTime: string;
     breakDuration?: number;
     notes?: string;
-    staffId: string;
+    staffId: number;
   }) {
-    const staffId = parseInt(data.staffId, 10);
-    if (isNaN(staffId)) {
-      throw new Error('Invalid staffId: must be a valid integer');
-    }
-
     return prisma.shift.create({
       data: {
         date: data.date,
@@ -31,7 +26,7 @@ export class ShiftRepository {
         endTime: data.endTime,
         breakDuration: data.breakDuration,
         notes: data.notes,
-        staffId,
+        staffId: data.staffId,
       },
       include: { staff: true },
     });
@@ -61,11 +56,7 @@ export class ShiftRepository {
     if (data.notes !== undefined) updateData.notes = data.notes;
 
     if (data.staffId !== undefined) {
-      const staffId = parseInt(data.staffId, 10);
-      if (isNaN(staffId)) {
-        throw new Error('Invalid staffId: must be a valid integer');
-      }
-      updateData.staffId = staffId;
+      updateData.staff = { connect: { id: data.staffId } };
     }
 
     return prisma.shift.update({
@@ -79,14 +70,9 @@ export class ShiftRepository {
     await prisma.shift.delete({ where: { id } });
   }
 
-  async findByStaffId(staffId: string) {
-    const parsedStaffId = parseInt(staffId, 10);
-    if (isNaN(parsedStaffId)) {
-      throw new Error('Invalid staffId: must be a valid integer');
-    }
-
+  async findByStaffId(staffId: number) {
     return prisma.shift.findMany({
-      where: { staffId: parsedStaffId },
+      where: { staffId },
       orderBy: { date: 'asc' },
       include: { staff: true },
     });
@@ -106,18 +92,13 @@ export class ShiftRepository {
   }
 
   async findByStaffAndDateRange(
-    staffId: string,
+    staffId: number,
     startDate: Date,
     endDate: Date
   ) {
-    const parsedStaffId = parseInt(staffId, 10);
-    if (isNaN(parsedStaffId)) {
-      throw new Error('Invalid staffId: must be a valid integer');
-    }
-
     return prisma.shift.findMany({
       where: {
-        staffId: parsedStaffId,
+        staffId,
         date: {
           gte: startDate,
           lte: endDate,
@@ -129,20 +110,15 @@ export class ShiftRepository {
   }
 
   async isTimeConflict(
-    staffId: string,
+    staffId: number,
     date: Date,
     startTime: string,
     endTime: string,
     excludeId?: string
   ): Promise<boolean> {
-    const parsedStaffId = parseInt(staffId, 10);
-    if (isNaN(parsedStaffId)) {
-      throw new Error('Invalid staffId: must be a valid integer');
-    }
-
     const shifts = await prisma.shift.findMany({
       where: {
-        staffId: parsedStaffId,
+        staffId,
         date: {
           gte: new Date(date.toDateString()),
           lt: new Date(new Date(date.toDateString()).getTime() + 24 * 60 * 60 * 1000),

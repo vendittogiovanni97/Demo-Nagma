@@ -11,7 +11,7 @@ interface FormSelectProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: SelectOption[];
+  options: readonly SelectOption[];
   required?: boolean;
   icon?: LucideIcon;
   placeholder?: string;

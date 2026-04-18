@@ -14,20 +14,27 @@ export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput,
     return this.prisma.user.create({ data });
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.prisma.user.findFirst({ where: { id: parseInt(id), deletedAt: null } });
+  async findById(id: string | number): Promise<User | null> {
+    const userId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
   }
 
   async findAll(): Promise<User[]> {
     return this.prisma.user.findMany({ where: { deletedAt: null }, orderBy: { name: 'asc' } });
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
-    return this.prisma.user.update({ where: { id: parseInt(id) }, data });
+  async update(id: string | number, data: Prisma.UserUpdateInput): Promise<User> {
+    const userId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.user.update({ where: { id: userId }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await softDelete(this.prisma.user, parseInt(id));
+  async delete(id: string | number): Promise<void> {
+    const userId = typeof id === 'number' ? id : parseInt(id, 10);
+    await softDelete(this.prisma.user, userId);
+  }
+
+  async softDelete(id: string | number): Promise<void> {
+    await this.delete(id);
   }
 
   // ============================================================================

@@ -131,13 +131,13 @@ export default function Navbar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 transition-all duration-200 p-1.5 ${
+              className={`flex flex-col items-center justify-center gap-0.5 transition-all duration-200 p-1.5 ${
                 isActive
                   ? "text-accent -translate-y-0.5"
                   : "text-text-secondary hover:text-accent hover:-translate-y-0.5"
               }`}
             >
-              <Icon size={20} />
+              <Icon size={20} className="shrink-0" />
               <span className="text-[0.6rem] font-bold uppercase tracking-[0.5px] font-outfit">
                 {item.name}
               </span>
@@ -150,7 +150,7 @@ export default function Navbar() {
         <Button
           variant="primary"
           size="md"
-          icon={<Plus size={22} />}
+          icon={<Plus size={22} className="shrink-0" />}
           onClick={() => setIsBookingOpen(true)}
           className="w-9.5 h-9.5 p-0 rounded-full flex items-center justify-center"
         />
@@ -191,18 +191,18 @@ export default function Navbar() {
                 <Link
                   href="/settings"
                   onClick={() => setIsUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                  className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
                 >
-                  <Settings size={16} />
+                  <Settings size={16} className="shrink-0" />
                   <span>Impostazioni</span>
                 </Link>
                 {canManageFormTemplates(user?.role) && (
                   <Link
                     href="/form-templates"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                    className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
                   >
-                    <FileText size={16} />
+                    <FileText size={16} className="shrink-0" />
                     <span>Form Template</span>
                   </Link>
                 )}
@@ -210,18 +210,18 @@ export default function Navbar() {
                   <Link
                     href="/whatsapp"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                    className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
                   >
-                    <MessageSquare size={16} />
+                    <MessageSquare size={16} className="shrink-0" />
                     <span>WhatsApp</span>
                   </Link>
                 )}
                 <Link
                   href="/spese-libere"
                   onClick={() => setIsUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
+                  className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
                 >
-                  <Receipt size={16} />
+                  <Receipt size={16} className="shrink-0" />
                   <span>Spese Libere</span>
                 </Link>
                 <Button
@@ -232,7 +232,7 @@ export default function Navbar() {
                     setIsUserMenuOpen(false);
                     logout();
                   }}
-                  className="justify-start text-text-secondary hover:text-danger hover:bg-danger/10 px-3"
+                  className="justify-start items-center text-text-secondary hover:text-danger hover:bg-danger/10 px-3"
                 >
                   Logout
                 </Button>

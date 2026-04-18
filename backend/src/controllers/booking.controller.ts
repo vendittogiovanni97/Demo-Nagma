@@ -21,12 +21,12 @@ export class BookingController {
   });
 
   create = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user?.id ?? 'system';
+    const userId = req.user?.id?.toString() ?? 'system';
     res.status(201).json(await service.createBooking(req.body, userId));
   });
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user?.id ?? 'system';
+    const userId = req.user?.id?.toString() ?? 'system';
     res.json(await service.updateBooking(Number(req.params.id), req.body, userId));
   });
 

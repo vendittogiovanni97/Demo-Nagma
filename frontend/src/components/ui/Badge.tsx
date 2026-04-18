@@ -82,14 +82,14 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
             type="button"
             onClick={onRemove}
             className={clsx(
-              'ml-1 flex items-center justify-center cursor-pointer',
+              'ml-1 flex items-center justify-center cursor-pointer shrink-0',
               'hover:opacity-70 transition-opacity duration-150',
               'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current',
               closeButtonSizeClass
             )}
             aria-label="Rimuovi"
           >
-            <X size={16} />
+            <X size={16} className="shrink-0" />
           </button>
         )}
       </div>

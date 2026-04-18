@@ -19,7 +19,7 @@ export class SpesaLiberaController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     const existing = await prisma.spesaLibera.findUnique({ where: { id } });
     if (!existing) {
       throw new AppError('Spesa non trovata', 404, 'NOT_FOUND');

@@ -13,8 +13,9 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
     return this.prisma.staff.create({ data });
   }
 
-  async findById(id: string): Promise<Staff | null> {
-    return this.prisma.staff.findUnique({ where: { id: parseInt(id) } });
+  async findById(id: string | number): Promise<Staff | null> {
+    const staffId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.staff.findUnique({ where: { id: staffId } });
   }
 
   async findAll(): Promise<Staff[]> {
@@ -23,12 +24,14 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
     });
   }
 
-  async update(id: string, data: Prisma.StaffUpdateInput): Promise<Staff> {
-    return this.prisma.staff.update({ where: { id: parseInt(id) }, data });
+  async update(id: string | number, data: Prisma.StaffUpdateInput): Promise<Staff> {
+    const staffId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.staff.update({ where: { id: staffId }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.staff.delete({ where: { id: parseInt(id) } });
+  async delete(id: string | number): Promise<void> {
+    const staffId = typeof id === 'number' ? id : parseInt(id, 10);
+    await this.prisma.staff.delete({ where: { id: staffId } });
   }
 
   // ============================================================================
@@ -77,7 +80,6 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
    */
   async findAllShifts() {
     return this.prisma.staff.findMany({
-      where: { deletedAt: null },
       select: {
         id: true,
         name: true,

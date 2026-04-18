@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Inter, Outfit } from 'next/font/google';
 import { ToastProvider } from '@/components/ui/Toast/ToastContext';
 import { ToastContainer } from '@/components/ui/Toast/ToastContainer';
 import { AuthProvider } from '@/context/AuthContext';
@@ -7,9 +6,6 @@ import Navbar from '@/components/layout/Navbar';
 import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
 import { branding } from '@/config/branding';
 import './globals.css';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 
 export const metadata: Metadata = {
   title: branding.portalName,
@@ -24,7 +20,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased text-text-primary`}>
+      <body className="font-sans antialiased text-text-primary">
         {/* ============ BEGIN: TOAST SYSTEM INTEGRATION ============ */}
         <ToastProvider>
           {/* ============ END: TOAST PROVIDER WRAPPER START ============ */}

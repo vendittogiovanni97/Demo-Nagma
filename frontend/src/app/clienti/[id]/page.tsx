@@ -23,6 +23,7 @@ import StatePanel from '@/components/feedback/StatePanel';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import CustomerModal from '@/components/modals/CustomerModal';
+import { ENDPOINTS } from '@/api/endpoints';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/customer.service';

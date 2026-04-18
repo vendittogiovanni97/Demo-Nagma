@@ -11,6 +11,9 @@
   --color-text-secondary: #d1d1d1;
   --color-danger: #ff5252;
   --color-success: #25D366;
+  --font-sans: "Inter", "Segoe UI", sans-serif;
+  --font-outfit: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-inter: "Inter", "Segoe UI", sans-serif;
 }
 
 body {
@@ -23,6 +26,14 @@ body {
     radial-gradient(circle at bottom left, rgba(0, 191, 255, 0.05), transparent 800px),
     radial-gradient(circle at center, rgba(0, 191, 255, 0.01), transparent 1000px),
     linear-gradient(180deg, #08121a 0%, #091620 100%);
+}
+
+.font-outfit {
+  font-family: var(--font-outfit);
+}
+
+.font-inter {
+  font-family: var(--font-inter);
 }
 
 /* Autofill: rimuovi sfondo bianco di Chrome/Safari */
@@ -56,4 +67,3 @@ input:-webkit-autofill:focus {
 .btn-primary:hover {
   @apply scale-105 shadow-[0_0_20px_rgba(0,191,255,0.5)];
 }
-

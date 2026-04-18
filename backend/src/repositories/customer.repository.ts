@@ -33,8 +33,8 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
     return this.prisma.customer.create({ data });
   }
 
-  async findById(id: string): Promise<Customer | null> {
-    const customerId = parseInt(id);
+  async findById(id: string | number): Promise<Customer | null> {
+    const customerId = typeof id === 'number' ? id : parseInt(id, 10);
     return this.prisma.customer.findFirst({
       where: { id: customerId, deletedAt: null },
       include: {
@@ -66,12 +66,18 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
     });
   }
 
-  async update(id: string, data: Prisma.CustomerUpdateInput): Promise<Customer> {
-    return this.prisma.customer.update({ where: { id: parseInt(id) }, data });
+  async update(id: string | number, data: Prisma.CustomerUpdateInput): Promise<Customer> {
+    const customerId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.customer.update({ where: { id: customerId }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await softDelete(this.prisma.customer, parseInt(id));
+  async delete(id: string | number): Promise<void> {
+    const customerId = typeof id === 'number' ? id : parseInt(id, 10);
+    await softDelete(this.prisma.customer, customerId);
+  }
+
+  async softDelete(id: string | number): Promise<void> {
+    await this.delete(id);
   }
 
   // ============================================================================

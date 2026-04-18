@@ -6,7 +6,7 @@ import { StaffRepository } from '../repositories/staff.repository';
 import { ShiftRepository } from '../repositories/shift.repository';
 import { AppError } from '../utils/AppError';
 import { validate, createStaffSchema, createShiftSchema, updateShiftSchema, updateStaffSchema, resetPasswordSchema } from '../schemas';
-import { getStartOfWeek, parseUTCDate } from '../utils/date-utils';
+import { parseUTCDate } from '../utils/date-utils';
 
 const userRepo = new UserRepository();
 const staffRepo = new StaffRepository();
@@ -26,6 +26,13 @@ function resolveShiftLabel(label?: string, defaults?: { startTime?: string; endT
     endTime: defaults?.endTime,
     isOff: defaults?.isOff,
   };
+}
+
+function buildShiftDate(weekStart: string, dayOfWeek: number) {
+  const baseDate = parseUTCDate(weekStart);
+  const date = new Date(baseDate);
+  date.setUTCDate(baseDate.getUTCDate() + dayOfWeek);
+  return date;
 }
 
 export class TeamService {
@@ -58,122 +65,57 @@ export class TeamService {
 
   async getShifts(weekStart?: string) {
     if (!weekStart) throw new AppError('Il parametro weekStart è obbligatorio (es. "2026-03-30").', 400);
-    const allStaff = await staffRepo.findAllShifts();
-    
-    const flattenedShifts: any[] = [];
-    allStaff.forEach(s => {
-      const staffShifts = (s.shifts as any)?.[weekStart];
-      if (staffShifts) {
-        Object.entries(staffShifts).forEach(([day, shift]: [string, any]) => {
-          flattenedShifts.push({
-            id: `${s.id}-${weekStart}-${day}`, // ID sintetico per mantenere compatibility frontend
-            staffId: s.id,
-            weekStart,
-            dayOfWeek: parseInt(day),
-            ...shift,
-            staff: { id: s.id, name: s.name, color: s.color, type: s.type }
-          });
-        });
-      }
-    });
+    const startDate = parseUTCDate(weekStart);
+    const endDate = new Date(startDate);
+    endDate.setUTCDate(startDate.getUTCDate() + 6);
 
-    return flattenedShifts;
+    return shiftRepo.findByDateRange(startDate, endDate);
   }
 
   async createShift(body: unknown) {
     const data = validate(createShiftSchema, body);
     const resolved = resolveShiftLabel(data.label, data);
-    const weekStart = data.weekStart;
-
     const staff = await staffRepo.findById(data.staffId);
     if (!staff) throw new AppError('Staff non trovato', 404);
+    const date = buildShiftDate(data.weekStart, data.dayOfWeek);
 
-    const shifts = (staff.shifts as any) || {};
-    if (!shifts[weekStart]) shifts[weekStart] = {};
-    
-    shifts[weekStart][data.dayOfWeek] = {
-      startTime: resolved.startTime ?? '',
-      endTime: resolved.endTime ?? '',
-      label: data.label,
-      isOff: resolved.isOff ?? false,
+    if (!resolved.isOff && (!resolved.startTime || !resolved.endTime)) {
+      throw new AppError('startTime ed endTime sono obbligatori se il turno non è di riposo', 400);
+    }
+
+    return shiftRepo.create({
+      staffId: data.staffId,
+      date,
+      startTime: resolved.startTime ?? '00:00',
+      endTime: resolved.endTime ?? '00:00',
       notes: data.notes,
-    };
-
-    await staffRepo.update(staff.id, { shifts });
-    
-    return {
-      id: `${staff.id}-${weekStart}-${data.dayOfWeek}`,
-      staffId: staff.id,
-      weekStart,
-      dayOfWeek: data.dayOfWeek,
-      ...shifts[weekStart][data.dayOfWeek],
-      staff: { id: staff.id, name: staff.name, color: staff.color, type: staff.type }
-    };
+      breakDuration: undefined,
+    });
   }
 
-  async updateShift(compositeId: string, body: unknown) {
-    // In questo nuovo modello, usiamo i dati nel body o l'ID sintetico (staffId-weekStart-day)
+  async updateShift(id: string, body: unknown) {
     const data = validate(updateShiftSchema, body);
-    const [staffIdStr, weekStart, dayStr] = compositeId.split('-');
-    const staffId = parseInt(staffIdStr);
-    const dayOfWeek = parseInt(dayStr);
+    const existing = await shiftRepo.findById(id);
+    if (!existing) throw new AppError('Turno non trovato', 404);
 
-    if (isNaN(staffId) || !weekStart || isNaN(dayOfWeek)) {
-      throw new AppError('ID shift non valido (formato atteso: staffId-weekStart-dayOfWeek)', 400);
-    }
+    const resolved = resolveShiftLabel(data.label, data as any);
+    const nextDate = data.weekStart !== undefined && data.dayOfWeek !== undefined
+      ? buildShiftDate(data.weekStart, data.dayOfWeek)
+      : existing.date;
 
-    const staff = await staffRepo.findById(staffId);
-    if (!staff) throw new AppError('Staff non trovato', 404);
-
-    const shifts = (staff.shifts as any) || {};
-    if (!shifts[weekStart] || !shifts[weekStart][dayOfWeek]) {
-      throw new AppError('Turno non trovato per questa data', 404);
-    }
-
-    const currentShift = shifts[weekStart][dayOfWeek];
-    const resolved = resolveShiftLabel(data.label ?? currentShift.label, data as any);
-
-    shifts[weekStart][dayOfWeek] = {
-      ...currentShift,
-      ...(data.startTime !== undefined ? { startTime: data.startTime } : { startTime: resolved.startTime }),
-      ...(data.endTime !== undefined ? { endTime: data.endTime } : { endTime: resolved.endTime }),
-      ...(data.label !== undefined ? { label: data.label } : {}),
-      ...(data.isOff !== undefined ? { isOff: data.isOff } : { isOff: resolved.isOff }),
+    return shiftRepo.update(id, {
+      ...(data.weekStart !== undefined && data.dayOfWeek !== undefined ? { date: nextDate } : {}),
+      ...(data.startTime !== undefined ? { startTime: data.startTime } : {}),
+      ...(data.endTime !== undefined ? { endTime: data.endTime } : {}),
       ...(data.notes !== undefined ? { notes: data.notes } : {}),
-    };
-
-    await staffRepo.update(staff.id, { shifts });
-
-    return {
-      id: compositeId,
-      staffId: staff.id,
-      weekStart,
-      dayOfWeek,
-      ...shifts[weekStart][dayOfWeek],
-      staff: { id: staff.id, name: staff.name, color: staff.color, type: staff.type }
-    };
+      ...(data.isOff ? { startTime: '00:00', endTime: '00:00' } : {}),
+      ...(!data.isOff && resolved.startTime !== undefined && data.startTime === undefined ? { startTime: resolved.startTime } : {}),
+      ...(!data.isOff && resolved.endTime !== undefined && data.endTime === undefined ? { endTime: resolved.endTime } : {}),
+    });
   }
 
-  async deleteShift(compositeId: string) {
-    const [staffIdStr, weekStart, dayStr] = compositeId.split('-');
-    const staffId = parseInt(staffIdStr);
-    const dayOfWeek = parseInt(dayStr);
-
-    if (isNaN(staffId) || !weekStart || isNaN(dayOfWeek)) {
-      throw new AppError('ID shift non valido', 400);
-    }
-
-    const staff = await staffRepo.findById(staffId);
-    if (!staff) throw new AppError('Staff non trovato', 404);
-
-    const shifts = (staff.shifts as any) || {};
-    if (shifts[weekStart] && shifts[weekStart][dayOfWeek]) {
-      delete shifts[weekStart][dayOfWeek];
-      if (Object.keys(shifts[weekStart]).length === 0) {
-        delete shifts[weekStart];
-      }
-      await staffRepo.update(staff.id, { shifts });
-    }
+  async deleteShift(id: string) {
+    return shiftRepo.delete(id);
   }
 
   /**
@@ -186,15 +128,19 @@ export class TeamService {
   /**
    * Restituisce i turni di uno specifico staff
    */
-  async getStaffShifts(staffId: string): Promise<Shift[]> {
-    return this.shiftRepository.findByStaffId(staffId);
+  async getStaffShifts(staffId: string | number): Promise<Shift[]> {
+    const parsedStaffId = typeof staffId === 'number' ? staffId : Number(staffId);
+    if (Number.isNaN(parsedStaffId)) {
+      throw new AppError('staffId non valido', 400);
+    }
+    return this.shiftRepository.findByStaffId(parsedStaffId);
   }
 
   /**
    * Crea un nuovo turno con controllo di conflitti orari
    */
   async createShiftWithConflictCheck(data: {
-    staffId: string;
+    staffId: number;
     date: Date;
     startTime: string;
     endTime: string;

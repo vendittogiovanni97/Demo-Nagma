@@ -10,12 +10,13 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
 import type { Staff } from '@/types/team';
-import Button from '../ui/Button';
 
 const TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
   { value: 'APPRENDISTA', label: 'Apprendista' },
 ] as const;
+
+type StaffTypeValue = (typeof TYPE_OPTIONS)[number]['value'];
 
 const COLOR_PRESETS = ['#4ec9e0', '#ff6b6b', '#a78bfa', '#34d399', '#fbbf24', '#f87171'];
 
@@ -30,7 +31,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
   const toast = useToast();
   const { can } = useAuth();
   const [name, setName] = useState(member?.name || '');
-  const [type, setType] = useState(member?.type || 'COLLABORATORE');
+  const [type, setType] = useState<StaffTypeValue>(member?.type || 'COLLABORATORE');
   const [color, setColor] = useState(member?.color || COLOR_PRESETS[0]);
   const [loading, setLoading] = useState(false);
 
@@ -89,7 +90,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
         <FormSelect
           label="Ruolo/Tipo"
           value={type}
-          onChange={setType}
+          onChange={(value) => setType(value as StaffTypeValue)}
           options={TYPE_OPTIONS}
           required
         />

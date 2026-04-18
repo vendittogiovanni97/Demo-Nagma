@@ -17,7 +17,7 @@ import { teamService } from '@/services/team.service';
 import type { Shift } from '@/types/team';
 import { addDays, addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Edit, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
@@ -46,7 +46,11 @@ export default function TeamPage() {
   });
   const { data: shifts, isLoading: loadingShifts, mutate: mutateShifts, error: shiftsError } = useTeamShifts(week);
 
-  const membersList = membersResult?.data || [];
+  const membersList = (membersResult?.data || []).sort((a, b) => {
+    if (a.type === 'COLLABORATORE' && b.type !== 'COLLABORATORE') return -1;
+    if (a.type !== 'COLLABORATORE' && b.type === 'COLLABORATORE') return 1;
+    return 0;
+  });
 
   const handlePrevWeek = () => {
     setWeek(prev => format(subWeeks(parseISO(prev), 1), 'yyyy-MM-dd'));
@@ -233,14 +237,24 @@ export default function TeamPage() {
                        </Badge>
                     </div>
                     {canManageMembers && (
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleDeleteMember(m.id, m.name)}
-                        icon={<Trash2 size={16} />}
-                        className="absolute right-4 opacity-0 group-hover/row:opacity-100 transition-all"
-                        title="Rimuovi dal team"
-                      />
+                      <>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setIsStaffModalOpen(true)}
+                          icon={<Edit size={16} />}
+                          className="absolute right-16 opacity-0 group-hover/row:opacity-100 transition-all"
+                          title="Modifica staff"
+                        />
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDeleteMember(m.id, m.name)}
+                          icon={<Trash2 size={16} />}
+                          className="absolute right-4 opacity-0 group-hover/row:opacity-100 transition-all"
+                          title="Rimuovi dal team"
+                        />
+                      </>
                     )}
                   </div>
 

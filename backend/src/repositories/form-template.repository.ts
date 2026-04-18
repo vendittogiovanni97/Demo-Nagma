@@ -12,8 +12,9 @@ export class FormTemplateRepository extends BaseRepository<FormTemplate, Prisma.
     return this.prisma.formTemplate.create({ data });
   }
 
-  async findById(id: string): Promise<FormTemplate | null> {
-    return this.prisma.formTemplate.findUnique({ where: { id: parseInt(id) } });
+  async findById(id: string | number): Promise<FormTemplate | null> {
+    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.formTemplate.findUnique({ where: { id: templateId } });
   }
 
   async findAll(): Promise<FormTemplate[]> {
@@ -22,11 +23,13 @@ export class FormTemplateRepository extends BaseRepository<FormTemplate, Prisma.
     });
   }
 
-  async update(id: string, data: Prisma.FormTemplateUpdateInput): Promise<FormTemplate> {
-    return this.prisma.formTemplate.update({ where: { id: parseInt(id) }, data });
+  async update(id: string | number, data: Prisma.FormTemplateUpdateInput): Promise<FormTemplate> {
+    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.formTemplate.update({ where: { id: templateId }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.formTemplate.delete({ where: { id: parseInt(id) } });
+  async delete(id: string | number): Promise<void> {
+    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    await this.prisma.formTemplate.delete({ where: { id: templateId } });
   }
 }

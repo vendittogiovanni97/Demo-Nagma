@@ -103,7 +103,7 @@ export class TeamController {
         endTime,
         breakDuration: breakDuration ? parseInt(breakDuration, 10) : undefined,
         notes,
-        staffId
+        staffId: Number(staffId),
       });
 
       res.status(201).json({ data: shift });

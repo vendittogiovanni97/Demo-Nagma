@@ -8,3 +8,5 @@ export const createStaffSchema = z.object({
   type:  z.nativeEnum(StaffType),
   color: nonEmptyString('Il colore è obbligatorio'),
 });
+
+export const updateStaffSchema = createStaffSchema.partial();

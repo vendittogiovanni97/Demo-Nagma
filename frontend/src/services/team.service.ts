@@ -2,6 +2,57 @@ import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
 import type { Staff, CreateStaffData, Shift, CreateShiftData } from '@/types/team';
 import type { PaginatedResponse } from '@/types/pagination';
+import { format, startOfWeek, parse } from 'date-fns';
+
+/**
+ * Trasforma i dati grezzi dal backend nel formato atteso dal frontend
+ * Backend ritorna: { id, date, startTime, endTime, staffId, staff, ... }
+ * Frontend aspetta: { id, staffId, weekStart, dayOfWeek, startTime, endTime, label, isOff, staff }
+ */
+function transformShiftFromBackend(rawShift: any): Shift {
+  const date = new Date(rawShift.date);
+
+  // Calcola weekStart (lunedì della settimana)
+  const weekStart = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+
+  // Calcola dayOfWeek (0 = lunedì, 6 = domenica)
+  const dayOfWeek = date.getUTCDay() === 0 ? 6 : date.getUTCDay() - 1;
+
+  // Determina label e isOff basandosi su startTime e endTime
+  const startTime = rawShift.startTime || '';
+  const endTime = rawShift.endTime || '';
+
+  let label: string | undefined;
+  let isOff = false;
+
+  if (!startTime || !endTime || (startTime === '00:00' && endTime === '00:00')) {
+    isOff = true;
+    label = 'Riposo';
+  } else if (startTime === '09:00' && endTime === '13:00') {
+    label = 'Mattina';
+  } else if (startTime === '14:00' && endTime === '19:00') {
+    label = 'Pomeriggio';
+  } else if (startTime === '09:00' && endTime === '19:00') {
+    label = 'Tutta la giornata';
+  }
+
+  return {
+    id: rawShift.id,
+    staffId: rawShift.staffId,
+    weekStart,
+    dayOfWeek,
+    startTime,
+    endTime,
+    label,
+    isOff,
+    notes: rawShift.notes,
+    staff: rawShift.staff ? {
+      id: rawShift.staff.id,
+      name: rawShift.staff.name,
+      color: rawShift.staff.color,
+    } : undefined,
+  };
+}
 
 export const teamService = {
   getMembers: async ({
@@ -30,7 +81,11 @@ export const teamService = {
     return apiClient.put<void>(`${ENDPOINTS.TEAM.MEMBER_BY_ID(id)}/reset-password`, { newPassword });
   },
   getShifts: async (weekStart: string): Promise<Shift[]> => {
-    return apiClient.get<Shift[]>(ENDPOINTS.TEAM.SHIFTS, { weekStart });
+    const response = await apiClient.get<any>(ENDPOINTS.TEAM.SHIFTS, { weekStart });
+    // Il backend potrebbe ritornare un array direttamente o un oggetto con data
+    const rawShifts = Array.isArray(response) ? response : (response?.data || []);
+    // Trasforma i dati dal formato backend al formato frontend
+    return rawShifts.map(transformShiftFromBackend);
   },
   createShift: async (data: CreateShiftData) => {
     return apiClient.post(ENDPOINTS.TEAM.SHIFTS, data);

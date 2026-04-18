@@ -13,22 +13,23 @@ export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate,
     return this.prisma.whatsAppTemplate.create({ data });
   }
 
-  async findById(id: string): Promise<WhatsAppTemplate | null> {
-    return this.prisma.whatsAppTemplate.findUnique({ where: { id: parseInt(id) } });
+  async findById(id: string | number): Promise<WhatsAppTemplate | null> {
+    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.whatsAppTemplate.findUnique({ where: { id: templateId } });
   }
 
-  async findAll(): Promise<WhatsAppTemplate[]> {
-    return this.prisma.whatsAppTemplate.findMany({
-      orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
-    });
+  async findAll(search?: string): Promise<WhatsAppTemplate[]> {
+    return this.findAllWithSearch(search);
   }
 
-  async update(id: string, data: Prisma.WhatsAppTemplateUpdateInput): Promise<WhatsAppTemplate> {
-    return this.prisma.whatsAppTemplate.update({ where: { id: parseInt(id) }, data });
+  async update(id: string | number, data: Prisma.WhatsAppTemplateUpdateInput): Promise<WhatsAppTemplate> {
+    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.whatsAppTemplate.update({ where: { id: templateId }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.whatsAppTemplate.delete({ where: { id: parseInt(id) } });
+  async delete(id: string | number): Promise<void> {
+    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    await this.prisma.whatsAppTemplate.delete({ where: { id: templateId } });
   }
 
   // ============================================================================

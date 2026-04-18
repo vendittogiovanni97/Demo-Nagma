@@ -4,7 +4,6 @@ import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
-import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth.routes';
 import bookingRoutes from './routes/booking.routes';
 import customerRoutes from './routes/customer.routes';
@@ -15,6 +14,7 @@ import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
 import spesaLiberaRoutes from './routes/spesa-libera.routes';
 import { config } from './config/env';
+import { getSwaggerSpec } from './config/swagger';
 import { AppError } from './utils/AppError';
 import { getRequestContext, isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
 import prisma from './utils/prisma';
@@ -98,12 +98,17 @@ export function createApp() {
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
   app.use('/api/spese-libere', spesaLiberaRoutes);
 
-  // Swagger API Docs
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Nagma Tattoo CRM - API Docs',
-  }));
+  // Build the Swagger spec only when /api-docs is actually requested.
+  app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {
+    const swaggerSpec = getSwaggerSpec();
+    const swaggerHandler = swaggerUi.setup(swaggerSpec, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Nagma Tattoo CRM - API Docs',
+    });
+
+    swaggerHandler(req, res, next);
+  });
 
   app.get('/health', async (_req: Request, res: Response) => {
     try {

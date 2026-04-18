@@ -25,24 +25,28 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     return this.prisma.booking.create({ data });
   }
 
-  async findById(id: string): Promise<Booking | null> {
-    return this.prisma.booking.findUnique({ where: { id: parseInt(id) } });
+  async findById(id: number): Promise<Booking | null> {
+    return this.prisma.booking.findUnique({ where: { id } });
   }
 
-  async findAll(): Promise<Booking[]> {
+  async findAll(monthStr?: string): Promise<Booking[]> {
     return this.prisma.booking.findMany({
-      where: this.buildBaseWhere(),
+      where: this.buildBaseWhere(monthStr),
       orderBy: { date: 'asc' },
       include: { customer: true, artist: true },
     });
   }
 
-  async update(id: string, data: Prisma.BookingUpdateInput): Promise<Booking> {
-    return this.prisma.booking.update({ where: { id: parseInt(id) }, data });
+  async update(id: number, data: Prisma.BookingUpdateInput): Promise<Booking> {
+    return this.prisma.booking.update({ where: { id }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await softDelete(this.prisma.booking, parseInt(id));
+  async delete(id: number): Promise<void> {
+    await softDelete(this.prisma.booking, id);
+  }
+
+  async softDelete(id: number): Promise<void> {
+    await this.delete(id);
   }
 
   // ============================================================================

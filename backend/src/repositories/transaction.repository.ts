@@ -14,8 +14,9 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
     return this.prisma.transaction.create({ data });
   }
 
-  async findById(id: string): Promise<Transaction | null> {
-    return this.prisma.transaction.findUnique({ where: { id: parseInt(id) } });
+  async findById(id: string | number): Promise<Transaction | null> {
+    const transactionId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.transaction.findUnique({ where: { id: transactionId } });
   }
 
   async findAll(): Promise<Transaction[]> {
@@ -25,12 +26,18 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
     });
   }
 
-  async update(id: string, data: Prisma.TransactionUpdateInput): Promise<Transaction> {
-    return this.prisma.transaction.update({ where: { id: parseInt(id) }, data });
+  async update(id: string | number, data: Prisma.TransactionUpdateInput): Promise<Transaction> {
+    const transactionId = typeof id === 'number' ? id : parseInt(id, 10);
+    return this.prisma.transaction.update({ where: { id: transactionId }, data });
   }
 
-  async delete(id: string): Promise<void> {
-    await softDelete(this.prisma.transaction, parseInt(id));
+  async delete(id: string | number): Promise<void> {
+    const transactionId = typeof id === 'number' ? id : parseInt(id, 10);
+    await softDelete(this.prisma.transaction, transactionId);
+  }
+
+  async softDelete(id: string | number): Promise<void> {
+    await this.delete(id);
   }
 
   // ============================================================================

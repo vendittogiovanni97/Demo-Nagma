@@ -33,7 +33,7 @@ export class TransactionController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    await service.deleteTransaction(String(req.params.id));
+    await service.deleteTransaction(Number(req.params.id));
     res.status(204).send();
   });
 }

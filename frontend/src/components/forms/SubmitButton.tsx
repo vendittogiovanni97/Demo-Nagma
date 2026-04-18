@@ -1,13 +1,13 @@
 "use client";
 
-import { ReactNode } from 'react';
+import { ReactNode, type ComponentType } from 'react';
 import Button from '@/components/ui/Button';
 
 interface SubmitButtonProps {
   loading: boolean;
   label: string;
   loadingLabel?: string;
-  icon?: ReactNode;
+  icon?: ReactNode | ComponentType<{ size?: number; className?: string }>;
   variant?: 'primary' | 'secondary' | 'danger';
   disabled?: boolean;
 }

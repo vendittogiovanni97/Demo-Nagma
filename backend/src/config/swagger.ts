@@ -4,6 +4,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const swaggerJsdoc = require('swagger-jsdoc');
 
+let cachedSwaggerSpec: ReturnType<typeof swaggerJsdoc> | null = null;
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -50,7 +52,7 @@ const options = {
         User: {
           type: 'object',
           properties: {
-            id: { type: 'string', format: 'cuid' },
+            id: { type: 'integer' },
             name: { type: 'string' },
             email: { type: 'string', format: 'email' },
             role: { type: 'string', enum: ['ADMIN', 'USER', 'ARTIST'] },
@@ -62,7 +64,7 @@ const options = {
         Customer: {
           type: 'object',
           properties: {
-            id: { type: 'string', format: 'cuid' },
+            id: { type: 'integer' },
             firstName: { type: 'string' },
             lastName: { type: 'string' },
             phone: { type: 'string' },
@@ -74,9 +76,9 @@ const options = {
         Booking: {
           type: 'object',
           properties: {
-            id: { type: 'string', format: 'cuid' },
-            customerId: { type: 'string' },
-            artistId: { type: 'string' },
+            id: { type: 'integer' },
+            customerId: { type: 'integer' },
+            artistId: { type: 'integer', nullable: true },
             date: { type: 'string', format: 'date-time' },
             duration: { type: 'integer', description: 'Durata in minuti' },
             status: { type: 'string', enum: ['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED'] },
@@ -89,19 +91,19 @@ const options = {
         Transaction: {
           type: 'object',
           properties: {
-            id: { type: 'string', format: 'cuid' },
+            id: { type: 'integer' },
             type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
             category: { type: 'string' },
             description: { type: 'string' },
             amount: { type: 'number' },
             date: { type: 'string', format: 'date-time' },
-            artistId: { type: 'string' },
+            artistId: { type: 'integer', nullable: true },
           },
         },
         FormTemplate: {
           type: 'object',
           properties: {
-            id: { type: 'string', format: 'cuid' },
+            id: { type: 'integer' },
             name: { type: 'string' },
             schemaB64: { type: 'string' },
             createdAt: { type: 'string', format: 'date-time' },
@@ -136,4 +138,10 @@ const options = {
   ],
 };
 
-export const swaggerSpec = swaggerJsdoc(options);
+export function getSwaggerSpec() {
+  if (!cachedSwaggerSpec) {
+    cachedSwaggerSpec = swaggerJsdoc(options);
+  }
+
+  return cachedSwaggerSpec;
+}

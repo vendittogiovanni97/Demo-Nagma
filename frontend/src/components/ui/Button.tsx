@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { createElement, forwardRef, isValidElement, type ButtonHTMLAttributes, type ComponentType, type ElementType, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -13,7 +13,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
   isLoading?: boolean;
   loadingLabel?: string;
-  icon?: ReactNode;
+  icon?: ReactNode | ComponentType<{ size?: number; className?: string }>;
   fullWidth?: boolean;
 }
 
@@ -50,6 +50,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    const resolvedIcon = isValidElement(icon)
+      ? icon
+      : (
+        (typeof icon === 'function' || (typeof icon === 'object' && icon !== null && '$$typeof' in icon))
+          ? createElement(icon as ElementType, { size: 18 })
+          : icon
+      );
+
     const combinedClassName = twMerge(
       clsx(
         baseStyles,
@@ -74,7 +82,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </>
         ) : (
           <>
-            {icon && <span className="flex items-center justify-center">{icon}</span>}
+            {resolvedIcon && <span className="flex items-center justify-center shrink-0">{resolvedIcon}</span>}
             <span>{children}</span>
           </>
         )}

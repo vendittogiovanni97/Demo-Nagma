@@ -120,7 +120,7 @@ export class TeamController {
     const id = parseId(req.params.id);
     const member = await service.findMemberById(id);
     if (!member) throw new AppError('Membro non trovato', 404, 'NOT_FOUND');
-    res.json({ data: member });
+    res.json(member);
   });
 
   /**

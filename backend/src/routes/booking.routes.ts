@@ -148,7 +148,7 @@ router.get('/', controller.getAll);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [customerId, artistId, date, duration, type]
+ *             required: [customerId, artistId, date, duration]
  *             properties:
  *               customerId:
  *                 type: string
@@ -161,9 +161,6 @@ router.get('/', controller.getAll);
  *                 type: integer
  *                 description: Durata in minuti
  *                 example: 120
- *               type:
- *                 type: string
- *                 example: Tattoo
  *               price:
  *                 type: number
  *               deposit:

@@ -38,10 +38,10 @@ export interface CustomerSummary {
   upcomingBookings: number;
   lastBooking?: {
     date: string;
-    type: string;
     status: string;
+    price?: number | null;
     artist: { name: string };
-  };
+  } | null;
   _count: {
     bookings: number;
   };

@@ -7,7 +7,7 @@ export const createFormTemplateSchema = z.object({
   schemaB64: nonEmptyString('Lo schema Base64 è obbligatorio'),
 });
 
-export const updateFormTemplateSchema = z.object({
-  name: z.string().optional(),
-  schemaB64: z.string().optional(),
-});
+export const updateFormTemplateSchema = createFormTemplateSchema.partial().refine(
+  (data) => Object.keys(data).some(k => data[k as keyof typeof data] !== undefined),
+  { message: 'Fornisci almeno un campo da aggiornare' }
+);

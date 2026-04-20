@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/auth.service';
 import { teamService } from '@/services/team.service';
 import type { User } from '@/types/team';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Edit, KeyRound, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const ROLE_BADGE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -127,7 +127,7 @@ export default function SettingsPage() {
     {
       key: 'nome',
       label: 'Nome',
-      render: (memberData) => (
+      render: (memberData: any) => (
         <div className="flex items-center gap-3">
           <Avatar name={memberData.name} color={memberData.color} />
           <span className="font-semibold text-white">{memberData.name}</span>
@@ -137,7 +137,7 @@ export default function SettingsPage() {
     {
       key: 'type',
       label: 'Tipo',
-      render: (memberData) => (
+      render: (memberData: any) => (
         <Badge variant="info" size="sm">
           {memberData.type}
         </Badge>
@@ -302,6 +302,14 @@ export default function SettingsPage() {
                     icon={<Edit size={16} />}
                     className="p-2"
                     title="Modifica"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleResetPassword(memberData as unknown as User)}
+                    icon={<KeyRound size={16} />}
+                    className="p-2 text-amber-400 hover:text-amber-300"
+                    title="Reset Password"
                   />
                   <Button
                     variant="ghost"

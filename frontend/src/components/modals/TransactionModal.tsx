@@ -27,7 +27,7 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
   const [type, setType] = useState<TransactionType>('EXPENSE');
 
   const { isLoading: loading, handleSubmit: submitForm } = useFormModal<CreateTransactionData>({
-    onSubmit: (data) => transactionService.create(data),
+    onSubmit: async (data) => { await transactionService.create(data); return; },
     onClose,
     successMessage: `${type === 'INCOME' ? 'Entrata' : 'Spesa'} di € ${Number(amount).toFixed(2)} registrata!`,
     errorMessage: 'Errore nel salvare la transazione',

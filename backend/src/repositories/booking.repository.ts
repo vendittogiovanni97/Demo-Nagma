@@ -121,4 +121,12 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
 
     return conflicts[0] ?? null;
   }
+
+  async findWithFilters(where: Prisma.BookingWhereInput) {
+    return this.prisma.booking.findMany({
+      where,
+      orderBy: { date: 'asc' },
+      include: { customer: true, artist: true },
+    });
+  }
 }

@@ -147,7 +147,7 @@ export default function WhatsAppSendModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Invio WhatsApp Manuale" maxWidth="max-w-3xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Invio WhatsApp Manuale" maxWidth="max-w-4xl">
       {!canSend ? (
         <StatePanel
           variant="error"

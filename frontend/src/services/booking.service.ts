@@ -24,4 +24,7 @@ export const bookingService = {
   getAvailableArtists: async (date: string): Promise<any[]> => {
     return apiClient.get<any[]>(`${ENDPOINTS.BOOKINGS.BASE}/available-artists`, { date });
   },
+  verifyPassword: async (password: string): Promise<void> => {
+    return apiClient.post(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });
+  },
 };

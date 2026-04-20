@@ -1,12 +1,91 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { BookingController } from '../controllers/booking.controller';
-
 import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
 const controller = new BookingController();
 
+const verifyPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Troppi tentativi. Riprova tra qualche minuto.',
+    error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
+  },
+});
+
 router.use(authMiddleware);
+
+/**
+ * @swagger
+ * /api/bookings/export:
+ *   get:
+ *     summary: Esporta appuntamenti con filtri
+ *     description: Recupera appuntamenti filtrati per l'esportazione in CSV, PDF, XLSX
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: fromDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Data inizio filtro (ISO 8601)
+ *       - in: query
+ *         name: toDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Data fine filtro (ISO 8601)
+ *       - in: query
+ *         name: weekday
+ *         schema:
+ *           type: string
+ *           enum: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
+ *         description: Filtra per giorno della settimana
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [CONFIRMED, CANCELLED, RESCHEDULED, COMPLETED]
+ *         description: Filtra per stato appuntamento
+ *       - in: query
+ *         name: artistId
+ *         schema:
+ *           type: string
+ *         description: Filtra per ID artista
+ *       - in: query
+ *         name: customerId
+ *         schema:
+ *           type: string
+ *         description: Filtra per ID cliente
+ *     responses:
+ *       200:
+ *         description: Dati per l'esportazione
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   description: Array di appuntamenti filtrati
+ *                 count:
+ *                   type: integer
+ *                   description: Numero di appuntamenti
+ *                 filters:
+ *                   type: object
+ *                   description: Filtri applicati
+ *                 filtersLabel:
+ *                   type: string
+ *                   description: Descrizione leggibile dei filtri applicati
+ */
+router.get('/export', controller.export);
 
 /**
  * @swagger
@@ -28,6 +107,7 @@ router.use(authMiddleware);
  *       200:
  *         description: Statistiche appuntamenti
  */
+router.post('/verify-password', verifyPasswordLimiter, controller.verifyPassword);
 router.get('/stats', controller.getStats);
 router.get('/available-artists', controller.getAvailable);
 

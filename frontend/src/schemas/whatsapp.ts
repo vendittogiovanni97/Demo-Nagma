@@ -12,9 +12,9 @@ export const createWhatsAppTemplateSchema = z.object({
 export const updateWhatsAppTemplateSchema = createWhatsAppTemplateSchema.partial();
 
 export const sendWhatsAppMessageSchema = z.object({
-  templateId: z.string().trim().optional(),
-  bookingId: z.string().trim().optional(),
-  customerId: z.string().trim().optional(),
+  templateId: z.coerce.number().int().positive().optional(),
+  bookingId: z.coerce.number().int().positive().optional(),
+  customerId: z.coerce.number().int().positive().optional(),
   recipientName: z.string().trim().optional(),
   recipientPhone: nonEmptyString('Il numero di telefono è obbligatorio'),
   message: z.string().trim().optional(),

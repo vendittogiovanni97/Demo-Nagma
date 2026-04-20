@@ -16,12 +16,15 @@ import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
 import Modal from './Modal';
+import PasswordConfirmModal from './PasswordConfirmModal';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   booking?: Booking | null;
+  initialDate?: string;
+  initialTime?: string;
 }
 
 interface AvailableArtist {
@@ -56,7 +59,7 @@ const PERCENTUALE_OPTIONS = [
   { value: 'custom', label: 'Libero' },
 ];
 
-export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Props) {
+export default function BookingModal({ isOpen, onClose, onSuccess, booking, initialDate, initialTime }: Props) {
   const toast = useToast();
   const [customerId, setCustomerId] = useState('');
   const [artistId, setArtistId] = useState('');
@@ -72,6 +75,12 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
 
   const [availableArtists, setAvailableArtists] = useState<AvailableArtist[]>([]);
   const [loadingArtists, setLoadingArtists] = useState(false);
+  const [initialArtistLoaded, setInitialArtistLoaded] = useState(false);
+
+  // Password confirmation
+  const [pendingData, setPendingData] = useState<CreateBookingData | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const { data: customerResult } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const { data: templates } = useFormTemplates();
@@ -99,8 +108,12 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
         }
       }
       setDynamicValues(booking.formData as Record<string, string> || {});
+      setInitialArtistLoaded(true);
     } else if (!booking && isOpen) {
       resetForm();
+      if (initialDate) setDate(initialDate);
+      if (initialTime) setTime(initialTime);
+      setInitialArtistLoaded(false);
     }
   }, [booking, isOpen]);
 
@@ -113,7 +126,9 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
           const data = await bookingService.getAvailableArtists(isoDate);
           setAvailableArtists(data);
 
-          if (artistId && !data.find((a: AvailableArtist) => a.id.toString() === artistId)) {
+          // In new booking mode only, clear artistId if not available
+          // (In edit mode, keep the current artist even if not available - they may be busy with this slot)
+          if (!booking?.id && artistId && !data.find((a: AvailableArtist) => a.id.toString() === artistId)) {
             setArtistId('');
           }
         } catch (err) {
@@ -125,9 +140,11 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
       fetchAvailable();
     } else {
       setAvailableArtists([]);
-      setArtistId('');
+      if (!initialArtistLoaded) {
+        setArtistId('');
+      }
     }
-  }, [date, time, isOpen, artistId]);
+  }, [date, time, isOpen]);
 
   const dynamicFields = useMemo<FieldDef[]>(() => {
     if (!templates || templates.length === 0) return [];
@@ -138,6 +155,24 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
       return [];
     }
   }, [templates]);
+
+  // Include current artist in options even if not available (edit mode)
+  const artistOptions = useMemo(() => {
+    const available = availableArtists.map((a) => ({
+      value: a.id.toString(),
+      label: a.name,
+    }));
+
+    // In edit mode, add current artist if not already in available list
+    if (booking?.id && booking?.artist && artistId && !available.find((a) => a.value === artistId)) {
+      available.unshift({
+        value: booking.artist.id.toString(),
+        label: booking.artist.name,
+      });
+    }
+
+    return available;
+  }, [availableArtists, booking?.id, booking?.artist, artistId]);
 
   const percentuale = percentualeMode === 'custom'
     ? Number(customPercentuale) || 0
@@ -198,6 +233,17 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
       return;
     }
 
+    // If editing, require password confirmation
+    if (booking?.id) {
+      setPendingData(data);
+      setShowPasswordModal(true);
+    } else {
+      // New booking: no password needed
+      await executeBookingCreate(data);
+    }
+  };
+
+  const executeBookingCreate = async (data: CreateBookingData) => {
     setLoading(true);
     try {
       if (booking?.id) {
@@ -208,12 +254,30 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
         toast.success('Prenotazione confermata!');
       }
       resetForm();
-      onSuccess?.();
+      // Refresh bookings list after successful update/create
+      await onSuccess?.();
       onClose();
     } catch (error: unknown) {
       toast.error(extractErrorMessage(error, booking?.id ? 'Errore nell\'aggiornamento' : 'Errore nella prenotazione'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordConfirm = async (password: string) => {
+    setPasswordLoading(true);
+    try {
+      // Verify password server-side
+      await bookingService.verifyPassword(password);
+      setShowPasswordModal(false);
+      setPendingData(null);
+      if (pendingData) {
+        await executeBookingCreate(pendingData);
+      }
+    } catch (error: unknown) {
+      throw new Error('Password non corretta');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -258,13 +322,10 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
                 label="Artista *"
                 value={artistId}
                 onChange={setArtistId}
-                disabled={loadingArtists || availableArtists.length === 0}
-                placeholder={loadingArtists ? 'Ricerca...' : availableArtists.length === 0 ? 'Nessun artista' : 'Seleziona...'}
+                disabled={loadingArtists || artistOptions.length === 0}
+                placeholder={loadingArtists ? 'Ricerca...' : artistOptions.length === 0 ? 'Nessun artista' : 'Seleziona...'}
                 required
-                options={availableArtists.map((a) => ({
-                  value: a.id.toString(),
-                  label: a.name,
-                }))}
+                options={artistOptions}
               />
             </div>
           </div>
@@ -349,6 +410,16 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
 
         <SubmitButton loading={loading} label={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'} />
       </form>
+
+      <PasswordConfirmModal
+        isOpen={showPasswordModal}
+        onClose={() => {
+          setShowPasswordModal(false);
+          setPendingData(null);
+        }}
+        onConfirm={handlePasswordConfirm}
+        loading={passwordLoading}
+      />
     </Modal>
   );
 }

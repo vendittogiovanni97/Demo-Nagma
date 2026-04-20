@@ -34,4 +34,7 @@ export const config = {
 
   // Resilienza
   restartDelayMs: envInt('RESTART_DELAY_MS', 10_000),
+
+  // Security - Booking Updates
+  bookingUpdatePassword: envStr('BOOKING_UPDATE_PASSWORD', 'nagmatattoo1234567'),
 } as const;

@@ -4,6 +4,9 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
 import { parsePageQuery } from '../utils/date-utils';
 import { parseId } from '../utils/parse-id';
+import { exportFiltersSchema, buildFiltersLabel } from '../utils/export-filters';
+import { AppError } from '../utils/AppError';
+import { validate, verifyPasswordSchema } from '../schemas';
 
 const service = new BookingService();
 
@@ -44,5 +47,37 @@ export class BookingController {
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Data obbligatoria' });
     res.json(await service.getAvailableArtists(date));
+  });
+
+  verifyPassword = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { password } = validate(verifyPasswordSchema, req.body);
+    await service.verifyPassword(password);
+    res.json({ message: 'Password corretta' });
+  });
+
+  export = asyncHandler(async (req: AuthRequest, res: Response) => {
+    // Supporta sia query params che body per i filtri
+    const filters = req.body?.filters ?? req.query;
+
+    // Valida i filtri
+    let validatedFilters;
+    try {
+      validatedFilters = exportFiltersSchema.parse(filters);
+    } catch (error) {
+      throw new AppError('Parametri filtro non validi', 400, 'INVALID_FILTERS', { error });
+    }
+
+    // Recupera i dati filtrati
+    const bookings = await service.getBookingsForExport(validatedFilters);
+
+    // Crea la label dei filtri
+    const filtersLabel = buildFiltersLabel(validatedFilters);
+
+    res.json({
+      data: bookings,
+      count: bookings.length,
+      filters: validatedFilters,
+      filtersLabel,
+    });
   });
 }

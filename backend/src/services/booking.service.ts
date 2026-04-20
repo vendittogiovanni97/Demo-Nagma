@@ -4,6 +4,7 @@ import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
 import { validate, createBookingSchema, updateBookingSchema } from '../schemas';
 import { AppError } from '../utils/AppError';
+import { buildWhereClause, filterByWeekday, type ExportFilters } from '../utils/export-filters';
 
 const repository = new BookingRepository();
 
@@ -64,11 +65,12 @@ export class BookingService {
 
     // Conflict check se cambia data, artista, o durata
     const newDate = data.date ? new Date(data.date) : oldBooking.date;
-    const newDuration = data.duration ?? (oldBooking as any).duration ?? 120;
+    const newDuration = data.duration ?? oldBooking.duration;
     const newStatus = data.status ?? oldBooking.status;
 
-    if (newStatus !== 'CANCELLED' && (data.date || data.duration) && oldBooking.artistId) {
-      await this.assertNoConflict(oldBooking.artistId, newDate, newDuration, id);
+    const newArtistId = data.artistId ?? oldBooking.artistId;
+    if (newStatus !== 'CANCELLED' && (data.date || data.duration || data.artistId) && newArtistId) {
+      await this.assertNoConflict(newArtistId, newDate, newDuration, id);
     }
 
     return prisma.$transaction(async (tx) => {
@@ -159,6 +161,13 @@ export class BookingService {
     }
   }
 
+  async verifyPassword(password: string): Promise<void> {
+    const expectedPassword = config.bookingUpdatePassword;
+    if (password !== expectedPassword) {
+      throw new AppError('Password non corretta', 403, 'INVALID_PASSWORD');
+    }
+  }
+
   private async createIncomeTransactionForBooking(tx: Prisma.TransactionClient, booking: Booking & { customerId: number }): Promise<void> {
     const fd = booking.formData as Record<string, unknown> | null;
     const studioProfit = fd && typeof fd.studioProfit === 'number'
@@ -174,5 +183,17 @@ export class BookingService {
         date: new Date(),
       },
     });
+  }
+
+  async getBookingsForExport(filters: ExportFilters) {
+    const where = buildWhereClause(filters);
+    let bookings = await repository.findWithFilters(where);
+
+    // Applica il filtro per weekday in memoria (se necessario)
+    if (filters.weekday) {
+      bookings = filterByWeekday(bookings, filters.weekday);
+    }
+
+    return bookings;
   }
 }

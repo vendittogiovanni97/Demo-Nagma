@@ -1,6 +1,7 @@
 "use client";
 
 import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { useCustomers } from '@/hooks/domain';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { useToast } from '@/hooks/useToast';
@@ -116,8 +117,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
             setArtistId('');
           }
         } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : 'Errore nel recupero artisti disponibili';
-          toast.error(errorMessage);
+          toast.error(extractErrorMessage(err, 'Errore nel recupero artisti disponibili'));
         } finally {
           setLoadingArtists(false);
         }
@@ -211,8 +211,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking }: Pr
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : (booking?.id ? 'Errore nell\'aggiornamento' : 'Errore nella prenotazione');
-      toast.error(errorMessage);
+      toast.error(extractErrorMessage(error, booking?.id ? 'Errore nell\'aggiornamento' : 'Errore nella prenotazione'));
     } finally {
       setLoading(false);
     }

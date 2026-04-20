@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { ToastProvider } from '@/components/ui/Toast/ToastContext';
 import { ToastContainer } from '@/components/ui/Toast/ToastContainer';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
@@ -21,25 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="it">
       <body className="font-sans antialiased text-text-primary">
-        {/* ============ BEGIN: TOAST SYSTEM INTEGRATION ============ */}
-        <ToastProvider>
-          {/* ============ END: TOAST PROVIDER WRAPPER START ============ */}
-          <AuthProvider>
-            <GlobalErrorBoundary>
-              <Navbar />
-              <div className="min-h-screen flex flex-col pt-24">
-                <main className="px-[2%] flex-1 flex flex-col">
-                  {children}
-                </main>
-              </div>
-            </GlobalErrorBoundary>
-          </AuthProvider>
-
-          {/* ============ BEGIN: TOAST CONTAINER (inside ToastProvider) ============ */}
-          <ToastContainer />
-          {/* ============ END: TOAST CONTAINER ============ */}
-        </ToastProvider>
-        {/* ============ END: TOAST SYSTEM INTEGRATION ============ */}
+        <AuthProvider>
+          <GlobalErrorBoundary>
+            <Navbar />
+            <div className="min-h-screen flex flex-col pt-24">
+              <main className="px-[2%] flex-1 flex flex-col">
+                {children}
+              </main>
+            </div>
+          </GlobalErrorBoundary>
+        </AuthProvider>
+        <ToastContainer />
       </body>
     </html>
   );

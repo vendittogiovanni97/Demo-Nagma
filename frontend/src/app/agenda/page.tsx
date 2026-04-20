@@ -10,24 +10,18 @@ import ExportModal from '@/components/modals/ExportModal';
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/hooks/domain';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { bookingService } from '@/services/booking.service';
 import type { Booking } from '@/types/booking';
 import { addDays, addWeeks, eachDayOfInterval, format, getDay, isSameDay, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Calendar, Clock, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import BookingCard from '@/components/widgets/agenda/BookingCard';
+import { Calendar, Clock, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 9);
 const DAY_LABELS = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}min`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (mins === 0) return `${hours}h`;
-  return `${hours}h ${mins}min`;
-}
 
 export default function AgendaPage() {
   const { can } = useAuth();
@@ -38,7 +32,7 @@ export default function AgendaPage() {
   const [search, setSearch] = useState('');
   const [selectedDayIndex, setSelectedDayIndex] = useState(getDay(new Date()) === 0 ? 6 : getDay(new Date()) - 1);
   const [mobileView, setMobileView] = useState<'day' | 'week'>('day');
-  const { deleteItem } = useDeleteConfirm();
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const monthStr = format(weekStart, 'yyyy-MM');
   const { data: bookings, mutate, isLoading, error } = useBookings(monthStr);
@@ -212,27 +206,25 @@ export default function AgendaPage() {
           </div>
         )}
 
-        {/* Day headers for desktop */}
-        {mobileView !== 'day' && (
-          <div className="hidden md:grid grid-cols-[60px_repeat(7,1fr)] border-b border-surface-border bg-white/2">
-            <div className="py-3 border-r border-surface-border flex items-center justify-center">
-              <Clock size={16} className="text-text-secondary" />
-            </div>
-            {weekDays.map(day => (
-              <div
-                key={day.toISOString()}
-                className={`py-3 text-center border-r border-surface-border last:border-r-0 ${isSameDay(day, new Date()) ? 'bg-accent/10' : ''}`}
-              >
-                <div className="text-[10px] text-text-secondary uppercase tracking-[2px] font-bold">
-                  {format(day, 'EEE', { locale: it })}
-                </div>
-                <div className={`text-lg font-outfit font-black ${isSameDay(day, new Date()) ? 'text-accent' : 'text-white'}`}>
-                  {format(day, 'dd')}
-                </div>
-              </div>
-            ))}
+        {/* Day headers for desktop - always visible on md+ */}
+        <div className="hidden md:grid grid-cols-[60px_repeat(7,1fr)] border-b border-surface-border bg-white/2">
+          <div className="py-3 border-r border-surface-border flex items-center justify-center">
+            <Clock size={16} className="text-text-secondary" />
           </div>
-        )}
+          {weekDays.map(day => (
+            <div
+              key={day.toISOString()}
+              className={`py-3 text-center border-r border-surface-border last:border-r-0 ${isSameDay(day, new Date()) ? 'bg-accent/10' : ''}`}
+            >
+              <div className="text-[10px] text-text-secondary uppercase tracking-[2px] font-bold">
+                {format(day, 'EEE', { locale: it })}
+              </div>
+              <div className={`text-lg font-outfit font-black ${isSameDay(day, new Date()) ? 'text-accent' : 'text-white'}`}>
+                {format(day, 'dd')}
+              </div>
+            </div>
+          ))}
+        </div>
 
         {isLoading ? (
           <StatePanel
@@ -259,210 +251,88 @@ export default function AgendaPage() {
               ? 'Prova a modificare i termini di ricerca.'
               : 'Clicca "Nuovo" per aggiungere il primo appuntamento.'}
           />
-        ) : mobileView === 'day' ? (
-          /* Mobile day view */
-          <div className="md:hidden flex-1 overflow-y-auto custom-scrollbar">
-            <div className="grid grid-cols-[60px_1fr]">
-              {/* Hours column */}
-              <div className="border-r border-surface-border bg-white/1">
-                {HOURS.map(h => (
-                  <div key={h} className="h-25 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
-                    {h}:00
-                  </div>
-                ))}
-              </div>
-
-              {/* Single day column */}
-              <div className="relative border-r border-surface-border/30 group">
-                {HOURS.map(hour => (
-                  <div key={hour} className="h-25 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
-                ))}
-
-                {filteredBookings
-                  ?.filter(b => isSameDay(parseISO(b.date), selectedDay))
-                  .map(booking => {
-                    const d = new Date(booking.date);
-                    const top = ((d.getHours() - 9) * 100) + (d.getMinutes() * 100 / 60);
-                    const height = 100;
-                    const color = booking.artist?.color ?? 'var(--color-accent)';
-                    return (
-                      <div
-                        key={booking.id}
-                        className="absolute left-1 right-1 rounded-xl p-3 text-xs border-l-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md cursor-default group/card transition-all duration-300 hover:z-20 border"
-                        style={{
-                          top: `${top}px`,
-                          height: `${height}px`,
-                          backgroundColor: `${color}28`,
-                          borderColor: `${color}40`,
-                          borderLeftColor: color
-                        }}
-                      >
-                        {/* Actions column */}
-                        <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                          {can.sendWhatsApp && booking.customer?.id && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setWhatsAppBooking(booking);
-                              }}
-                              icon={<MessageCircle size={14} />}
-                              className="w-6 h-6 p-0 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
-                              title="WhatsApp"
-                            />
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleEditBooking(booking);
-                            }}
-                            icon={<Pencil size={14} />}
-                            className="w-6 h-6 p-0 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
-                            title="Modifica"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleDeleteBooking(booking.id);
-                            }}
-                            icon={<Trash2 size={14} />}
-                            className="w-6 h-6 p-0 bg-danger/20 text-danger hover:bg-danger hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
-                            title="Elimina"
-                          />
-                        </div>
-
-                        <div className="flex flex-col h-full justify-between pr-8">
-                          <div>
-                            <div className="font-bold text-white text-sm truncate leading-tight mb-0.5">
-                              {booking.customer?.firstName} {booking.customer?.lastName}
-                            </div>
-                            <div className="font-semibold uppercase tracking-[0.5px] truncate leading-tight text-xs" style={{ color }}>
-                              <span>●</span> {booking.artist?.name}
-                            </div>
-                          </div>
-                          <div className="flex flex-col gap-1 text-[10px] font-bold text-text-secondary/60">
-                            <div className="flex items-center gap-1.5">
-                              <Clock size={10} />
-                              <span>{format(new Date(booking.date), 'HH:mm')}</span>
-                            </div>
-                            <div>{formatDuration(booking.duration)}</div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </div>
         ) : (
-          /* Desktop week view and mobile week view (scrollable) */
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className={`${mobileView === 'week' && 'md:hidden overflow-x-auto'}`}>
-              <div className={`grid ${mobileView === 'week' ? 'grid-cols-[60px_repeat(7,minmax(140px,1fr))]' : 'grid-cols-[60px_repeat(7,1fr)]'}`}>
-                {/* Hours column */}
-                <div className="border-r border-surface-border bg-white/1 md:sticky md:left-0">
-                  {HOURS.map(h => (
-                    <div key={h} className="h-25 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
-                      {h}:00
-                    </div>
-                  ))}
-                </div>
-
-                {/* Day columns */}
-                {weekDays.map((day) => (
-                  <div key={day.toISOString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
+          <>
+            {/* Mobile day view - only on mobile */}
+            {mobileView === 'day' && (
+              <div className="md:hidden flex-1 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-[60px_1fr]">
+                  <div className="border-r border-surface-border bg-white/1">
+                    {HOURS.map(h => (
+                      <div key={h} className="h-25 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
+                        {h}:00
+                      </div>
+                    ))}
+                  </div>
+                  <div className="relative border-r border-surface-border/30 group">
                     {HOURS.map(hour => (
                       <div key={hour} className="h-25 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
                     ))}
-
                     {filteredBookings
-                      ?.filter(b => isSameDay(parseISO(b.date), day))
+                      ?.filter(b => isSameDay(parseISO(b.date), selectedDay))
                       .map(booking => {
                         const d = new Date(booking.date);
                         const top = ((d.getHours() - 9) * 100) + (d.getMinutes() * 100 / 60);
-                        const height = 100;
-                        const color = booking.artist?.color ?? 'var(--color-accent)';
+                        const height = Math.max(50, (booking.duration / 60) * 100);
                         return (
-                          <div
+                          <BookingCard
                             key={booking.id}
-                            className="absolute left-1 right-1 rounded-xl p-3 text-xs border-l-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md cursor-default group/card transition-all duration-300 hover:z-20 border"
-                            style={{
-                              top: `${top}px`,
-                              height: `${height}px`,
-                              backgroundColor: `${color}28`,
-                              borderColor: `${color}40`,
-                              borderLeftColor: color
-                            }}
-                          >
-                            {/* Actions column */}
-                            <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                              {can.sendWhatsApp && booking.customer?.id && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setWhatsAppBooking(booking);
-                                  }}
-                                  icon={<MessageCircle size={14} />}
-                                  className="w-6 h-6 p-0 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
-                                  title="WhatsApp"
-                                />
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleEditBooking(booking);
-                                }}
-                                icon={<Pencil size={14} />}
-                                className="w-6 h-6 p-0 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
-                                title="Modifica"
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleDeleteBooking(booking.id);
-                                }}
-                                icon={<Trash2 size={14} />}
-                                className="w-6 h-6 p-0 bg-danger/20 text-danger hover:bg-danger hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
-                                title="Elimina"
-                              />
-                            </div>
-
-                            <div className="flex flex-col h-full justify-between pr-8">
-                              <div>
-                                <div className="font-bold text-white text-sm truncate leading-tight mb-0.5">
-                                  {booking.customer?.firstName} {booking.customer?.lastName}
-                                </div>
-                                <div className="font-semibold uppercase tracking-[0.5px] truncate leading-tight text-xs" style={{ color }}>
-                                  <span>●</span> {booking.artist?.name}
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-1 text-[10px] font-bold text-text-secondary/60">
-                                <div className="flex items-center gap-1.5">
-                                  <Clock size={10} />
-                                  <span>{format(new Date(booking.date), 'HH:mm')}</span>
-                                </div>
-                                <div>{formatDuration(booking.duration)}</div>
-                              </div>
-                            </div>
-                          </div>
+                            booking={booking}
+                            top={top}
+                            height={height}
+                            canSendWhatsApp={can.sendWhatsApp}
+                            onWhatsApp={setWhatsAppBooking}
+                            onEdit={handleEditBooking}
+                            onDelete={handleDeleteBooking}
+                          />
                         );
                       })}
                   </div>
-                ))}
+                </div>
+              </div>
+            )}
+
+            {/* Week view - always visible on desktop, visible on mobile only in week mode */}
+            <div className={`${mobileView === 'day' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} flex-1 overflow-y-auto custom-scrollbar`}>
+              <div className={`${mobileView === 'week' ? 'md:hidden overflow-x-auto' : ''}`}>
+                <div className={`grid ${mobileView === 'week' ? 'grid-cols-[60px_repeat(7,minmax(140px,1fr))]' : 'grid-cols-[60px_repeat(7,1fr)]'}`}>
+                  <div className="border-r border-surface-border bg-white/1 md:sticky md:left-0">
+                    {HOURS.map(h => (
+                      <div key={h} className="h-25 border-b border-surface-border/30 flex items-start justify-center pt-2 text-xs font-bold text-text-secondary">
+                        {h}:00
+                      </div>
+                    ))}
+                  </div>
+                  {weekDays.map((day) => (
+                    <div key={day.toISOString()} className="relative border-r border-surface-border/30 last:border-r-0 group">
+                      {HOURS.map(hour => (
+                        <div key={hour} className="h-25 border-b border-surface-border/30 group-hover:bg-white/1 transition-colors" />
+                      ))}
+                      {filteredBookings
+                        ?.filter(b => isSameDay(parseISO(b.date), day))
+                        .map(booking => {
+                          const d = new Date(booking.date);
+                          const top = ((d.getHours() - 9) * 100) + (d.getMinutes() * 100 / 60);
+                          const height = Math.max(50, (booking.duration / 60) * 100);
+                          return (
+                            <BookingCard
+                              key={booking.id}
+                              booking={booking}
+                              top={top}
+                              height={height}
+                              canSendWhatsApp={can.sendWhatsApp}
+                              onWhatsApp={setWhatsAppBooking}
+                              onEdit={handleEditBooking}
+                              onDelete={handleDeleteBooking}
+                            />
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 
@@ -480,6 +350,7 @@ export default function AgendaPage() {
         onClose={() => setWhatsAppBooking(null)}
         booking={whatsAppBooking}
       />
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

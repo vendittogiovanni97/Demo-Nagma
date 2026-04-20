@@ -166,6 +166,10 @@ export class TeamService {
     return this.shiftRepository.delete(id);
   }
 
+  async findMemberById(id: number) {
+    return staffRepo.findById(id);
+  }
+
   async updateUser(id: number, body: unknown) {
     const data = validate(updateStaffSchema, body);
     return staffRepo.update(id, data);

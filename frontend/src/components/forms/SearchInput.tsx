@@ -14,13 +14,11 @@ interface SearchInputProps {
  * SearchInput - Input specializzato per ricerche
  *
  * Wrapper minimalista per search input con icona Search.
- * Non usa il componente Input generico perché:
- * - Non richiede label (Input attualmente lo rende sempre)
- * - Ha stili specializzati (senza label, padding/layout specifico)
- * - Mantiene backward compatibility totale con l'implementazione legacy
  *
- * NOTA: Se in futuro Input supporterà label opzionale, questo
- * potrebbe essere convertito a un wrapper di Input con type="search"
+ * NOTE: Input già supporta label opzionale, ma SearchInput usa
+ * posizionamento assoluto dell'icona e aria-label senza label visibile —
+ * struttura incompatibile con l'API icon di Input.
+ * TODO: unify with Input
  */
 export default function SearchInput({
   value,

@@ -1,30 +1,28 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Calendar, RefreshCw, XCircle } from 'lucide-react';
+import { Calendar, RefreshCw, XCircle } from 'lucide-react';
 
 import BentoCard from '@/components/data-display/BentoCard';
-import Button from '@/components/ui/Button';
+import MonthPicker from '@/components/ui/MonthPicker';
 import { Skeleton } from '@/components/feedback/Skeleton';
 
 interface BookingStatsWidgetProps {
-  monthLabel: string;
+  monthDate: Date;
+  onMonthChange: (date: Date) => void;
   total: number;
   cancelled: number;
   completed: number;
   isLoading: boolean;
-  onPreviousMonth: () => void;
-  onNextMonth: () => void;
   className?: string;
 }
 
 export default function BookingStatsWidget({
-  monthLabel,
+  monthDate,
+  onMonthChange,
   total,
   cancelled,
   completed,
   isLoading,
-  onPreviousMonth,
-  onNextMonth,
   className,
 }: BookingStatsWidgetProps) {
   return (
@@ -38,23 +36,7 @@ export default function BookingStatsWidget({
             </div>
             <h3 className="text-lg font-outfit font-semibold">Prenotazioni</h3>
           </div>
-          <div className="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onPreviousMonth}
-              icon={<ArrowLeft size={14} />}
-              className="p-1"
-            />
-            <span className="text-xs font-semibold text-accent px-2 min-w-20 text-center">{monthLabel}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onNextMonth}
-              icon={<ArrowRight size={14} />}
-              className="p-1"
-            />
-          </div>
+          <MonthPicker value={monthDate} onChange={onMonthChange} />
         </div>
       }
     >

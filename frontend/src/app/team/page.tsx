@@ -9,8 +9,10 @@ import Button from '@/components/ui/Button';
 import ExportModal from '@/components/modals/ExportModal';
 import ShiftModal from '@/components/modals/ShiftModal';
 import StaffModal from '@/components/modals/StaffModal';
+import PermissionGate from '@/components/auth/PermissionGate';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamShifts, useTeamMembers } from '@/hooks/domain';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
@@ -26,7 +28,7 @@ const SHIFT_LABELS = ['Mattina', 'Pomeriggio', 'Tutta la giornata', 'Riposo'];
 export default function TeamPage() {
   const toast = useToast();
   const { can } = useAuth();
-  const { deleteItem } = useDeleteConfirm();
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   // Using Monday as start of week
   const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
@@ -164,16 +166,16 @@ export default function TeamPage() {
                 },
               ]}
             />
-            {canManageShiftData && (
+            <PermissionGate permission="manageShifts">
                <Button variant="secondary" icon={Plus} onClick={() => openAddShift()} size="md">
                  Turno
                </Button>
-            )}
-            {canManageMembers && (
+            </PermissionGate>
+            <PermissionGate permission="manageStaff">
               <Button variant="primary" icon={Plus} onClick={() => setIsStaffModalOpen(true)} size="md">
                 Staff
               </Button>
-            )}
+            </PermissionGate>
           </>
         }
       >
@@ -203,9 +205,11 @@ export default function TeamPage() {
 
             {/* loading state */}
             {(loadingMembers || loadingShifts) && (
-               <div className="flex-1 min-h-75 flex items-center justify-center text-text-secondary font-bold">
-                 <div className="animate-pulse">Caricamento griglia in corso...</div>
-               </div>
+              <StatePanel
+                variant="loading"
+                fullPage
+                title="Caricamento griglia in corso..."
+              />
             )}
 
             {/* Member Rows */}
@@ -219,14 +223,14 @@ export default function TeamPage() {
               const memberColor = m.color || '#3b82f6';
 
               return (
-                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-25">
-                  <div className="py-4 px-6 flex items-center gap-4 relative z-0">
+                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-36">
+                  <div className="py-5 px-6 flex items-center gap-4 relative group/member">
                     <div
                       className="w-1 absolute left-0 top-0 bottom-0 shadow-[0_0_10px_currentColor] opacity-70"
                       style={{ backgroundColor: memberColor, color: memberColor }}
                     />
                     <Avatar name={m.name} color={memberColor} size="lg" />
-                    <div className="flex flex-col flex-1 min-w-0 pr-2">
+                    <div className="flex flex-col min-w-0">
                        <span className="text-white font-bold text-base truncate">{m.name}</span>
                        <Badge
                          variant={m.type === 'COLLABORATORE' ? 'primary' : 'secondary'}
@@ -236,14 +240,13 @@ export default function TeamPage() {
                          {m.type}
                        </Badge>
                     </div>
-                    {canManageMembers && (
-                      <>
+                    <PermissionGate permission="manageStaff">
+                      <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/member:opacity-100 transition-opacity duration-200">
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => setIsStaffModalOpen(true)}
                           icon={<Edit size={16} />}
-                          className="absolute right-16 opacity-0 group-hover/row:opacity-100 transition-all"
                           title="Modifica staff"
                         />
                         <Button
@@ -251,11 +254,10 @@ export default function TeamPage() {
                           size="sm"
                           onClick={() => handleDeleteMember(m.id, m.name)}
                           icon={<Trash2 size={16} />}
-                          className="absolute right-4 opacity-0 group-hover/row:opacity-100 transition-all"
                           title="Rimuovi dal team"
                         />
-                      </>
-                    )}
+                      </div>
+                    </PermissionGate>
                   </div>
 
                   {/* Days Cells */}
@@ -290,42 +292,31 @@ export default function TeamPage() {
                               )}
                             </div>
 
-                            {canManageShiftData && (
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteShift(shift.id);
-                                }}
-                                icon={<Trash2 size={14} />}
-                                className="absolute -top-2 -right-2 p-1.5 opacity-0 group-hover/cell:opacity-100 transition-all"
-                                title="Elimina turno"
-                              />
-                            )}
                           </div>
                         ) : (
-                          // Empty Cell Quick Add / Modal
-                          canManageShiftData ? (
-                            <div className="absolute inset-2 md:inset-3 flex items-center justify-center">
-                              {isAddingShift === `${m.id}-${dayIndex}` ? (
-                                <Loader2 size={24} className="animate-spin text-white/20" />
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    onClick={() => handleQuickAddShift(m.id, dayIndex)}
-                                    className="w-full h-full rounded-xl border-2 border-dashed border-white/5 opacity-0 group-hover/cell:opacity-100"
-                                    title="Aggiungi Mattina (Doppio click per opzioni)"
-                                    onDoubleClick={() => openAddShift(m.id, dayIndex)}
-                                    icon={<Plus size={20} />}
-                                  >
-                                    <span className="text-[10px] font-bold">MATTINA</span>
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          ) : null
+                          <div className="absolute inset-2 md:inset-3 flex items-center justify-center">
+                            {isAddingShift === `${m.id}-${dayIndex}` ? (
+                              <Loader2 size={24} className="animate-spin text-white/20" />
+                            ) : canManageShiftData ? (
+                              <>
+                                <div className="flex flex-col items-center gap-1 group-hover/cell:opacity-0 transition-opacity duration-150 pointer-events-none select-none">
+                                  <span className="text-[11px] font-semibold text-white/20 uppercase tracking-widest">Riposo</span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => handleQuickAddShift(m.id, dayIndex)}
+                                  className="absolute inset-0 z-10 w-full h-full rounded-xl border-2 border-dashed border-white/10 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150"
+                                  title="Aggiungi Mattina (Doppio click per opzioni)"
+                                  onDoubleClick={() => openAddShift(m.id, dayIndex)}
+                                  icon={<Plus size={20} />}
+                                >
+                                  <span className="text-[10px] font-bold">MATTINA</span>
+                                </Button>
+                              </>
+                            ) : (
+                              <span className="text-[11px] font-semibold text-white/20 uppercase tracking-widest select-none">Riposo</span>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -346,6 +337,7 @@ export default function TeamPage() {
         initialStaffId={shiftModalData.staffId}
         initialDayOfWeek={shiftModalData.dayOfWeek}
       />
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
 import { paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
+import { parseId } from '../utils/parse-id';
 
 export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput, Prisma.UserUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -15,7 +16,7 @@ export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput,
   }
 
   async findById(id: string | number): Promise<User | null> {
-    const userId = typeof id === 'number' ? id : parseInt(id, 10);
+    const userId = parseId(String(id));
     return this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
   }
 
@@ -24,12 +25,12 @@ export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput,
   }
 
   async update(id: string | number, data: Prisma.UserUpdateInput): Promise<User> {
-    const userId = typeof id === 'number' ? id : parseInt(id, 10);
+    const userId = parseId(String(id));
     return this.prisma.user.update({ where: { id: userId }, data });
   }
 
   async delete(id: string | number): Promise<void> {
-    const userId = typeof id === 'number' ? id : parseInt(id, 10);
+    const userId = parseId(String(id));
     await softDelete(this.prisma.user, userId);
   }
 
@@ -70,12 +71,10 @@ export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput,
       ];
     }
 
-    const skip = (page - 1) * limit;
     const [data, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
         where,
-        skip,
-        take: limit,
+        ...this.buildPagination(page, limit),
         orderBy: { name: 'asc' },
         omit: { password: true },
       }),

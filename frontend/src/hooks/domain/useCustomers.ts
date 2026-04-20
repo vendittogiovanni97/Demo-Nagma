@@ -17,6 +17,10 @@ interface UseCustomersOptions {
 export function useCustomers({ search, page = 1, limit = 20, enabled = true }: UseCustomersOptions = {}) {
   return useSWR<PaginatedResponse<Customer>>(
     enabled ? [ENDPOINTS.CUSTOMERS.BASE, search, page, limit] : null,
-    () => customerService.getAll(search, page, limit)
+    () => customerService.getAll(search, page, limit),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
   );
 }

@@ -31,6 +31,7 @@ enum BookingAction {
   UPDATED
   RESCHEDULED
   CANCELLED
+  COMPLETED
 }
 
 enum StaffType {
@@ -103,6 +104,8 @@ model Booking {
 
   @@index([customerId, deletedAt])
   @@index([artistId, date])
+  @@index([artistId, status, date])
+  @@index([status, date])
   @@index([date])
 }
 
@@ -193,6 +196,8 @@ model WhatsAppMessageLog {
   createdAt       DateTime              @default(now())
 
   @@index([customerId, createdAt])
+  @@index([status, createdAt])
+  @@index([templateId, createdAt])
 }
 
 enum WhatsAppMessageStatus {

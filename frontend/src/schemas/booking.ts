@@ -3,9 +3,10 @@ import { z } from 'zod';
 import { bookingStatusSchema, nonEmptyString } from './common';
 
 export const createBookingSchema = z.object({
-  customerId: nonEmptyString('customerId è obbligatorio'),
-  artistId: nonEmptyString('artistId è obbligatorio'),
+  customerId: z.number().int().positive('customerId non valido'),
+  artistId: z.number().int().positive('artistId non valido'),
   date: nonEmptyString('La data è obbligatoria'),
+  duration: z.number().int().min(30).max(480).optional(),
   price: z.number().positive().optional(),
   deposit: z.number().positive().optional(),
   notes: z.string().optional(),

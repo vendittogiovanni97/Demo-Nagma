@@ -28,7 +28,11 @@ export function useTeamMembers({
 }: MemberHookOptions = {}) {
   return useSWR<PaginatedResponse<Staff>>(
     enabled ? [ENDPOINTS.TEAM.MEMBERS, search, type, page, limit] : null,
-    () => teamService.getMembers({ search, type: type, page, limit })
+    () => teamService.getMembers({ search, type: type, page, limit }),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
   );
 }
 
@@ -37,6 +41,11 @@ export function useTeamShifts(weekStart?: string, options?: HookOptions) {
 
   return useSWR<Shift[]>(
     enabled && weekStart ? [ENDPOINTS.TEAM.SHIFTS, weekStart] : null,
-    () => teamService.getShifts(weekStart || '')
+    () => teamService.getShifts(weekStart || ''),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+      refreshInterval: 5 * 60 * 1000, // 5 minuti
+    }
   );
 }

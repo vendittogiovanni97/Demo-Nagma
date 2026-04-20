@@ -45,31 +45,63 @@ router.get('/', controller.getAll);
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Cerca per numero di telefono, nome cliente o template
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [SENT, FAILED, PENDING, MANUAL_SENT]
+ *         description: Filtra per stato del messaggio
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numero della pagina
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Risultati per pagina (max 100)
+ *       - in: query
  *         name: startDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Data di inizio
+ *         description: Data di inizio (retrocompatibilità)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Data di fine
+ *         description: Data di fine (retrocompatibilità)
  *       - in: query
  *         name: customerId
  *         schema:
  *           type: string
- *         description: ID del cliente per filtrare
+ *         description: ID del cliente per filtrare (retrocompatibilità)
  *     responses:
  *       200:
- *         description: Log messaggi WhatsApp
+ *         description: Log messaggi WhatsApp paginati
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/WhatsAppLog'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/WhatsAppLog'
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
  */
 router.get('/logs', requireRoles('ADMIN', 'USER'), controller.getLogs);
 

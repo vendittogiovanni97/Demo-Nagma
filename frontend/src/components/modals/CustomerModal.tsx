@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { User, Phone, Mail, FileText, Save, MessageCircle } from 'lucide-react';
 import { customerService } from '@/services/customer.service';
 import { useAuth } from '@/context/AuthContext';
+import { useFormModal } from '@/hooks/useFormModal';
 import StatePanel from '@/components/feedback/StatePanel';
 import type { Customer, CreateCustomerData } from '@/types/customer';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import FormTextarea from '../forms/FormTextarea';
 import SubmitButton from '../forms/SubmitButton';
-import { notifyError, notifySuccess } from '@/utils/toast';
+import { notifyError } from '@/utils/toast';
 import { validateData } from '@/utils/validation';
 import { createCustomerSchema } from '@/schemas';
 
@@ -30,7 +31,20 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     email: '',
     notes: ''
   });
-  const [loading, setLoading] = useState(false);
+  const submitCustomer = async (data: CreateCustomerData) => {
+    if (customer) {
+      await customerService.update(customer.id, data);
+    } else {
+      await customerService.create(data);
+    }
+  };
+
+  const { isLoading: loading, handleSubmit: submitForm } = useFormModal<CreateCustomerData>({
+    onSubmit: submitCustomer,
+    onSuccess,
+    onClose,
+    successMessage: customer ? 'Cliente aggiornato' : 'Cliente creato',
+  });
 
   useEffect(() => {
     setFormData(customer
@@ -46,23 +60,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
       notifyError(new Error(validationError), validationError);
       return;
     }
-
-    setLoading(true);
-    try {
-      if (customer) {
-        await customerService.update(customer.id, formData);
-        notifySuccess('Cliente aggiornato');
-      } else {
-        await customerService.create(formData);
-        notifySuccess('Cliente creato');
-      }
-      onSuccess();
-      onClose();
-    } catch (error: unknown) {
-      notifyError(error, 'Errore durante l\'operazione');
-    } finally {
-      setLoading(false);
-    }
+    await submitForm(formData);
   };
 
   return (

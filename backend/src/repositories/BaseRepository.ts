@@ -12,4 +12,8 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
   abstract create(data: CreateInput): Promise<T>;
   abstract update(id: string | number, data: UpdateInput): Promise<T>;
   abstract delete(id: string | number): Promise<void>;
+
+  protected buildPagination(page: number, limit: number) {
+    return { skip: (page - 1) * limit, take: limit };
+  }
 }

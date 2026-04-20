@@ -84,6 +84,7 @@ export class BookingService {
 
       const action =
         data.status === 'CANCELLED' ? 'CANCELLED'
+        : data.status === 'COMPLETED' ? 'COMPLETED'
         : data.date ? 'RESCHEDULED'
         : 'UPDATED';
 
@@ -114,7 +115,7 @@ export class BookingService {
   }
 
   async deleteBooking(id: number) {
-    return repository.softDelete(id);
+    return repository.delete(id);
   }
 
   async getAvailableArtists(dateIso: string) {

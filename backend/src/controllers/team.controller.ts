@@ -3,6 +3,7 @@ import { TeamService } from '../services/team.service';
 import { asyncHandler } from '../utils/async-handler';
 import { parsePageQuery } from '../utils/date-utils';
 import { AppError } from '../utils/AppError';
+import { parseId } from '../utils/parse-id';
 
 const service = new TeamService();
 
@@ -16,10 +17,6 @@ export class TeamController {
     res.status(201).json(await service.createUser(req.body));
   });
 
-  getShifts = asyncHandler(async (req: Request, res: Response) => {
-    res.json(await service.getShifts(req.query.weekStart as string | undefined));
-  });
-
   createShift = asyncHandler(async (req: Request, res: Response) => {
     res.status(201).json(await service.createShift(req.body));
   });
@@ -29,7 +26,7 @@ export class TeamController {
   });
 
   deleteUser = asyncHandler(async (req: Request, res: Response) => {
-    await service.deleteUser(Number(req.params.id));
+    await service.deleteUser(parseId(req.params.id));
     res.status(204).send();
   });
 
@@ -39,11 +36,11 @@ export class TeamController {
   });
 
   updateUser = asyncHandler(async (req: Request, res: Response) => {
-    res.json(await service.updateUser(Number(req.params.id), req.body));
+    res.json(await service.updateUser(parseId(req.params.id), req.body));
   });
 
   resetPassword = asyncHandler(async (req: Request, res: Response) => {
-    await service.resetPassword(Number(req.params.id), req.body);
+    await service.resetPassword(parseId(req.params.id), req.body);
     res.json({ message: 'Password aggiornata con successo.' });
   });
 
@@ -113,6 +110,17 @@ export class TeamController {
       }
       throw new AppError('Errore nella creazione dello shift', 500);
     }
+  });
+
+  /**
+   * GET /api/team/members/:id
+   * Restituisce un singolo membro del team per ID
+   */
+  getMemberById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const id = parseId(req.params.id);
+    const member = await service.findMemberById(id);
+    if (!member) throw new AppError('Membro non trovato', 404, 'NOT_FOUND');
+    res.json({ data: member });
   });
 
   /**

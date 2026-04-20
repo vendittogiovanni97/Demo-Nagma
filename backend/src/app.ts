@@ -21,7 +21,7 @@ import prisma from './utils/prisma';
 
 export function createApp() {
   const app = express();
-  const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000').split(',');
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000').split(',').map(o => o.trim());
 
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },

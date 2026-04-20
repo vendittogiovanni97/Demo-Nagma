@@ -45,10 +45,6 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     await softDelete(this.prisma.booking, id);
   }
 
-  async softDelete(id: number): Promise<void> {
-    await this.delete(id);
-  }
-
   // ============================================================================
   // SPECIALIZED METHODS - Custom business logic
   // ============================================================================
@@ -63,13 +59,11 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     limit?: number;
   }) {
     const where = this.buildBaseWhere(monthStr);
-    const skip = (page - 1) * limit;
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.booking.findMany({
         where,
-        skip,
-        take: limit,
+        ...this.buildPagination(page, limit),
         orderBy: { date: 'desc' },
         include: { customer: true, artist: true },
       }),
@@ -82,7 +76,7 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
   async getStats(monthStr?: string) {
     const where: Prisma.BookingWhereInput = { deletedAt: null };
     if (monthStr) {
-      where.createdAt = getMonthRange(monthStr);
+      where.date = getMonthRange(monthStr);
     }
 
     const grouped = await this.prisma.booking.groupBy({

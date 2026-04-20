@@ -26,13 +26,21 @@ export function useTransactions({
 }: UseTransactionsOptions = {}) {
   return useSWR<PaginatedResponse<Transaction>>(
     enabled ? [ENDPOINTS.TRANSACTIONS.BASE, type, month, search, page, limit] : null,
-    () => transactionService.getAll({ type, month, search, page, limit })
+    () => transactionService.getAll({ type, month, search, page, limit }),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
   );
 }
 
 export function useTransactionSummary(month?: string, enabled = true) {
   return useSWR<FinanceSummary>(
     enabled ? [ENDPOINTS.TRANSACTIONS.SUMMARY, month] : null,
-    () => transactionService.getSummary(month)
+    () => transactionService.getSummary(month),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
   );
 }

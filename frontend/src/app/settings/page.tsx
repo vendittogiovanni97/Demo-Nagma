@@ -2,7 +2,7 @@
 
 import Avatar from '@/components/data-display/Avatar';
 import Badge from '@/components/ui/Badge';
-import { Skeleton } from '@/components/feedback/Skeleton';
+import DataTable, { type Column } from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import FormInput from '@/components/forms/FormInput';
 import SubmitButton from '@/components/forms/SubmitButton';
@@ -12,13 +12,14 @@ import MemberFormModal from '@/components/modals/MemberFormModal';
 import ResetPasswordModal from '@/components/modals/ResetPasswordModal';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamMembers } from '@/hooks/domain';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/auth.service';
 import { teamService } from '@/services/team.service';
 import type { User } from '@/types/team';
 import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const ROLE_BADGE_COLORS: Record<string, { bg: string; text: string }> = {
   ADMIN: { bg: 'bg-accent/20', text: 'text-accent' },
@@ -30,7 +31,7 @@ const ROLE_BADGE_COLORS: Record<string, { bg: string; text: string }> = {
 export default function SettingsPage() {
   const toast = useToast();
   const { user, can } = useAuth();
-  const { deleteItem } = useDeleteConfirm();
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'profile' | 'users'>('profile');
@@ -121,6 +122,33 @@ export default function SettingsPage() {
       onSuccess: mutateMembers,
     });
   };
+
+  const memberColumns: Column<(typeof members)[number]>[] = useMemo(() => [
+    {
+      key: 'nome',
+      label: 'Nome',
+      render: (memberData) => (
+        <div className="flex items-center gap-3">
+          <Avatar name={memberData.name} color={memberData.color} />
+          <span className="font-semibold text-white">{memberData.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'type',
+      label: 'Tipo',
+      render: (memberData) => (
+        <Badge variant="info" size="sm">
+          {memberData.type}
+        </Badge>
+      ),
+    },
+    {
+      key: 'phone',
+      label: 'Telefono',
+      render: () => null,
+    },
+  ], []);
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full">
@@ -249,7 +277,6 @@ export default function SettingsPage() {
             </Button>
           </div>
 
-          {/* Table */}
           {membersError && (
             <StatePanel
               variant="error"
@@ -260,80 +287,33 @@ export default function SettingsPage() {
           )}
 
           {!membersError && (
-            <div className="overflow-x-auto flex-1">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-surface-border">
-                    <th className="py-4 px-8 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">Nome</th>
-                    <th className="py-4 px-8 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">Tipo</th>
-                    <th className="py-4 px-8 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">Telefono</th>
-                    <th className="py-4 px-8 text-right text-xs font-bold text-text-secondary uppercase tracking-wider">Azioni</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {membersLoading ? (
-                    [1, 2, 3, 4, 5].map((i) => (
-                      <tr key={i} className="border-b border-surface-border/50">
-                        <td className="py-4 px-8"><Skeleton variant="text" className="w-32" /></td>
-                        <td className="py-4 px-8"><Skeleton variant="text" className="w-40" /></td>
-                        <td className="py-4 px-8"><Skeleton variant="text" className="w-20" /></td>
-                        <td className="py-4 px-8"><Skeleton variant="text" className="w-24" /></td>
-                        <td className="py-4 px-8"><Skeleton variant="rect" className="w-32 ml-auto" /></td>
-                      </tr>
-                    ))
-                  ) : members.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="py-20">
-                        <StatePanel
-                          variant="empty"
-                          title="Nessun componente trovato"
-                          description="Clicca 'Nuovo Utente' per aggiungere il primo collaboratore."
-                          className="border-none bg-transparent"
-                        />
-                      </td>
-                    </tr>
-                  ) : (
-                    members.map((memberData) => {
-                      return (
-                        <tr key={memberData.id} className="border-b border-surface-border/50 hover:bg-white/2 transition-colors group">
-                          <td className="py-4 px-8">
-                            <div className="flex items-center gap-3">
-                              <Avatar name={memberData.name} color={memberData.color} />
-                              <span className="font-semibold text-white">{memberData.name}</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-8">
-                            <Badge variant="info" size="sm">
-                              {memberData.type}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-8">
-                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditUser(memberData as any)}
-                                icon={<Edit size={16} />}
-                                className="p-2"
-                                title="Modifica"
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteMember(memberData.id, memberData.name)}
-                                icon={<Trash2 size={16} />}
-                                className="p-2"
-                                title="Elimina"
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable<(typeof members)[number]>
+              columns={memberColumns}
+              data={members}
+              isLoading={membersLoading}
+              emptyMessage="Nessun componente trovato. Clicca 'Nuovo Utente' per aggiungere il primo collaboratore."
+              keyExtractor={(m) => m.id}
+              actions={(memberData) => (
+                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditUser(memberData as unknown as User)}
+                    icon={<Edit size={16} />}
+                    className="p-2"
+                    title="Modifica"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteMember(memberData.id, memberData.name)}
+                    icon={<Trash2 size={16} />}
+                    className="p-2"
+                    title="Elimina"
+                  />
+                </div>
+              )}
+            />
           )}
         </div>
       )}
@@ -355,6 +335,7 @@ export default function SettingsPage() {
           userName={resetPasswordUser.name}
         />
       )}
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

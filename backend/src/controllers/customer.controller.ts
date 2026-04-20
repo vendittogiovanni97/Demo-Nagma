@@ -4,6 +4,7 @@ import { validate, createCustomerSchema, updateCustomerSchema } from '../schemas
 import { asyncHandler } from '../utils/async-handler';
 import { AppError } from '../utils/AppError';
 import { parsePageQuery } from '../utils/date-utils';
+import { parseId } from '../utils/parse-id';
 
 const repo = new CustomerRepository();
 
@@ -14,13 +15,13 @@ export class CustomerController {
   });
 
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const customer = await repo.findById(Number(req.params.id));
+    const customer = await repo.findById(parseId(req.params.id));
     if (!customer) throw new AppError('Cliente non trovato.', 404);
     res.json(customer);
   });
 
   getSummary = asyncHandler(async (req: Request, res: Response) => {
-    const summary = await repo.getCustomerSummary(Number(req.params.id));
+    const summary = await repo.getCustomerSummary(parseId(req.params.id));
     if (!summary) throw new AppError('Cliente non trovato.', 404);
     res.json(summary);
   });
@@ -38,14 +39,14 @@ export class CustomerController {
 
   update = asyncHandler(async (req: Request, res: Response) => {
     const data = validate(updateCustomerSchema, req.body);
-    res.json(await repo.update(Number(req.params.id), {
+    res.json(await repo.update(parseId(req.params.id), {
       ...data,
       email: data.email || undefined,
     }));
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    await repo.softDelete(Number(req.params.id));
+    await repo.softDelete(parseId(req.params.id));
     res.status(204).send();
   });
 }

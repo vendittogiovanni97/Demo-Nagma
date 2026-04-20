@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { StaffRepository } from '../repositories/staff.repository';
 import { validate, createStaffSchema } from '../schemas';
 import { asyncHandler } from '../utils/async-handler';
+import { parseId } from '../utils/parse-id';
 
 const repo = new StaffRepository();
 
@@ -16,7 +17,7 @@ export class StaffController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    await repo.delete(Number(req.params.id));
+    await repo.delete(parseId(req.params.id));
     res.status(204).send();
   });
 }

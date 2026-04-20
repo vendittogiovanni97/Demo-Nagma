@@ -15,7 +15,12 @@ export function useBookings(month?: string, options?: HookOptions) {
 
   return useSWR<Booking[]>(
     enabled ? [ENDPOINTS.BOOKINGS.BASE, month] : null,
-    () => bookingService.getAll(month)
+    () => bookingService.getAll(month),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+      refreshInterval: 5 * 60 * 1000, // 5 minuti
+    }
   );
 }
 
@@ -24,6 +29,11 @@ export function useBookingStats(month?: string, options?: HookOptions) {
 
   return useSWR<BookingStats>(
     enabled ? [ENDPOINTS.BOOKINGS.STATS, month] : null,
-    () => bookingService.getStats(month)
+    () => bookingService.getStats(month),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+      refreshInterval: 5 * 60 * 1000, // 5 minuti
+    }
   );
 }

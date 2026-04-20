@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { BaseRepository } from './BaseRepository';
 import { paginate } from '../utils/date-utils';
 import prisma from '../utils/prisma';
+import { parseId } from '../utils/parse-id';
 
 export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate, Prisma.WhatsAppTemplateCreateInput, Prisma.WhatsAppTemplateUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -14,7 +15,7 @@ export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate,
   }
 
   async findById(id: string | number): Promise<WhatsAppTemplate | null> {
-    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    const templateId = parseId(String(id));
     return this.prisma.whatsAppTemplate.findUnique({ where: { id: templateId } });
   }
 
@@ -23,12 +24,12 @@ export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate,
   }
 
   async update(id: string | number, data: Prisma.WhatsAppTemplateUpdateInput): Promise<WhatsAppTemplate> {
-    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    const templateId = parseId(String(id));
     return this.prisma.whatsAppTemplate.update({ where: { id: templateId }, data });
   }
 
   async delete(id: string | number): Promise<void> {
-    const templateId = typeof id === 'number' ? id : parseInt(id, 10);
+    const templateId = parseId(String(id));
     await this.prisma.whatsAppTemplate.delete({ where: { id: templateId } });
   }
 
@@ -106,8 +107,7 @@ export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate,
           },
         },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        ...this.buildPagination(page, limit),
       }),
       this.prisma.whatsAppMessageLog.count({ where }),
     ]);

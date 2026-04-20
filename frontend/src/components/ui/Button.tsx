@@ -83,7 +83,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           <>
             {resolvedIcon && <span className="flex items-center justify-center shrink-0">{resolvedIcon}</span>}
-            <span>{children}</span>
+            {children && <span>{children}</span>}
           </>
         )}
       </button>

@@ -2,6 +2,7 @@
 // Aggiorna qui se aggiungi valori nel backend
 
 export enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
   USER = 'USER',
   ARTIST = 'ARTIST',

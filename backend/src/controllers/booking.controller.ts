@@ -3,6 +3,7 @@ import { BookingService } from '../services/booking.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
 import { parsePageQuery } from '../utils/date-utils';
+import { parseId } from '../utils/parse-id';
 
 const service = new BookingService();
 
@@ -27,15 +28,15 @@ export class BookingController {
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id?.toString() ?? 'system';
-    res.json(await service.updateBooking(Number(req.params.id), req.body, userId));
+    res.json(await service.updateBooking(parseId(req.params.id), req.body, userId));
   });
 
   getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
-    res.json(await service.getHistory(Number(req.params.id)));
+    res.json(await service.getHistory(parseId(req.params.id)));
   });
 
   delete = asyncHandler(async (req: AuthRequest, res: Response) => {
-    await service.deleteBooking(Number(req.params.id));
+    await service.deleteBooking(parseId(req.params.id));
     res.status(204).send();
   });
 

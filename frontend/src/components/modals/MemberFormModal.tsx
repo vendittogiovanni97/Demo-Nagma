@@ -8,6 +8,7 @@ import SubmitButton from '../forms/SubmitButton';
 import StatePanel from '../feedback/StatePanel';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { teamService } from '@/services/team.service';
 import type { Staff } from '@/types/team';
 
@@ -57,7 +58,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
       onSuccess();
       onClose();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : (isEditing ? 'Errore durante la modifica' : 'Errore durante la creazione');
+      const errorMessage = extractErrorMessage(error, isEditing ? 'Errore durante la modifica' : 'Errore durante la creazione');
       toast.error(errorMessage);
     } finally {
       setLoading(false);

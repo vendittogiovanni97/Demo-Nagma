@@ -9,8 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useBookings, useBookingStats } from '@/hooks/domain';
 import { transactionService } from '@/services/transaction.service';
 import type { FinanceSummary } from '@/types/transaction';
-import { addMonths, format, subMonths } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
@@ -64,13 +63,8 @@ function DashboardContent() {
       </div>
     );
   }
-
-  const financeMonthStr = format(financeDate, 'yyyy-MM');
   const totalIncome = financeSummary?.totalIncome ?? 0;
   const totalExpense = financeSummary?.totalExpense ?? 0;
-  const netBalance = totalIncome - totalExpense;
-  const financeMonthLabel = format(financeDate, 'MMM yyyy', { locale: it });
-  const bookingMonthLabel = format(bookingDate, 'MMM yyyy', { locale: it });
 
   return (
     <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
@@ -82,22 +76,20 @@ function DashboardContent() {
             totalIncome={totalIncome}
             totalExpense={totalExpense}
             isLoading={isFinanceLoading}
-            monthLabel={financeMonthLabel}
-            onPreviousMonth={() => setFinanceDate(subMonths(financeDate, 1))}
-            onNextMonth={() => setFinanceDate(addMonths(financeDate, 1))}
+            monthDate={financeDate}
+            onMonthChange={setFinanceDate}
           />
         </div>
 
         {/* Right Column - Bookings */}
         <div className="flex flex-col gap-6">
           <BookingStatsWidget
-            monthLabel={bookingMonthLabel}
+            monthDate={bookingDate}
+            onMonthChange={setBookingDate}
             total={bookingStats?.total ?? 0}
             cancelled={bookingStats?.cancelled ?? 0}
             completed={bookingStats?.completed ?? 0}
             isLoading={isStatsLoading}
-            onPreviousMonth={() => setBookingDate(subMonths(bookingDate, 1))}
-            onNextMonth={() => setBookingDate(addMonths(bookingDate, 1))}
           />
         </div>
       </div>

@@ -1,21 +1,22 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, DollarSign, Eye, EyeOff } from 'lucide-react';
+import { DollarSign, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 import BentoCard from '@/components/data-display/BentoCard';
 import Button from '@/components/ui/Button';
+import MonthPicker from '@/components/ui/MonthPicker';
 import { Skeleton } from '@/components/feedback/Skeleton';
+import { formatPrice } from '@/utils/format';
 
 interface FinanceOverviewWidgetProps {
   totalIncome: number;
   totalExpense: number;
   isLoading: boolean;
   className?: string;
-  monthLabel?: string;
-  onPreviousMonth?: () => void;
-  onNextMonth?: () => void;
+  monthDate?: Date;
+  onMonthChange?: (date: Date) => void;
 }
 
 export default function FinanceOverviewWidget({
@@ -23,9 +24,8 @@ export default function FinanceOverviewWidget({
   totalExpense,
   isLoading,
   className,
-  monthLabel,
-  onPreviousMonth,
-  onNextMonth,
+  monthDate,
+  onMonthChange,
 }: FinanceOverviewWidgetProps) {
   const [showData, setShowData] = useState(true);
 
@@ -34,7 +34,7 @@ export default function FinanceOverviewWidget({
     { name: 'Uscite', value: showData ? (totalExpense || 0.01) : 0.01, color: '#ff5252' },
   ];
 
-  const hasMonthControls = Boolean(monthLabel && onPreviousMonth && onNextMonth);
+  const hasMonthControls = Boolean(monthDate && onMonthChange);
 
   return (
     <BentoCard
@@ -49,27 +49,7 @@ export default function FinanceOverviewWidget({
           </div>
           <div className="flex items-center gap-3">
             {hasMonthControls && (
-              <div className="flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onPreviousMonth}
-                  icon={<ArrowLeft size={14} />}
-                  className="p-1"
-                  aria-label="Mese precedente"
-                />
-                <span className="text-xs font-semibold text-accent px-2 min-w-20 text-center">
-                  {monthLabel}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onNextMonth}
-                  icon={<ArrowRight size={14} />}
-                  className="p-1"
-                  aria-label="Mese successivo"
-                />
-              </div>
+              <MonthPicker value={monthDate!} onChange={onMonthChange!} />
             )}
             <Button
               variant="ghost"
@@ -120,7 +100,7 @@ export default function FinanceOverviewWidget({
                 <span className="text-xs text-text-secondary uppercase tracking-wider">Entrate</span>
               </div>
               <div className="text-xl font-bold text-white font-outfit">
-                {showData ? `€ ${totalIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€ ••••••'}
+                {showData ? formatPrice(totalIncome) : '€ ••••••'}
               </div>
             </div>
             <div className="p-4 rounded-xl bg-white/5 border border-surface-border">
@@ -129,7 +109,7 @@ export default function FinanceOverviewWidget({
                 <span className="text-xs text-text-secondary uppercase tracking-wider">Uscite</span>
               </div>
               <div className="text-xl font-bold text-danger font-outfit">
-                {showData ? `€ ${totalExpense.toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '€ ••••••'}
+                {showData ? formatPrice(totalExpense) : '€ ••••••'}
               </div>
             </div>
           </div>

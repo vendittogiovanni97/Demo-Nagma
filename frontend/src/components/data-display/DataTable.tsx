@@ -1,106 +1,119 @@
 "use client";
 
-import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import { TableSkeleton } from '../feedback/Skeleton';
+import React, { type ReactNode } from 'react';
+import { Skeleton } from '@/components/feedback/Skeleton';
 
 export interface Column<T> {
   key: string;
-  header: string;
-  render?: (value: unknown, item: T) => React.ReactNode;
+  label: string;
+  align?: 'left' | 'center' | 'right';
+  render?: (item: T) => ReactNode;
 }
 
-interface Pagination {
-  page: number;
-  totalPages: number;
-  total: number;
-  onPrev: () => void;
-  onNext: () => void;
-}
-
-interface DataTableProps<T> {
-  data: T[];
+export interface DataTableProps<T> {
   columns: Column<T>[];
+  data: T[];
   isLoading?: boolean;
   emptyMessage?: string;
-  pagination?: Pagination;
+  actions?: (item: T) => ReactNode;
+  keyExtractor: (item: T) => string | number;
+  footer?: ReactNode;
 }
 
-export default function DataTable<T extends { id?: string | number }>({
-  data,
-  columns,
-  isLoading,
-  emptyMessage = 'Nessun dato trovato',
-  pagination,
-}: DataTableProps<T>) {
-  if (isLoading) {
-    return <TableSkeleton rows={5} cols={columns.length} />;
-  }
+const alignClass: Record<NonNullable<Column<unknown>['align']>, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="border border-surface-border rounded-xl flex items-center justify-center p-10 bg-white/5 text-text-secondary">
-        {emptyMessage}
-      </div>
-    );
-  }
+const SKELETON_ROWS = 3;
+
+export default function DataTable<T>({
+  columns,
+  data,
+  isLoading = false,
+  emptyMessage = 'Nessun dato trovato',
+  actions,
+  keyExtractor,
+  footer,
+}: DataTableProps<T>) {
+  const hasActions = Boolean(actions);
+  const totalCols = columns.length + (hasActions ? 1 : 0);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="w-full overflow-x-auto border border-surface-border rounded-xl">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-white/2 border-b border-surface-border">
-            <tr>
-              {columns.map((col, i) => (
-                <th key={col.key || i} className="py-4 px-6 text-xs font-bold text-text-secondary uppercase tracking-widest">
-                  {col.header}
+    <div className="glass-panel rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-surface-border">
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className={`py-4 px-6 text-xs font-bold text-text-secondary uppercase tracking-wider ${alignClass[col.align ?? 'left']}`}
+                >
+                  {col.label}
                 </th>
               ))}
+              {hasActions && (
+                <th className="py-4 px-6 text-right text-xs font-bold text-text-secondary uppercase tracking-wider w-[1%] whitespace-nowrap">
+                  Azioni
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
-            {data.map((row, rowIdx) => (
-              <tr
-                key={row.id ?? rowIdx}
-                className="group hover:bg-white/2 transition-colors border-b border-surface-border/50 last:border-0"
-              >
-                {columns.map((col, colIdx) => (
-                  <td key={col.key || colIdx} className="py-4 px-6 text-sm text-white">
-                    {col.render
-                      ? col.render((row as Record<string, unknown>)[col.key], row)
-                      : String((row as Record<string, unknown>)[col.key] ?? '')}
-                  </td>
-                ))}
+            {isLoading ? (
+              Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                <tr key={i} className="border-b border-surface-border/50">
+                  {columns.map((col) => (
+                    <td key={col.key} className="py-4 px-6">
+                      <Skeleton variant="text" className="w-32" />
+                    </td>
+                  ))}
+                  {hasActions && (
+                    <td className="py-4 px-6">
+                      <Skeleton variant="rect" className="w-20 ml-auto h-8" />
+                    </td>
+                  )}
+                </tr>
+              ))
+            ) : data.length === 0 ? (
+              <tr>
+                <td colSpan={totalCols} className="py-16 text-center text-sm text-text-secondary">
+                  {emptyMessage}
+                </td>
               </tr>
-            ))}
+            ) : (
+              data.map((item) => (
+                <tr
+                  key={keyExtractor(item)}
+                  className="border-b border-surface-border/50 hover:bg-white/5 transition-colors group"
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col.key}
+                      className={`py-4 px-6 text-sm text-white ${alignClass[col.align ?? 'left']}`}
+                    >
+                      {col.render
+                        ? col.render(item)
+                        : String((item as Record<string, unknown>)[col.key] ?? '')}
+                    </td>
+                  ))}
+                  {hasActions && (
+                    <td className="py-4 px-6 text-right">
+                      {actions!(item)}
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-text-secondary">
-            {pagination.total} risultati — pagina {pagination.page} di {pagination.totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={pagination.onPrev}
-              disabled={pagination.page <= 1}
-              icon={<ChevronLeft size={16} />}
-              className="p-2 border border-surface-border"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={pagination.onNext}
-              disabled={pagination.page >= pagination.totalPages}
-              icon={<ChevronRight size={16} />}
-              className="p-2 border border-surface-border"
-            />
-          </div>
+      {footer && (
+        <div className="border-t border-surface-border">
+          {footer}
         </div>
       )}
     </div>

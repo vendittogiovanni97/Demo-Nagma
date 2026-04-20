@@ -1,14 +1,22 @@
 "use client";
 
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { spesaLiberaService } from '@/services/spesa-libera.service';
 import Button from '@/components/ui/Button';
+import MonthPicker from '@/components/ui/MonthPicker';
 import { useToast } from '@/hooks/useToast';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import type { SpesaLibera } from '@/types/spesa-libera';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { formatPrice } from '@/utils/format';
 import { Loader2, Plus, Receipt, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function SpeseLiberePage() {
   const toast = useToast();
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [spese, setSpese] = useState<SpesaLibera[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -16,10 +24,15 @@ export default function SpeseLiberePage() {
   const [price, setPrice] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
+  const monthStr = format(currentDate, 'yyyy-MM');
+  const monthLabel = format(currentDate, 'MMMM yyyy', { locale: it });
+
+  const load = async (month: string) => {
+    setIsLoading(true);
     try {
-      const data = await spesaLiberaService.getAll();
-      setSpese(data);
+      const data = await spesaLiberaService.getAll(month);
+      // filtro client-side per sicurezza
+      setSpese(data.filter(s => s.createdAt.startsWith(month)));
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Errore nel caricamento';
       toast.error(errorMessage);
@@ -28,7 +41,7 @@ export default function SpeseLiberePage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(monthStr); }, [monthStr]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +54,10 @@ export default function SpeseLiberePage() {
     setIsAdding(true);
     try {
       const created = await spesaLiberaService.create({ name: name.trim(), price: parsed });
-      setSpese((prev) => [created, ...prev]);
+      // mostra solo se appartiene al mese corrente
+      if (created.createdAt.startsWith(monthStr)) {
+        setSpese((prev) => [created, ...prev]);
+      }
       setName('');
       setPrice('');
       nameRef.current?.focus();
@@ -55,15 +71,12 @@ export default function SpeseLiberePage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Eliminare questa spesa?')) return;
-    try {
-      await spesaLiberaService.delete(id);
-      setSpese((prev) => prev.filter((s) => s.id !== id));
-      toast.success('Spesa eliminata');
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'Errore nella cancellazione';
-      toast.error(errorMessage);
-    }
+    await deleteItem({
+      confirmMessage: 'Eliminare questa spesa?',
+      action: () => spesaLiberaService.delete(id),
+      successMessage: 'Spesa eliminata',
+      onSuccess: () => setSpese((prev) => prev.filter((s) => s.id !== id)),
+    });
   };
 
   const total = spese.reduce((acc, s) => acc + s.price, 0);
@@ -71,14 +84,19 @@ export default function SpeseLiberePage() {
   return (
     <div className="flex-1 flex flex-col gap-6 max-w-2xl mx-auto w-full pt-8 px-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-          <Receipt size={22} className="text-accent" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+            <Receipt size={22} className="text-accent" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold font-outfit text-white">Spese Libere</h1>
+            <p className="text-sm text-text-secondary">Annotazioni rapide di spese</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold font-outfit text-white">Spese Libere</h1>
-          <p className="text-sm text-text-secondary">Annotazioni rapide di spese</p>
-        </div>
+
+        {/* Navigazione mesi */}
+        <MonthPicker value={currentDate} onChange={setCurrentDate} />
       </div>
 
       {/* Add form */}
@@ -128,7 +146,7 @@ export default function SpeseLiberePage() {
         ) : spese.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-text-secondary">
             <Receipt size={40} className="opacity-30" />
-            <p className="text-sm">Nessuna spesa inserita</p>
+            <p className="text-sm">Nessuna spesa per {monthLabel}</p>
           </div>
         ) : (
           <>
@@ -137,6 +155,9 @@ export default function SpeseLiberePage() {
                 <tr className="border-b border-surface-border">
                   <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
                     Nome
+                  </th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                    Data
                   </th>
                   <th className="text-right px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
                     Prezzo
@@ -153,8 +174,11 @@ export default function SpeseLiberePage() {
                     }`}
                   >
                     <td className="px-6 py-4 text-white font-medium">{spesa.name}</td>
+                    <td className="px-6 py-4 text-text-secondary text-sm">
+                      {format(new Date(spesa.createdAt), 'd MMM', { locale: it })}
+                    </td>
                     <td className="px-6 py-4 text-right text-accent font-semibold tabular-nums">
-                      € {spesa.price.toFixed(2)}
+                      {formatPrice(spesa.price)}
                     </td>
                     <td className="px-4 py-4 text-center">
                       <Button
@@ -173,15 +197,17 @@ export default function SpeseLiberePage() {
             {/* Total row */}
             <div className="flex justify-between items-center px-6 py-4 border-t border-surface-border bg-white/3">
               <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
-                Totale
+                Totale {monthLabel}
               </span>
               <span className="text-lg font-bold text-accent tabular-nums">
-                € {total.toFixed(2)}
+                {formatPrice(total)}
               </span>
             </div>
           </>
         )}
       </div>
+
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

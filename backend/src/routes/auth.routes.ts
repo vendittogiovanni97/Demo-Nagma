@@ -21,6 +21,19 @@ const loginRateLimiter = rateLimit({
   },
 });
 
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: {
+    success: false,
+    message: 'Troppi tentativi. Riprova tra qualche minuto.',
+    error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
+  },
+});
+
 /**
  * @swagger
  * /api/auth/login:
@@ -119,7 +132,7 @@ router.post('/login', loginRateLimiter, controller.login);
  *       409:
  *         description: Email già in uso
  */
-router.post('/register', authMiddleware, adminOnly, controller.register);
+router.post('/register', authRateLimiter, authMiddleware, adminOnly, controller.register);
 
 /**
  * @swagger
@@ -212,6 +225,6 @@ router.put('/me', authMiddleware, controller.updateMe);
  *       401:
  *         description: Password attuale non corretta o non autenticato
  */
-router.put('/me/password', authMiddleware, controller.changePassword);
+router.put('/me/password', authRateLimiter, authMiddleware, controller.changePassword);
 
 export default router;

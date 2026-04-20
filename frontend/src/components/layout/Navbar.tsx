@@ -105,7 +105,8 @@ export default function Navbar() {
 
   return (
     <>
-    <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
+    {/* hydration: intentional server/client mismatch — auth state only available client-side */}
+    <nav suppressHydrationWarning className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
       <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
         <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
           <div className="h-8 w-8 rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden">

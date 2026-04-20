@@ -1,7 +1,4 @@
 "use client";
 
-import type { ReactNode } from 'react';
-
-export function ToastProvider({ children }: { children: ReactNode }) {
-  return <>{children}</>;
-}
+// ToastProvider was a no-op wrapper (<>{children}</>) and has been removed.
+// Toast state is managed directly by ToastContainer via the useToastStore hook.

@@ -25,7 +25,7 @@ export interface Staff {
   id: number;
   name: string;
   type: StaffType;
-  color: string;
+  color?: string;
   createdAt: string;
   updatedAt: string;
 }

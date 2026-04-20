@@ -3,6 +3,7 @@ import { config } from '../config/env';
 import { TransactionService } from '../services/transaction.service';
 import { asyncHandler } from '../utils/async-handler';
 import { parsePageQuery } from '../utils/date-utils';
+import { parseId } from '../utils/parse-id';
 
 const service = new TransactionService();
 
@@ -33,7 +34,7 @@ export class TransactionController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    await service.deleteTransaction(Number(req.params.id));
+    await service.deleteTransaction(parseId(req.params.id));
     res.status(204).send();
   });
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { transactionService } from '@/services/transaction.service';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
+import { useFormModal } from '@/hooks/useFormModal';
 import type { CreateTransactionData, TransactionType } from '@/types/transaction';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
@@ -24,7 +25,13 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('EXPENSE');
-  const [loading, setLoading] = useState(false);
+
+  const { isLoading: loading, handleSubmit: submitForm } = useFormModal<CreateTransactionData>({
+    onSubmit: (data) => transactionService.create(data),
+    onClose,
+    successMessage: `${type === 'INCOME' ? 'Entrata' : 'Spesa'} di € ${Number(amount).toFixed(2)} registrata!`,
+    errorMessage: 'Errore nel salvare la transazione',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,21 +46,10 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
       toast.error(validationError);
       return;
     }
-
-    setLoading(true);
-    try {
-      await transactionService.create(data);
-      setDesc('');
-      setAmount('');
-      setType('EXPENSE');
-      toast.success(`${type === 'INCOME' ? 'Entrata' : 'Spesa'} di € ${Number(amount).toFixed(2)} registrata!`);
-      onClose();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Errore nel salvare la transazione';
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    setDesc('');
+    setAmount('');
+    setType('EXPENSE');
+    await submitForm(data);
   };
 
   return (

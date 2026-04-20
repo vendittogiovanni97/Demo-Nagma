@@ -7,6 +7,7 @@ import FormTextarea from '@/components/forms/FormTextarea';
 import SubmitButton from '@/components/forms/SubmitButton';
 import Modal from '@/components/modals/Modal';
 import { useToast } from '@/hooks/useToast';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '@/types/whatsapp';
 import { validateData } from '@/utils/validation';
@@ -69,7 +70,7 @@ export default function WhatsAppTemplateModal({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Errore durante il salvataggio del template';
+      const errorMessage = extractErrorMessage(error, 'Errore durante il salvataggio del template');
       toast.error(errorMessage);
     } finally {
       setLoading(false);

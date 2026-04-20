@@ -4,6 +4,7 @@ import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
 import { getMonthRange, paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
+import { parseId } from '../utils/parse-id';
 
 export class TransactionRepository extends BaseRepository<Transaction, Prisma.TransactionCreateInput, Prisma.TransactionUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -15,7 +16,7 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
   }
 
   async findById(id: string | number): Promise<Transaction | null> {
-    const transactionId = typeof id === 'number' ? id : parseInt(id, 10);
+    const transactionId = parseId(String(id));
     return this.prisma.transaction.findUnique({ where: { id: transactionId } });
   }
 
@@ -27,12 +28,12 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
   }
 
   async update(id: string | number, data: Prisma.TransactionUpdateInput): Promise<Transaction> {
-    const transactionId = typeof id === 'number' ? id : parseInt(id, 10);
+    const transactionId = parseId(String(id));
     return this.prisma.transaction.update({ where: { id: transactionId }, data });
   }
 
   async delete(id: string | number): Promise<void> {
-    const transactionId = typeof id === 'number' ? id : parseInt(id, 10);
+    const transactionId = parseId(String(id));
     await softDelete(this.prisma.transaction, transactionId);
   }
 
@@ -70,12 +71,10 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
       whereClause.date = getMonthRange(monthStr);
     }
 
-    const skip = (page - 1) * limit;
     const [data, total] = await this.prisma.$transaction([
       this.prisma.transaction.findMany({
         where: whereClause,
-        skip,
-        take: limit,
+        ...this.buildPagination(page, limit),
         orderBy: { date: 'desc' },
       }),
       this.prisma.transaction.count({ where: whereClause }),
@@ -112,27 +111,36 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
     });
   }
 
-  async getArtistPerformance() {
-    const stats = await this.prisma.booking.groupBy({
-      by: ['artistId'],
-      where: { deletedAt: null, status: 'COMPLETED' },
-      _count: { id: true },
-      _sum: { price: true },
-    });
+  async getArtistPerformance(month?: string) {
+    const results = await this.prisma.$queryRaw<Array<{
+      artistId: number;
+      artistName: string;
+      artistColor: string | null;
+      bookings: bigint;
+      revenue: number | null;
+    }>>`
+      SELECT
+        s.id            AS "artistId",
+        s.name          AS "artistName",
+        s.color         AS "artistColor",
+        COUNT(b.id)     AS bookings,
+        SUM(b.price)    AS revenue
+      FROM "Staff" s
+      LEFT JOIN "Booking" b
+        ON b."artistId" = s.id
+        AND b."deletedAt" IS NULL
+        AND b.status = 'COMPLETED'
+        ${month ? Prisma.sql`AND DATE_TRUNC('month', b.date) = DATE_TRUNC('month', ${month + '-01'}::date)` : Prisma.empty}
+      GROUP BY s.id, s.name, s.color
+      ORDER BY revenue DESC NULLS LAST
+    `;
 
-    const artistIds = stats.map(s => s.artistId).filter((id): id is number => id !== null);
-    const artists = await this.prisma.staff.findMany({
-      where: { id: { in: artistIds } },
-      select: { id: true, name: true, color: true },
-    });
-    const artistMap = Object.fromEntries(artists.map(a => [a.id, a]));
-
-    return stats.map(s => ({
-      artistId: s.artistId,
-      artistName: s.artistId ? (artistMap[s.artistId]?.name ?? 'Sconosciuto') : 'Sconosciuto',
-      artistColor: s.artistId ? (artistMap[s.artistId]?.color ?? null) : null,
-      bookings: s._count.id,
-      revenue: s._sum.price ?? 0,
+    return results.map(r => ({
+      artistId: r.artistId,
+      artistName: r.artistName ?? 'Sconosciuto',
+      artistColor: r.artistColor ?? null,
+      bookings: Number(r.bookings),
+      revenue: r.revenue ? Number(r.revenue) : 0,
     }));
   }
 }

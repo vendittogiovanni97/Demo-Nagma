@@ -4,6 +4,7 @@ import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
 import { paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
+import { parseId } from '../utils/parse-id';
 
 const baseInclude = {
   _count: {
@@ -34,7 +35,7 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
   }
 
   async findById(id: string | number): Promise<Customer | null> {
-    const customerId = typeof id === 'number' ? id : parseInt(id, 10);
+    const customerId = parseId(String(id));
     return this.prisma.customer.findFirst({
       where: { id: customerId, deletedAt: null },
       include: {
@@ -67,12 +68,12 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
   }
 
   async update(id: string | number, data: Prisma.CustomerUpdateInput): Promise<Customer> {
-    const customerId = typeof id === 'number' ? id : parseInt(id, 10);
+    const customerId = parseId(String(id));
     return this.prisma.customer.update({ where: { id: customerId }, data });
   }
 
   async delete(id: string | number): Promise<void> {
-    const customerId = typeof id === 'number' ? id : parseInt(id, 10);
+    const customerId = parseId(String(id));
     await softDelete(this.prisma.customer, customerId);
   }
 
@@ -86,13 +87,11 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
 
   async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit) {
     const where = buildWhere(search);
-    const skip = (page - 1) * limit;
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.customer.findMany({
         where,
-        skip,
-        take: limit,
+        ...this.buildPagination(page, limit),
         orderBy: { createdAt: 'desc' },
         include: baseInclude,
       }),
@@ -118,29 +117,33 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
             bookings: { where: { deletedAt: null } },
           },
         },
+        bookings: {
+          where: { deletedAt: null },
+          select: {
+            date: true,
+            status: true,
+            price: true,
+            artist: { select: { name: true } },
+          },
+          orderBy: { date: 'desc' },
+        },
       },
     });
 
     if (!customer) return null;
 
-    const [totalSpent, upcomingBookings, lastBooking] = await this.prisma.$transaction([
-      this.prisma.booking.aggregate({
-        where: { customerId: id, deletedAt: null, status: 'COMPLETED' },
-        _sum: { price: true },
-      }),
-      this.prisma.booking.count({
-        where: { customerId: id, deletedAt: null, date: { gte: new Date() } },
-      }),
-      this.prisma.booking.findFirst({
-        where: { customerId: id, deletedAt: null },
-        orderBy: { date: 'desc' },
-        select: { date: true, status: true, artist: { select: { name: true } } },
-      }),
-    ]);
+    const completedBookings = customer.bookings.filter(b => b.status === 'COMPLETED');
+    const totalSpent = completedBookings.reduce((sum, b) => sum + (b.price ?? 0), 0);
+    const upcomingBookings = customer.bookings.filter(
+      b => b.status !== 'CANCELLED' && new Date(b.date) >= new Date()
+    ).length;
+    const lastBooking = customer.bookings[0] ?? null;
+
+    const { bookings: _bookings, ...customerFields } = customer;
 
     return {
-      ...customer,
-      totalSpent: totalSpent._sum.price || 0,
+      ...customerFields,
+      totalSpent,
       upcomingBookings,
       lastBooking,
     };

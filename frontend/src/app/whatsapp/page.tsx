@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import WhatsAppTemplateModal from '@/components/modals/WhatsAppTemplateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useWhatsAppTemplates } from '@/hooks/domain';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { WhatsAppTemplate } from '@/types/whatsapp';
@@ -27,7 +28,7 @@ export default function WhatsAppTemplatesPage() {
 
   const filteredTemplates = useMemo(() => templates || [], [templates]);
 
-  const { deleteItem } = useDeleteConfirm();
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const handleDeleteTemplate = async (templateId: number) => {
     await deleteItem({
@@ -174,6 +175,7 @@ export default function WhatsAppTemplatesPage() {
         }}
         template={editingTemplate}
       />
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

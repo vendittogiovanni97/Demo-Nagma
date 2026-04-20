@@ -85,6 +85,37 @@ router.post('/members', requireRoles('ADMIN'), controller.createUser);
 /**
  * @swagger
  * /api/team/members/{id}:
+ *   get:
+ *     summary: Dettaglio membro del team
+ *     description: Restituisce i dati di un singolo componente dello staff
+ *     tags: [Team]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID dello staff
+ *     responses:
+ *       200:
+ *         description: Dati del membro
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/Staff'
+ *       404:
+ *         description: Membro non trovato
+ */
+router.get('/members/:id', authMiddleware, controller.getMemberById);
+
+/**
+ * @swagger
+ * /api/team/members/{id}:
  *   delete:
  *     summary: Rimuovi membro dal team
  *     description: Elimina un componente dello staff (solo admin)

@@ -23,7 +23,11 @@ interface UseWhatsAppLogsOptions {
 export function useWhatsAppTemplates({ search, enabled = true }: UseWhatsAppTemplatesOptions = {}) {
   return useSWR<WhatsAppTemplate[]>(
     enabled ? [ENDPOINTS.WHATSAPP.BASE, search] : null,
-    () => whatsappService.getTemplates(search)
+    () => whatsappService.getTemplates(search),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
   );
 }
 
@@ -36,6 +40,10 @@ export function useWhatsAppLogs({
 }: UseWhatsAppLogsOptions = {}) {
   return useSWR<PaginatedResponse<WhatsAppMessageLog>>(
     enabled ? [ENDPOINTS.WHATSAPP.LOGS, search, status, page, limit] : null,
-    () => whatsappService.getLogs({ search, status, page, limit })
+    () => whatsappService.getLogs({ search, status, page, limit }),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
   );
 }

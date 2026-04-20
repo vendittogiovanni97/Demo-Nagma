@@ -2,7 +2,7 @@ import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
 import type { Staff, CreateStaffData, Shift, CreateShiftData } from '@/types/team';
 import type { PaginatedResponse } from '@/types/pagination';
-import { format, startOfWeek, parse } from 'date-fns';
+import { format, startOfWeek, addDays, parseISO } from 'date-fns';
 
 /**
  * Trasforma i dati grezzi dal backend nel formato atteso dal frontend
@@ -54,6 +54,34 @@ function transformShiftFromBackend(rawShift: any): Shift {
   };
 }
 
+const LABEL_TO_TIMES: Record<string, { startTime: string; endTime: string }> = {
+  'Mattina':          { startTime: '09:00', endTime: '13:00' },
+  'Pomeriggio':       { startTime: '14:00', endTime: '19:00' },
+  'Tutta la giornata':{ startTime: '09:00', endTime: '19:00' },
+  'Riposo':           { startTime: '00:00', endTime: '00:00' },
+};
+
+function transformShiftToBackend(data: Partial<CreateShiftData>): Record<string, unknown> {
+  const times = data.label
+    ? LABEL_TO_TIMES[data.label] ?? { startTime: '09:00', endTime: '13:00' }
+    : data.isOff
+      ? { startTime: '00:00', endTime: '00:00' }
+      : { startTime: data.startTime ?? '09:00', endTime: data.endTime ?? '13:00' };
+
+  const date =
+    data.weekStart !== undefined && data.dayOfWeek !== undefined
+      ? format(addDays(parseISO(data.weekStart), data.dayOfWeek), 'yyyy-MM-dd')
+      : undefined;
+
+  return {
+    staffId: data.staffId,
+    ...(date ? { date } : {}),
+    startTime: times.startTime,
+    endTime: times.endTime,
+    ...(data.notes ? { notes: data.notes } : {}),
+  };
+}
+
 export const teamService = {
   getMembers: async ({
     search,
@@ -88,10 +116,10 @@ export const teamService = {
     return rawShifts.map(transformShiftFromBackend);
   },
   createShift: async (data: CreateShiftData) => {
-    return apiClient.post(ENDPOINTS.TEAM.SHIFTS, data);
+    return apiClient.post(ENDPOINTS.TEAM.SHIFTS, transformShiftToBackend(data));
   },
   updateShift: async (id: string, data: Partial<CreateShiftData>) => {
-    return apiClient.put(ENDPOINTS.TEAM.SHIFT_BY_ID(id), data);
+    return apiClient.put(ENDPOINTS.TEAM.SHIFT_BY_ID(id), transformShiftToBackend(data));
   },
   deleteShift: async (id: string) => {
     return apiClient.delete(ENDPOINTS.TEAM.SHIFT_BY_ID(id));

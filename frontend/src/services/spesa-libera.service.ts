@@ -3,8 +3,8 @@ import { ENDPOINTS } from '@/api/endpoints';
 import type { SpesaLibera, CreateSpesaLiberaData } from '@/types/spesa-libera';
 
 export const spesaLiberaService = {
-  getAll: (): Promise<SpesaLibera[]> =>
-    apiClient.get<{ data: SpesaLibera[] }>(ENDPOINTS.SPESE_LIBERE.BASE)
+  getAll: (month?: string): Promise<SpesaLibera[]> =>
+    apiClient.get<{ data: SpesaLibera[] }>(ENDPOINTS.SPESE_LIBERE.BASE, month ? { month } : undefined)
       .then(res => res.data),
 
   create: (data: CreateSpesaLiberaData): Promise<SpesaLibera> =>

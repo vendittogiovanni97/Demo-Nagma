@@ -3,6 +3,7 @@ import { Prisma, Staff } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 import { BaseRepository } from './BaseRepository';
 import { paginate } from '../utils/date-utils';
+import { parseId } from '../utils/parse-id';
 
 export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInput, Prisma.StaffUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -14,7 +15,7 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
   }
 
   async findById(id: string | number): Promise<Staff | null> {
-    const staffId = typeof id === 'number' ? id : parseInt(id, 10);
+    const staffId = parseId(String(id));
     return this.prisma.staff.findUnique({ where: { id: staffId } });
   }
 
@@ -25,12 +26,12 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
   }
 
   async update(id: string | number, data: Prisma.StaffUpdateInput): Promise<Staff> {
-    const staffId = typeof id === 'number' ? id : parseInt(id, 10);
+    const staffId = parseId(String(id));
     return this.prisma.staff.update({ where: { id: staffId }, data });
   }
 
   async delete(id: string | number): Promise<void> {
-    const staffId = typeof id === 'number' ? id : parseInt(id, 10);
+    const staffId = parseId(String(id));
     await this.prisma.staff.delete({ where: { id: staffId } });
   }
 
@@ -61,12 +62,10 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
       ];
     }
 
-    const skip = (page - 1) * limit;
     const [data, total] = await this.prisma.$transaction([
       this.prisma.staff.findMany({
         where,
-        skip,
-        take: limit,
+        ...this.buildPagination(page, limit),
         orderBy: { name: 'asc' },
       }),
       this.prisma.staff.count({ where }),

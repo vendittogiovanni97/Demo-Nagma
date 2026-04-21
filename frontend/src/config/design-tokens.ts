@@ -1,9 +1,3 @@
-/**
- * Design Tokens per i componenti UI
- * Centralizza tutti i design token (colori, spacing, border-radius, ecc.)
- * per garantire consistenza visuale in tutta l'applicazione
- */
-
 export const designTokens = {
   colors: {
     background: '#08121a',
@@ -77,14 +71,3 @@ export const designTokens = {
     },
   },
 } as const;
-
-/**
- * Utilizzo nei componenti:
- *
- * import { designTokens } from '@/config/design-tokens';
- *
- * // Accesso ai token
- * designTokens.colors.accent        // '#00BFFF'
- * designTokens.button.borderRadius  // { sm: '10px', ... }
- * designTokens.button.variants.primary.background  // '#00BFFF'
- */

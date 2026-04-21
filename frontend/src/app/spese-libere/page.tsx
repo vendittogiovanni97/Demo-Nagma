@@ -5,6 +5,7 @@ import { spesaLiberaService } from '@/services/spesa-libera.service';
 import Button from '@/components/ui/Button';
 import MonthPicker from '@/components/ui/MonthPicker';
 import { useToast } from '@/hooks/useToast';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import type { SpesaLibera } from '@/types/spesa-libera';
 import { format } from 'date-fns';
@@ -31,11 +32,9 @@ export default function SpeseLiberePage() {
     setIsLoading(true);
     try {
       const data = await spesaLiberaService.getAll(month);
-      // filtro client-side per sicurezza
       setSpese(data.filter(s => s.createdAt.startsWith(month)));
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'Errore nel caricamento';
-      toast.error(errorMessage);
+      toast.error(extractErrorMessage(e, 'Errore nel caricamento'));
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +53,6 @@ export default function SpeseLiberePage() {
     setIsAdding(true);
     try {
       const created = await spesaLiberaService.create({ name: name.trim(), price: parsed });
-      // mostra solo se appartiene al mese corrente
       if (created.createdAt.startsWith(monthStr)) {
         setSpese((prev) => [created, ...prev]);
       }
@@ -63,8 +61,7 @@ export default function SpeseLiberePage() {
       nameRef.current?.focus();
       toast.success('Spesa aggiunta');
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'Errore nel salvataggio';
-      toast.error(errorMessage);
+      toast.error(extractErrorMessage(e, 'Errore nel salvataggio'));
     } finally {
       setIsAdding(false);
     }
@@ -83,7 +80,6 @@ export default function SpeseLiberePage() {
 
   return (
     <div className="flex-1 flex flex-col gap-6 max-w-2xl mx-auto w-full pt-8 px-4">
-      {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -94,12 +90,9 @@ export default function SpeseLiberePage() {
             <p className="text-sm text-text-secondary">Annotazioni rapide di spese</p>
           </div>
         </div>
-
-        {/* Navigazione mesi */}
         <MonthPicker value={currentDate} onChange={setCurrentDate} />
       </div>
 
-      {/* Add form */}
       <form
         onSubmit={handleAdd}
         className="glass-panel rounded-2xl p-5 flex flex-col sm:flex-row gap-3"
@@ -136,7 +129,6 @@ export default function SpeseLiberePage() {
         </Button>
       </form>
 
-      {/* Table */}
       <div className="glass-panel rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16 text-text-secondary">

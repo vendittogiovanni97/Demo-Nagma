@@ -126,7 +126,7 @@ router.get('/', controller.getAll);
  *       201:
  *         description: Transazione creata
  */
-router.post('/', requireRoles('ADMIN', 'USER'), controller.create);
+router.post('/', requireRoles('ADMIN'), controller.create);
 
 /**
  * @swagger
@@ -146,6 +146,6 @@ router.post('/', requireRoles('ADMIN', 'USER'), controller.create);
  *       204:
  *         description: Transazione eliminata
  */
-router.delete('/:id', requireRoles('ADMIN', 'USER'), controller.delete);
+router.delete('/:id', requireRoles('ADMIN'), controller.delete);
 
 export default router;

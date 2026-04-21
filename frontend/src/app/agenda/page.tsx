@@ -1,11 +1,11 @@
 "use client";
 
-import FullCalendar from '@fullcalendar/react';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
 import itLocale from '@fullcalendar/core/locales/it';
 import type { DateClickArg } from '@fullcalendar/interaction';
-import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
+import interactionPlugin from '@fullcalendar/interaction';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
 
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
@@ -50,38 +50,41 @@ function CalendarEvent({ booking, canSendWhatsApp, onEdit, onDelete, onWhatsApp 
 
       <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover/ev:opacity-100 transition-opacity z-10">
         {canSendWhatsApp && booking.customer?.id && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onWhatsApp(booking); }}
-            className="w-5 h-5 flex items-center justify-center rounded bg-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors"
+            className="w-5 h-5 p-0 text-emerald-400 hover:bg-emerald-500 hover:text-white"
             title="WhatsApp"
-          >
-            <MessageCircle size={11} />
-          </button>
+            icon={<MessageCircle size={11} />}
+          />
         )}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onEdit(booking); }}
-          className="w-5 h-5 flex items-center justify-center rounded bg-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors"
+          className="w-5 h-5 p-0 text-blue-400 hover:bg-blue-500 hover:text-white"
           title="Modifica"
-        >
-          <Pencil size={11} />
-        </button>
-        <button
+          icon={<Pencil size={11} />}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onDelete(booking.id); }}
-          className="w-5 h-5 flex items-center justify-center rounded bg-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+          className="w-5 h-5 p-0 text-red-400 hover:bg-red-500 hover:text-white"
           title="Elimina"
-        >
-          <Trash2 size={11} />
-        </button>
+          icon={<Trash2 size={11} />}
+        />
       </div>
     </div>
   );
 }
 
 export default function AgendaPage() {
-  const { can } = useAuth();
+  const { isAdmin } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [whatsAppBooking, setWhatsAppBooking] = useState<Booking | null>(null);
@@ -282,7 +285,7 @@ export default function AgendaPage() {
             eventContent={(arg: EventContentArg) => (
               <CalendarEvent
                 booking={arg.event.extendedProps.booking as Booking}
-                canSendWhatsApp={can.sendWhatsApp}
+                canSendWhatsApp={isAdmin}
                 onEdit={handleEditBooking}
                 onDelete={handleDeleteBooking}
                 onWhatsApp={setWhatsAppBooking}
@@ -297,7 +300,6 @@ export default function AgendaPage() {
               const visibleStart = format(arg.start, 'yyyy-MM');
               const visibleEnd = format(subDays(arg.end, 1), 'yyyy-MM');
               if (visibleEnd !== visibleStart) {
-                // Week spans two months — fetch the month with more days visible
                 const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
                 setCurrentMonth(format(mid, 'yyyy-MM'));
               } else {

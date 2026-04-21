@@ -227,4 +227,30 @@ router.put('/me', authMiddleware, controller.updateMe);
  */
 router.put('/me/password', authRateLimiter, authMiddleware, controller.changePassword);
 
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Rinnova il token JWT
+ *     description: Emette un nuovo token JWT se quello corrente è ancora valido
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Nuovo token emesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Token non valido o scaduto
+ */
+router.post('/refresh', authMiddleware, controller.refresh);
+
 export default router;

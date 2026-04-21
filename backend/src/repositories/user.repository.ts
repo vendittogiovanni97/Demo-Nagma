@@ -57,7 +57,7 @@ export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput,
   }) {
     const where: Prisma.UserWhereInput = { deletedAt: null };
 
-    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'USER' || role === 'ARTIST') {
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
       where.role = role;
     } else if (excludeRoles?.length) {
       where.role = { notIn: excludeRoles as any };

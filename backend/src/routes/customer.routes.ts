@@ -137,7 +137,7 @@ router.get('/:id/summary', controller.getSummary);
  *       400:
  *         description: Dati non validi
  */
-router.post('/', requireRoles('ADMIN', 'USER'), controller.create);
+router.post('/', requireRoles('ADMIN'), controller.create);
 
 /**
  * @swagger
@@ -177,7 +177,7 @@ router.post('/', requireRoles('ADMIN', 'USER'), controller.create);
  *       404:
  *         description: Cliente non trovato
  */
-router.put('/:id', requireRoles('ADMIN', 'USER'), controller.update);
+router.put('/:id', requireRoles('ADMIN'), controller.update);
 
 /**
  * @swagger
@@ -200,6 +200,6 @@ router.put('/:id', requireRoles('ADMIN', 'USER'), controller.update);
  *       404:
  *         description: Cliente non trovato
  */
-router.delete('/:id', requireRoles('ADMIN', 'USER'), controller.delete);
+router.delete('/:id', requireRoles('ADMIN'), controller.delete);
 
 export default router;

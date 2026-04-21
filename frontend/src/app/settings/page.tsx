@@ -1,36 +1,30 @@
 "use client";
 
 import Avatar from '@/components/data-display/Avatar';
-import Badge from '@/components/ui/Badge';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import FormInput from '@/components/forms/FormInput';
 import SubmitButton from '@/components/forms/SubmitButton';
 import PageHeader from '@/components/layout/PageHeader';
-import Button from '@/components/ui/Button';
 import MemberFormModal from '@/components/modals/MemberFormModal';
 import ResetPasswordModal from '@/components/modals/ResetPasswordModal';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamMembers } from '@/hooks/domain';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useToast } from '@/hooks/useToast';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { authService } from '@/services/auth.service';
 import { teamService } from '@/services/team.service';
 import type { User } from '@/types/team';
 import { Edit, KeyRound, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-const ROLE_BADGE_COLORS: Record<string, { bg: string; text: string }> = {
-  ADMIN: { bg: 'bg-accent/20', text: 'text-accent' },
-  USER: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
-  ARTIST: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
-  SUPER_ADMIN: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
-};
-
 export default function SettingsPage() {
   const toast = useToast();
-  const { user, can } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   // Tab state
@@ -70,8 +64,7 @@ export default function SettingsPage() {
       });
       toast.success('Profilo aggiornato');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Errore durante l\'aggiornamento del profilo';
-      toast.error(errorMessage);
+      toast.error(extractErrorMessage(error, 'Errore durante l\'aggiornamento del profilo'));
     } finally {
       setProfileLoading(false);
     }
@@ -96,8 +89,7 @@ export default function SettingsPage() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Errore durante il cambio della password';
-      toast.error(errorMessage);
+      toast.error(extractErrorMessage(error, 'Errore durante il cambio della password'));
     } finally {
       setPasswordLoading(false);
     }
@@ -164,7 +156,7 @@ export default function SettingsPage() {
         >
           Il mio profilo
         </Button>
-        {can.manageStaff && (
+        {isAdmin && (
           <Button
             variant={activeTab === 'users' ? 'secondary' : 'ghost'}
             size="md"
@@ -257,7 +249,7 @@ export default function SettingsPage() {
       )}
 
       {/* TAB 2: User Management */}
-      {activeTab === 'users' && can.manageStaff && (
+      {activeTab === 'users' && isAdmin && (
         <div className="glass-panel rounded-2xl overflow-hidden flex flex-col">
           {/* Header */}
           <div className="px-8 py-6 border-b border-surface-border flex items-center justify-between bg-white/[0.02]">

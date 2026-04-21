@@ -4,8 +4,9 @@ import { useState } from 'react';
 import Modal from './Modal';
 import FormInput from '../forms/FormInput';
 import SubmitButton from '../forms/SubmitButton';
+import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
-import { notifyError, notifySuccess } from '@/utils/toast';
+import { extractErrorMessage } from '@/utils/extract-error';
 
 interface ResetPasswordModalProps {
   isOpen: boolean;
@@ -24,26 +25,27 @@ export default function ResetPasswordModal({
 }: ResetPasswordModalProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      notifyError(new Error('Le password non corrispondono'), 'Le password inserite non sono uguali');
+      toast.error('Le password inserite non sono uguali');
       return;
     }
 
     setLoading(true);
     try {
       await teamService.resetMemberPassword(memberId, newPassword);
-      notifySuccess(`Password di ${userName} resettata`);
+      toast.success(`Password di ${userName} resettata`);
       setNewPassword('');
       setConfirmPassword('');
       onSuccess();
       onClose();
     } catch (error: unknown) {
-      notifyError(error, 'Errore durante il reset della password');
+      toast.error(extractErrorMessage(error, 'Errore durante il reset della password'));
     } finally {
       setLoading(false);
     }

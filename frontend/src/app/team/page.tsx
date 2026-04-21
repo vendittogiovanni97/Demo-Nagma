@@ -17,32 +17,26 @@ import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
 import type { Shift } from '@/types/team';
+import { DAYS_OF_WEEK, SHIFT_LABELS } from '@/config/team-config';
 import { addDays, addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Edit, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-const SHIFT_LABELS = ['Mattina', 'Pomeriggio', 'Tutta la giornata', 'Riposo'];
-
 export default function TeamPage() {
   const toast = useToast();
-  const { can } = useAuth();
+  const { isAdmin } = useAuth();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
-  // Using Monday as start of week
   const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
-
-  // Shift modal state
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [shiftModalData, setShiftModalData] = useState<{ staffId?: number, dayOfWeek?: number }>({});
   const [updatingShiftId, setUpdatingShiftId] = useState<string | null>(null);
-  const [isAddingShift, setIsAddingShift] = useState<string | null>(null); // staffId-dayIndex
+  const [isAddingShift, setIsAddingShift] = useState<string | null>(null);
 
-  const canManageMembers = can.manageStaff;
-  const canManageShiftData = can.manageShifts;
+  const canManageMembers = isAdmin;
+  const canManageShiftData = isAdmin;
 
-  // Fetch all members for the grid
   const { data: membersResult, isLoading: loadingMembers, mutate: mutateMembers, error: membersError } = useTeamMembers({
     page: 1, limit: 100,
   });
@@ -90,7 +84,7 @@ export default function TeamPage() {
   const handleCycleShift = async (shift: Shift) => {
     if (!canManageShiftData || updatingShiftId) return;
 
-    const currentLabel = shift.label || 'Mattina';
+    const currentLabel = (shift.label || 'Mattina') as typeof SHIFT_LABELS[number];
     const currentIndex = SHIFT_LABELS.indexOf(currentLabel);
     const nextIndex = (currentIndex + 1) % SHIFT_LABELS.length;
     const nextLabel = SHIFT_LABELS[nextIndex];
@@ -144,7 +138,7 @@ export default function TeamPage() {
   }
 
   // Calculate dates for the current week header
-  const weekDates = DAYS.map((_, i) => addDays(parseISO(week), i));
+  const weekDates = DAYS_OF_WEEK.map((_, i) => addDays(parseISO(week), i));
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
@@ -166,12 +160,12 @@ export default function TeamPage() {
                 },
               ]}
             />
-            <PermissionGate permission="manageShifts">
+            <PermissionGate requireAdmin>
                <Button variant="secondary" icon={Plus} onClick={() => openAddShift()} size="md">
                  Turno
                </Button>
             </PermissionGate>
-            <PermissionGate permission="manageStaff">
+            <PermissionGate requireAdmin>
               <Button variant="primary" icon={Plus} onClick={() => setIsStaffModalOpen(true)} size="md">
                 Staff
               </Button>
@@ -188,22 +182,19 @@ export default function TeamPage() {
         />
       </PageHeader>
 
-      {/* Grid Container */}
       <div className="glass-panel flex-1 rounded-2xl flex flex-col overflow-hidden w-full relative">
         <div className="overflow-x-auto flex-1 w-full min-h-125">
           <div className="min-w-250 h-full flex flex-col pb-4">
-            {/* Header Row */}
             <div className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/50 bg-black/20 sticky top-0 z-10 backdrop-blur-md">
               <div className="py-5 px-6 text-sm font-bold text-text-secondary uppercase tracking-widest">Collaboratore</div>
               {weekDates.map((date, i) => (
                 <div key={i} className="py-4 px-4 text-center border-l border-surface-border/20 flex flex-col justify-center">
-                  <div className="text-white font-bold">{DAYS[i]}</div>
+                  <div className="text-white font-bold">{DAYS_OF_WEEK[i]}</div>
                   <div className="text-xs text-text-secondary mt-1 tracking-wider uppercase">{format(date, 'd MMM', { locale: it })}</div>
                 </div>
               ))}
             </div>
 
-            {/* loading state */}
             {(loadingMembers || loadingShifts) && (
               <StatePanel
                 variant="loading"
@@ -212,7 +203,6 @@ export default function TeamPage() {
               />
             )}
 
-            {/* Member Rows */}
             {!loadingMembers && !loadingShifts && membersList.length === 0 && (
                <div className="flex-1 flex items-center justify-center text-text-secondary p-8">
                  Nessun membro del team trovato. Aggiungi il primo componente.
@@ -240,7 +230,7 @@ export default function TeamPage() {
                          {m.type}
                        </Badge>
                     </div>
-                    <PermissionGate permission="manageStaff">
+                    <PermissionGate requireAdmin>
                       <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/member:opacity-100 transition-opacity duration-200">
                         <Button
                           variant="secondary"
@@ -260,9 +250,8 @@ export default function TeamPage() {
                     </PermissionGate>
                   </div>
 
-                  {/* Days Cells */}
-                  {DAYS.map((_, dayIndex) => {
-                    const shift = shifts?.find(s => s.staffId === m.id && s.dayOfWeek === dayIndex);
+                  {DAYS_OF_WEEK.map((_, dayIndex) => {
+                    const shift = shifts?.find(s => s.staffId === m.id && s.dayOfWeek === dayIndex && s.weekStart === week);
 
                     return (
                       <div

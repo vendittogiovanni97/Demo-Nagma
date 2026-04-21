@@ -2,30 +2,10 @@
 
 import { authService } from '@/services/auth.service';
 import type { AuthUser, LoginCredentials } from '@/types/auth';
-import type { Role } from '@/types/team';
 import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
-import {
-  canManageCustomers,
-  canManageFinance,
-  canManageFormTemplates,
-  canManageShifts,
-  canManageStaff,
-  canManageWhatsAppTemplates,
-  canSendWhatsApp,
-  hasRequiredRole,
-} from '@/utils/permissions';
+import { isAdmin, isSuperAdmin } from '@/config/roles';
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-
-interface Permissions {
-  manageCustomers: boolean;
-  manageStaff: boolean;
-  manageShifts: boolean;
-  manageFinance: boolean;
-  manageWhatsAppTemplates: boolean;
-  sendWhatsApp: boolean;
-  manageFormTemplates: boolean;
-}
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -33,8 +13,8 @@ interface AuthContextType {
   user: AuthUser | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  hasRole: (roles: Role | Role[]) => boolean;
-  can: Permissions;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setCurrentUser(savedUser);
       }
 
-      // Re-valida il profilo dal server se abbiamo un token
       const loadProfile = async () => {
         try {
           const profile = await authService.me();
@@ -92,8 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setCurrentUser(response.user);
       setIsAuthenticated(true);
       setIsLoading(false);
-
-      // Nota: Il toast verrà mostrato dal componente Login page che ha accesso a useToast
     } catch (error: unknown) {
       throw error;
     }
@@ -107,23 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  const hasRole = (roles: Role | Role[]) => {
-    const allowedRoles = Array.isArray(roles) ? roles : [roles];
-    return hasRequiredRole(user?.role, allowedRoles);
-  };
-
-  const can: Permissions = {
-    manageCustomers: canManageCustomers(user?.role),
-    manageStaff: canManageStaff(user?.role),
-    manageShifts: canManageShifts(user?.role),
-    manageFinance: canManageFinance(user?.role),
-    manageWhatsAppTemplates: canManageWhatsAppTemplates(user?.role),
-    sendWhatsApp: canSendWhatsApp(user?.role),
-    manageFormTemplates: canManageFormTemplates(user?.role),
-  };
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout, hasRole, can }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isLoading,
+        user,
+        login,
+        logout,
+        isAdmin: isAdmin(user?.role),
+        isSuperAdmin: isSuperAdmin(user?.role),
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -45,19 +45,15 @@ export class TeamController {
   });
 
   /**
-   * GET /api/team/shifts
-   * Restituisce tutti gli shift
+   * GET /api/team/shifts?weekStart=YYYY-MM-DD
+   * Restituisce gli shift della settimana specificata (o tutti se weekStart non fornito)
    */
   getAllShifts = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    try {
-      const shifts = await service.findAllShifts();
-      res.json({ data: shifts });
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new AppError('Errore nel recupero degli shift', 500);
-    }
+    const weekStart = req.query.weekStart as string | undefined;
+    const shifts = weekStart
+      ? await service.getShifts(weekStart)
+      : await service.findAllShifts();
+    res.json({ data: shifts });
   });
 
   /**

@@ -5,6 +5,7 @@ export const ENDPOINTS = {
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
     ME: '/api/auth/me',
+    REFRESH: '/api/auth/refresh',
   },
   CUSTOMERS: {
     BASE: '/api/customers',

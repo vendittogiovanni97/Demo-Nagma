@@ -55,9 +55,7 @@ export default function GlobalErrorBoundary({ children }: { children: React.Reac
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
-      onReset={() => {
-        // Opzionale: logga il reset dell'errore
-      }}
+      onReset={() => {}}
     >
       {children}
     </ErrorBoundary>

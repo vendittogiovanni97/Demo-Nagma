@@ -2,22 +2,23 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
 import StatePanel from '@/components/feedback/StatePanel';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 import FormTextarea from '@/components/forms/FormTextarea';
 import Modal from '@/components/modals/Modal';
 import Button from '@/components/ui/Button';
+import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers, useWhatsAppTemplates } from '@/hooks/domain';
 import { useWhatsAppComposer } from '@/hooks/useWhatsAppComposer';
+import { useToast } from '@/hooks/useToast';
+import { sendWhatsAppMessageSchema } from '@/schemas';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { Booking } from '@/types/booking';
 import type { Customer } from '@/types/customer';
-import { notifyError, notifySuccess } from '@/utils/toast';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { validateData } from '@/utils/validation';
-import { sendWhatsAppMessageSchema } from '@/schemas';
 
 interface WhatsAppSendModalProps {
   isOpen: boolean;
@@ -34,8 +35,9 @@ export default function WhatsAppSendModal({
   customer,
   booking,
 }: WhatsAppSendModalProps) {
-  const { can } = useAuth();
-  const canSend = can.sendWhatsApp;
+  const toast = useToast();
+  const { isAdmin } = useAuth();
+  const canSend = isAdmin;
   // Keep as string for FormSelect compatibility; convert to number when sending
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(
@@ -112,7 +114,7 @@ export default function WhatsAppSendModal({
 
   const handleSend = async () => {
     if (!selectedTemplate) {
-      notifyError(new Error('Seleziona un template'), 'Seleziona un template');
+      toast.error('Seleziona un template');
       return;
     }
 
@@ -128,19 +130,19 @@ export default function WhatsAppSendModal({
 
     const validationError = validateData(sendWhatsAppMessageSchema, payload);
     if (validationError) {
-      notifyError(new Error(validationError), validationError);
+      toast.error(validationError);
       return;
     }
 
     setIsSending(true);
     try {
       const response = await whatsappService.sendManualMessage(payload);
-      notifySuccess('Messaggio preparato. Apro WhatsApp Web.');
+      toast.success('Messaggio preparato. Apro WhatsApp Web.');
       window.open(response.whatsappUrl, '_blank', 'noopener,noreferrer');
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      notifyError(error, 'Errore durante la preparazione del messaggio');
+      toast.error(extractErrorMessage(error, 'Errore durante la preparazione del messaggio'));
     } finally {
       setIsSending(false);
     }

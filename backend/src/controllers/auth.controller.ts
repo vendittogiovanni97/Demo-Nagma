@@ -7,6 +7,9 @@ import { config } from '../config/env';
 import { AppError } from '../utils/AppError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
+import { UserRepository } from '../repositories/user.repository';
+
+const userRepo = new UserRepository();
 
 export class AuthController {
   login = asyncHandler(async (req: Request, res: Response) => {
@@ -37,7 +40,7 @@ export class AuthController {
 
     const hashedPassword = await bcrypt.hash(password, config.bcryptSaltRounds);
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role: role ?? 'ARTIST' },
+      data: { name, email, password: hashedPassword, role: role ?? 'ADMIN' },
     });
 
     res.status(201).json({
@@ -50,7 +53,14 @@ export class AuthController {
     if (!req.user) {
       throw new AppError('Utente non autenticato', 401, 'UNAUTHENTICATED');
     }
-    res.json(req.user);
+
+    const user = await userRepo.findById(req.user.id);
+    if (!user) {
+      throw new AppError('Utente non trovato', 401);
+    }
+
+    const { password: _pwd, ...safeUser } = user;
+    res.json(safeUser);
   });
 
   updateMe = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -68,6 +78,28 @@ export class AuthController {
     });
 
     res.json(updated);
+  });
+
+  refresh = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+      throw new AppError('Utente non autenticato', 401, 'UNAUTHENTICATED');
+    }
+
+    const user = await userRepo.findById(req.user.id);
+    if (!user) {
+      throw new AppError('Utente non trovato', 401, 'USER_NOT_FOUND');
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: config.jwtExpiry }
+    );
+
+    res.json({
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    });
   });
 
   changePassword = asyncHandler(async (req: AuthRequest, res: Response) => {

@@ -50,14 +50,14 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
             onChange={setPassword}
             placeholder="Inserisci password..."
           />
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-8 text-text-secondary hover:text-text-primary transition-colors"
+            className="absolute right-3 top-8 p-0"
             title={showPassword ? 'Nascondi' : 'Mostra'}
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+            icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          />
         </div>
 
         {error && (

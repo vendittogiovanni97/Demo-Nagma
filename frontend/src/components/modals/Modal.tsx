@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from 'react';
-import { X } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -26,21 +26,34 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
 
   return (
     <div
-      className="fixed inset-0 bg-black/85 backdrop-blur-md flex justify-center items-center z-[2005] p-4"
+      className="fixed inset-0 bg-black/75 backdrop-blur-sm flex justify-center items-center z-2005 p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={`bg-[#0a0a0a] border border-surface-border rounded-2xl w-full ${maxWidth} shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300`}>
-        <div className="p-8 border-b border-surface-border flex justify-between items-center bg-white/[0.02]">
-          <h3 className="text-2xl font-outfit text-white font-semibold">{title}</h3>
+      <div
+        className={[
+          'w-full relative flex flex-col',
+          maxWidth,
+          'bg-[#0a1a26]/95 backdrop-blur-xl',
+          'border border-white/8',
+          'rounded-2xl overflow-hidden',
+          'shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(0,191,255,0.08)]',
+          'animate-in fade-in zoom-in-95 duration-200',
+        ].join(' ')}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-7 py-5 border-b border-white/6">
+          <h3 className="text-lg font-outfit font-semibold text-white tracking-wide">{title}</h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            icon={<X size={24} className="text-text-secondary" />}
-            className="p-2"
+            icon={<X size={18} className="text-text-secondary" />}
+            className="p-1.5 hover:bg-white/10 rounded-lg"
           />
         </div>
-        <div className="p-8">
+
+        {/* Body */}
+        <div className="p-7 overflow-y-auto max-h-[80vh] custom-scrollbar">
           {children}
         </div>
       </div>

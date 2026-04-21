@@ -2,10 +2,10 @@
 
 import { branding } from "@/config/branding";
 import { useAuth } from "@/context/AuthContext";
-import { canManageFormTemplates, canSendWhatsApp } from "@/utils/permissions";
 import * as Popover from "@radix-ui/react-popover";
 import {
   Calendar,
+  CalendarDays,
   FileText,
   LayoutGrid,
   LogOut,
@@ -37,39 +37,23 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
 
-  // --------------------------------------------------------------
-  // 1️⃣  Evita il primo render nullo sul server
-  // --------------------------------------------------------------
   const [authChecked, setAuthChecked] = useState(false);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAuthChecked(true);
-  }, []); // esegue solo sul client dopo il mount
+  }, []);
 
-  // Prima che l’autenticazione sia verificata restituiamo un <nav> vuoto
-  // (o con uno scheletro leggero) così l’albero è identico su server/client.
   if (!authChecked) {
     return (
-      <nav
-        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]"
-      >
-        {/* eventuale scheletro o niente – importante che sia sempre un <nav> */}
-      </nav>
+      <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]" />
     );
   }
 
-  // --------------------------------------------------------------
-  // 2️⃣  Se l’utente non è autenticato, mostriamo comunque un <nav>
-  // --------------------------------------------------------------
   if (!isAuthenticated) {
-    if (pathname === '/login') return null; // Nascondiamo doppi loghi
+    if (pathname === '/login') return null;
     return (
-      <nav
-        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]"
-      >
-        {/* Puoi scegliere di mostrare solo il logo o lasciare vuoto */}
+      <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
         <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
           <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
             <div className="h-8 w-8 rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden">
@@ -90,22 +74,18 @@ export default function Navbar() {
     );
   }
 
-  // --------------------------------------------------------------
-  // 3️⃣  Utente autenticato → render completo (invariato rispetto al tuo codice)
-  // --------------------------------------------------------------
   const navItems = [
     { name: "Home", href: "/", icon: LayoutGrid },
     { name: "Agenda", href: "/agenda", icon: Calendar },
+    { name: "Prenotazioni", href: "/prenotazioni", icon: CalendarDays },
     { name: "Clienti", href: "/clienti", icon: Users },
     { name: "Team", href: "/team", icon: UsersRound },
   ];
 
   const initials = getInitials(user?.name, user?.email);
-  const canWhatsApp = canSendWhatsApp(user?.role);
 
   return (
     <>
-    {/* hydration: intentional server/client mismatch — auth state only available client-side */}
     <nav suppressHydrationWarning className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
       <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
         <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
@@ -197,7 +177,7 @@ export default function Navbar() {
                   <Settings size={16} className="shrink-0" />
                   <span>Impostazioni</span>
                 </Link>
-                {canManageFormTemplates(user?.role) && (
+                {isSuperAdmin && (
                   <Link
                     href="/form-templates"
                     onClick={() => setIsUserMenuOpen(false)}
@@ -207,7 +187,7 @@ export default function Navbar() {
                     <span>Form Template</span>
                   </Link>
                 )}
-                {canWhatsApp && (
+                {isAdmin && (
                   <Link
                     href="/whatsapp"
                     onClick={() => setIsUserMenuOpen(false)}

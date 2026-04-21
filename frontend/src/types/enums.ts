@@ -1,6 +1,3 @@
-// Enum condivisi con il backend (Prisma schema)
-// Aggiorna qui se aggiungi valori nel backend
-
 export enum Role {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',

@@ -1,5 +1,5 @@
-import { getToken, logout } from '@/utils/auth';
-import { API_BASE_URL } from './endpoints';
+import { getToken, logout, setToken } from '@/utils/auth';
+import { API_BASE_URL, ENDPOINTS } from './endpoints';
 
 type FetchOptions = RequestInit & {
   params?: Record<string, string | number | undefined>;
@@ -14,10 +14,68 @@ interface ApiErrorResponse {
   };
 }
 
-async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+interface RefreshResponse {
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
+}
+
+let isRefreshing = false;
+let refreshQueue: Array<(token: string | null) => void> = [];
+
+function notifyRefreshQueue(token: string | null) {
+  refreshQueue.forEach(resolve => resolve(token));
+  refreshQueue = [];
+}
+
+async function attemptTokenRefresh(): Promise<string | null> {
+  if (isRefreshing) {
+    return new Promise<string | null>(resolve => {
+      refreshQueue.push(resolve);
+    });
+  }
+
+  isRefreshing = true;
+
+  try {
+    const currentToken = getToken();
+    if (!currentToken) {
+      notifyRefreshQueue(null);
+      return null;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.AUTH.REFRESH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      notifyRefreshQueue(null);
+      return null;
+    }
+
+    const data = (await response.json()) as RefreshResponse;
+    setToken(data.token);
+    notifyRefreshQueue(data.token);
+    return data.token;
+  } catch {
+    notifyRefreshQueue(null);
+    return null;
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry = false): Promise<T> {
   const { params, ...init } = options;
-  
-  // Build URL with query parameters
+
   const url = new URL(`${API_BASE_URL}${endpoint}`);
   if (params) {
     Object.keys(params).forEach(key => {
@@ -28,7 +86,6 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   }
 
   const token = getToken();
-  
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
   if (token) {
@@ -41,6 +98,16 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   });
 
   if (response.status === 401) {
+    const isRefreshEndpoint = endpoint === ENDPOINTS.AUTH.REFRESH;
+
+    if (!isRetry && !isRefreshEndpoint) {
+      const newToken = await attemptTokenRefresh();
+
+      if (newToken) {
+        return apiFetch<T>(endpoint, options, true);
+      }
+    }
+
     logout();
     throw new Error('Sessione scaduta');
   }
@@ -68,10 +135,6 @@ export const apiClient = {
     apiFetch<T>(url, { method: 'DELETE' }),
 };
 
-/**
- * Factory per creare un service CRUD base.
- * Evita di riscrivere getAll/getById/create/update/delete per ogni entità.
- */
 export function createCrudService<T>(basePath: string, byIdPath: (id: any) => string) {
   return {
     getAll: (params?: Record<string, string | number | undefined>) =>

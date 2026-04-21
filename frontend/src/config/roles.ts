@@ -3,21 +3,28 @@ import type { Role } from '@/types/team';
 export const ROLE_LABELS: Record<Role, string> = {
   SUPER_ADMIN: 'Super Admin',
   ADMIN: 'Admin',
-  USER: 'Segreteria',
-  ARTIST: 'Artist',
+  USER: 'Utente',
+  ARTIST: 'Artista',
 };
 
 export const ROLE_OPTIONS = [
-  { value: 'ARTIST', label: 'Tatuatore (Artist)' },
   { value: 'ADMIN', label: 'Admin' },
-  { value: 'USER', label: 'Assistente / Segreteria' },
 ] as const;
 
-export const STAFF_MANAGEMENT_ROLES: Role[] = ['ADMIN', 'SUPER_ADMIN'];
-export const SHIFT_MANAGEMENT_ROLES: Role[] = ['ADMIN', 'USER', 'SUPER_ADMIN'];
-export const FINANCE_MANAGEMENT_ROLES: Role[] = ['ADMIN', 'USER', 'SUPER_ADMIN'];
-export const INVENTORY_MANAGEMENT_ROLES: Role[] = ['ADMIN', 'USER', 'SUPER_ADMIN'];
-export const CUSTOMER_MANAGEMENT_ROLES: Role[] = ['ADMIN', 'USER', 'SUPER_ADMIN'];
-export const WHATSAPP_TEMPLATE_MANAGEMENT_ROLES: Role[] = ['ADMIN', 'USER', 'SUPER_ADMIN'];
-export const WHATSAPP_SEND_ROLES: Role[] = ['ADMIN', 'USER', 'SUPER_ADMIN'];
-export const FORM_TEMPLATE_MANAGEMENT_ROLES: Role[] = ['SUPER_ADMIN'];
+export const SUPER_ADMIN_ONLY: Role[] = ['SUPER_ADMIN'];
+export const ADMIN_AND_UP: Role[] = ['SUPER_ADMIN', 'ADMIN'];
+
+/**
+ * Verifica se l'utente è admin (ADMIN o SUPER_ADMIN)
+ */
+export function isAdmin(role: Role | null | undefined): boolean {
+  if (!role) return false;
+  return role === 'ADMIN' || role === 'SUPER_ADMIN';
+}
+
+/**
+ * Verifica se l'utente è super admin
+ */
+export function isSuperAdmin(role: Role | null | undefined): boolean {
+  return role === 'SUPER_ADMIN';
+}

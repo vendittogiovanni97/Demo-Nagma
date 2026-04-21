@@ -11,7 +11,7 @@ import CustomerModal from '@/components/modals/CustomerModal';
 import ExportModal from '@/components/modals/ExportModal';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useAuth } from '@/context/AuthContext';
-import { DEBOUNCE_SEARCH_DELAY, EXPORT_FETCH_LIMIT } from '@/config/defaults';
+import { DEBOUNCE_SEARCH_DELAY, EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useCustomers } from '@/hooks/domain';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
@@ -25,7 +25,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 export default function CustomersPage() {
-  const { can } = useAuth();
+  const { isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,50 +58,57 @@ export default function CustomersPage() {
         <div className="flex items-center gap-3">
           <Avatar firstName={customer.firstName} lastName={customer.lastName} />
           <div>
-            <div className="text-white font-semibold">{customer.firstName} {customer.lastName}</div>
+            <div className="text-white font-semibold leading-tight">
+              {customer.firstName} {customer.lastName}
+            </div>
             {customer.notes && (
-              <div className="text-xs text-text-secondary truncate max-w-xs">{customer.notes}</div>
+              <div className="text-xs text-text-secondary truncate max-w-[220px] mt-0.5">{customer.notes}</div>
             )}
           </div>
         </div>
       ),
     },
     {
-      key: 'contatti',
-      label: 'Contatti',
+      key: 'phone',
+      label: 'Telefono',
+      width: '160px',
       render: (customer) => (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <Phone size={14} className="text-accent shrink-0" />
-            <span>{customer.phone}</span>
-          </div>
-          {customer.email && (
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <Mail size={14} className="text-accent shrink-0" />
-              <span className="truncate">{customer.email}</span>
-            </div>
-          )}
+        <div className="flex items-center gap-2 text-sm text-text-secondary">
+          <Phone size={13} className="text-accent shrink-0" />
+          <span className="font-mono tracking-wide">{customer.phone}</span>
         </div>
       ),
     },
     {
+      key: 'email',
+      label: 'Email',
+      render: (customer) => customer.email ? (
+        <div className="flex items-center gap-2 text-sm text-text-secondary">
+          <Mail size={13} className="text-accent shrink-0" />
+          <span className="truncate max-w-[200px]">{customer.email}</span>
+        </div>
+      ) : <span className="text-text-secondary/40 text-sm">—</span>,
+    },
+    {
       key: 'createdAt',
-      label: 'Creato il',
+      label: 'Iscritto il',
+      width: '130px',
       render: (customer) => (
-        <span className="text-sm text-text-secondary">
-          {customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it }) : '-'}
+        <span className="text-sm text-text-secondary tabular-nums">
+          {customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it }) : '—'}
         </span>
       ),
     },
     {
       key: 'bookings',
-      label: 'Appuntamenti',
+      label: 'Prenotazioni',
       align: 'center',
+      width: '110px',
       render: (customer) => (
         <div className="flex justify-center">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">
+          <span className="inline-flex items-center justify-center min-w-[32px] h-7 px-2.5 rounded-full bg-accent/10 text-accent font-bold text-xs tabular-nums">
             {customer._count?.bookings || 0}
-          </div>
+          </span>
         </div>
       ),
     },
@@ -134,7 +141,7 @@ export default function CustomersPage() {
                 return response.data;
               }}
             />
-            <PermissionGate permission="manageCustomers">
+            <PermissionGate requireAdmin>
               <Button
                 variant="primary"
                 icon={UserPlus}
@@ -185,7 +192,7 @@ export default function CustomersPage() {
                 >
                   <Eye size={16} />
                 </Link>
-                <PermissionGate permission="sendWhatsApp">
+                <PermissionGate requireAdmin>
                   <Link
                     href={`/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`}
                     className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-emerald-400 transition"
@@ -194,7 +201,7 @@ export default function CustomersPage() {
                     <MessageCircle size={16} />
                   </Link>
                 </PermissionGate>
-                <PermissionGate permission="manageCustomers">
+                <PermissionGate requireAdmin>
                   <>
                     <Button
                       variant="ghost"

@@ -1,12 +1,13 @@
 "use client";
 
 import StatePanel from '@/components/feedback/StatePanel';
-import { EXPORT_FETCH_LIMIT } from '@/config/defaults';
+import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamMembers } from '@/hooks/domain';
+import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
 import type { CreateShiftData } from '@/types/team';
-import { notifyError, notifySuccess } from '@/utils/toast';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { useState } from 'react';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
@@ -32,7 +33,8 @@ const DAYS = [
 ];
 
 export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, initialStaffId, initialDayOfWeek }: Props) {
-  const { can } = useAuth();
+  const toast = useToast();
+  const { isAdmin } = useAuth();
   const [staffId, setStaffId] = useState(initialStaffId !== undefined ? initialStaffId.toString() : '');
   const [dayOfWeek, setDayOfWeek] = useState(initialDayOfWeek !== undefined ? initialDayOfWeek.toString() : '0');
   const [label, setLabel] = useState('Mattina');
@@ -50,7 +52,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!staffId) return notifyError(new Error('Seleziona un collaboratore'), 'Seleziona un collaboratore');
+    if (!staffId) { toast.error('Seleziona un collaboratore'); return; }
     setLoading(true);
     try {
       const data: CreateShiftData = {
@@ -61,14 +63,14 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
         isOff: label === 'Riposo',
       };
       await teamService.createShift(data);
-      notifySuccess('Turno pianificato');
+      toast.success('Turno pianificato');
       setStaffId('');
       setDayOfWeek('0');
       setLabel('Mattina');
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      notifyError(err, 'Errore nella creazione turno');
+      toast.error(extractErrorMessage(err, 'Errore nella creazione turno'));
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Pianifica Turno">
-      {!can.manageShifts ? (
+      {!isAdmin ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

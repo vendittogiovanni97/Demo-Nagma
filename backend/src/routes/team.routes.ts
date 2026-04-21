@@ -312,7 +312,7 @@ router.get('/shifts/:staffId', controller.getStaffShifts);
  *       400:
  *         description: Dati non validi
  */
-router.post('/shifts', requireRoles('ADMIN', 'USER'), controller.createNewShift);
+router.post('/shifts', requireRoles('ADMIN'), controller.createNewShift);
 
 /**
  * @swagger
@@ -354,7 +354,7 @@ router.post('/shifts', requireRoles('ADMIN', 'USER'), controller.createNewShift)
  *       404:
  *         description: Turno non trovato
  */
-router.put('/shifts/:id', requireRoles('ADMIN', 'USER'), controller.updateShift);
+router.put('/shifts/:id', requireRoles('ADMIN'), controller.updateShift);
 
 /**
  * @swagger
@@ -378,6 +378,6 @@ router.put('/shifts/:id', requireRoles('ADMIN', 'USER'), controller.updateShift)
  *       404:
  *         description: Turno non trovato
  */
-router.delete('/shifts/:id', requireRoles('ADMIN', 'USER'), controller.deleteShiftById);
+router.delete('/shifts/:id', requireRoles('ADMIN'), controller.deleteShiftById);
 
 export default router;

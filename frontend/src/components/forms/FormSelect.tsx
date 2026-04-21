@@ -42,9 +42,9 @@ export default function FormSelect({
         disabled={disabled}
         className="w-full bg-white/5 border border-surface-border rounded-xl p-3 text-white focus:outline-none focus:border-accent transition-all appearance-none disabled:opacity-50"
       >
-        {placeholder && <option value="" className="bg-[#0a0a0a]">{placeholder}</option>}
+        {placeholder && <option value="" className="bg-[#0a1a26]">{placeholder}</option>}
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-[#0a0a0a]">
+          <option key={opt.value} value={opt.value} className="bg-[#0a1a26]">
             {opt.label}
           </option>
         ))}

@@ -16,8 +16,8 @@ import { whatsappService } from '@/services/whatsapp.service';
 import type { WhatsAppTemplate } from '@/types/whatsapp';
 
 export default function WhatsAppTemplatesPage() {
-  const { can } = useAuth();
-  const canManageTemplates = can.manageWhatsAppTemplates;
+  const { isAdmin } = useAuth();
+  const canManageTemplates = isAdmin;
 
   const [templateSearch, setTemplateSearch] = useState('');
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -79,7 +79,6 @@ export default function WhatsAppTemplatesPage() {
         </div>
       </PageHeader>
 
-      {/* Main Content: Template Grid */}
       <div className="glass-panel flex-1 rounded-2xl flex flex-col overflow-hidden p-6 relative">
         <div className="mb-6 border-b border-surface-border/50 pb-4">
           <h2 className="text-xl font-outfit font-bold text-white">Gestione Template</h2>
@@ -151,7 +150,6 @@ export default function WhatsAppTemplatesPage() {
 
                 <div className="flex justify-between items-center mt-auto border-t border-surface-border/50 pt-3">
                    <div className="text-xs text-text-secondary flex flex-wrap gap-1">
-                      {/* extract variables visually maybe? */}
                       {(template.body.match(/\{\{([^}]+)\}\}/g) || []).map((vars, i) => (
                          <span key={i} className="px-1.5 py-0.5 bg-accent/10 text-accent rounded-md">{vars}</span>
                       ))}

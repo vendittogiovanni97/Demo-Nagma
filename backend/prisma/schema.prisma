@@ -11,7 +11,7 @@ model User {
   name          String
   email         String      @unique
   password      String      // hashed password
-  role          Role        @default(ARTIST)
+  role          Role        @default(ADMIN)
   phone         String?
   color         String?     // colore calendario per il collaboratore
   deletedAt     DateTime?   // soft delete

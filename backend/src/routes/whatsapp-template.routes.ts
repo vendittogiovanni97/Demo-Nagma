@@ -103,7 +103,7 @@ router.get('/', controller.getAll);
  *                 limit:
  *                   type: integer
  */
-router.get('/logs', requireRoles('ADMIN', 'USER'), controller.getLogs);
+router.get('/logs', requireRoles('ADMIN'), controller.getLogs);
 
 /**
  * @swagger
@@ -144,7 +144,7 @@ router.get('/logs', requireRoles('ADMIN', 'USER'), controller.getLogs);
  *       400:
  *         description: Dati non validi
  */
-router.post('/send', requireRoles('ADMIN', 'USER'), controller.sendManual);
+router.post('/send', requireRoles('ADMIN'), controller.sendManual);
 
 /**
  * @swagger
@@ -182,7 +182,7 @@ router.post('/send', requireRoles('ADMIN', 'USER'), controller.sendManual);
  *       404:
  *         description: Template non trovato
  */
-router.post('/:id/duplicate', requireRoles('ADMIN', 'USER'), controller.duplicate);
+router.post('/:id/duplicate', requireRoles('ADMIN'), controller.duplicate);
 
 /**
  * @swagger
@@ -225,7 +225,7 @@ router.post('/:id/duplicate', requireRoles('ADMIN', 'USER'), controller.duplicat
  *       400:
  *         description: Dati non validi
  */
-router.post('/', requireRoles('ADMIN', 'USER'), controller.create);
+router.post('/', requireRoles('ADMIN'), controller.create);
 
 /**
  * @swagger
@@ -269,7 +269,7 @@ router.post('/', requireRoles('ADMIN', 'USER'), controller.create);
  *       404:
  *         description: Template non trovato
  */
-router.put('/:id', requireRoles('ADMIN', 'USER'), controller.update);
+router.put('/:id', requireRoles('ADMIN'), controller.update);
 
 /**
  * @swagger
@@ -293,6 +293,6 @@ router.put('/:id', requireRoles('ADMIN', 'USER'), controller.update);
  *       404:
  *         description: Template non trovato
  */
-router.delete('/:id', requireRoles('ADMIN', 'USER'), controller.delete);
+router.delete('/:id', requireRoles('ADMIN'), controller.delete);
 
 export default router;

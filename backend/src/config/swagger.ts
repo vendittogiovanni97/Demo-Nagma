@@ -55,7 +55,7 @@ const options = {
             id: { type: 'integer' },
             name: { type: 'string' },
             email: { type: 'string', format: 'email' },
-            role: { type: 'string', enum: ['ADMIN', 'USER', 'ARTIST'] },
+            role: { type: 'string', enum: ['SUPER_ADMIN', 'ADMIN'] },
             phone: { type: 'string' },
             color: { type: 'string' },
             createdAt: { type: 'string', format: 'date-time' },

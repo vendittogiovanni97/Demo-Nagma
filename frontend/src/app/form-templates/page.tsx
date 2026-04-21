@@ -125,7 +125,7 @@ function FieldEditor({ field, onChange, onRemove }: FieldEditorProps) {
 
 export default function FormTemplatesPage() {
   const toast = useToast();
-  const { user, can } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const router = useRouter();
   const { data: templates, mutate } = useFormTemplates();
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -135,7 +135,7 @@ export default function FormTemplatesPage() {
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    if (user && !can.manageFormTemplates) {
+    if (user && !isSuperAdmin) {
       router.push('/');
     }
   }, [user, router]);
@@ -219,7 +219,7 @@ export default function FormTemplatesPage() {
     }
   };
 
-  if (!can.manageFormTemplates) return null;
+  if (!isSuperAdmin) return null;
 
   return (
     <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">

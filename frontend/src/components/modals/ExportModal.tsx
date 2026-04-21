@@ -153,13 +153,15 @@ export default function ExportModal<T>({
                   <h4 className="text-sm font-bold text-text-secondary uppercase tracking-widest">Filtri</h4>
                 </div>
                 {hasActiveFilters && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={resetFilters}
-                    className="flex items-center gap-1 text-xs text-text-secondary hover:text-white transition-colors"
+                    className="text-xs text-text-secondary hover:text-white"
+                    icon={<X size={12} />}
                   >
-                    <X size={12} /> Reset
-                  </button>
+                    Reset
+                  </Button>
                 )}
               </div>
 
@@ -234,23 +236,18 @@ export default function ExportModal<T>({
                 const Icon = f.icon;
                 const isSelected = format === f.value;
                 return (
-                  <button
+                  <Button
                     key={f.value}
-                    type="button"
+                    variant={isSelected ? 'primary' : 'glass'}
                     onClick={() => setFormat(f.value)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-                      isSelected
-                        ? 'border-accent bg-accent/10 text-white'
-                        : 'border-surface-border bg-white/2 text-text-secondary hover:border-white/20'
-                    }`}
-                    aria-pressed={isSelected}
+                    className="justify-start"
+                    icon={<Icon size={22} />}
                   >
-                    <Icon size={22} className={isSelected ? 'text-accent' : ''} />
                     <div className="flex flex-col text-left">
                       <span className="font-bold text-sm">{f.label}</span>
-                      <span className="text-xs text-text-secondary">{f.desc}</span>
+                      <span className="text-xs opacity-70">{f.desc}</span>
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>

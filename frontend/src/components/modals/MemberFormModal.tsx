@@ -1,16 +1,17 @@
 "use client";
 
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
+import { teamService } from '@/services/team.service';
+import type { Staff } from '@/types/team';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { useState } from 'react';
-import Modal from './Modal';
+import StatePanel from '../feedback/StatePanel';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import StatePanel from '../feedback/StatePanel';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/useToast';
-import { extractErrorMessage } from '@/utils/extract-error';
-import { teamService } from '@/services/team.service';
-import type { Staff } from '@/types/team';
+import Button from '@/components/ui/Button';
+import Modal from './Modal';
 
 const TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
@@ -30,7 +31,7 @@ interface MemberFormModalProps {
 
 export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: MemberFormModalProps) {
   const toast = useToast();
-  const { can } = useAuth();
+  const { isAdmin } = useAuth();
   const [name, setName] = useState(member?.name || '');
   const [type, setType] = useState<StaffTypeValue>(member?.type || 'COLLABORATORE');
   const [color, setColor] = useState(member?.color || COLOR_PRESETS[0]);
@@ -65,7 +66,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
     }
   };
 
-  if (!can.manageStaff) {
+  if (!isAdmin) {
     return (
       <Modal isOpen={isOpen} onClose={onClose} title="Componente Team" maxWidth="max-w-md">
         <StatePanel
@@ -100,16 +101,14 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
           <label className="text-text-secondary text-sm px-1">Colore</label>
           <div className="flex items-center gap-2 flex-wrap">
             {COLOR_PRESETS.map((preset) => (
-              <button
+              <Button
                 key={preset}
-                type="button"
+                variant={color === preset ? 'primary' : 'ghost'}
+                size="sm"
                 onClick={() => setColor(preset)}
-                className={`w-10 h-10 rounded-xl border-2 transition-all ${
-                  color === preset ? 'border-accent scale-110' : 'border-surface-border'
-                }`}
+                className="w-10 h-10 p-0 border-2"
                 style={{ backgroundColor: preset }}
                 title={preset}
-                aria-label={`Seleziona colore ${preset}`}
               />
             ))}
           </div>

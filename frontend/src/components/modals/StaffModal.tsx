@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from 'react';
-import { staffService } from '@/services/staff.service';
-import { useAuth } from '@/context/AuthContext';
 import StatePanel from '@/components/feedback/StatePanel';
-import Modal from './Modal';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/useToast';
+import { createStaffSchema } from '@/schemas';
+import { staffService } from '@/services/staff.service';
+import { extractErrorMessage } from '@/utils/extract-error';
+import { validateData } from '@/utils/validation';
+import { useState } from 'react';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import { notifyError, notifySuccess } from '@/utils/toast';
-import { validateData } from '@/utils/validation';
-import { createStaffSchema } from '@/schemas';
+import Modal from './Modal';
 
 const STAFF_TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
@@ -23,7 +24,8 @@ interface Props {
 }
 
 export default function StaffModal({ isOpen, onClose }: Props) {
-  const { can } = useAuth();
+  const toast = useToast();
+  const { isAdmin } = useAuth();
   const [name, setName] = useState('');
   const [type, setType] = useState('COLLABORATORE');
   const [color, setColor] = useState('#00BFFF');
@@ -34,20 +36,20 @@ export default function StaffModal({ isOpen, onClose }: Props) {
     const payload = { name, type, color };
     const validationError = validateData(createStaffSchema, payload);
     if (validationError) {
-      notifyError(new Error(validationError), validationError);
+      toast.error(validationError);
       return;
     }
 
     setLoading(true);
     try {
       await staffService.create(payload);
-      notifySuccess(`${name} aggiunto al team!`);
+      toast.success(`${name} aggiunto al team!`);
       setName('');
       setType('COLLABORATORE');
       setColor('#00BFFF');
       onClose();
     } catch (error: unknown) {
-      notifyError(error, 'Errore durante l\'inserimento');
+      toast.error(extractErrorMessage(error, 'Errore durante l\'inserimento'));
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Aggiungi Staff" maxWidth="max-w-md">
-      {!can.manageStaff ? (
+      {!isAdmin ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

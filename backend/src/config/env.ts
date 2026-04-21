@@ -14,6 +14,12 @@ function envStr(key: string, fallback: string): string {
   return process.env[key] ?? fallback;
 }
 
+function envRequired(key: string): string {
+  const val = process.env[key];
+  if (!val) throw new Error(`Variabile d'ambiente obbligatoria non impostata: ${key}`);
+  return val;
+}
+
 export const config = {
   // JWT
   jwtExpiry: envStr('JWT_EXPIRY', '8h') as StringValue,
@@ -36,5 +42,5 @@ export const config = {
   restartDelayMs: envInt('RESTART_DELAY_MS', 10_000),
 
   // Security - Booking Updates
-  bookingUpdatePassword: envStr('BOOKING_UPDATE_PASSWORD', 'nagmatattoo1234567'),
+  bookingUpdatePassword: envRequired('BOOKING_UPDATE_PASSWORD'),
 } as const;

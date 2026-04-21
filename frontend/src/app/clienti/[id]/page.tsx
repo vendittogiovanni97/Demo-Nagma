@@ -3,51 +3,38 @@
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
-    AlertTriangle,
-    ArrowLeft,
-    Calendar,
-    Clock,
-    Edit,
-    Mail,
-    MessageCircle,
-    Phone,
-    TrendingUp,
-    User
+  AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Edit,
+  Mail,
+  MessageCircle,
+  Phone,
+  TrendingUp,
+  User
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
 
+import { ENDPOINTS } from '@/api/endpoints';
 import { Skeleton } from '@/components/feedback/Skeleton';
 import StatePanel from '@/components/feedback/StatePanel';
+import CustomerModal from '@/components/modals/CustomerModal';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import CustomerModal from '@/components/modals/CustomerModal';
-import { ENDPOINTS } from '@/api/endpoints';
+import { BOOKING_STATUS_CONFIG, getBookingStatusBadgeVariant } from '@/config/status-config';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/customer.service';
 import type { Customer, CustomerSummary, WhatsAppLog } from '@/types/customer';
 
-const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-  CANCELLED: 'bg-red-500/20 text-red-300 border border-red-500/30',
-  RESCHEDULED: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30',
-  COMPLETED: 'bg-green-500/20 text-green-300 border border-green-500/30',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  CONFIRMED: 'Confermato',
-  CANCELLED: 'Annullato',
-  RESCHEDULED: 'Rimandato',
-  COMPLETED: 'Completato',
-};
-
 export default function CustomerDetailPage() {
   const toast = useToast();
   const params = useParams();
   const router = useRouter();
-  const { can } = useAuth();
+  const { isAdmin } = useAuth();
   const idStr = params.id as string;
   const id = Number(idStr);
 
@@ -75,7 +62,7 @@ export default function CustomerDetailPage() {
   );
 
   const handleDelete = async () => {
-    if (!can.manageCustomers) return;
+    if (!isAdmin) return;
     if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
       try {
         await customerService.delete(id);
@@ -138,7 +125,7 @@ export default function CustomerDetailPage() {
           </h1>
           <p className="text-sm text-text-secondary">Scheda cliente</p>
         </div>
-        {can.manageCustomers ? (
+        {isAdmin ? (
           <>
             <Button
               variant="secondary"
@@ -283,12 +270,12 @@ export default function CustomerDetailPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-1 h-10 rounded-full"
-                          style={{ backgroundColor: (booking.artist as { color?: string })?.color || '#6b7280' }}
+                          style={{ backgroundColor: booking.artist?.color || '#6b7280' }}
                         />
                         <div>
                           <p className="text-sm font-bold text-white">Appuntamento</p>
                           <p className="text-xs text-text-secondary">
-                            {(booking.artist as { name?: string })?.name}
+                            {booking.artist?.name}
                           </p>
                         </div>
                       </div>
@@ -300,15 +287,10 @@ export default function CustomerDetailPage() {
                           {format(new Date(booking.date), 'HH:mm')}
                         </p>
                         <Badge
-                          variant={
-                            booking.status === 'CONFIRMED' ? 'info' :
-                            booking.status === 'COMPLETED' ? 'success' :
-                            booking.status === 'CANCELLED' ? 'danger' :
-                            'warning'
-                          }
+                          variant={getBookingStatusBadgeVariant(booking.status)}
                           size="xs"
                         >
-                          {STATUS_LABELS[booking.status]}
+                          {BOOKING_STATUS_CONFIG[booking.status]?.label ?? booking.status}
                         </Badge>
                       </div>
                     </div>
@@ -346,22 +328,17 @@ export default function CustomerDetailPage() {
                             {format(new Date(booking.date), 'dd MMM yyyy', { locale: it })}
                           </td>
                           <td className="py-2 text-text-secondary">
-                            {(booking.artist as { name?: string })?.name}
+                            {booking.artist?.name}
                           </td>
                           <td className="py-2 text-right text-white">
                             {booking.price ? `€${booking.price.toFixed(0)}` : '—'}
                           </td>
                           <td className="py-2 text-right">
                             <Badge
-                              variant={
-                                booking.status === 'CONFIRMED' ? 'info' :
-                                booking.status === 'COMPLETED' ? 'success' :
-                                booking.status === 'CANCELLED' ? 'danger' :
-                                'warning'
-                              }
+                              variant={getBookingStatusBadgeVariant(booking.status)}
                               size="xs"
                             >
-                              {STATUS_LABELS[booking.status]}
+                              {BOOKING_STATUS_CONFIG[booking.status]?.label ?? booking.status}
                             </Badge>
                           </td>
                         </tr>

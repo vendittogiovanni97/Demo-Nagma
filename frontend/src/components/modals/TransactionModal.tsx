@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from 'react';
-import { transactionService } from '@/services/transaction.service';
+import StatePanel from '@/components/feedback/StatePanel';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/useToast';
 import { useFormModal } from '@/hooks/useFormModal';
+import { useToast } from '@/hooks/useToast';
+import { createTransactionSchema } from '@/schemas';
+import { transactionService } from '@/services/transaction.service';
 import type { CreateTransactionData, TransactionType } from '@/types/transaction';
-import Modal from './Modal';
+import { validateData } from '@/utils/validation';
+import { useState } from 'react';
 import FormInput from '../forms/FormInput';
 import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import StatePanel from '@/components/feedback/StatePanel';
-import { validateData } from '@/utils/validation';
-import { createTransactionSchema } from '@/schemas';
+import Modal from './Modal';
 
 interface Props {
   isOpen: boolean;
@@ -21,7 +21,7 @@ interface Props {
 
 export default function TransactionModal({ isOpen, onClose }: Props) {
   const toast = useToast();
-  const { can } = useAuth();
+  const { isAdmin } = useAuth();
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('EXPENSE');
@@ -54,7 +54,7 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuova Voce Spesa / Entrata">
-      {!can.manageFinance ? (
+      {!isAdmin ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

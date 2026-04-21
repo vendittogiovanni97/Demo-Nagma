@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { User, Phone, Mail, FileText, Save, MessageCircle } from 'lucide-react';
-import { customerService } from '@/services/customer.service';
+import StatePanel from '@/components/feedback/StatePanel';
 import { useAuth } from '@/context/AuthContext';
 import { useFormModal } from '@/hooks/useFormModal';
-import StatePanel from '@/components/feedback/StatePanel';
-import type { Customer, CreateCustomerData } from '@/types/customer';
-import Modal from './Modal';
+import { useToast } from '@/hooks/useToast';
+import { createCustomerSchema } from '@/schemas';
+import { customerService } from '@/services/customer.service';
+import type { CreateCustomerData, Customer } from '@/types/customer';
+import { extractErrorMessage } from '@/utils/extract-error';
+import { validateData } from '@/utils/validation';
+import { FileText, Mail, Phone, Save, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import FormInput from '../forms/FormInput';
 import FormTextarea from '../forms/FormTextarea';
 import SubmitButton from '../forms/SubmitButton';
-import { notifyError } from '@/utils/toast';
-import { validateData } from '@/utils/validation';
-import { createCustomerSchema } from '@/schemas';
+import Modal from './Modal';
 
 interface Props {
   isOpen: boolean;
@@ -23,7 +24,8 @@ interface Props {
 }
 
 export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: Props) {
-  const { can } = useAuth();
+  const toast = useToast();
+  const { isAdmin } = useAuth();
   const [formData, setFormData] = useState<CreateCustomerData>({
     firstName: '',
     lastName: '',
@@ -57,7 +59,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     e.preventDefault();
     const validationError = validateData(createCustomerSchema, formData);
     if (validationError) {
-      notifyError(new Error(validationError), validationError);
+      toast.error(extractErrorMessage(new Error(validationError), validationError));
       return;
     }
     await submitForm(formData);
@@ -65,7 +67,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={customer ? 'Modifica Cliente' : 'Nuovo Cliente'}>
-      {!can.manageCustomers ? (
+      {!isAdmin ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"

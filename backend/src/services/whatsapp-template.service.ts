@@ -43,8 +43,8 @@ function normalizePhoneNumber(phone: string) {
 }
 
 export class WhatsAppTemplateService {
-  async getAll(search?: string) {
-    return repo.findAll(search);
+  async getAll(search?: string, startDate?: string, endDate?: string) {
+    return repo.findAll(search, startDate, endDate);
   }
 
   async getLogs(query: unknown) {

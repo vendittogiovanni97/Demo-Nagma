@@ -1,14 +1,13 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
 import WeekNavigator from '@/components/layout/WeekNavigator';
 import Avatar from '@/components/data-display/Avatar';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import ExportModal from '@/components/modals/ExportModal';
-import ShiftModal from '@/components/modals/ShiftModal';
-import StaffModal from '@/components/modals/StaffModal';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamShifts, useTeamMembers } from '@/hooks/domain';
@@ -18,6 +17,10 @@ import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
 import type { Shift } from '@/types/team';
 import { DAYS_OF_WEEK, SHIFT_LABELS } from '@/config/team-config';
+
+import ExportModal from '@/components/modals/ExportModal';
+import ShiftModal from '@/components/modals/ShiftModal';
+import StaffModal from '@/components/modals/StaffModal';
 import { addDays, addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Edit, Loader2, Plus, Trash2 } from 'lucide-react';
@@ -213,7 +216,7 @@ export default function TeamPage() {
               const memberColor = m.color || '#3b82f6';
 
               return (
-                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/20 group/row hover:bg-white-[0.02] transition-colors relative min-h-36">
+                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/30 group/row hover:bg-white-[0.03] transition-colors relative min-h-44 py-2">
                   <div className="py-5 px-6 flex items-center gap-4 relative group/member">
                     <div
                       className="w-1 absolute left-0 top-0 bottom-0 shadow-[0_0_10px_currentColor] opacity-70"

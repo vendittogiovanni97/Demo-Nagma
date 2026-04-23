@@ -8,8 +8,10 @@ import { AppError } from '../utils/AppError';
 const repo = new FormTemplateRepository();
 
 export class FormTemplateController {
-  getAll = asyncHandler(async (_req: AuthRequest, res: Response) => {
-    res.json(await repo.findAll());
+  getAll = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+    res.json(await repo.findAll(startDate, endDate));
   });
 
   getById = asyncHandler(async (req: AuthRequest, res: Response) => {

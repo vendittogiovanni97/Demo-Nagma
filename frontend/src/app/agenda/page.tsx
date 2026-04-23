@@ -1,5 +1,7 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+
 import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
 import itLocale from '@fullcalendar/core/locales/it';
 import type { DateClickArg } from '@fullcalendar/interaction';
@@ -10,9 +12,6 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
-import BookingModal from '@/components/modals/BookingModal';
-import ExportModal, { type ExportFilter } from '@/components/modals/ExportModal';
-import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +22,10 @@ import type { Booking } from '@/types/booking';
 import { format, parseISO, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Clock, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+
+import BookingModal from '@/components/modals/BookingModal';
+import ExportModal, { type ExportFilter } from '@/components/modals/ExportModal';
+import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import { useCallback, useMemo, useState } from 'react';
 
 interface EventContentProps {
@@ -248,6 +251,8 @@ export default function AgendaPage() {
       <div
         className="fc-nagma-wrapper border border-surface-border rounded-2xl overflow-hidden"
         style={{ height: 'calc(100vh - 210px)' }}
+        role="grid"
+        aria-label="Calendario appuntamenti"
       >
         {isLoading ? (
           <StatePanel
@@ -296,6 +301,12 @@ export default function AgendaPage() {
             height="100%"
             allDaySlot={false}
             nowIndicator
+            dayMaxEvents={3}
+            weekText="Settimana"
+            dayHeaderFormat={{ weekday: 'long', day: 'numeric', month: 'numeric' }}
+            dayCellContent={(arg) => ({
+              html: `<span class="fc-daygrid-day-number" tabindex="0" role="gridcell" aria-label="${format(arg.date, 'EEEE d MMMM', { locale: it })}">${arg.dayNumberText}</span>`,
+            })}
             datesSet={(arg) => {
               const visibleStart = format(arg.start, 'yyyy-MM');
               const visibleEnd = format(subDays(arg.end, 1), 'yyyy-MM');

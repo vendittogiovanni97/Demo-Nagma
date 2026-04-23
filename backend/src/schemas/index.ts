@@ -3,6 +3,7 @@ import { AppError } from '../utils/AppError';
 
 export * from './booking';
 export * from './common';
+export * from './cream';
 export * from './customer';
 export * from './form-template';
 export * from './transaction';

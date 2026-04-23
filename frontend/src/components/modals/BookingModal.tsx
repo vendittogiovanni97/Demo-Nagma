@@ -2,11 +2,12 @@
 
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { extractErrorMessage } from '@/utils/extract-error';
+import { useAuth } from '@/context/AuthContext';
 import { useCustomers } from '@/hooks/domain';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { useToast } from '@/hooks/useToast';
 import { bookingService } from '@/services/booking.service';
-import type { Booking, CreateBookingData } from '@/types/booking';
+import type { Booking, BookingStatus, CreateBookingData } from '@/types/booking';
 import type { FieldDef } from '@/types/form-template';
 import { validateData } from '@/utils/validation';
 import { createBookingSchema } from '@/schemas';
@@ -38,6 +39,7 @@ interface AvailableArtist {
 
 export default function BookingModal({ isOpen, onClose, onSuccess, booking, initialDate, initialTime }: Props) {
   const toast = useToast();
+  const { isSuperAdmin } = useAuth();
   const [customerId, setCustomerId] = useState('');
   const [artistId, setArtistId] = useState('');
   const [date, setDate] = useState('');
@@ -49,6 +51,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   const [customPercentuale, setCustomPercentuale] = useState('');
   const [notes, setNotes] = useState('');
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<BookingStatus>('CONFIRMED');
   const [loading, setLoading] = useState(false);
 
   const [availableArtists, setAvailableArtists] = useState<AvailableArtist[]>([]);
@@ -88,6 +91,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         }
       }
       setDynamicValues(booking.formData as Record<string, string> || {});
+      setStatus(booking.status ?? 'CONFIRMED');
       setInitialArtistLoaded(true);
     } else if (!booking && isOpen) {
       resetForm();
@@ -187,6 +191,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
     setCustomPercentuale('');
     setNotes('');
     setDynamicValues({});
+    setStatus('CONFIRMED');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -225,14 +230,18 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
     }
 
     if (booking?.id) {
-      setPendingData(data);
-      setShowPasswordModal(true);
+      if (isSuperAdmin) {
+        await executeBookingCreate(data, true);
+      } else {
+        setPendingData({ ...data, status } as CreateBookingData);
+        setShowPasswordModal(true);
+      }
     } else {
       await executeBookingCreate(data);
     }
   };
 
-  const executeBookingCreate = async (data: CreateBookingData) => {
+  const executeBookingCreate = async (data: CreateBookingData, skipPassword = false) => {
     setLoading(true);
     try {
       if (booking?.id) {
@@ -339,6 +348,37 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 
         <div className="h-px bg-white/[0.06]" />
 
+        {/* Stato — solo in modifica */}
+        {booking?.id && (
+          <div className="space-y-3">
+            <span className="text-[11px] font-bold text-accent uppercase tracking-widest">Stato prenotazione</span>
+            <div className="flex gap-2 flex-wrap">
+              {([
+                { value: 'CONFIRMED',   label: 'Confermato',    color: 'border-accent/60 bg-accent/10 text-accent' },
+                { value: 'COMPLETED',   label: 'Completato',    color: 'border-emerald-500/60 bg-emerald-500/10 text-emerald-400' },
+                { value: 'RESCHEDULED', label: 'Spostato',      color: 'border-amber-500/60 bg-amber-500/10 text-amber-400' },
+                { value: 'CANCELLED',   label: 'Annullato',     color: 'border-red-500/60 bg-red-500/10 text-red-400' },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setStatus(opt.value)}
+                  className={[
+                    'px-4 py-1.5 rounded-full text-xs font-bold border transition-all',
+                    status === opt.value
+                      ? opt.color
+                      : 'border-white/10 bg-white/5 text-text-secondary hover:border-white/25',
+                  ].join(' ')}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="h-px bg-white/[0.06]" />
+
         {/* Note */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -356,15 +396,17 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         <SubmitButton loading={loading} label={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'} />
       </form>
 
-      <PasswordConfirmModal
-        isOpen={showPasswordModal}
-        onClose={() => {
-          setShowPasswordModal(false);
-          setPendingData(null);
-        }}
-        onConfirm={handlePasswordConfirm}
-        loading={passwordLoading}
-      />
+      {!isSuperAdmin && (
+        <PasswordConfirmModal
+          isOpen={showPasswordModal}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setPendingData(null);
+          }}
+          onConfirm={handlePasswordConfirm}
+          loading={passwordLoading}
+        />
+      )}
     </Modal>
   );
 }

@@ -13,11 +13,13 @@ const service = new BookingService();
 export class BookingController {
   getAll = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { month, page, limit } = parsePageQuery(req.query);
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
     if (req.query.page || req.query.limit) {
-      res.json(await service.getBookingsPaged(month, page, limit));
+      res.json(await service.getBookingsPaged(month, page, limit, startDate, endDate));
       return;
     }
-    res.json(await service.getBookings(month));
+    res.json(await service.getBookings(month, startDate, endDate));
   });
 
   getStats = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -25,12 +27,12 @@ export class BookingController {
   });
 
   create = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user?.id?.toString() ?? 'system';
+    const userId = req.user?.id;
     res.status(201).json(await service.createBooking(req.body, userId));
   });
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user?.id?.toString() ?? 'system';
+    const userId = req.user?.id;
     res.json(await service.updateBooking(parseId(req.params.id), req.body, userId));
   });
 

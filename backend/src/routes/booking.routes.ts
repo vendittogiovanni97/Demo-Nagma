@@ -1,24 +1,10 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import { BookingController } from '../controllers/booking.controller';
-import { authMiddleware } from '../middlewares/auth.middleware';
+import { authMiddleware, requireRoles } from '../middlewares/auth.middleware';
+import { authRateLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 const controller = new BookingController();
-
-const verifyPasswordLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: 'Troppi tentativi. Riprova tra qualche minuto.',
-    error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
-  },
-});
-
-router.use(authMiddleware);
 
 /**
  * @swagger
@@ -85,7 +71,7 @@ router.use(authMiddleware);
  *                   type: string
  *                   description: Descrizione leggibile dei filtri applicati
  */
-router.get('/export', controller.export);
+router.get('/export', authMiddleware, controller.export);
 
 /**
  * @swagger
@@ -107,16 +93,16 @@ router.get('/export', controller.export);
  *       200:
  *         description: Statistiche appuntamenti
  */
-router.post('/verify-password', verifyPasswordLimiter, controller.verifyPassword);
-router.get('/stats', controller.getStats);
-router.get('/available-artists', controller.getAvailable);
+router.post('/verify-password', authRateLimiter, controller.verifyPassword);
+router.get('/stats', authMiddleware, controller.getStats);
+router.get('/available-artists', authMiddleware, controller.getAvailable);
 
 /**
  * @swagger
  * /api/bookings:
  *   get:
  *     summary: Lista appuntamenti
- *     description: Lista paginata appuntamenti con filtro mese
+ *     description: Lista paginata appuntamenti con filtro mese e date
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
@@ -127,11 +113,23 @@ router.get('/available-artists', controller.getAvailable);
  *           type: string
  *           example: 2026-04
  *         description: Filtro per mese (YYYY-MM)
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filtra appuntamenti dal
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filtra appuntamenti fino al
  *     responses:
  *       200:
  *         description: Lista appuntamenti
  */
-router.get('/', controller.getAll);
+router.get('/', authMiddleware, controller.getAll);
 
 /**
  * @swagger
@@ -171,7 +169,7 @@ router.get('/', controller.getAll);
  *       201:
  *         description: Appuntamento creato
  */
-router.post('/', controller.create);
+router.post('/', authMiddleware, controller.create);
 
 /**
  * @swagger
@@ -191,7 +189,7 @@ router.post('/', controller.create);
  *       200:
  *         description: Storico modifiche
  */
-router.get('/:id/history', controller.getHistory);
+router.get('/:id/history', authMiddleware, controller.getHistory);
 
 /**
  * @swagger
@@ -234,7 +232,7 @@ router.get('/:id/history', controller.getHistory);
  *       200:
  *         description: Appuntamento aggiornato
  */
-router.put('/:id', controller.update);
+router.put('/:id', authMiddleware, controller.update);
 
 /**
  * @swagger
@@ -254,6 +252,6 @@ router.put('/:id', controller.update);
  *       204:
  *         description: Appuntamento eliminato
  */
-router.delete('/:id', controller.delete);
+router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
 
 export default router;

@@ -28,11 +28,11 @@ export class TransactionService {
 
   async getSummary(month?: string) {
     const rows = await repository.getSummary(month);
-    const result = { totalIncome: 0, totalExpense: 0, balance: 0 };
-    rows.forEach((row) => {
-      if (row.type === 'INCOME') result.totalIncome = row._sum.amount ?? 0;
-      if (row.type === 'EXPENSE') result.totalExpense = row._sum.amount ?? 0;
-    });
+    const result = rows.reduce((acc, row) => {
+      if (row.type === 'INCOME') acc.totalIncome += row._sum.amount ?? 0;
+      else acc.totalExpense += row._sum.amount ?? 0;
+      return acc;
+    }, { totalIncome: 0, totalExpense: 0, balance: 0 });
     result.balance = result.totalIncome - result.totalExpense;
     return result;
   }

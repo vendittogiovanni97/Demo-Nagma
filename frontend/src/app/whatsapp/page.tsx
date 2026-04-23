@@ -1,5 +1,7 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+
 import { Edit, MessageCircle, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -7,12 +9,16 @@ import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
-import WhatsAppTemplateModal from '@/components/modals/WhatsAppTemplateModal';
 import { useAuth } from '@/context/AuthContext';
 import { useWhatsAppTemplates } from '@/hooks/domain';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { whatsappService } from '@/services/whatsapp.service';
+
+const WhatsAppTemplateModal = dynamic(
+  () => import('@/components/modals/WhatsAppTemplateModal'),
+  { ssr: false }
+);
 import type { WhatsAppTemplate } from '@/types/whatsapp';
 
 export default function WhatsAppTemplatesPage() {
@@ -20,11 +26,13 @@ export default function WhatsAppTemplatesPage() {
   const canManageTemplates = isAdmin;
 
   const [templateSearch, setTemplateSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<WhatsAppTemplate | null>(null);
 
   const { data: templates, mutate: mutateTemplates, isLoading: templatesLoading } =
-    useWhatsAppTemplates({ search: templateSearch });
+    useWhatsAppTemplates({ search: templateSearch, startDate, endDate });
 
   const filteredTemplates = useMemo(() => templates || [], [templates]);
 
@@ -70,12 +78,39 @@ export default function WhatsAppTemplatesPage() {
           </Button>
         }
       >
-        <div className="flex-1 max-w-md mx-auto">
-          <SearchInput
-            value={templateSearch}
-            onChange={setTemplateSearch}
-            placeholder="Cerca template..."
-          />
+        <div className="flex-1 flex items-center gap-4 max-w-2xl mx-auto">
+          <div className="flex-1">
+            <SearchInput
+              value={templateSearch}
+              onChange={setTemplateSearch}
+              placeholder="Cerca template..."
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+            />
+            <span className="text-text-secondary text-sm">—</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+            />
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setStartDate(''); setEndDate(''); }}
+                className="text-xs"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
       </PageHeader>
 

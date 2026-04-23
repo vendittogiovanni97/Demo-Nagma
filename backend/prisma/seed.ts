@@ -1,8 +1,8 @@
-import 'dotenv/config';
-import { PrismaClient, StaffType } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { PrismaClient, StaffType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import 'dotenv/config';
+import { Pool } from 'pg';
 
 // Setup locale — istanza Prisma autonoma per il seed
 const connectionString = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5432/nagmadb?schema=public';
@@ -11,10 +11,30 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 /**
+ * Seed Super Admin (accesso completo)
+ */
+async function seedSuperAdmin(): Promise<void> {
+  const superAdminPassword = await bcrypt.hash(process.env.SUPER_ADMIN_PASSWORD || 'superadmin123', 10);
+
+  const superAdmin = await prisma.user.upsert({
+    where: { email: 'superadmin@nagma.it' },
+    update: {},
+    create: {
+      name: 'Super Admin',
+      email: 'superadmin@nagma.it',
+      password: superAdminPassword,
+      role: 'SUPER_ADMIN',
+    },
+  });
+
+  console.log('✅ Super Admin creato:', superAdmin.email);
+}
+
+/**
  * Seed Admin di default (obbligatorio per accedere)
  */
 async function seedAdmin(): Promise<void> {
-  const adminPassword = await bcrypt.hash('admin123', 10);
+  const adminPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@nagma.it' },
@@ -117,8 +137,20 @@ async function seedFormTemplates(): Promise<void> {
 }
 
 /**
- * Seed Staff reale dello studio Nagma
+ * Seed Crema Tattoo
  */
+async function seedCreamTattoo(): Promise<void> {
+  await prisma.creamTattoo.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      name: 'Crema Protettiva Tattoo',
+      description: 'Crema lenitiva post-tatuaggio',
+      isActive: true,
+    },
+  });
+  console.log('✅ Crema Tattoo creato');
+}
 async function seedDefaultStaff(): Promise<void> {
   const members = [
     // Collaboratori
@@ -170,14 +202,17 @@ async function seedDefaultStaff(): Promise<void> {
 async function main(): Promise<void> {
   console.log('🌱 Avvio seed database...\n');
 
+  await seedSuperAdmin();
   await seedAdmin();
   await seedWhatsAppTemplates();
   await seedFormTemplates();
+  await seedCreamTattoo();
   await seedDefaultStaff();
 
   console.log('\n🎉 Seed completato con successo!');
   console.log('\n📋 Credenziali accesso:');
-  console.log('   Admin:   admin@nagma.it / admin123');
+  console.log('   Super Admin: superadmin@nagma.it / superadmin123');
+  console.log('   Admin:       admin@nagma.it / admin123');
 }
 
 main()

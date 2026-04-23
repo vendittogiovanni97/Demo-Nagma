@@ -11,7 +11,9 @@ const repo = new CustomerRepository();
 export class CustomerController {
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const { search, page, limit } = parsePageQuery(req.query);
-    res.json(await repo.findAllPaged(search, page, limit));
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+    res.json(await repo.findAllPaged(search, page, limit, startDate, endDate));
   });
 
   getById = asyncHandler(async (req: Request, res: Response) => {

@@ -18,6 +18,9 @@ export const ENDPOINTS = {
     BY_ID: (id: number) => `/api/bookings/${id}`,
     HISTORY: (id: number) => `/api/bookings/${id}/history`,
   },
+  ADMIN: {
+    BOOKING_HISTORY: '/api/admin/booking-history',
+  },
   TRANSACTIONS: {
     BASE: '/api/transactions',
     SUMMARY: '/api/transactions/summary',
@@ -49,5 +52,10 @@ export const ENDPOINTS = {
     MEMBER_BY_ID: (id: number) => `/api/team/members/${id}`,
     SHIFTS: '/api/team/shifts',
     SHIFT_BY_ID: (id: string) => `/api/team/shifts/${id}`,
+  },
+  CREAM: {
+    BASE: '/api/cream',
+    SALES: '/api/cream/sales',
+    SUMMARY: '/api/cream/summary',
   },
 };

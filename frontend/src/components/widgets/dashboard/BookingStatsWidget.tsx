@@ -55,7 +55,7 @@ export default function BookingStatsWidget({
             <div className="p-3 rounded-xl bg-accent/5 border border-accent/20">
               <div className="flex items-center gap-2 mb-2">
                 <RefreshCw size={16} className="text-accent" />
-                <span className="text-xs text-text-secondary uppercase tracking-wider">Aggiornate</span>
+                <span className="text-xs text-text-secondary uppercase tracking-wider">Modificate</span>
               </div>
               <div className="text-2xl font-bold text-accent font-outfit">{completed}</div>
             </div>

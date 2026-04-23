@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   label?: string;
@@ -11,6 +12,79 @@ interface Props {
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+
+function ScrollPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Scroll selected item into center when opening
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    const active = listRef.current.querySelector('[data-active="true"]') as HTMLElement | null;
+    if (active) {
+      active.scrollIntoView({ block: 'center' });
+    }
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative flex-1">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full bg-white/5 border border-surface-border rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-accent transition-all text-center font-mono"
+      >
+        {value || '--'}
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 z-[200] w-full bg-[#0d1f2d] border border-surface-border rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden"
+        >
+          <div
+            ref={listRef}
+            className="overflow-y-auto"
+            style={{ maxHeight: '180px' }}
+          >
+            {options.map((opt) => (
+              <div
+                key={opt}
+                data-active={opt === value}
+                onClick={() => { onChange(opt); setOpen(false); }}
+                className={[
+                  'px-3 py-2 text-sm font-mono text-center cursor-pointer transition-colors',
+                  opt === value
+                    ? 'bg-accent text-black font-bold'
+                    : 'text-white hover:bg-white/10',
+                ].join(' ')}
+              >
+                {opt}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TimeSelect({ label, value, onChange, required, minuteStep = 15 }: Props) {
   const [hh, mm] = value ? value.split(':') : ['', ''];
@@ -23,9 +97,6 @@ export default function TimeSelect({ label, value, onChange, required, minuteSte
   const handleHour = (h: string) => onChange(`${h}:${mm || '00'}`);
   const handleMinute = (m: string) => onChange(`${hh || '09'}:${m}`);
 
-  const selectClass =
-    'flex-1 bg-white/5 border border-surface-border rounded-xl px-3 py-3 text-sm text-white focus:outline-none focus:border-accent transition-all appearance-none text-center font-mono';
-
   return (
     <div className="space-y-2">
       {label && (
@@ -36,29 +107,9 @@ export default function TimeSelect({ label, value, onChange, required, minuteSte
         </label>
       )}
       <div className="flex items-center gap-2">
-        <select
-          value={hh}
-          onChange={(e) => handleHour(e.target.value)}
-          required={required}
-          className={selectClass}
-        >
-          <option value="" className="bg-[#0a1a26]">--</option>
-          {HOURS.map((h) => (
-            <option key={h} value={h} className="bg-[#0a1a26]">{h}</option>
-          ))}
-        </select>
+        <ScrollPicker options={HOURS} value={hh} onChange={handleHour} />
         <span className="text-text-secondary font-bold text-lg">:</span>
-        <select
-          value={mm}
-          onChange={(e) => handleMinute(e.target.value)}
-          required={required}
-          className={selectClass}
-        >
-          <option value="" className="bg-[#0a1a26]">--</option>
-          {minutes.map((m) => (
-            <option key={m} value={m} className="bg-[#0a1a26]">{m}</option>
-          ))}
-        </select>
+        <ScrollPicker options={minutes} value={mm} onChange={handleMinute} />
       </div>
     </div>
   );

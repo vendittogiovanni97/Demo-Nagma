@@ -7,16 +7,20 @@ datasource db {
 }
 
 model User {
-  id            Int         @id @default(autoincrement())
-  name          String
-  email         String      @unique
-  password      String      // hashed password
-  role          Role        @default(ADMIN)
-  phone         String?
-  color         String?     // colore calendario per il collaboratore
-  deletedAt     DateTime?   // soft delete
-  createdAt     DateTime    @default(now())
-  whatsappLogs  WhatsAppMessageLog[]
+  id               Int         @id @default(autoincrement())
+  name             String
+  email            String      @unique
+  password         String      // hashed password
+  role             Role        @default(ADMIN)
+  phone            String?
+  color            String?     // colore calendario per il collaboratore
+  deletedAt        DateTime?   // soft delete
+  createdAt        DateTime    @default(now())
+  whatsappLogs     WhatsAppMessageLog[]
+  bookingHistories BookingHistory[]
+
+  @@index([role])
+  @@index([deletedAt])
 }
 
 enum Role {
@@ -49,6 +53,10 @@ model Staff {
 
   bookings  Booking[]
   shifts    Shift[]
+  creamSales CreamSale[]
+
+  @@index([type])
+  @@index([createdAt])
 }
 
 model Shift {
@@ -64,6 +72,7 @@ model Shift {
 
   staff         Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
+  @@index([date])
   @@index([staffId, date])
 }
 
@@ -79,6 +88,9 @@ model Customer {
   bookings      Booking[]
   whatsappLogs  WhatsAppMessageLog[]
 
+  @@index([phone])
+  @@index([email])
+  @@index([lastName, firstName])
   @@index([deletedAt, createdAt])
 }
 
@@ -106,7 +118,32 @@ model Booking {
   @@index([artistId, date])
   @@index([artistId, status, date])
   @@index([status, date])
+  @@index([status])
   @@index([date])
+}
+
+model CreamTattoo {
+  id          Int          @id @default(autoincrement())
+  name        String       @default("Crema Protettiva Tattoo")
+  description String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  sales       CreamSale[]
+}
+
+model CreamSale {
+  id          Int          @id @default(autoincrement())
+  cream       CreamTattoo @relation(fields: [creamId], references: [id])
+  creamId     Int
+  artist      Staff        @relation(fields: [artistId], references: [id])
+  artistId    Int
+  quantity    Int          @default(1)
+  soldAt      DateTime     @default(now())
+
+  @@index([creamId, soldAt])
+  @@index([artistId, soldAt])
 }
 
 enum BookingStatus {
@@ -123,8 +160,12 @@ model BookingHistory {
   action      BookingAction
   oldDate     DateTime?
   newDate     DateTime?
-  changedBy   String
+  changedById Int?
+  changedBy   User?         @relation(fields: [changedById], references: [id])
   changedAt   DateTime       @default(now())
+
+  @@index([bookingId, changedAt])
+  @@index([changedById])
 }
 
 
@@ -135,13 +176,13 @@ model Transaction {
   description   String
   amount        Float
   date          DateTime          @default(now())
-  artistId      Int?              // @deprecated — non relazionato, mantenuto per retrocompatibilità
   attachmentUrl String?
   deletedAt     DateTime?         // soft delete come da regole globali utente
   createdAt     DateTime          @default(now())
 
   @@index([date, type])
   @@index([deletedAt])
+  @@index([category])
 }
 
 enum TransactionType {
@@ -175,6 +216,9 @@ model WhatsAppTemplate {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   logs        WhatsAppMessageLog[]
+
+  @@index([category])
+  @@index([isActive])
 }
 
 model WhatsAppMessageLog {
@@ -198,6 +242,7 @@ model WhatsAppMessageLog {
   @@index([customerId, createdAt])
   @@index([status, createdAt])
   @@index([templateId, createdAt])
+  @@index([createdById])
 }
 
 enum WhatsAppMessageStatus {

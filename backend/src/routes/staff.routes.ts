@@ -7,8 +7,8 @@ const controller = new StaffController();
 
 router.use(authMiddleware);
 
-router.get('/', controller.getAll);
-router.post('/', requireRoles('ADMIN'), controller.create);
-router.delete('/:id', requireRoles('ADMIN'), controller.delete);
+router.get('/', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getAll);
+router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.create);
+router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
 
 export default router;

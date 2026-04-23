@@ -127,7 +127,9 @@ export default function FormTemplatesPage() {
   const toast = useToast();
   const { user, isSuperAdmin } = useAuth();
   const router = useRouter();
-  const { data: templates, mutate } = useFormTemplates();
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const { data: templates, mutate } = useFormTemplates({ startDate, endDate });
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [templateName, setTemplateName] = useState('');
   const [fields, setFields] = useState<FieldDef[]>([]);
@@ -226,13 +228,40 @@ export default function FormTemplatesPage() {
       <PageHeader
         title="Workspace Template"
         actions={
-          <Button
-            variant="primary"
-            icon={Plus}
-            onClick={handleNewTemplate}
-          >
-            Nuovo Template
-          </Button>
+          <>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+              />
+              <span className="text-text-secondary text-sm">—</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+              />
+              {(startDate || endDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setStartDate(''); setEndDate(''); }}
+                  className="text-xs"
+                >
+                  Reset
+                </Button>
+              )}
+            </div>
+            <Button
+              variant="primary"
+              icon={Plus}
+              onClick={handleNewTemplate}
+            >
+              Nuovo Template
+            </Button>
+          </>
         }
       />
 

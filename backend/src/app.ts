@@ -6,12 +6,14 @@ import swaggerUi from 'swagger-ui-express';
 
 import authRoutes from './routes/auth.routes';
 import bookingRoutes from './routes/booking.routes';
+import bookingHistoryRoutes from './routes/booking-history.routes';
 import customerRoutes from './routes/customer.routes';
 import formTemplateRoutes from './routes/form-template.routes';
 import teamRoutes from './routes/team.routes';
 import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
 import spesaLiberaRoutes from './routes/spesa-libera.routes';
+import creamRouter from './routes/cream.routes';
 import { config } from './config/env';
 import { getSwaggerSpec } from './config/swagger';
 import { AppError } from './utils/AppError';
@@ -26,10 +28,27 @@ export function createApp() {
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
 
-  app.use(cors({
-    origin: allowedOrigins,
+  const productionWhitelist = ['https://nagma.it', 'https://www.nagma.it'];
+
+  const corsOptions = {
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? (origin: string | undefined, callback: (err: Error | null, allowed: boolean) => void) => {
+            if (!origin) {
+              callback(new Error('Not allowed by CORS'), false);
+              return;
+            }
+            if (productionWhitelist.includes(origin)) {
+              callback(null, true);
+            } else {
+              callback(new Error('Not allowed by CORS'), false);
+            }
+          }
+        : allowedOrigins,
     credentials: true,
-  }));
+  };
+
+  app.use(cors(corsOptions));
 
   app.use(express.json({ limit: config.jsonPayloadLimit }));
 
@@ -91,10 +110,12 @@ export function createApp() {
   app.use('/api/customers', customerRoutes);
   app.use('/api/transactions', transactionRoutes);
   app.use('/api/bookings', bookingRoutes);
+  app.use('/api/admin/booking-history', bookingHistoryRoutes);
   app.use('/api/team', teamRoutes);
   app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
   app.use('/api/spese-libere', spesaLiberaRoutes);
+app.use('/api/cream', creamRouter);
 
   // Build the Swagger spec only when /api-docs is actually requested.
   app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {

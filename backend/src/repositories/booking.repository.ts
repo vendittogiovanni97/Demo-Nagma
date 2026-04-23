@@ -10,13 +10,20 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     super(prismaClient);
   }
 
-  private buildBaseWhere(monthStr?: string): Prisma.BookingWhereInput {
+  private buildBaseWhere(monthStr?: string, startDate?: string, endDate?: string): Prisma.BookingWhereInput {
     const where: Prisma.BookingWhereInput = {
       deletedAt: null,
       customer: { is: { deletedAt: null } },
     };
     if (monthStr) {
       where.date = getMonthRange(monthStr);
+    } else {
+      if (startDate) {
+        where.date = { gte: new Date(startDate) };
+      }
+      if (endDate) {
+        where.date = { ...where.date as object, lte: new Date(endDate + 'T23:59:59.999') };
+      }
     }
     return where;
   }
@@ -29,9 +36,9 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     return this.prisma.booking.findUnique({ where: { id } });
   }
 
-  async findAll(monthStr?: string): Promise<Booking[]> {
+  async findAll(monthStr?: string, startDate?: string, endDate?: string): Promise<Booking[]> {
     return this.prisma.booking.findMany({
-      where: this.buildBaseWhere(monthStr),
+      where: this.buildBaseWhere(monthStr, startDate, endDate),
       orderBy: { date: 'asc' },
       include: { customer: true, artist: true },
     });
@@ -53,12 +60,16 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     monthStr,
     page = 1,
     limit = config.defaultPageLimit,
+    startDate,
+    endDate,
   }: {
     monthStr?: string;
     page?: number;
     limit?: number;
+    startDate?: string;
+    endDate?: string;
   }) {
-    const where = this.buildBaseWhere(monthStr);
+    const where = this.buildBaseWhere(monthStr, startDate, endDate);
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.booking.findMany({
@@ -95,7 +106,7 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
       confirmed: counts.CONFIRMED ?? 0,
       cancelled: counts.CANCELLED ?? 0,
       rescheduled: counts.RESCHEDULED ?? 0,
-      completed: counts.COMPLETED ?? 0,
+      completed: counts.UPDATED ?? 0,
       month: monthStr,
     };
   }

@@ -3,8 +3,8 @@ import { ENDPOINTS } from '@/api/endpoints';
 import type { Booking, BookingStats, BookingHistory, CreateBookingData } from '@/types/booking';
 
 export const bookingService = {
-  getAll: async (month?: string): Promise<Booking[]> => {
-    return apiClient.get<Booking[]>(ENDPOINTS.BOOKINGS.BASE, { month });
+  getAll: async (month?: string, startDate?: string, endDate?: string): Promise<Booking[]> => {
+    return apiClient.get<Booking[]>(ENDPOINTS.BOOKINGS.BASE, { month, startDate, endDate });
   },
   getStats: async (month?: string): Promise<BookingStats> => {
     return apiClient.get<BookingStats>(ENDPOINTS.BOOKINGS.STATS, { month });

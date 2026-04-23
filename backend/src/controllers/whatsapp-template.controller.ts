@@ -8,7 +8,9 @@ const service = new WhatsAppTemplateService();
 
 export class WhatsAppTemplateController {
   getAll = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = await service.getAll(req.query.search as string | undefined);
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+    const data = await service.getAll(req.query.search as string | undefined, startDate, endDate);
     res.json(data);
   });
 

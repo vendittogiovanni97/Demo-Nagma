@@ -1,5 +1,7 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
@@ -7,8 +9,6 @@ import PaginationControls from '@/components/feedback/PaginationControls';
 import Avatar from '@/components/data-display/Avatar';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
 import Button from '@/components/ui/Button';
-import CustomerModal from '@/components/modals/CustomerModal';
-import ExportModal from '@/components/modals/ExportModal';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useAuth } from '@/context/AuthContext';
 import { DEBOUNCE_SEARCH_DELAY, EXPORT_FETCH_LIMIT } from '@/config/env';
@@ -18,6 +18,9 @@ import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { customerService } from '@/services/customer.service';
 import type { Customer } from '@/types/customer';
+
+import CustomerModal from '@/components/modals/CustomerModal';
+import ExportModal from '@/components/modals/ExportModal';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Edit, Eye, Mail, MessageCircle, Phone, Trash2, UserPlus } from 'lucide-react';
@@ -28,14 +31,20 @@ export default function CustomersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
-  const { data: result, mutate, isLoading, error } = useCustomers({ search: debouncedSearch, page });
+  const { data: result, mutate, isLoading, error } = useCustomers({ search: debouncedSearch, page, startDate, endDate });
   const customers = result?.data;
   const totalPages = result?.totalPages ?? 1;
+
+  const handleSearch = () => {
+    setPage(1);
+  };
 
   const exportColumns = useMemo(() => [
     { label: 'Nome', value: (customer: Customer) => `${customer.firstName} ${customer.lastName}` },
@@ -153,12 +162,39 @@ export default function CustomersPage() {
           </>
         }
       >
-        <div className="flex-1 max-w-md mx-auto">
-          <SearchInput
-            value={search}
-            onChange={(v) => { setSearch(v); setPage(1); }}
-            placeholder="Cerca per nome, cognome o telefono..."
-          />
+        <div className="flex-1 flex items-center gap-4 max-w-2xl mx-auto">
+          <div className="flex-1">
+            <SearchInput
+              value={search}
+              onChange={(v) => { setSearch(v); setPage(1); }}
+              placeholder="Cerca per nome, cognome o telefono..."
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+            />
+            <span className="text-text-secondary text-sm">—</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+            />
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setStartDate(''); setEndDate(''); }}
+                className="text-xs"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
       </PageHeader>
 
@@ -184,7 +220,7 @@ export default function CustomersPage() {
             }
             keyExtractor={(c) => c.id}
             actions={(customer) => (
-              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity w-full">
                 <Link
                   href={`/clienti/${customer.id}`}
                   className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-white transition"

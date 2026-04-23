@@ -12,14 +12,26 @@ interface HookOptions {
 
 export function useBookings(month?: string, options?: HookOptions) {
   const enabled = options?.enabled ?? true;
-
   return useSWR<Booking[]>(
     enabled ? [ENDPOINTS.BOOKINGS.BASE, month] : null,
     () => bookingService.getAll(month),
     {
       revalidateOnFocus: true,
       dedupingInterval: 2000,
-      refreshInterval: 5 * 60 * 1000, // 5 minuti
+      refreshInterval: 5 * 60 * 1000,
+    }
+  );
+}
+
+export function useBookingsPaged(month?: string, page?: number, limit?: number, startDate?: string, endDate?: string, options?: HookOptions) {
+  const enabled = options?.enabled ?? true;
+  return useSWR<Booking[]>(
+    enabled ? [ENDPOINTS.BOOKINGS.BASE, month, page, limit, startDate, endDate] : null,
+    () => bookingService.getAll(month, startDate, endDate),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+      refreshInterval: 5 * 60 * 1000,
     }
   );
 }

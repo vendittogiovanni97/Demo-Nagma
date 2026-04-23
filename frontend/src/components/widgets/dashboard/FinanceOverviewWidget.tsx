@@ -66,15 +66,15 @@ export default function FinanceOverviewWidget({
       {isLoading ? (
         <Skeleton className="h-52" />
       ) : (
-        <div className="flex h-52 items-center gap-6">
+        <div className="flex h-52 items-stretch gap-6">
           <div className="flex-1 min-w-50">
-            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 1, height: 1 }}>
+            <ResponsiveContainer width="100%" height={208} initialDimension={{ width: 1, height: 1 }}>
               <PieChart>
                 <Pie
                   data={financeData}
                   innerRadius={55}
                   outerRadius={75}
-                  paddingAngle={4}
+                  paddingAngle={totalIncome > 0 && totalExpense > 0 ? 4 : 0}
                   dataKey="value"
                   stroke="transparent"
                 >

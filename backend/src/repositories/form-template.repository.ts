@@ -17,8 +17,18 @@ export class FormTemplateRepository extends BaseRepository<FormTemplate, Prisma.
     return this.prisma.formTemplate.findUnique({ where: { id: templateId } });
   }
 
-  async findAll(): Promise<FormTemplate[]> {
+  async findAll(startDate?: string, endDate?: string): Promise<FormTemplate[]> {
+    const where: Prisma.FormTemplateWhereInput = {};
+    
+    if (startDate) {
+      where.createdAt = { gte: new Date(startDate) };
+    }
+    if (endDate) {
+      where.createdAt = { ...where.createdAt as object, lte: new Date(endDate + 'T23:59:59.999') };
+    }
+
     return this.prisma.formTemplate.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
     });
   }

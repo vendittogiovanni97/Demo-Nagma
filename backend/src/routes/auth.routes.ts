@@ -1,38 +1,10 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
-import { config } from '../config/env';
 import { AuthController } from '../controllers/auth.controller';
+import { adminOnly, authMiddleware } from '../middlewares/auth.middleware';
+import { authRateLimiter, loginRateLimiter } from '../middlewares/rateLimiter';
 
 const controller = new AuthController();
-import { adminOnly, authMiddleware } from '../middlewares/auth.middleware';
-
 const router = Router();
-
-const loginRateLimiter = rateLimit({
-  windowMs: config.loginRateLimitWindowMs,
-  limit: config.loginRateLimitMaxAttempts,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  message: {
-    success: false,
-    message: 'Troppi tentativi di accesso. Riprova tra qualche minuto.',
-    error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
-  },
-});
-
-const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  message: {
-    success: false,
-    message: 'Troppi tentativi. Riprova tra qualche minuto.',
-    error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
-  },
-});
 
 /**
  * @swagger

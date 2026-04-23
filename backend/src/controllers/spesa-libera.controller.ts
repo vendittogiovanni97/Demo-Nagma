@@ -4,14 +4,17 @@ import { validate, createSpesaLiberaSchema } from '../schemas';
 import { AppError } from '../utils/AppError';
 import { parseId } from '../utils/parse-id';
 import { SpesaLiberaService } from '../services/spesa-libera.service';
+import { config } from '../config/env';
 
 const service = new SpesaLiberaService();
 
 export class SpesaLiberaController {
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const month = req.query.month as string | undefined;
-    const data = await service.getAll(month);
-    res.json({ data });
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Number(req.query.limit) : config.defaultPageLimit;
+    const data = await service.getAll(month, page, limit);
+    res.json(data);
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {

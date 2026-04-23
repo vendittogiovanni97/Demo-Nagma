@@ -1,4 +1,5 @@
 import { Prisma, Booking } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
@@ -8,20 +9,22 @@ import { buildWhereClause, filterByWeekday, type ExportFilters } from '../utils/
 
 const repository = new BookingRepository();
 
+type BookingForIncome = Pick<Booking, 'id' | 'price' | 'date' | 'formData'> & { customerId: number };
+
 export class BookingService {
-  async getBookings(month?: string) {
-    return repository.findAll(month);
+  async getBookings(month?: string, startDate?: string, endDate?: string) {
+    return repository.findAll(month, startDate, endDate);
   }
 
-  async getBookingsPaged(month: string | undefined, page: number, limit: number) {
-    return repository.findAllPaged({ monthStr: month, page, limit });
+  async getBookingsPaged(month: string | undefined, page: number, limit: number, startDate?: string, endDate?: string) {
+    return repository.findAllPaged({ monthStr: month, page, limit, startDate, endDate });
   }
 
   async getStats(month?: string) {
     return repository.getStats(month);
   }
 
-  async createBooking(body: unknown, changedBy: string = 'system') {
+  async createBooking(body: unknown, changedById?: number) {
     const data = validate(createBookingSchema, body);
     const startDate = new Date(data.date);
     const duration = data.duration ?? 120;
@@ -47,7 +50,7 @@ export class BookingService {
           bookingId: booking.id,
           action: 'CREATED',
           newDate: booking.date,
-          changedBy,
+          changedById,
         },
       });
 
@@ -55,7 +58,7 @@ export class BookingService {
     });
   }
 
-  async updateBooking(id: number, body: unknown, changedBy: string = 'system') {
+  async updateBooking(id: number, body: unknown, changedById?: number) {
     const data = validate(updateBookingSchema, body);
 
     const oldBooking = await repository.findById(id);
@@ -96,13 +99,20 @@ export class BookingService {
           action,
           oldDate: oldBooking.date,
           newDate: data.date ? new Date(data.date) : null,
-          changedBy,
+          changedById,
         },
       });
 
       // Se la prenotazione è completata e ha un prezzo, genera automaticamente una transazione di incasso
       if (data.status === 'COMPLETED' && oldBooking.status !== 'COMPLETED' && booking.price) {
-        await this.createIncomeTransactionForBooking(tx, (booking as any));
+        const bookingForIncome: BookingForIncome = {
+          id: booking.id,
+          price: booking.price,
+          date: booking.date,
+          formData: booking.formData,
+          customerId: booking.customerId,
+        };
+        await this.createIncomeTransactionForBooking(tx, bookingForIncome);
       }
 
       return booking;
@@ -163,26 +173,41 @@ export class BookingService {
 
   async verifyPassword(password: string): Promise<void> {
     const expectedPassword = config.bookingUpdatePassword;
-    if (password !== expectedPassword) {
+    const isValid = await bcrypt.compare(password, expectedPassword);
+    if (!isValid) {
       throw new AppError('Password non corretta', 403, 'INVALID_PASSWORD');
     }
   }
 
-  private async createIncomeTransactionForBooking(tx: Prisma.TransactionClient, booking: Booking & { customerId: number }): Promise<void> {
+  private async createIncomeTransactionForBooking(tx: Prisma.TransactionClient, booking: BookingForIncome): Promise<void> {
     const fd = booking.formData as Record<string, unknown> | null;
-    const studioProfit = fd && typeof fd.studioProfit === 'number'
-      ? fd.studioProfit
-      : booking.price;
+    const artistPrice = fd && typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
+    const fullPrice = booking.price ?? 0;
+    const bookingDate = booking.date ?? new Date();
 
+    // Entrata: prezzo pieno incassato dal cliente
     await tx.transaction.create({
       data: {
         type: 'INCOME',
         category: 'Tatuaggio',
-        description: `Incasso prenotazione — Cliente ID: ${booking.customerId}`,
-        amount: studioProfit ?? 0,
-        date: new Date(),
+        description: `Incasso prenotazione #${booking.id}`,
+        amount: fullPrice,
+        date: bookingDate,
       },
     });
+
+    // Uscita: compenso artista (se presente)
+    if (artistPrice > 0) {
+      await tx.transaction.create({
+        data: {
+          type: 'EXPENSE',
+          category: 'Compenso Artista',
+          description: `Compenso artista — prenotazione #${booking.id}`,
+          amount: artistPrice,
+          date: bookingDate,
+        },
+      });
+    }
   }
 
   async getBookingsForExport(filters: ExportFilters) {

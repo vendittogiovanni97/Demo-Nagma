@@ -1,7 +1,10 @@
 "use client";
 
-import React, { type ReactNode } from 'react';
-import { Skeleton } from '@/components/feedback/Skeleton';
+import type { ColDef, ICellRendererParams } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { AgGridReact } from 'ag-grid-react';
+import React, { type ReactNode, useMemo } from 'react';
 
 export interface Column<T> {
   key: string;
@@ -19,17 +22,32 @@ export interface DataTableProps<T> {
   actions?: (item: T) => ReactNode;
   keyExtractor: (item: T) => string | number;
   footer?: ReactNode;
+  pageSize?: number;
 }
 
-const alignClass: Record<NonNullable<Column<unknown>['align']>, string> = {
-  left: 'text-left',
-  center: 'text-center',
-  right: 'text-right',
+function parsePxWidth(width?: string): number | undefined {
+  if (!width) return undefined;
+  const m = width.match(/^(\d+(?:\.\d+)?)px$/);
+  return m ? parseFloat(m[1]) : undefined;
+}
+
+type AgCellStyle = { [key: string]: string | number };
+
+const ROW_HEIGHT = 100;
+const HEADER_HEIGHT = 44;
+const PAGINATION_HEIGHT = 48;
+
+const CELL_WRAP: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  overflow: 'visible',
 };
 
-const SKELETON_ROWS = 5;
+const CELL_WRAP_RIGHT: React.CSSProperties = { ...CELL_WRAP, justifyContent: 'flex-end' };
+const CELL_WRAP_CENTER: React.CSSProperties = { ...CELL_WRAP, justifyContent: 'center' };
 
-export default function DataTable<T>({
+export default function DataTable<T extends object>({
   columns,
   data,
   isLoading = false,
@@ -37,104 +55,83 @@ export default function DataTable<T>({
   actions,
   keyExtractor,
   footer,
+  pageSize = 8,
 }: DataTableProps<T>) {
-  const hasActions = Boolean(actions);
-  const totalCols = columns.length + (hasActions ? 1 : 0);
+  const gridHeight = HEADER_HEIGHT + ROW_HEIGHT * pageSize + PAGINATION_HEIGHT;
+
+  const colDefs = useMemo<ColDef<T>[]>(() => {
+    const cols: ColDef<T>[] = columns.map((col) => {
+      const pxWidth = parsePxWidth(col.width);
+      const wrapStyle =
+        col.align === 'right' ? CELL_WRAP_RIGHT :
+        col.align === 'center' ? CELL_WRAP_CENTER :
+        CELL_WRAP;
+
+      const def: ColDef<T> = {
+        headerName: col.label,
+        sortable: true,
+        resizable: true,
+        filter: false,
+        suppressMovable: true,
+        ...(pxWidth ? { width: pxWidth } : { flex: 1 }),
+      };
+
+      if (col.render) {
+        def.cellRenderer = (params: ICellRendererParams<T>) =>
+          params.data ? <div style={wrapStyle}>{col.render!(params.data)}</div> : null;
+      } else {
+        def.cellStyle = col.align && col.align !== 'left'
+          ? ({ textAlign: col.align } as AgCellStyle)
+          : undefined;
+        def.valueGetter = (params) =>
+          params.data
+            ? String((params.data as Record<string, unknown>)[col.key] ?? '')
+            : '';
+      }
+
+      return def;
+    });
+
+    if (actions) {
+      cols.push({
+        headerName: 'Azioni',
+        sortable: false,
+        resizable: false,
+        filter: false,
+        suppressMovable: true,
+        width: 170,
+        cellRenderer: (params: ICellRendererParams<T>) =>
+          params.data ? <div style={CELL_WRAP_CENTER}>{actions(params.data)}</div> : null,
+      });
+    }
+
+    return cols;
+  }, [columns, actions]);
 
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden flex flex-col">
-      <div className="overflow-x-auto custom-scrollbar flex-1">
-        <table className="w-full border-separate border-spacing-0">
-          <thead>
-            <tr>
-              {columns.map((col, i) => (
-                <th
-                  key={col.key}
-                  style={col.width ? { width: col.width } : undefined}
-                  className={[
-                    'py-3.5 px-5 text-[11px] font-bold text-text-secondary uppercase tracking-widest',
-                    'bg-white/[0.03] border-b border-surface-border',
-                    alignClass[col.align ?? 'left'],
-                    i === 0 ? 'pl-6' : '',
-                  ].join(' ')}
-                >
-                  {col.label}
-                </th>
-              ))}
-              {hasActions && (
-                <th className="py-3.5 px-5 pr-6 text-right text-[11px] font-bold text-text-secondary uppercase tracking-widest bg-white/[0.03] border-b border-surface-border w-[1%] whitespace-nowrap">
-                  Azioni
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: SKELETON_ROWS }).map((_, i) => (
-                <tr key={i}>
-                  {columns.map((col, j) => (
-                    <td
-                      key={col.key}
-                      className={[
-                        'py-4 px-5 border-b border-surface-border/40',
-                        j === 0 ? 'pl-6' : '',
-                        i % 2 === 1 ? 'bg-white/[0.015]' : '',
-                      ].join(' ')}
-                    >
-                      <Skeleton variant="text" className="w-28 h-4" />
-                    </td>
-                  ))}
-                  {hasActions && (
-                    <td className="py-4 px-5 pr-6 border-b border-surface-border/40">
-                      <div className="flex justify-end gap-1">
-                        <Skeleton variant="rect" className="w-8 h-8 rounded-lg" />
-                        <Skeleton variant="rect" className="w-8 h-8 rounded-lg" />
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
-            ) : data.length === 0 ? (
-              <tr>
-                <td colSpan={totalCols} className="py-20 text-center text-sm text-text-secondary">
-                  {emptyMessage}
-                </td>
-              </tr>
-            ) : (
-              data.map((item, rowIdx) => (
-                <tr
-                  key={keyExtractor(item)}
-                  className={[
-                    'group transition-colors duration-150',
-                    rowIdx % 2 === 1 ? 'bg-white/[0.018]' : '',
-                    rowIdx < data.length - 1 ? 'border-b border-surface-border/40' : '',
-                    'hover:bg-accent/[0.06]',
-                  ].join(' ')}
-                >
-                  {columns.map((col, colIdx) => (
-                    <td
-                      key={col.key}
-                      className={[
-                        'py-3.5 px-5 text-sm text-white',
-                        colIdx === 0 ? 'pl-6' : '',
-                        alignClass[col.align ?? 'left'],
-                      ].join(' ')}
-                    >
-                      {col.render
-                        ? col.render(item)
-                        : String((item as Record<string, unknown>)[col.key] ?? '')}
-                    </td>
-                  ))}
-                  {hasActions && (
-                    <td className="py-3.5 px-5 pr-6 text-right">
-                      {actions!(item)}
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    <div className="glass-panel table-panel rounded-2xl overflow-hidden flex flex-col">
+      <div
+        className="ag-theme-alpine-dark nagma-grid"
+        style={{ width: '100%', height: `${gridHeight}px` }}
+      >
+        <AgGridReact<T>
+          rowData={data}
+          columnDefs={colDefs}
+          getRowId={(params) => String(keyExtractor(params.data))}
+          loading={isLoading}
+          overlayNoRowsTemplate={`<span class="nagma-grid-empty">${emptyMessage}</span>`}
+          rowHeight={ROW_HEIGHT}
+          headerHeight={HEADER_HEIGHT}
+          pagination
+          paginationPageSize={pageSize}
+          paginationPageSizeSelector={false}
+          rowSelection={{ mode: 'multiRow', enableClickSelection: false }}
+          suppressMovableColumns
+          suppressCellFocus
+          enableCellTextSelection
+          animateRows
+          defaultColDef={{ sortable: true, resizable: true, filter: false }}
+        />
       </div>
 
       {footer && (

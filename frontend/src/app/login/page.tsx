@@ -31,8 +31,9 @@ export default function LoginPage() {
     try {
       await login({ email, password });
       router.push('/');
-    } catch {
-      setError('Email o password non validi');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Email o password non validi';
+      setError(message);
     } finally {
       setLoading(false);
     }

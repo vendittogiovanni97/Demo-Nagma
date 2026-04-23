@@ -5,21 +5,21 @@ import { spesaLiberaService } from '@/services/spesa-libera.service';
 import Button from '@/components/ui/Button';
 import MonthPicker from '@/components/ui/MonthPicker';
 import { useToast } from '@/hooks/useToast';
-import { extractErrorMessage } from '@/utils/extract-error';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import type { SpesaLibera } from '@/types/spesa-libera';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { formatPrice } from '@/utils/format';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { Loader2, Plus, Receipt, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import useSWR from 'swr';
+import { mutate } from 'swr';
 
 export default function SpeseLiberePage() {
   const toast = useToast();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [spese, setSpese] = useState<SpesaLibera[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -28,19 +28,13 @@ export default function SpeseLiberePage() {
   const monthStr = format(currentDate, 'yyyy-MM');
   const monthLabel = format(currentDate, 'MMMM yyyy', { locale: it });
 
-  const load = async (month: string) => {
-    setIsLoading(true);
-    try {
-      const data = await spesaLiberaService.getAll(month);
-      setSpese(data.filter(s => s.createdAt.startsWith(month)));
-    } catch (e) {
-      toast.error(extractErrorMessage(e, 'Errore nel caricamento'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: allSpese, isLoading } = useSWR<SpesaLibera[]>(
+    ['spese-libere', monthStr],
+    () => spesaLiberaService.getAll(monthStr),
+    { revalidateOnFocus: false }
+  );
 
-  useEffect(() => { load(monthStr); }, [monthStr]);
+  const spese = allSpese?.filter(s => s.createdAt.startsWith(monthStr)) ?? [];
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +46,8 @@ export default function SpeseLiberePage() {
     }
     setIsAdding(true);
     try {
-      const created = await spesaLiberaService.create({ name: name.trim(), price: parsed });
-      if (created.createdAt.startsWith(monthStr)) {
-        setSpese((prev) => [created, ...prev]);
-      }
+      await spesaLiberaService.create({ name: name.trim(), price: parsed });
+      await mutate(['spese-libere', monthStr]);
       setName('');
       setPrice('');
       nameRef.current?.focus();
@@ -70,9 +62,11 @@ export default function SpeseLiberePage() {
   const handleDelete = async (id: number) => {
     await deleteItem({
       confirmMessage: 'Eliminare questa spesa?',
-      action: () => spesaLiberaService.delete(id),
+      action: async () => {
+        await spesaLiberaService.delete(id);
+        await mutate(['spese-libere', monthStr]);
+      },
       successMessage: 'Spesa eliminata',
-      onSuccess: () => setSpese((prev) => prev.filter((s) => s.id !== id)),
     });
   };
 

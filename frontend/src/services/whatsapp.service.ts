@@ -11,8 +11,8 @@ import type {
 } from '@/types/whatsapp';
 
 export const whatsappService = {
-  getTemplates: async (search?: string): Promise<WhatsAppTemplate[]> => {
-    return apiClient.get<WhatsAppTemplate[]>(ENDPOINTS.WHATSAPP.BASE, { search });
+  getTemplates: async (search?: string, startDate?: string, endDate?: string): Promise<WhatsAppTemplate[]> => {
+    return apiClient.get<WhatsAppTemplate[]>(ENDPOINTS.WHATSAPP.BASE, { search, startDate, endDate });
   },
   createTemplate: async (data: CreateWhatsAppTemplateData) => {
     return apiClient.post<WhatsAppTemplate>(ENDPOINTS.WHATSAPP.BASE, data);

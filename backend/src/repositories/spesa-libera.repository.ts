@@ -1,13 +1,18 @@
 import { Prisma, SpesaLibera } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
-import { getMonthRange } from '../utils/date-utils';
+import { getMonthRange, paginate } from '../utils/date-utils';
 import prisma from '../utils/prisma';
+import { config } from '../config/env';
 
 export class SpesaLiberaRepository {
   protected prisma: PrismaClient;
 
   constructor(prismaClient: PrismaClient = prisma) {
     this.prisma = prismaClient;
+  }
+
+  private buildPagination(page: number, limit: number) {
+    return { skip: (page - 1) * limit, take: limit };
   }
 
   async findAll(month?: string): Promise<SpesaLibera[]> {
@@ -19,6 +24,24 @@ export class SpesaLiberaRepository {
       where,
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async findAllPaged(month?: string, page = 1, limit = config.defaultPageLimit) {
+    const where: Prisma.SpesaLiberaWhereInput = {};
+    if (month) {
+      where.createdAt = getMonthRange(month);
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.spesaLibera.findMany({
+        where,
+        ...this.buildPagination(page, limit),
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.spesaLibera.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async create(data: Prisma.SpesaLiberaCreateInput): Promise<SpesaLibera> {

@@ -19,8 +19,8 @@ export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate,
     return this.prisma.whatsAppTemplate.findUnique({ where: { id: templateId } });
   }
 
-  async findAll(search?: string): Promise<WhatsAppTemplate[]> {
-    return this.findAllWithSearch(search);
+  async findAll(search?: string, startDate?: string, endDate?: string): Promise<WhatsAppTemplate[]> {
+    return this.findAllWithSearch(search, startDate, endDate);
   }
 
   async update(id: string | number, data: Prisma.WhatsAppTemplateUpdateInput): Promise<WhatsAppTemplate> {
@@ -37,16 +37,23 @@ export class WhatsAppTemplateRepository extends BaseRepository<WhatsAppTemplate,
   // SPECIALIZED METHODS - Custom business logic
   // ============================================================================
 
-  async findAllWithSearch(search?: string) {
-    const where: Prisma.WhatsAppTemplateWhereInput = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { category: { contains: search, mode: 'insensitive' } },
-            { body: { contains: search, mode: 'insensitive' } },
-          ],
-        }
-      : {};
+  async findAllWithSearch(search?: string, startDate?: string, endDate?: string) {
+    const where: Prisma.WhatsAppTemplateWhereInput = {};
+    
+    if (startDate) {
+      where.createdAt = { gte: new Date(startDate) };
+    }
+    if (endDate) {
+      where.createdAt = { ...where.createdAt as object, lte: new Date(endDate + 'T23:59:59.999') };
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } },
+        { body: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     return this.prisma.whatsAppTemplate.findMany({
       where,

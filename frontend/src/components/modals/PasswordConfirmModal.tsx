@@ -54,7 +54,7 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
             variant="ghost"
             size="sm"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-8 p-0"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-0"
             title={showPassword ? 'Nascondi' : 'Mostra'}
             icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           />

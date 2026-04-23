@@ -85,3 +85,6 @@ export const requireRoles = (...roles: Role[]) => {
     next();
   };
 };
+
+export const requireAuth = requireRoles('ADMIN', 'USER', 'SUPER_ADMIN');
+export const requireAdmin = requireRoles('ADMIN', 'SUPER_ADMIN');

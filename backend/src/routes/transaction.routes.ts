@@ -28,37 +28,9 @@ router.use(authMiddleware);
  *       200:
  *         description: Riepilogo finanziario
  */
-router.get('/summary', controller.getSummary);
-
-/**
- * @swagger
- * /api/transactions/trends:
- *   get:
- *     summary: Trend mensile
- *     description: Andamento entrate/uscite ultimi 6 mesi
- *     tags: [Transactions]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Trend mensile
- */
-router.get('/trends', controller.getTrends);
-
-/**
- * @swagger
- * /api/transactions/performance:
- *   get:
- *     summary: Performance artisti
- *     description: Totale guadagni per artista
- *     tags: [Transactions]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Performance artisti
- */
-router.get('/performance', controller.getArtistPerformance);
+router.get('/summary', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getSummary);
+router.get('/trends', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getTrends);
+router.get('/performance', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getArtistPerformance);
 
 /**
  * @swagger
@@ -126,7 +98,7 @@ router.get('/', controller.getAll);
  *       201:
  *         description: Transazione creata
  */
-router.post('/', requireRoles('ADMIN'), controller.create);
+router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.create);
 
 /**
  * @swagger
@@ -146,6 +118,6 @@ router.post('/', requireRoles('ADMIN'), controller.create);
  *       204:
  *         description: Transazione eliminata
  */
-router.delete('/:id', requireRoles('ADMIN'), controller.delete);
+router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
 
 export default router;

@@ -1,18 +1,27 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+
 import Avatar from '@/components/data-display/Avatar';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import FormInput from '@/components/forms/FormInput';
 import SubmitButton from '@/components/forms/SubmitButton';
 import PageHeader from '@/components/layout/PageHeader';
-import MemberFormModal from '@/components/modals/MemberFormModal';
-import ResetPasswordModal from '@/components/modals/ResetPasswordModal';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamMembers } from '@/hooks/domain';
+
+const MemberFormModal = dynamic(
+  () => import('@/components/modals/MemberFormModal'),
+  { ssr: false }
+);
+const ResetPasswordModal = dynamic(
+  () => import('@/components/modals/ResetPasswordModal'),
+  { ssr: false }
+);
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useToast } from '@/hooks/useToast';
 import { extractErrorMessage } from '@/utils/extract-error';
@@ -286,7 +295,7 @@ export default function SettingsPage() {
               emptyMessage="Nessun componente trovato. Clicca 'Nuovo Utente' per aggiungere il primo collaboratore."
               keyExtractor={(m) => m.id}
               actions={(memberData) => (
-                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-full">
                   <Button
                     variant="ghost"
                     size="sm"

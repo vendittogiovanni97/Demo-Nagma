@@ -13,7 +13,7 @@ router.use(authMiddleware);
  * /api/customers:
  *   get:
  *     summary: Lista clienti
- *     description: Restituisce una lista paginata di clienti con ricerca opzionale
+ *     description: Restituisce una lista paginata di clienti con ricerca opzionale e filtri data
  *     tags: [Customers]
  *     security:
  *       - bearerAuth: []
@@ -35,6 +35,18 @@ router.use(authMiddleware);
  *           type: integer
  *           default: 20
  *         description: Risultati per pagina
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filtra clienti creati dal
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filtra clienti creati fino al
  *     responses:
  *       200:
  *         description: Lista clienti
@@ -43,7 +55,7 @@ router.use(authMiddleware);
  *             schema:
  *               $ref: '#/components/schemas/PaginatedResponse'
  */
-router.get('/', controller.getAll);
+router.get('/', requireRoles('USER', 'ADMIN', 'SUPER_ADMIN'), controller.getAll);
 
 /**
  * @swagger
@@ -75,7 +87,7 @@ router.get('/', controller.getAll);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', controller.getById);
+router.get('/:id', requireRoles('USER', 'ADMIN', 'SUPER_ADMIN'), controller.getById);
 
 /**
  * @swagger
@@ -96,7 +108,7 @@ router.get('/:id', controller.getById);
  *       200:
  *         description: Riepilogo cliente
  */
-router.get('/:id/summary', controller.getSummary);
+router.get('/:id/summary', requireRoles('USER', 'ADMIN', 'SUPER_ADMIN'), controller.getSummary);
 
 /**
  * @swagger
@@ -137,69 +149,8 @@ router.get('/:id/summary', controller.getSummary);
  *       400:
  *         description: Dati non validi
  */
-router.post('/', requireRoles('ADMIN'), controller.create);
-
-/**
- * @swagger
- * /api/customers/{id}:
- *   put:
- *     summary: Aggiorna cliente
- *     description: Aggiorna i dati di un cliente
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               phone:
- *                 type: string
- *               email:
- *                 type: string
- *               notes:
- *                 type: string
- *     responses:
- *       200:
- *         description: Cliente aggiornato
- *       404:
- *         description: Cliente non trovato
- */
-router.put('/:id', requireRoles('ADMIN'), controller.update);
-
-/**
- * @swagger
- * /api/customers/{id}:
- *   delete:
- *     summary: Elimina cliente (soft delete)
- *     description: Elimina logicamente un cliente
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       204:
- *         description: Cliente eliminato
- *       404:
- *         description: Cliente non trovato
- */
-router.delete('/:id', requireRoles('ADMIN'), controller.delete);
+router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.create);
+router.put('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.update);
+router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
 
 export default router;

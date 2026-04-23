@@ -15,6 +15,19 @@ router.use(authMiddleware);
  *     tags: [FormTemplates]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filtra template creati dal
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filtra template creati fino al
  *     responses:
  *       200:
  *         description: Lista template

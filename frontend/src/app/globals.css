@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #08121a;
-  --color-sidebar: #0a1822;
-  --color-surface: rgba(0, 191, 255, 0.04);
-  --color-surface-border: rgba(0, 191, 255, 0.25);
+  --color-background: #0d1a28;
+  --color-sidebar: #0f2030;
+  --color-surface: rgba(0, 191, 255, 0.035);
+  --color-surface-border: rgba(0, 191, 255, 0.2);
   --color-accent: #00BFFF;
   --color-accent-hover: #87CEEB;
   --color-text-primary: #ffffff;
-  --color-text-secondary: #d1d1d1;
+  --color-text-secondary: #c8c8c8;
   --color-danger: #ff5252;
   --color-success: #25D366;
   --font-sans: "Inter", "Segoe UI", sans-serif;
@@ -22,10 +22,10 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-image:
-    radial-gradient(circle at top right, rgba(0, 191, 255, 0.1), transparent 800px),
-    radial-gradient(circle at bottom left, rgba(0, 191, 255, 0.05), transparent 800px),
+    radial-gradient(circle at top right, rgba(0, 191, 255, 0.08), transparent 800px),
+    radial-gradient(circle at bottom left, rgba(0, 191, 255, 0.04), transparent 800px),
     radial-gradient(circle at center, rgba(0, 191, 255, 0.01), transparent 1000px),
-    linear-gradient(180deg, #08121a 0%, #091620 100%);
+    linear-gradient(180deg, #0d1a28 0%, #0f2030 100%);
 }
 
 .font-outfit {
@@ -36,7 +36,6 @@ body {
   font-family: var(--font-inter);
 }
 
-/* Autofill: rimuovi sfondo bianco di Chrome/Safari */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -46,17 +45,27 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Utils */
 .glass-panel {
   @apply bg-surface backdrop-blur-[20px] border border-surface-border rounded-[30px] transition-all duration-200;
 }
+
 .glass-panel:hover {
   @apply border-accent bg-[rgba(0,191,255,0.05)] -translate-y-1 shadow-[0_10px_30px_rgba(0,191,255,0.1)];
+}
+
+.glass-panel.table-panel:hover {
+  transform: none !important;
+  translate: none !important;
+  --tw-translate-y: 0 !important;
+  border-color: var(--color-surface-border) !important;
+  background-color: var(--color-surface) !important;
+  box-shadow: none !important;
 }
 
 .glass-btn {
   @apply bg-[rgba(255,255,255,0.05)] border border-surface-border text-white px-6 py-3 rounded-[15px] cursor-pointer backdrop-blur-md transition-all duration-200;
 }
+
 .glass-btn:hover {
   @apply bg-[rgba(255,255,255,0.1)] border-accent;
 }
@@ -64,11 +73,11 @@ input:-webkit-autofill:focus {
 .btn-primary {
   @apply bg-accent text-black font-bold px-6 py-3 rounded-[15px] shadow-[0_0_15px_rgba(0,191,255,0.3)] transition-all duration-200;
 }
+
 .btn-primary:hover {
   @apply scale-105 shadow-[0_0_20px_rgba(0,191,255,0.5)];
 }
 
-/* ── FullCalendar Dark Theme ── */
 .fc-nagma-wrapper .fc {
   --fc-border-color: rgba(0, 191, 255, 0.12);
   --fc-page-bg-color: #08121a;
@@ -120,19 +129,24 @@ input:-webkit-autofill:focus {
   letter-spacing: 0 !important;
   box-shadow: none !important;
 }
+
 .fc-nagma-wrapper .fc-button:focus {
   box-shadow: none !important;
   outline: none !important;
 }
+
 .fc-nagma-wrapper .fc-button-group .fc-button {
   border-radius: 0 !important;
 }
+
 .fc-nagma-wrapper .fc-button-group .fc-button:first-child {
   border-radius: 8px 0 0 8px !important;
 }
+
 .fc-nagma-wrapper .fc-button-group .fc-button:last-child {
   border-radius: 0 8px 8px 0 !important;
 }
+
 .fc-nagma-wrapper .fc-button-active,
 .fc-nagma-wrapper .fc-button-active:hover {
   background-color: #00BFFF !important;
@@ -146,6 +160,7 @@ input:-webkit-autofill:focus {
   border-color: rgba(0, 191, 255, 0.12) !important;
   padding: 8px 0 !important;
 }
+
 .fc-nagma-wrapper .fc-col-header-cell-cushion {
   color: rgba(255, 255, 255, 0.55) !important;
   text-decoration: none !important;
@@ -154,6 +169,7 @@ input:-webkit-autofill:focus {
   text-transform: uppercase !important;
   letter-spacing: 1.5px !important;
 }
+
 .fc-nagma-wrapper .fc-day-today .fc-col-header-cell-cushion {
   color: #00BFFF !important;
 }
@@ -162,16 +178,19 @@ input:-webkit-autofill:focus {
   border-color: rgba(0, 191, 255, 0.06) !important;
   height: 2.5rem !important;
 }
+
 .fc-nagma-wrapper .fc-timegrid-slot-minor {
   border-top-style: dashed !important;
   border-color: rgba(0, 191, 255, 0.04) !important;
 }
+
 .fc-nagma-wrapper .fc-timegrid-slot-label-cushion {
   font-size: 0.65rem !important;
   font-weight: 700 !important;
   color: rgba(255, 255, 255, 0.3) !important;
   padding: 0 8px !important;
 }
+
 .fc-nagma-wrapper .fc-timegrid-axis {
   border-color: rgba(0, 191, 255, 0.12) !important;
 }
@@ -185,10 +204,12 @@ input:-webkit-autofill:focus {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   backdrop-filter: blur(8px);
 }
+
 .fc-nagma-wrapper .fc-timegrid-event:hover {
   box-shadow: 0 4px 20px rgba(0, 191, 255, 0.15) !important;
   filter: brightness(1.1);
 }
+
 .fc-nagma-wrapper .fc-event-main {
   padding: 0 !important;
   overflow: hidden;
@@ -198,6 +219,7 @@ input:-webkit-autofill:focus {
   border-color: #ff5252 !important;
   border-top-width: 2px !important;
 }
+
 .fc-nagma-wrapper .fc-now-indicator-arrow {
   border-top-color: #ff5252 !important;
   border-bottom-color: #ff5252 !important;
@@ -207,12 +229,15 @@ input:-webkit-autofill:focus {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 191, 255, 0.25) transparent;
 }
+
 .fc-nagma-wrapper .fc-scroller::-webkit-scrollbar {
   width: 5px;
 }
+
 .fc-nagma-wrapper .fc-scroller::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .fc-nagma-wrapper .fc-scroller::-webkit-scrollbar-thumb {
   background: rgba(0, 191, 255, 0.25);
   border-radius: 3px;
@@ -229,4 +254,121 @@ input:-webkit-autofill:focus {
 
 .fc-nagma-wrapper .fc-timegrid-col.fc-day-today {
   background: rgba(0, 191, 255, 0.04) !important;
+}
+
+.nagma-grid.ag-theme-alpine-dark {
+  --ag-background-color: transparent;
+  --ag-header-background-color: rgba(0, 191, 255, 0.03);
+  --ag-odd-row-background-color: rgba(255, 255, 255, 0.014);
+  --ag-row-hover-color: transparent;
+  --ag-selected-row-background-color: rgba(0, 191, 255, 0.08);
+  --ag-border-color: rgba(0, 191, 255, 0.15);
+  --ag-row-border-color: rgba(255, 255, 255, 0.05);
+  --ag-borders: none;
+  --ag-row-border-style: solid;
+  --ag-row-border-width: 1px;
+  --ag-header-column-separator-display: none;
+  --ag-foreground-color: #ffffff;
+  --ag-header-foreground-color: #d1d1d1;
+  --ag-secondary-foreground-color: #d1d1d1;
+  --ag-font-family: "Inter", "Segoe UI", sans-serif;
+  --ag-font-size: 14px;
+  --ag-cell-horizontal-padding: 20px;
+  --ag-header-height: 44px;
+  --ag-row-height: 56px;
+  --ag-alpine-active-color: #00BFFF;
+  --ag-range-selection-border-color: #00BFFF;
+  --ag-input-focus-border-color: #00BFFF;
+  --ag-checkbox-checked-color: #00BFFF;
+  --ag-paging-panel-color: #d1d1d1;
+  font-family: var(--ag-font-family);
+}
+
+.nagma-grid .ag-root-wrapper {
+  border: none !important;
+  background: transparent !important;
+  height: 100% !important;
+}
+
+.nagma-grid .ag-header-cell-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.nagma-grid .ag-header-cell-resize::after {
+  display: none;
+}
+
+.nagma-grid .ag-sort-indicator-icon {
+  color: #00BFFF;
+}
+
+.nagma-grid .ag-row {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  transition: background-color 120ms ease;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.nagma-grid .ag-row-odd {
+  background-color: rgba(255, 255, 255, 0.014);
+}
+
+.nagma-grid .ag-cell {
+  display: flex !important;
+  align-items: center !important;
+  overflow: visible !important;
+  line-height: normal !important;
+}
+
+.nagma-grid .ag-row .opacity-0 {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.nagma-grid .ag-row:hover .opacity-0 {
+  opacity: 1;
+}
+
+.nagma-grid .ag-paging-panel {
+  border-top: 1px solid rgba(0, 191, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  color: #d1d1d1;
+  font-size: 13px;
+  height: 48px;
+  padding: 0 20px;
+}
+
+.nagma-grid .ag-paging-button button,
+.nagma-grid .ag-paging-button {
+  color: #d1d1d1;
+  border-radius: 6px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.nagma-grid .ag-paging-button:not(.ag-disabled):hover {
+  background: rgba(0, 191, 255, 0.12);
+  color: #00BFFF;
+}
+
+.nagma-grid .ag-paging-button.ag-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nagma-grid .ag-paging-page-summary-panel {
+  gap: 4px;
+}
+
+.nagma-grid .ag-overlay-no-rows-wrapper,
+.nagma-grid .ag-overlay-loading-wrapper {
+  background: transparent;
+}
+
+.nagma-grid-empty {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 14px;
+  letter-spacing: 0.02em;
 }

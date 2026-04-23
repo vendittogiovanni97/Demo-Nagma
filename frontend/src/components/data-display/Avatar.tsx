@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from 'react';
 import { cn } from '@/utils/cn';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
@@ -19,7 +20,7 @@ const sizeStyles: Record<AvatarSize, string> = {
   lg: 'w-12 h-12 text-lg',
 };
 
-export default function Avatar({
+function Avatar({
   firstName,
   lastName,
   name,
@@ -52,3 +53,5 @@ export default function Avatar({
     </div>
   );
 }
+
+export default memo(Avatar);

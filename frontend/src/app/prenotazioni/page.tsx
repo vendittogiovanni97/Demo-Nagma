@@ -1,21 +1,29 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+
 import StatePanel from '@/components/feedback/StatePanel';
+import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
 import Button from '@/components/ui/Button';
-import BookingModal from '@/components/modals/BookingModal';
-import ExportModal from '@/components/modals/ExportModal';
 import PermissionGate from '@/components/auth/PermissionGate';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Avatar from '@/components/data-display/Avatar';
+import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/hooks/domain/useBookings';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
 import { bookingService } from '@/services/booking.service';
 import type { Booking, BookingStatus } from '@/types/booking';
+
+import BookingModal from '@/components/modals/BookingModal';
+import ExportModal from '@/components/modals/ExportModal';
+import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Edit, Plus, Trash2 } from 'lucide-react';
+import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock, Edit, Phone, Plus, Timer, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; className: string }> = {
@@ -30,18 +38,37 @@ function monthKey(date: Date) {
 }
 
 export default function PrenotazioniPage() {
+  const { isSuperAdmin } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [showDeletePasswordModal, setShowDeletePasswordModal] = useState(false);
+  const [deletePasswordLoading, setDeletePasswordLoading] = useState(false);
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const month = monthKey(currentMonth);
   const { data: bookings, mutate, isLoading, error } = useBookings(month);
+  const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
 
   const prevMonth = () => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
   const monthLabel = format(currentMonth, 'MMMM yyyy', { locale: it });
+
+  const filteredBookings = useMemo(() => {
+    if (!bookings || !debouncedSearch.trim()) return bookings ?? [];
+    const q = debouncedSearch.toLowerCase();
+    return bookings.filter((b) => {
+      const clienteName = b.customer ? `${b.customer.firstName} ${b.customer.lastName}`.toLowerCase() : '';
+      const phone = b.customer?.phone?.toLowerCase() ?? '';
+      const artist = b.artist?.name?.toLowerCase() ?? '';
+      return clienteName.includes(q) || phone.includes(q) || artist.includes(q);
+    });
+  }, [bookings, debouncedSearch]);
 
   const exportColumns = useMemo(() => [
     { label: 'Cliente', value: (b: Booking) => b.customer ? `${b.customer.firstName} ${b.customer.lastName}` : '-' },
@@ -87,9 +114,20 @@ export default function PrenotazioniPage() {
       ),
     },
     {
+      key: 'telefono',
+      label: 'Telefono',
+      width: '150px',
+      render: (b) => b.customer?.phone ? (
+        <div className="flex items-center gap-2 text-sm text-text-secondary">
+          <Phone size={12} className="text-accent shrink-0" />
+          <span className="font-mono tracking-wide">{b.customer.phone}</span>
+        </div>
+      ) : <span className="text-text-secondary/30 text-sm">—</span>,
+    },
+    {
       key: 'data',
       label: 'Data & Ora',
-      width: '170px',
+      width: '150px',
       render: (b) => (
         <div>
           <div className="flex items-center gap-1.5 text-sm text-white font-medium tabular-nums">
@@ -99,10 +137,30 @@ export default function PrenotazioniPage() {
           <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5 tabular-nums">
             <Clock size={11} className="shrink-0" />
             {format(new Date(b.date), 'HH:mm')}
-            <span className="text-text-secondary/50">·</span>
-            {b.duration} min
           </div>
         </div>
+      ),
+    },
+    {
+      key: 'durata',
+      label: 'Durata',
+      align: 'center',
+      width: '100px',
+      render: (b) => (
+        <div className="flex items-center justify-center gap-1.5 text-sm text-text-secondary tabular-nums">
+          <Timer size={12} className="text-accent shrink-0" />
+          {b.duration} min
+        </div>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Prenotato il',
+      width: '130px',
+      render: (b) => (
+        <span className="text-xs text-text-secondary tabular-nums">
+          {format(new Date(b.createdAt), 'dd MMM yyyy', { locale: it })}
+        </span>
       ),
     },
     {
@@ -137,6 +195,26 @@ export default function PrenotazioniPage() {
       ),
     },
     {
+      key: 'saldo',
+      label: 'Saldo',
+      align: 'right',
+      width: '110px',
+      render: (b) => {
+        if (b.price == null) return <span className="text-text-secondary/30 text-sm text-right block">—</span>;
+        const saldo = b.price - (b.deposit ?? 0);
+        return (
+          <div className="text-right">
+            <span className={`text-sm font-semibold tabular-nums ${saldo <= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+              € {saldo.toFixed(2)}
+            </span>
+            {saldo <= 0 && (
+              <div className="text-[10px] text-emerald-400/60 mt-0.5">Saldato</div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       key: 'note',
       label: 'Note',
       render: (b) => b.notes ? (
@@ -145,14 +223,45 @@ export default function PrenotazioniPage() {
     },
   ], []);
 
-  const handleDelete = async (id: number) => {
-    await deleteItem({
-      confirmMessage: 'Sei sicuro di voler eliminare questa prenotazione?',
-      action: () => bookingService.delete(id),
-      successMessage: 'Prenotazione eliminata',
-      errorMessage: "Errore durante l'eliminazione",
-      onSuccess: mutate,
-    });
+  const handleComplete = async (id: number) => {
+    try {
+      await bookingService.update(id, { status: 'COMPLETED' });
+      await mutate();
+    } catch {
+      // errore silenzioso — il toast viene gestito dal service
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+    if (isSuperAdmin) {
+      setShowDeletePasswordModal(false);
+      handleSuperAdminDelete(id);
+    } else {
+      setShowDeletePasswordModal(true);
+    }
+  };
+
+  const handleSuperAdminDelete = async (id: number) => {
+    await bookingService.delete(id);
+    await mutate();
+  };
+
+  const handlePasswordDelete = async (password: string) => {
+    if (!pendingDeleteId) return;
+    setDeletePasswordLoading(true);
+    try {
+      await bookingService.verifyPassword(password);
+      setShowDeletePasswordModal(false);
+      const idToDelete = pendingDeleteId;
+      setPendingDeleteId(null);
+      await bookingService.delete(idToDelete);
+      await mutate();
+    } catch {
+      throw new Error('Password non corretta');
+    } finally {
+      setDeletePasswordLoading(false);
+    }
   };
 
   return (
@@ -181,12 +290,46 @@ export default function PrenotazioniPage() {
           </>
         }
       >
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={prevMonth} icon={<ChevronLeft size={16} />} className="p-2" />
-          <span className="text-sm font-semibold text-white capitalize min-w-[140px] text-center">
-            {monthLabel}
-          </span>
-          <Button variant="ghost" size="sm" onClick={nextMonth} icon={<ChevronRight size={16} />} className="p-2" />
+        <div className="flex items-center justify-center gap-4 flex-1">
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={prevMonth} icon={<ChevronLeft size={16} />} className="p-2" />
+            <span className="text-sm font-semibold text-white capitalize min-w-[140px] text-center">
+              {monthLabel}
+            </span>
+            <Button variant="ghost" size="sm" onClick={nextMonth} icon={<ChevronRight size={16} />} className="p-2" />
+          </div>
+          <div className="w-72">
+            <SearchInput
+              value={search}
+              onChange={(v) => setSearch(v)}
+              placeholder="Cerca cliente, artista, telefono..."
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+            />
+            <span className="text-text-secondary text-sm">—</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+            />
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setStartDate(''); setEndDate(''); }}
+                className="text-xs"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
       </PageHeader>
 
@@ -203,14 +346,28 @@ export default function PrenotazioniPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <DataTable<Booking>
             columns={columns}
-            data={bookings || []}
+            data={filteredBookings}
             isLoading={isLoading}
-            emptyMessage="Nessuna prenotazione per questo mese."
+            emptyMessage={
+              debouncedSearch
+                ? 'Nessun risultato. Prova a modificare i termini di ricerca.'
+                : 'Nessuna prenotazione per questo mese.'
+            }
             keyExtractor={(b) => b.id}
             actions={(b) => (
-              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity w-full">
                 <PermissionGate requireAdmin>
                   <>
+                    {b.status !== 'COMPLETED' && b.status !== 'CANCELLED' && (
+                      <button
+                        type="button"
+                        onClick={() => handleComplete(b.id)}
+                        title="Segna come completato"
+                        className="p-2 rounded-lg text-text-secondary hover:text-emerald-400 hover:bg-emerald-400/10 transition-colors"
+                      >
+                        <CheckCircle2 size={16} />
+                      </button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -218,6 +375,7 @@ export default function PrenotazioniPage() {
                       icon={<Edit size={16} />}
                       className="p-2"
                       title="Modifica"
+                      aria-label="Modifica prenotazione"
                     />
                     <Button
                       variant="danger"
@@ -226,6 +384,7 @@ export default function PrenotazioniPage() {
                       icon={<Trash2 size={16} />}
                       className="p-2"
                       title="Elimina"
+                      aria-label="Elimina prenotazione"
                     />
                   </>
                 </PermissionGate>
@@ -242,6 +401,17 @@ export default function PrenotazioniPage() {
         booking={editingBooking}
       />
       <ConfirmDialog {...confirmDialogProps} />
+      {!isSuperAdmin && (
+        <PasswordConfirmModal
+          isOpen={showDeletePasswordModal}
+          onClose={() => {
+            setShowDeletePasswordModal(false);
+            setPendingDeleteId(null);
+          }}
+          onConfirm={handlePasswordDelete}
+          loading={deletePasswordLoading}
+        />
+      )}
     </div>
   );
 }

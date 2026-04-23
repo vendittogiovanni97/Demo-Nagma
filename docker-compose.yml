@@ -7,9 +7,9 @@ services:
     container_name: backend-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nagmadb_
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root123
+      POSTGRES_DB: ${POSTGRES_DB:-nagmadb_}
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root123}
     ports:
       - '5432:5432'
     volumes:
@@ -34,10 +34,10 @@ services:
         condition: service_healthy
     environment:
       # Database connection
-      DATABASE_URL: postgresql://root:root123@postgres:5432/nagmadb?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-root123}@postgres:5432/${POSTGRES_DB:-nagmadb_}?schema=public
 
       # JWT and Security
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      JWT_SECRET: ${JWT_SECRET}
 
       # Server Config
       PORT: 3001

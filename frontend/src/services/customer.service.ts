@@ -7,9 +7,11 @@ export const customerService = {
   getAll: async (
     search?: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    startDate?: string,
+    endDate?: string
   ): Promise<PaginatedResponse<Customer>> => {
-    return apiClient.get<PaginatedResponse<Customer>>(ENDPOINTS.CUSTOMERS.BASE, { search, page, limit });
+    return apiClient.get<PaginatedResponse<Customer>>(ENDPOINTS.CUSTOMERS.BASE, { search, page, limit, startDate, endDate });
   },
   getById: async (id: number): Promise<Customer> => {
     return apiClient.get<Customer>(ENDPOINTS.CUSTOMERS.BY_ID(id));

@@ -12,8 +12,16 @@ const baseInclude = {
   }
 } satisfies Prisma.CustomerInclude;
 
-function buildWhere(search?: string): Prisma.CustomerWhereInput {
+function buildWhere(search?: string, startDate?: string, endDate?: string): Prisma.CustomerWhereInput {
   const base: Prisma.CustomerWhereInput = { deletedAt: null };
+  
+  if (startDate) {
+    base.createdAt = { ...base.createdAt as object, gte: new Date(startDate) };
+  }
+  if (endDate) {
+    base.createdAt = { ...base.createdAt as object, lte: new Date(endDate + 'T23:59:59.999') };
+  }
+  
   if (!search?.trim()) return base;
   return {
     ...base,
@@ -85,8 +93,8 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
   // SPECIALIZED METHODS - Custom business logic
   // ============================================================================
 
-  async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit) {
-    const where = buildWhere(search);
+  async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit, startDate?: string, endDate?: string) {
+    const where = buildWhere(search, startDate, endDate);
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.customer.findMany({
@@ -112,37 +120,30 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
         phone: true,
         notes: true,
         createdAt: true,
-        _count: {
-          select: {
-            bookings: { where: { deletedAt: null } },
-          },
-        },
-        bookings: {
-          where: { deletedAt: null },
-          select: {
-            date: true,
-            status: true,
-            price: true,
-            artist: { select: { name: true } },
-          },
-          orderBy: { date: 'desc' },
-        },
       },
     });
 
     if (!customer) return null;
 
-    const completedBookings = customer.bookings.filter(b => b.status === 'COMPLETED');
-    const totalSpent = completedBookings.reduce((sum, b) => sum + (b.price ?? 0), 0);
-    const upcomingBookings = customer.bookings.filter(
-      b => b.status !== 'CANCELLED' && new Date(b.date) >= new Date()
-    ).length;
-    const lastBooking = customer.bookings[0] ?? null;
+    const [aggregateResult, bookingsResult] = await this.prisma.$transaction([
+      this.prisma.booking.aggregate({
+        where: { customerId: id, status: 'COMPLETED', deletedAt: null },
+        _sum: { price: true },
+      }),
+      this.prisma.booking.findMany({
+        where: { customerId: id, deletedAt: null },
+        select: { date: true, status: true, price: true, artist: { select: { name: true } } },
+        orderBy: { date: 'desc' },
+        take: 5,
+      }),
+    ]);
 
-    const { bookings: _bookings, ...customerFields } = customer;
+    const totalSpent = aggregateResult._sum.price ?? 0;
+    const upcomingBookings = bookingsResult.filter((b) => b.status === 'CONFIRMED' || b.date > new Date()).length;
+    const lastBooking = bookingsResult[0] ?? null;
 
     return {
-      ...customerFields,
+      ...customer,
       totalSpent,
       upcomingBookings,
       lastBooking,

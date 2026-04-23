@@ -172,28 +172,37 @@ async function seedDefaultStaff(): Promise<void> {
     }
   }
 
-  // Seed shifts for Giuseppe Savoia
-  const giuseppe = await prisma.staff.findFirst({ where: { name: 'Giuseppe Savoia' } });
-  if (giuseppe) {
-    const shiftDate = new Date('2026-04-13');
-    const shifts = [
-      { date: shiftDate, startTime: '09:00', endTime: '13:00' },
-      { date: shiftDate, startTime: '14:00', endTime: '19:00' },
-    ];
+  // Seed shifts for ALL staff members for 90 days (full day: 09:00-19:00)
+  const allStaff = await prisma.staff.findMany();
+  const today = new Date();
+  const currentDay = new Date(today);
+  currentDay.setDate(today.getDate() - today.getDay() + 1);
 
-    for (const shift of shifts) {
-      const existing = await prisma.shift.findFirst({
-        where: { staffId: giuseppe.id, date: shift.date, startTime: shift.startTime }
+  // Generate shifts for 90 days (about 3 months)
+  const endDate = new Date(today);
+  endDate.setDate(today.getDate() + 90);
+
+for (let d = new Date(currentDay); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const day = new Date(d);
+
+    for (const staffMember of allStaff) {
+      const existingShift = await prisma.shift.findFirst({
+        where: { staffId: staffMember.id, date: day }
       });
-      if (!existing) {
+      if (!existingShift) {
         await prisma.shift.create({
-          data: { ...shift, staffId: giuseppe.id }
+          data: {
+            staffId: staffMember.id,
+            date: day,
+            startTime: '09:00',
+            endTime: '19:00',
+          }
         });
       }
     }
   }
 
-  console.log('✅ Staff creato (5 collaboratori + 3 apprendisti + turni');
+  console.log('✅ Staff creato (5 collaboratori + 3 apprendisti + turni 90 giorni)');
 }
 
 /**

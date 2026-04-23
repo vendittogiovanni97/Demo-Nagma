@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
-import { ToastContainer } from '@/components/ui/Toast/ToastContainer';
-import { AuthProvider } from '@/context/AuthContext';
-import Navbar from '@/components/layout/Navbar';
 import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
+import Navbar from '@/components/layout/Navbar';
+import { ToastContainer } from '@/components/ui/Toast/ToastContainer';
 import { branding } from '@/config/branding';
+import { AuthProvider } from '@/context/AuthContext';
+import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {

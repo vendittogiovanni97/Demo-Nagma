@@ -1,25 +1,23 @@
 "use client";
 
-import dynamic from 'next/dynamic';
-
+import PermissionGate from '@/components/auth/PermissionGate';
+import Avatar from '@/components/data-display/Avatar';
+import DataTable, { type Column } from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
-import DataTable, { type Column } from '@/components/data-display/DataTable';
 import Button from '@/components/ui/Button';
-import PermissionGate from '@/components/auth/PermissionGate';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import Avatar from '@/components/data-display/Avatar';
+import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
 import { useBookings } from '@/hooks/domain/useBookings';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { bookingService } from '@/services/booking.service';
 import type { Booking, BookingStatus } from '@/types/booking';
 
 import BookingModal from '@/components/modals/BookingModal';
-import ExportModal from '@/components/modals/ExportModal';
+import ExportModal, { type ExportFilter } from '@/components/modals/ExportModal';
 import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -79,6 +77,52 @@ export default function PrenotazioniPage() {
     { label: 'Prezzo (€)', value: (b: Booking) => b.price ?? '' },
     { label: 'Acconto (€)', value: (b: Booking) => b.deposit ?? '' },
     { label: 'Note', value: (b: Booking) => b.notes ?? '' },
+  ], []);
+
+  const exportFilters: ExportFilter<Booking>[] = useMemo(() => [
+    {
+      key: 'cliente',
+      label: 'Cliente',
+      type: 'text',
+      placeholder: 'Cerca per nome...',
+      filterFn: (b, v) => {
+        const name = `${b.customer?.firstName ?? ''} ${b.customer?.lastName ?? ''}`.toLowerCase();
+        return name.includes(v.toLowerCase());
+      },
+    },
+    {
+      key: 'artista',
+      label: 'Artista',
+      type: 'text',
+      placeholder: 'Cerca per artista...',
+      filterFn: (b, v) => {
+        if (!v) return true;
+        return b.artist?.name?.toLowerCase().includes(v.toLowerCase()) ?? false;
+      },
+    },
+    {
+      key: 'stato',
+      label: 'Stato',
+      type: 'select',
+      options: [
+        { value: '', label: 'Tutti gli stati' },
+        { value: 'CONFIRMED', label: 'Confermato' },
+        { value: 'COMPLETED', label: 'Completato' },
+        { value: 'CANCELLED', label: 'Annullato' },
+        { value: 'RESCHEDULED', label: 'Spostato' },
+      ],
+      filterFn: (b, v) => !v || b.status === v,
+    },
+    {
+      key: 'mese',
+      label: 'Mese',
+      type: 'month',
+      filterFn: (b, v) => {
+        if (!v) return true;
+        const bookingMonth = format(new Date(b.date), 'yyyy-MM');
+        return bookingMonth === v;
+      },
+    },
   ], []);
 
   const columns: Column<Booking>[] = useMemo(() => [
@@ -200,6 +244,14 @@ export default function PrenotazioniPage() {
       align: 'right',
       width: '110px',
       render: (b) => {
+        if (b.status === 'COMPLETED') {
+          return (
+            <div className="text-right">
+              <span className="text-sm font-semibold tabular-nums text-emerald-400">€ 0.00</span>
+              <div className="text-[10px] text-emerald-400/60 mt-0.5">Fine</div>
+            </div>
+          );
+        }
         if (b.price == null) return <span className="text-text-secondary/30 text-sm text-right block">—</span>;
         const saldo = b.price - (b.deposit ?? 0);
         return (
@@ -218,7 +270,7 @@ export default function PrenotazioniPage() {
       key: 'note',
       label: 'Note',
       render: (b) => b.notes ? (
-        <span className="text-xs text-text-secondary line-clamp-2 max-w-[180px]">{b.notes}</span>
+        <span className="text-xs text-text-secondary line-clamp-2 max-w-45">{b.notes}</span>
       ) : <span className="text-text-secondary/30 text-sm">—</span>,
     },
   ], []);
@@ -275,6 +327,7 @@ export default function PrenotazioniPage() {
               title={`Prenotazioni — ${monthLabel}`}
               rows={bookings || []}
               columns={exportColumns}
+              filters={exportFilters}
               filtersLabel={`Mese: ${monthLabel}`}
               resolveRows={async () => bookings || []}
             />
@@ -293,7 +346,7 @@ export default function PrenotazioniPage() {
         <div className="flex items-center justify-center gap-4 flex-1">
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" onClick={prevMonth} icon={<ChevronLeft size={16} />} className="p-2" />
-            <span className="text-sm font-semibold text-white capitalize min-w-[140px] text-center">
+            <span className="text-sm font-semibold text-white capitalize min-w-35 text-center">
               {monthLabel}
             </span>
             <Button variant="ghost" size="sm" onClick={nextMonth} icon={<ChevronRight size={16} />} className="p-2" />

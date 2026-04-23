@@ -1,26 +1,26 @@
 "use client";
 
+import { PERCENTUALE_OPTIONS_VALUES } from '@/config/booking-config';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
-import { extractErrorMessage } from '@/utils/extract-error';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers } from '@/hooks/domain';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { useToast } from '@/hooks/useToast';
+import { createBookingSchema } from '@/schemas';
 import { bookingService } from '@/services/booking.service';
 import type { Booking, BookingStatus, CreateBookingData } from '@/types/booking';
 import type { FieldDef } from '@/types/form-template';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { validateData } from '@/utils/validation';
-import { createBookingSchema } from '@/schemas';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import SubmitButton from '../forms/SubmitButton';
 import Modal from './Modal';
 import PasswordConfirmModal from './PasswordConfirmModal';
 import BookingDateTimeSection from './booking/BookingDateTimeSection';
-import BookingParticipantsSection from './booking/BookingParticipantsSection';
-import BookingFinancialSection from './booking/BookingFinancialSection';
 import BookingDynamicFieldsSection from './booking/BookingDynamicFieldsSection';
-import { PERCENTUALE_OPTIONS_VALUES } from '@/config/booking-config';
+import BookingFinancialSection from './booking/BookingFinancialSection';
+import BookingParticipantsSection from './booking/BookingParticipantsSection';
 
 interface Props {
   isOpen: boolean;
@@ -304,7 +304,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           />
         </div>
 
-        <div className="h-px bg-white/[0.06]" />
+        <div className="h-px bg-white/6" />
 
         <BookingFinancialSection
           price={price}
@@ -321,7 +321,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 
         {templates && templates.length > 1 && (
           <>
-            <div className="h-px bg-white/[0.06]" />
+            <div className="h-px bg-white/6" />
             <div className="flex items-center gap-3">
               <label htmlFor="template-select" className="text-[11px] font-bold text-accent uppercase tracking-widest whitespace-nowrap">
                 Schema campi
@@ -346,7 +346,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           onChange={handleDynamicChange}
         />
 
-        <div className="h-px bg-white/[0.06]" />
+        <div className="h-px bg-white/6" />
 
         {/* Stato — solo in modifica */}
         {booking?.id && (
@@ -377,7 +377,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           </div>
         )}
 
-        <div className="h-px bg-white/[0.06]" />
+        <div className="h-px bg-white/6" />
 
         {/* Note */}
         <div className="space-y-3">

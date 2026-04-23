@@ -1,5 +1,4 @@
 import { Prisma, Booking } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
 import { BookingRepository } from '../repositories/booking.repository';
@@ -127,7 +126,24 @@ export class BookingService {
   }
 
   async deleteBooking(id: number) {
-    return repository.delete(id);
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) throw new AppError('Prenotazione non trovata', 404);
+
+    const updated = await prisma.booking.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+    });
+
+    await prisma.bookingHistory.create({
+      data: {
+        bookingId: id,
+        action: 'CANCELLED',
+        oldDate: booking.date,
+        changedById: booking.artistId,
+      },
+    });
+
+    return updated;
   }
 
   async getAvailableArtists(dateIso: string) {
@@ -173,8 +189,7 @@ export class BookingService {
 
   async verifyPassword(password: string): Promise<void> {
     const expectedPassword = config.bookingUpdatePassword;
-    const isValid = await bcrypt.compare(password, expectedPassword);
-    if (!isValid) {
+    if (password !== expectedPassword) {
       throw new AppError('Password non corretta', 403, 'INVALID_PASSWORD');
     }
   }

@@ -10,7 +10,6 @@ import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 
 import StatePanel from '@/components/feedback/StatePanel';
-import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -24,7 +23,6 @@ import { it } from 'date-fns/locale';
 import { Clock, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
 
 import BookingModal from '@/components/modals/BookingModal';
-import ExportModal, { type ExportFilter } from '@/components/modals/ExportModal';
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -91,24 +89,12 @@ export default function AgendaPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [whatsAppBooking, setWhatsAppBooking] = useState<Booking | null>(null);
-  const [search, setSearch] = useState('');
   const [initialDate, setInitialDate] = useState('');
   const [initialTime, setInitialTime] = useState('');
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
 
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   const { data: bookings, mutate, isLoading, error } = useBookings(currentMonth);
-
-  const filteredBookings = useMemo(() => {
-    if (!bookings) return [];
-    const q = search.trim().toLowerCase();
-    if (!q) return bookings;
-    return bookings.filter((b) => {
-      const haystack = [b.customer?.firstName, b.customer?.lastName, b.artist?.name]
-        .filter(Boolean).join(' ').toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [bookings, search]);
 
   const artistOptions = useMemo(() => {
     const seen = new Set<number>();
@@ -122,51 +108,8 @@ export default function AgendaPage() {
     return opts;
   }, [bookings]);
 
-  const exportFilters: ExportFilter<Booking>[] = useMemo(() => [
-    {
-      key: 'cliente',
-      label: 'Cliente',
-      type: 'text',
-      placeholder: 'Cerca per nome...',
-      filterFn: (b, v) =>
-        `${b.customer?.firstName ?? ''} ${b.customer?.lastName ?? ''}`.toLowerCase().includes(v.toLowerCase()),
-    },
-    {
-      key: 'artista',
-      label: 'Artista',
-      type: 'select',
-      options: artistOptions,
-      filterFn: (b, v) => !v || b.artistId.toString() === v,
-    },
-    {
-      key: 'stato',
-      label: 'Stato',
-      type: 'select',
-      options: [
-        { value: '', label: 'Tutti gli stati' },
-        { value: 'CONFIRMED', label: 'Confermato' },
-        { value: 'COMPLETED', label: 'Completato' },
-        { value: 'CANCELLED', label: 'Annullato' },
-        { value: 'RESCHEDULED', label: 'Riprogrammato' },
-      ],
-      filterFn: (b, v) => !v || b.status === v,
-    },
-    {
-      key: 'dal',
-      label: 'Dal',
-      type: 'date',
-      filterFn: (b, v) => !v || new Date(b.date).toISOString().slice(0, 10) >= v,
-    },
-    {
-      key: 'al',
-      label: 'Al',
-      type: 'date',
-      filterFn: (b, v) => !v || new Date(b.date).toISOString().slice(0, 10) <= v,
-    },
-  ], [artistOptions]);
-
   const events = useMemo(() =>
-    filteredBookings.map((booking) => ({
+    (bookings || []).map((booking) => ({
       id: booking.id.toString(),
       start: booking.date,
       end: new Date(new Date(booking.date).getTime() + (booking.duration ?? 60) * 60000).toISOString(),
@@ -175,15 +118,15 @@ export default function AgendaPage() {
       borderColor: booking.artist?.color ?? '#00BFFF',
       textColor: '#ffffff',
     })),
-    [filteredBookings]
+    [bookings]
   );
 
   const handleDeleteBooking = useCallback(async (id: number) => {
     await deleteItem({
-      confirmMessage: 'Sei sicuro di voler eliminare questa prenotazione?',
+      confirmMessage: 'Sei sicuro di voler annullare questa prenotazione?',
       action: () => bookingService.delete(id),
-      successMessage: 'Prenotazione eliminata',
-      errorMessage: "Errore nell'eliminazione",
+      successMessage: 'Prenotazione annullata',
+      errorMessage: "Errore nell'annullamento",
       onSuccess: mutate,
     });
   }, [deleteItem, mutate]);
@@ -210,43 +153,7 @@ export default function AgendaPage() {
 
   return (
     <div className="flex-1 flex flex-col gap-4">
-      <PageHeader
-        title="Agenda Studio"
-        actions={
-          <>
-            <ExportModal
-              filenameBase="agenda"
-              title="Agenda Studio"
-              rows={filteredBookings}
-              columns={[
-                { label: 'Data', value: (b: Booking) => format(parseISO(b.date), 'dd/MM/yyyy HH:mm', { locale: it }) },
-                { label: 'Cliente', value: (b: Booking) => `${b.customer?.firstName || ''} ${b.customer?.lastName || ''}`.trim() },
-                { label: 'Artista', value: (b: Booking) => b.artist?.name || '' },
-                { label: 'Stato', value: (b: Booking) => b.status },
-                { label: 'Durata (min)', value: (b: Booking) => b.duration?.toString() || '' },
-                { label: 'Prezzo (€)', value: (b: Booking) => b.price?.toString() || '' },
-              ]}
-              filters={exportFilters}
-            />
-            <Button
-              variant="primary"
-              icon={Plus}
-              onClick={() => {
-                setEditingBooking(null);
-                setInitialDate('');
-                setInitialTime('');
-                setIsModalOpen(true);
-              }}
-            >
-              Nuovo
-            </Button>
-          </>
-        }
-      >
-        <div className="flex-1 max-w-3xl mx-auto flex items-center gap-3">
-          <SearchInput value={search} onChange={setSearch} placeholder="Cerca cliente, artista..." />
-        </div>
-      </PageHeader>
+      <PageHeader title="Agenda Studio" />
 
       <div
         className="fc-nagma-wrapper border border-surface-border rounded-2xl overflow-hidden"

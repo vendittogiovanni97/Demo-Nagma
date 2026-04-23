@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import useSWR from 'swr';
-import PageHeader from '@/components/layout/PageHeader';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
+import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
-import { bookingHistoryService, type BookingHistoryEntry, type BookingAction, type BookingHistoryResponse } from '@/services/booking-history.service';
+import { useAuth } from '@/context/AuthContext';
+import { bookingHistoryService, type BookingAction, type BookingHistoryEntry, type BookingHistoryResponse } from '@/services/booking-history.service';
+import { cn } from '@/utils/cn';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, CalendarDays, User, Clock, History, AlertCircle } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { AlertCircle, CalendarDays, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
 
 const ACTION_CONFIG: Record<BookingAction, { label: string; className: string }> = {
   CREATED: { label: 'Creato', className: 'bg-blue-500/15 text-blue-400' },
@@ -21,7 +22,6 @@ const ACTION_CONFIG: Record<BookingAction, { label: string; className: string }>
 
 const ACTION_OPTIONS: { value: BookingAction | ''; label: string }[] = [
   { value: '', label: 'Tutte le azioni' },
-  { value: 'CREATED', label: 'Creato' },
   { value: 'UPDATED', label: 'Modificato' },
   { value: 'RESCHEDULED', label: 'Spostato' },
   { value: 'CANCELLED', label: 'Annullato' },
@@ -29,6 +29,7 @@ const ACTION_OPTIONS: { value: BookingAction | ''; label: string }[] = [
 ];
 
 export default function BookingHistoryPage() {
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -53,7 +54,7 @@ export default function BookingHistoryPage() {
 
   const renderDateChange = (entry: BookingHistoryEntry) => {
     const actionType = entry.action;
-    
+
     if (entry.oldDate || entry.newDate) {
       return (
         <div className="text-sm">
@@ -70,7 +71,7 @@ export default function BookingHistoryPage() {
         </div>
       );
     }
-    
+
     if (actionType === 'CREATED') {
       return <span className="text-blue-400 text-sm">Nuova prenotazione</span>;
     }
@@ -80,7 +81,7 @@ export default function BookingHistoryPage() {
     if (actionType === 'COMPLETED') {
       return <span className="text-emerald-400 text-sm">Prenotazione completata</span>;
     }
-    
+
     return <span className="text-text-secondary text-sm">—</span>;
   };
 
@@ -141,13 +142,13 @@ export default function BookingHistoryPage() {
       render: (entry) => renderDateChange(entry),
     },
     {
-      key: 'changedByUser',
+      key: 'changedBy',
       label: 'Utente',
       width: '150px',
       render: (entry) => (
         <div className="flex items-center gap-1.5 text-sm text-white">
           <User size={12} className="text-accent shrink-0" />
-          <span className="truncate font-medium">{entry.changedByUser?.name || 'Sistema'}</span>
+          <span className="truncate font-medium">{entry.changedBy?.name || '—'}</span>
         </div>
       ),
     },
@@ -157,6 +158,7 @@ export default function BookingHistoryPage() {
     <div className="flex-1 flex flex-col gap-6">
       <PageHeader
         title="Storico Prenotazioni"
+        subtitle={user ? `Accesso come ${user.name}` : undefined}
       >
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">

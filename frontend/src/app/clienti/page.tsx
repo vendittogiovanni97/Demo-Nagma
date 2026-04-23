@@ -20,7 +20,7 @@ import { customerService } from '@/services/customer.service';
 import type { Customer } from '@/types/customer';
 
 import CustomerModal from '@/components/modals/CustomerModal';
-import ExportModal from '@/components/modals/ExportModal';
+import ExportModal, { type ExportFilter } from '@/components/modals/ExportModal';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Edit, Eye, Mail, MessageCircle, Phone, Trash2, UserPlus } from 'lucide-react';
@@ -58,6 +58,40 @@ export default function CustomersPage() {
     },
     { label: 'Appuntamenti', value: (customer: Customer) => customer._count?.bookings || 0 },
   ], []);
+
+  const exportFilters: ExportFilter<Customer>[] = useMemo(() => [
+    {
+      key: 'nome',
+      label: 'Nome',
+      type: 'text',
+      placeholder: 'Cerca per nome...',
+      filterFn: (c, v) =>
+        `${c.firstName ?? ''} ${c.lastName ?? ''}`.toLowerCase().includes(v.toLowerCase()),
+    },
+    {
+      key: 'telefono',
+      label: 'Telefono',
+      type: 'text',
+      placeholder: 'Cerca per telefono...',
+      filterFn: (c, v) => c.phone?.includes(v) ?? false,
+    },
+    {
+      key: 'appuntamenti',
+      label: 'Appuntamenti',
+      type: 'select',
+      options: [
+        { value: '', label: 'Qualsiasi' },
+        { value: '0', label: 'Nessuno' },
+        { value: '1+', label: '1 o più' },
+      ],
+      filterFn: (c, v) => {
+        const count = c._count?.bookings || 0;
+        if (v === '0') return count === 0;
+        if (v === '1+') return count >= 1;
+        return true;
+      },
+    },
+  ], [debouncedSearch]);
 
   const customerColumns: Column<Customer>[] = useMemo(() => [
     {
@@ -144,6 +178,7 @@ export default function CustomersPage() {
               title="Anagrafica Clienti"
               rows={customers || []}
               columns={exportColumns}
+              filters={exportFilters}
               filtersLabel={`Ricerca: ${debouncedSearch || 'nessuna'}`}
               resolveRows={async () => {
                 const response = await customerService.getAll(debouncedSearch, 1, EXPORT_FETCH_LIMIT);

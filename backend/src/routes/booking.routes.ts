@@ -252,6 +252,6 @@ router.put('/:id', authMiddleware, controller.update);
  *       204:
  *         description: Appuntamento eliminato
  */
-router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
+router.delete('/:id', authMiddleware, requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
 
 export default router;

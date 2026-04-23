@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import FormInput from '@/components/forms/FormInput';
 import Modal from './Modal';
 
 interface Props {
@@ -42,22 +41,26 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
           Inserisci la password per confermare la modifica della prenotazione.
         </p>
 
-        <div className="relative">
-          <FormInput
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={setPassword}
-            placeholder="Inserisci password..."
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-0"
-            title={showPassword ? 'Nascondi' : 'Mostra'}
-            icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          />
+        <div className="space-y-2">
+          <label className="text-sm text-text-secondary">Password *</label>
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Inserisci password..."
+              className="w-full h-12 px-4 rounded-xl bg-white/5 text-white border border-surface-border focus:border-accent focus:outline-none transition-colors pr-12"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-accent transition-colors cursor-pointer"
+              title={showPassword ? 'Nascondi' : 'Mostra'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         {error && (

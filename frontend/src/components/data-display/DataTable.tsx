@@ -59,8 +59,10 @@ export default function DataTable<T extends object>({
 }: DataTableProps<T>) {
   const gridHeight = HEADER_HEIGHT + ROW_HEIGHT * pageSize + PAGINATION_HEIGHT;
 
+  const safeColumns = columns.length > 0 ? columns : [{ key: '_empty', label: 'Nessun dato' }];
+
   const colDefs = useMemo<ColDef<T>[]>(() => {
-    const cols: ColDef<T>[] = columns.map((col) => {
+    const cols: ColDef<T>[] = safeColumns.map((col) => {
       const pxWidth = parsePxWidth(col.width);
       const wrapStyle =
         col.align === 'right' ? CELL_WRAP_RIGHT :
@@ -106,7 +108,7 @@ export default function DataTable<T extends object>({
     }
 
     return cols;
-  }, [columns, actions]);
+  }, [safeColumns, actions]);
 
   return (
     <div className="glass-panel table-panel rounded-2xl overflow-hidden flex flex-col">
@@ -117,7 +119,7 @@ export default function DataTable<T extends object>({
         <AgGridReact<T>
           rowData={data}
           columnDefs={colDefs}
-          getRowId={(params) => String(keyExtractor(params.data))}
+          getRowId={(params) => params.data ? String(keyExtractor(params.data)) : ''}
           loading={isLoading}
           overlayNoRowsTemplate={`<span class="nagma-grid-empty">${emptyMessage}</span>`}
           rowHeight={ROW_HEIGHT}

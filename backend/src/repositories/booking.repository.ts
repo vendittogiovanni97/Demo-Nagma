@@ -49,7 +49,10 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
   }
 
   async delete(id: number): Promise<void> {
-    await softDelete(this.prisma.booking, id);
+    await this.prisma.booking.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+    });
   }
 
   // ============================================================================

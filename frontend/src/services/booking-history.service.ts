@@ -9,11 +9,12 @@ export interface BookingHistoryEntry {
   action: BookingAction;
   oldDate: string | null;
   newDate: string | null;
-  changedByUser: {
+  changedBy: {
     id: number;
     name: string;
     email: string;
   } | null;
+  changedById: number | null;
   changedAt: string;
   booking: {
     id: number;

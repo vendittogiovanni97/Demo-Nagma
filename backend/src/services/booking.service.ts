@@ -131,7 +131,7 @@ export class BookingService {
 
     const updated = await prisma.booking.update({
       where: { id },
-      data: { status: 'CANCELLED' },
+      data: { status: 'CANCELLED', price: 0 },
     });
 
     await prisma.bookingHistory.create({
@@ -142,6 +142,12 @@ export class BookingService {
         changedById: booking.artistId,
       },
     });
+
+    if (booking.price) {
+      await prisma.transaction.deleteMany({
+        where: { description: { contains: `#${id}` } },
+      });
+    }
 
     return updated;
   }

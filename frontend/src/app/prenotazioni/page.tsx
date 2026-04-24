@@ -46,6 +46,7 @@ export default function PrenotazioniPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [showDeletePasswordModal, setShowDeletePasswordModal] = useState(false);
   const [deletePasswordLoading, setDeletePasswordLoading] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const month = monthKey(currentMonth);
@@ -58,15 +59,20 @@ export default function PrenotazioniPage() {
   const monthLabel = format(currentMonth, 'MMMM yyyy', { locale: it });
 
   const filteredBookings = useMemo(() => {
-    if (!bookings || !debouncedSearch.trim()) return bookings ?? [];
+    if (!bookings) return [];
+    const filtered = bookings.filter(b => {
+      if (!showCancelled && b.status === 'CANCELLED') return false;
+      return true;
+    });
+    if (!debouncedSearch.trim()) return filtered;
     const q = debouncedSearch.toLowerCase();
-    return bookings.filter((b) => {
+    return filtered.filter((b) => {
       const clienteName = b.customer ? `${b.customer.firstName} ${b.customer.lastName}`.toLowerCase() : '';
       const phone = b.customer?.phone?.toLowerCase() ?? '';
       const artist = b.artist?.name?.toLowerCase() ?? '';
       return clienteName.includes(q) || phone.includes(q) || artist.includes(q);
     });
-  }, [bookings, debouncedSearch]);
+  }, [bookings, debouncedSearch, showCancelled]);
 
   const exportColumns = useMemo(() => [
     { label: 'Cliente', value: (b: Booking) => b.customer ? `${b.customer.firstName} ${b.customer.lastName}` : '-' },
@@ -252,6 +258,14 @@ export default function PrenotazioniPage() {
             </div>
           );
         }
+        if (b.status === 'CANCELLED') {
+          return (
+            <div className="text-right">
+              <span className="text-sm font-semibold tabular-nums text-text-secondary">€ 0.00</span>
+              <div className="text-[10px] text-text-secondary/60 mt-0.5">—</div>
+            </div>
+          );
+        }
         if (b.price == null) return <span className="text-text-secondary/30 text-sm text-right block">—</span>;
         const saldo = b.price - (b.deposit ?? 0);
         return (
@@ -382,6 +396,15 @@ export default function PrenotazioniPage() {
                 Reset
               </Button>
             )}
+            <label className="flex items-center gap-2 text-sm cursor-pointer ml-2">
+              <input
+                type="checkbox"
+                checked={showCancelled}
+                onChange={(e) => setShowCancelled(e.target.checked)}
+                className="w-4 h-4 accent-accent"
+              />
+              <span className="text-text-secondary">Annullate</span>
+            </label>
           </div>
         </div>
       </PageHeader>

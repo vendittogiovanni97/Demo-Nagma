@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from 'next/dynamic';
 
 import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
 import itLocale from '@fullcalendar/core/locales/it';
@@ -18,11 +17,12 @@ import { useBookings } from '@/hooks/domain';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { bookingService } from '@/services/booking.service';
 import type { Booking } from '@/types/booking';
-import { format, parseISO, subDays } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Clock, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Clock, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 
 import BookingModal from '@/components/modals/BookingModal';
+import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -85,13 +85,16 @@ function CalendarEvent({ booking, canSendWhatsApp, onEdit, onDelete, onWhatsApp 
 }
 
 export default function AgendaPage() {
-  const { isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [whatsAppBooking, setWhatsAppBooking] = useState<Booking | null>(null);
   const [initialDate, setInitialDate] = useState('');
   const [initialTime, setInitialTime] = useState('');
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [showDeletePasswordModal, setShowDeletePasswordModal] = useState(false);
+  const [deletePasswordLoading, setDeletePasswordLoading] = useState(false);
 
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   const { data: bookings, mutate, isLoading, error } = useBookings(currentMonth);
@@ -122,14 +125,37 @@ export default function AgendaPage() {
   );
 
   const handleDeleteBooking = useCallback(async (id: number) => {
-    await deleteItem({
-      confirmMessage: 'Sei sicuro di voler annullare questa prenotazione?',
-      action: () => bookingService.delete(id),
-      successMessage: 'Prenotazione annullata',
-      errorMessage: "Errore nell'annullamento",
-      onSuccess: mutate,
-    });
-  }, [deleteItem, mutate]);
+    setPendingDeleteId(id);
+    if (isSuperAdmin) {
+      setShowDeletePasswordModal(false);
+      await bookingService.delete(id);
+      await mutate();
+    } else {
+      setShowDeletePasswordModal(true);
+    }
+  }, [isSuperAdmin, mutate]);
+
+  const handleSuperAdminDelete = async (id: number) => {
+    await bookingService.delete(id);
+    await mutate();
+  };
+
+  const handlePasswordDelete = async (password: string) => {
+    if (!pendingDeleteId) return;
+    setDeletePasswordLoading(true);
+    try {
+      await bookingService.verifyPassword(password);
+      setShowDeletePasswordModal(false);
+      const idToDelete = pendingDeleteId;
+      setPendingDeleteId(null);
+      await bookingService.delete(idToDelete);
+      await mutate();
+    } catch {
+      throw new Error('Password non corretta');
+    } finally {
+      setDeletePasswordLoading(false);
+    }
+  };
 
   const handleEditBooking = useCallback((booking: Booking) => {
     setEditingBooking(booking);
@@ -242,6 +268,14 @@ export default function AgendaPage() {
         booking={whatsAppBooking}
       />
       <ConfirmDialog {...confirmDialogProps} />
+      {!isSuperAdmin && (
+        <PasswordConfirmModal
+          isOpen={showDeletePasswordModal}
+          onClose={() => { setShowDeletePasswordModal(false); setPendingDeleteId(null); }}
+          onConfirm={handlePasswordDelete}
+          loading={deletePasswordLoading}
+        />
+      )}
     </div>
   );
 }

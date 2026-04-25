@@ -1,9 +1,7 @@
-"use client";
+'use client';
 
-import { forwardRef, type ReactNode } from 'react';
-import { X, type LucideIcon } from 'lucide-react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import React, { type ReactNode } from 'react';
+import { Chip, type ChipProps, useTheme } from '@mui/material';
 
 type BadgeVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning' | 'status-confirmed' | 'status-completed' | 'status-cancelled' | 'status-pending' | 'status-rescheduled';
 type BadgeSize = 'xs' | 'sm' | 'md';
@@ -11,91 +9,134 @@ type BadgeSize = 'xs' | 'sm' | 'md';
 interface BadgeProps {
   variant?: BadgeVariant;
   size?: BadgeSize;
-  icon?: LucideIcon;
-  removable?: boolean;
-  onRemove?: () => void;
-  className?: string;
   children: ReactNode;
+  onDelete?: () => void;
+  label?: string;
+  removable?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any;
+  [key: string]: any;
 }
 
-// Design token mapping: ogni variant ha background e text-color specifici
-const variantStyles: Record<BadgeVariant, string> = {
-  primary: 'bg-accent text-black',
-  secondary: 'bg-white/10 text-white',
-  danger: 'bg-danger/20 text-danger',
-  success: 'bg-success/20 text-success',
-  info: 'bg-accent/20 text-accent',
-  warning: 'bg-yellow/20 text-yellow',
-  // Status-specific variants per booking/event status
-  'status-confirmed': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-  'status-completed': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-  'status-cancelled': 'bg-red-500/20 text-red-400 border border-red-500/30',
-  'status-pending': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-  'status-rescheduled': 'bg-violet-500/20 text-violet-400 border border-violet-500/30',
-};
+const Badge = ({
+  variant = 'primary',
+  size = 'sm',
+  onDelete,
+  label,
+  children,
+  icon,
+  removable,
+  ...props
+}: BadgeProps) => {
+  const theme = useTheme();
 
-// Sizing: padding e font-size controllati dal size prop
-const sizeStyles: Record<BadgeSize, string> = {
-  xs: 'px-2 py-1 text-xs',
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-base',
-};
-
-const baseStyles = 'inline-flex items-center gap-1.5 rounded-lg font-semibold transition-opacity duration-150';
-
-const Badge = forwardRef<HTMLDivElement, BadgeProps>(
-  (
-    {
-      variant = 'primary',
-      size = 'sm',
-      icon: Icon,
-      removable = false,
-      onRemove,
-      className,
-      children,
-    },
-    ref
-  ) => {
-    if (removable && !onRemove) {
-      console.warn('Badge: removable=true requires onRemove callback');
+  // Size mapping for MUI Chip
+  const getSizeProps = () => {
+    switch (size) {
+      case 'xs':
+        return {
+          sx: { fontSize: '0.7rem', height: '20px' },
+        };
+      case 'sm':
+        return {
+          sx: { fontSize: '0.875rem', height: '24px' },
+        };
+      case 'md':
+        return {
+          sx: { fontSize: '1rem', height: '32px' },
+        };
+      default:
+        return {};
     }
+  };
 
-    const combinedClassName = twMerge(
-      clsx(
-        baseStyles,
-        variantStyles[variant],
-        sizeStyles[size],
-        className
-      )
-    );
+  // Variant styling
+  const getVariantSx = () => {
+    switch (variant) {
+      case 'primary':
+        return {
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          fontWeight: 600,
+        };
+      case 'secondary':
+        return {
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          color: theme.palette.text.primary,
+          border: `1px solid ${theme.palette.divider}`,
+        };
+      case 'danger':
+        return {
+          backgroundColor: 'rgba(244, 67, 54, 0.2)',
+          color: '#f44336',
+        };
+      case 'success':
+        return {
+          backgroundColor: 'rgba(76, 175, 80, 0.2)',
+          color: '#4caf50',
+        };
+      case 'info':
+        return {
+          backgroundColor: 'rgba(0, 191, 255, 0.2)',
+          color: theme.palette.primary.main,
+        };
+      case 'warning':
+        return {
+          backgroundColor: 'rgba(255, 152, 0, 0.2)',
+          color: '#ff9800',
+        };
+      case 'status-confirmed':
+        return {
+          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+          color: '#3b82f6',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+        };
+      case 'status-completed':
+        return {
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          color: '#10b981',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+        };
+      case 'status-cancelled':
+        return {
+          backgroundColor: 'rgba(239, 68, 68, 0.2)',
+          color: '#ef4444',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+        };
+      case 'status-pending':
+        return {
+          backgroundColor: 'rgba(217, 119, 6, 0.2)',
+          color: '#d97706',
+          border: '1px solid rgba(217, 119, 6, 0.3)',
+        };
+      case 'status-rescheduled':
+        return {
+          backgroundColor: 'rgba(139, 92, 246, 0.2)',
+          color: '#8b5cf6',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+        };
+      default:
+        return {};
+    }
+  };
 
-    const closeButtonSizeClass = clsx({
-      'text-[0.7em]': true,
-    });
-
-    return (
-      <div ref={ref} className={combinedClassName}>
-        {Icon && <Icon className="flex-shrink-0" size={size === 'xs' ? 12 : size === 'sm' ? 14 : 16} />}
-        <span>{children}</span>
-        {removable && (
-          <button
-            type="button"
-            onClick={onRemove}
-            className={clsx(
-              'ml-1 flex items-center justify-center cursor-pointer shrink-0',
-              'hover:opacity-70 transition-opacity duration-150',
-              'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current',
-              closeButtonSizeClass
-            )}
-            aria-label="Rimuovi"
-          >
-            <X size={16} className="shrink-0" />
-          </button>
-        )}
-      </div>
-    );
-  }
-);
+  return (
+    <Chip
+      label={label || children}
+      onDelete={onDelete}
+      icon={icon}
+      {...props}
+      sx={{
+        borderRadius: '8px',
+        fontWeight: 600,
+        transition: 'all 0.15s ease-in-out',
+        ...getSizeProps().sx,
+        ...getVariantSx(),
+        ...(props.sx || {}),
+      }}
+    />
+  );
+};
 
 Badge.displayName = 'Badge';
 

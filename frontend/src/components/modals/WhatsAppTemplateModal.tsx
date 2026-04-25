@@ -1,5 +1,6 @@
 "use client";
 
+import { Box, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 import FormInput from '@/components/forms/FormInput';
@@ -11,7 +12,7 @@ import { extractErrorMessage } from '@/utils/extract-error';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '@/types/whatsapp';
 import { validateData } from '@/utils/validation';
-import { createWhatsAppTemplateSchema } from '@/schemas';
+import { createWhatsAppTemplateSchema } from '@/schemas/whatsapp';
 
 interface WhatsAppTemplateModalProps {
   isOpen: boolean;
@@ -82,10 +83,10 @@ export default function WhatsAppTemplateModal({
       isOpen={isOpen}
       onClose={onClose}
       title={template ? 'Modifica Template WhatsApp' : 'Nuovo Template WhatsApp'}
-      maxWidth="max-w-2xl"
+      maxWidth="lg"
     >
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-4 md:grid-cols-2">
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onSubmit={handleSubmit}>
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
           <FormInput label="Nome template" value={name} onChange={setName} required />
           <FormInput
             label="Categoria"
@@ -93,17 +94,29 @@ export default function WhatsAppTemplateModal({
             onChange={setCategory}
             placeholder="Conferma, post tattoo, recupero..."
           />
-        </div>
+        </Box>
 
-        <label className="flex items-center justify-between rounded-2xl border border-surface-border bg-white/[0.03] px-4 py-3 text-sm text-white">
-          <span>Template attivo</span>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderRadius: 3,
+            border: 1,
+            borderColor: 'divider',
+            backgroundColor: 'rgba(255,255,255,0.03)',
+            px: 3,
+            py: 2,
+          }}
+        >
+          <Typography variant="body2" sx={{ color: 'text.primary' }}>Template attivo</Typography>
           <input
             type="checkbox"
             checked={isActive}
             onChange={(event) => setIsActive(event.target.checked)}
-            className="h-4 w-4 accent-[var(--color-accent)]"
+            style={{ height: 16, width: 16, accentColor: '#00bfff' }}
           />
-        </label>
+        </Box>
 
         <FormTextarea
           label="Messaggio"
@@ -114,17 +127,28 @@ export default function WhatsAppTemplateModal({
           placeholder={'Ciao {{nome}}, ti confermo l\'appuntamento del {{data}} alle {{ora}} con {{artista}}.'}
         />
 
-        <div className="rounded-2xl border border-surface-border bg-white/[0.03] px-4 py-3 text-sm text-text-secondary">
-          Variabili supportate: usa placeholder come <code>{'{{nome}}'}</code>, <code>{'{{data}}'}</code>,
-          <code>{' {{ora}}'}</code>, <code>{'{{artista}}'}</code>. Le compileremo al momento dell&apos;invio.
-        </div>
+        <Box
+          sx={{
+            borderRadius: 3,
+            border: 1,
+            borderColor: 'divider',
+            backgroundColor: 'rgba(255,255,255,0.03)',
+            px: 3,
+            py: 2,
+          }}
+        >
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Variabili supportate: usa placeholder come <code>{'{{nome}}'}</code>, <code>{'{{data}}'}</code>,
+            <code>{' {{ora}}'}</code>, <code>{'{{artista}}'}</code>. Le compileremo al momento dell&apos;invio.
+          </Typography>
+        </Box>
 
         <SubmitButton
           loading={loading}
           label={template ? 'Salva modifiche' : 'Crea template'}
           loadingLabel="Salvataggio template..."
         />
-      </form>
+      </Box>
     </Modal>
   );
 }

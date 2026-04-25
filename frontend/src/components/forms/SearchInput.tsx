@@ -1,5 +1,7 @@
 'use client';
 
+import { InputAdornment, TextField, useTheme } from '@mui/material';
+import { inputRootSx } from '@/theme/inputStyles';
 import { Search } from 'lucide-react';
 
 interface SearchInputProps {
@@ -27,18 +29,37 @@ export default function SearchInput({
   className,
   disabled,
 }: SearchInputProps) {
+  const theme = useTheme();
+
   return (
-    <div className={`relative flex-1 ${className || ''}`}>
-      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-      <input
-        type="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className="w-full rounded-xl border border-surface-border bg-white/5 py-3 pl-11 pr-4 text-white outline-none transition focus:border-accent disabled:opacity-50 disabled:cursor-not-allowed"
-        aria-label="Search"
-      />
-    </div>
+    <TextField
+      type="search"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+      size="small"
+      aria-label="Search"
+      className={className}
+      fullWidth
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search size={16} style={{ color: theme.palette.text.secondary }} />
+            </InputAdornment>
+          ),
+        },
+      }}
+      sx={{
+        '& .MuiOutlinedInput-root': {
+          ...inputRootSx(theme),
+          borderRadius: '10px',
+          fontSize: '0.8125rem',
+          minHeight: 40,
+        },
+        '& .MuiInputBase-input': { py: 1.125 },
+      }}
+    />
   );
 }

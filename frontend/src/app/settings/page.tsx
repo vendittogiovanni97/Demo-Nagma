@@ -1,6 +1,12 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { useMemo, useState } from 'react';
+import { Edit, KeyRound, Plus, Trash2 } from 'lucide-react';
+
+import { useTheme } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
 import Avatar from '@/components/data-display/Avatar';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
@@ -12,7 +18,13 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
-import { useTeamMembers } from '@/hooks/domain';
+import { useTeamMembers } from '@/hooks/domain/useTeam';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { useToast } from '@/hooks/useToast';
+import { extractErrorMessage } from '@/utils/extract-error';
+import { authService } from '@/services/auth.service';
+import { teamService } from '@/services/team.service';
+import type { User } from '@/types/team';
 
 const MemberFormModal = dynamic(
   () => import('@/components/modals/MemberFormModal'),
@@ -22,16 +34,9 @@ const ResetPasswordModal = dynamic(
   () => import('@/components/modals/ResetPasswordModal'),
   { ssr: false }
 );
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
-import { useToast } from '@/hooks/useToast';
-import { extractErrorMessage } from '@/utils/extract-error';
-import { authService } from '@/services/auth.service';
-import { teamService } from '@/services/team.service';
-import type { User } from '@/types/team';
-import { Edit, KeyRound, Plus, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
 
 export default function SettingsPage() {
+  const theme = useTheme();
   const toast = useToast();
   const { user, isAdmin } = useAuth();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
@@ -129,10 +134,10 @@ export default function SettingsPage() {
       key: 'nome',
       label: 'Nome',
       render: (memberData: any) => (
-        <div className="flex items-center gap-3">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar name={memberData.name} color={memberData.color} />
-          <span className="font-semibold text-white">{memberData.name}</span>
-        </div>
+          <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>{memberData.name}</Typography>
+        </Box>
       ),
     },
     {
@@ -152,16 +157,16 @@ export default function SettingsPage() {
   ], []);
 
   return (
-    <div className="flex-1 flex flex-col gap-6 w-full">
+    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
       <PageHeader title="Impostazioni" />
 
       {/* Tab Pills */}
-      <div className="flex gap-2">
+      <Box sx={{ display: 'flex', gap: 1 }}>
         <Button
           variant={activeTab === 'profile' ? 'secondary' : 'ghost'}
           size="md"
           onClick={() => setActiveTab('profile')}
-          className={activeTab === 'profile' ? 'border-accent text-accent' : ''}
+          sx={activeTab === 'profile' ? { borderColor: 'primary.main', color: 'primary.main' } : undefined}
         >
           Il mio profilo
         </Button>
@@ -170,33 +175,69 @@ export default function SettingsPage() {
             variant={activeTab === 'users' ? 'secondary' : 'ghost'}
             size="md"
             onClick={() => setActiveTab('users')}
-            className={activeTab === 'users' ? 'border-accent text-accent' : ''}
+            sx={activeTab === 'users' ? { borderColor: 'primary.main', color: 'primary.main' } : undefined}
           >
             Gestione utenti
           </Button>
         )}
-      </div>
+      </Box>
 
       {/* TAB 1: Profile */}
       {activeTab === 'profile' && (
-        <div className="glass-panel rounded-2xl p-8 space-y-8 max-w-2xl">
+        <Box
+          sx={{
+            backgroundColor: theme.palette.secondary.main,
+            backdropFilter: 'blur(20px)',
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: '30px',
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            maxWidth: 800,
+          }}
+        >
           {/* Avatar Section */}
-          <div className="flex flex-col items-center gap-4 pb-8 border-b border-surface-border">
-            <Avatar name={user?.name} size="lg" color="#4ec9e0" className="scale-150" />
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-white">{user?.name}</h2>
-              <p className="text-sm text-text-secondary">{user?.email}</p>
-            </div>
-          </div>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              pb: 4,
+              borderBottom: 1,
+              borderColor: 'divider',
+            }}
+          >
+            <Avatar
+              name={user?.name}
+              size="lg"
+              color="#4ec9e0"
+              sx={{ transform: 'scale(1.5)' }}
+            />
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 700 }}>
+                {user?.name}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                {user?.email}
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Update Profile Form */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white">Informazioni Personali</h3>
-              <p className="text-sm text-text-secondary">Aggiorna i tuoi dati</p>
-            </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 700 }}>
+                Informazioni Personali
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Aggiorna i tuoi dati
+              </Typography>
+            </Box>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
+            <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FormInput
                 label="Nome"
                 value={profileName}
@@ -214,16 +255,29 @@ export default function SettingsPage() {
 
               <SubmitButton loading={profileLoading} label="Salva Profilo" />
             </form>
-          </div>
+          </Box>
 
           {/* Change Password Section */}
-          <div className="pt-8 border-t border-surface-border space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white">Cambia Password</h3>
-              <p className="text-sm text-text-secondary">Aggiorna la tua password di accesso</p>
-            </div>
+          <Box
+            sx={{
+              pt: 4,
+              borderTop: 1,
+              borderColor: 'divider',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 700 }}>
+                Cambia Password
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Aggiorna la tua password di accesso
+              </Typography>
+            </Box>
 
-            <form onSubmit={handleChangePassword} className="space-y-4">
+            <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FormInput
                 label="Password Attuale"
                 type="password"
@@ -253,22 +307,48 @@ export default function SettingsPage() {
 
               <SubmitButton loading={passwordLoading} label="Cambia Password" />
             </form>
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
       {/* TAB 2: User Management */}
       {activeTab === 'users' && isAdmin && (
-        <div className="glass-panel rounded-2xl overflow-hidden flex flex-col">
+        <Box
+          sx={{
+            backgroundColor: theme.palette.secondary.main,
+            backdropFilter: 'blur(20px)',
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: '30px',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           {/* Header */}
-          <div className="px-8 py-6 border-b border-surface-border flex items-center justify-between bg-white/[0.02]">
-            <div>
-              <h2 className="text-2xl font-outfit font-bold text-white">Collaboratori</h2>
-              <p className="text-sm text-text-secondary mt-1">Gestisci gli utenti del sistema</p>
-            </div>
+          <Box
+            sx={{
+              px: 4,
+              py: 3,
+              borderBottom: 1,
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            }}
+          >
+            <Box>
+              <Typography variant="h4" sx={{ color: 'text.primary', fontWeight: 700 }}>
+                Collaboratori
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                Gestisci gli utenti del sistema
+              </Typography>
+            </Box>
             <Button
               variant="primary"
-              icon={Plus}
+              icon={<Plus size={18} />}
               onClick={() => {
                 setEditingUser(null);
                 setIsUserFormOpen(true);
@@ -276,7 +356,7 @@ export default function SettingsPage() {
             >
               Nuovo Utente
             </Button>
-          </div>
+          </Box>
 
           {membersError && (
             <StatePanel
@@ -295,7 +375,7 @@ export default function SettingsPage() {
               emptyMessage="Nessun componente trovato. Clicca 'Nuovo Utente' per aggiungere il primo collaboratore."
               keyExtractor={(m) => m.id}
               actions={(memberData) => (
-                <div className="flex items-center justify-center gap-2 w-full">
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%' }}>
                   <Button
                     variant="icon"
                     icon={<Edit size={18} />}
@@ -305,22 +385,34 @@ export default function SettingsPage() {
                   <Button
                     variant="icon"
                     icon={<KeyRound size={18} />}
-                    className="text-amber-400/60 hover:text-amber-400 hover:bg-amber-400/10"
+                    sx={{
+                      color: 'rgba(255, 152, 0, 0.6)',
+                      '&:hover': {
+                        color: 'warning.main',
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                      },
+                    }}
                     title="Reset Password"
                     onClick={() => handleResetPassword(memberData as unknown as User)}
                   />
                   <Button
                     variant="icon"
                     icon={<Trash2 size={18} />}
-                    className="text-danger/60 hover:text-danger hover:bg-danger/10"
+                    sx={{
+                      color: 'rgba(244, 67, 54, 0.6)',
+                      '&:hover': {
+                        color: 'error.main',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                      },
+                    }}
                     title="Elimina"
                     onClick={() => handleDeleteMember(memberData.id, memberData.name)}
                   />
-                </div>
+                </Box>
               )}
             />
           )}
-        </div>
+        </Box>
       )}
 
       {/* Modals */}
@@ -341,6 +433,6 @@ export default function SettingsPage() {
         />
       )}
       <ConfirmDialog {...confirmDialogProps} />
-    </div>
+    </Box>
   );
 }

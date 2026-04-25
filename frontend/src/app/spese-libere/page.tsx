@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from '@mui/material/styles';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { spesaLiberaService } from '@/services/spesa-libera.service';
 import Button from '@/components/ui/Button';
@@ -15,8 +16,17 @@ import { Loader2, Plus, Receipt, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import useSWR from 'swr';
 import { mutate } from 'swr';
+import Box from '@mui/material/Box';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableBody from '@mui/material/TableBody';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import Typography from '@mui/material/Typography';
+import InputBase from '@mui/material/InputBase';
 
 export default function SpeseLiberePage() {
+  const theme = useTheme();
   const toast = useToast();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -72,43 +82,134 @@ export default function SpeseLiberePage() {
 
   const total = spese.reduce((acc, s) => acc + s.price, 0);
 
-  return (
-    <div className="flex-1 flex flex-col gap-6 max-w-2xl mx-auto w-full pt-8 px-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-            <Receipt size={22} className="text-accent" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold font-outfit text-white">Spese Libere</h1>
-            <p className="text-sm text-text-secondary">Annotazioni rapide di spese</p>
-          </div>
-        </div>
-        <MonthPicker value={currentDate} onChange={setCurrentDate} />
-      </div>
+  const glassPanelSx = {
+    backgroundColor: theme.palette.background.paper,
+    backdropFilter: 'blur(20px)',
+    border: 1,
+    borderColor: 'divider',
+    borderRadius: 3,
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      borderColor: theme.palette.primary.main,
+      backgroundColor: 'rgba(0, 191, 255, 0.05)',
+      transform: 'translateY(-4px)',
+      boxShadow: '0 10px 30px rgba(0, 191, 255, 0.1)',
+    },
+  };
 
-      <form
-        onSubmit={handleAdd}
-        className="glass-panel rounded-2xl p-5 flex flex-col sm:flex-row gap-3"
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        maxWidth: 'md',
+        mx: 'auto',
+        width: '100%',
+        pt: 4,
+        px: 2,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
       >
-        <input
-          ref={nameRef}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              height: 40,
+              width: 40,
+              borderRadius: 2,
+              backgroundColor: 'rgba(0, 191, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Receipt size={22} style={{ color: theme.palette.primary.main }} />
+          </Box>
+          <Box>
+            <Typography variant="h4" sx={{ color: theme.palette.text.primary, fontWeight: 700 }}>
+              Spese Libere
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+              Annotazioni rapide di spese
+            </Typography>
+          </Box>
+        </Box>
+        <MonthPicker value={currentDate} onChange={setCurrentDate} />
+      </Box>
+
+      <Box
+        component="form"
+        onSubmit={handleAdd}
+        sx={{
+          ...glassPanelSx,
+          p: 2.5,
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 1.5,
+          '&:hover': {
+            transform: 'none',
+          },
+        }}
+      >
+        <InputBase
+          inputRef={nameRef}
           type="text"
           placeholder="Nome spesa"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="flex-1 rounded-xl border border-surface-border bg-white/5 px-4 py-3 text-white placeholder:text-text-secondary outline-none transition focus:border-accent"
+          sx={{
+            flex: 1,
+            borderRadius: 2,
+            border: 1,
+            borderColor: 'divider',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            px: 2,
+            py: 1.5,
+            color: theme.palette.text.primary,
+            '& .MuiInputBase-input::placeholder': {
+              color: theme.palette.text.secondary,
+              opacity: 1,
+            },
+            '&:focus-within': {
+              borderColor: theme.palette.primary.main,
+            },
+            transition: 'border-color 0.2s ease',
+          }}
         />
-        <input
+        <InputBase
           type="number"
           placeholder="Prezzo €"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          step="0.01"
-          min="0"
+          inputProps={{ step: '0.01', min: '0' }}
           required
-          className="w-36 rounded-xl border border-surface-border bg-white/5 px-4 py-3 text-white placeholder:text-text-secondary outline-none transition focus:border-accent"
+          sx={{
+            width: { xs: '100%', sm: 144 },
+            borderRadius: 2,
+            border: 1,
+            borderColor: 'divider',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            px: 2,
+            py: 1.5,
+            color: theme.palette.text.primary,
+            '& .MuiInputBase-input::placeholder': {
+              color: theme.palette.text.secondary,
+              opacity: 1,
+            },
+            '&:focus-within': {
+              borderColor: theme.palette.primary.main,
+            },
+            transition: 'border-color 0.2s ease',
+          }}
         />
         <Button
           type="submit"
@@ -121,52 +222,83 @@ export default function SpeseLiberePage() {
         >
           Aggiungi
         </Button>
-      </form>
+      </Box>
 
-      <div className="glass-panel rounded-2xl overflow-hidden">
+      <Box sx={{ ...glassPanelSx, overflow: 'hidden', '&:hover': { transform: 'none' } }}>
         {isLoading ? (
-          <div className="flex items-center justify-center py-16 text-text-secondary">
-            <Loader2 size={28} className="animate-spin mr-3" />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 8,
+              color: theme.palette.text.secondary,
+            }}
+          >
+            <Loader2 size={28} className="animate-spin" style={{ marginRight: 12 }} />
             <span>Caricamento...</span>
-          </div>
+          </Box>
         ) : spese.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-text-secondary">
-            <Receipt size={40} className="opacity-30" />
-            <p className="text-sm">Nessuna spesa per {monthLabel}</p>
-          </div>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 8,
+              gap: 1.5,
+              color: theme.palette.text.secondary,
+            }}
+          >
+            <Receipt size={40} style={{ opacity: 0.3 }} />
+            <Typography variant="body2">Nessuna spesa per {monthLabel}</Typography>
+          </Box>
         ) : (
           <>
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-surface-border">
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                    Nome
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                    Data
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                    Prezzo
-                  </th>
-                  <th className="w-12 px-4 py-4" />
-                </tr>
-              </thead>
-              <tbody>
+            <Table sx={{ width: '100%' }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Data</TableCell>
+                  <TableCell align="right">Prezzo</TableCell>
+                  <TableCell sx={{ width: 48 }} />
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {spese.map((spesa, idx) => (
-                  <tr
+                  <TableRow
                     key={spesa.id}
-                    className={`border-b border-surface-border/50 transition-colors hover:bg-white/5 ${
-                      idx === spese.length - 1 ? 'border-b-0' : ''
-                    }`}
+                    sx={{
+                      borderBottom: idx === spese.length - 1 ? 0 : 1,
+                      borderColor: 'divider',
+                      transition: 'background-color 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      },
+                    }}
                   >
-                    <td className="px-6 py-4 text-white font-medium">{spesa.name}</td>
-                    <td className="px-6 py-4 text-text-secondary text-sm">
+                    <TableCell sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
+                      {spesa.name}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        fontSize: '0.875rem',
+                      }}
+                    >
                       {format(new Date(spesa.createdAt), 'd MMM', { locale: it })}
-                    </td>
-                    <td className="px-6 py-4 text-right text-accent font-semibold tabular-nums">
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontWeight: 600,
+                        fontVariant: 'tabular-nums',
+                      }}
+                    >
                       {formatPrice(spesa.price)}
-                    </td>
-                    <td className="px-4 py-4 text-center">
+                    </TableCell>
+                    <TableCell align="center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -174,26 +306,51 @@ export default function SpeseLiberePage() {
                         icon={<Trash2 size={16} />}
                         title="Elimina"
                       />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
 
-            {/* Total row */}
-            <div className="flex justify-between items-center px-6 py-4 border-t border-surface-border bg-white/3">
-              <span className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                px: 3,
+                py: 2,
+                borderTop: 1,
+                borderColor: 'divider',
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.text.secondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
                 Totale {monthLabel}
-              </span>
-              <span className="text-lg font-bold text-accent tabular-nums">
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  color: theme.palette.primary.main,
+                  fontVariant: 'tabular-nums',
+                }}
+              >
                 {formatPrice(total)}
-              </span>
-            </div>
+              </Typography>
+            </Box>
           </>
         )}
-      </div>
+      </Box>
 
       <ConfirmDialog {...confirmDialogProps} />
-    </div>
+    </Box>
   );
 }

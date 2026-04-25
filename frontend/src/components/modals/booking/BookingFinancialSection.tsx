@@ -3,6 +3,7 @@
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 import { PERCENTUALE_OPTIONS } from '@/config/booking-config';
+import { Box, useTheme } from '@mui/material';
 import { Banknote } from 'lucide-react';
 
 interface Props {
@@ -30,14 +31,34 @@ export default function BookingFinancialSection({
   onPercentualeModeChange,
   onCustomPercentualeChange,
 }: Props) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Banknote size={14} className="text-accent" />
-        <span className="text-[11px] font-bold text-accent uppercase tracking-widest">Economico</span>
-      </div>
+  const theme = useTheme();
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Banknote size={14} style={{ color: theme.palette.primary.main }} />
+        <Box
+          component="span"
+          sx={{
+            fontSize: '0.6875rem',
+            fontWeight: 'bold',
+            color: theme.palette.primary.main,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em'
+          }}
+        >
+          Economico
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr 1fr', lg: '1fr 1fr 1fr 1fr' },
+          gap: 1.5,
+          alignItems: 'flex-end'
+        }}
+      >
         <FormInput label="Prezzo (€)" type="number" value={price} onChange={onPriceChange} placeholder="0.00" min={0} step="0.01" />
         <FormInput label="Acconto (€)" type="number" value={deposit} onChange={onDepositChange} placeholder="0.00" min={0} step="0.01" />
         <FormSelect
@@ -57,18 +78,82 @@ export default function BookingFinancialSection({
             max={100}
           />
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 bg-orange-500/10 border border-orange-500/20">
-              <span className="text-[9px] text-orange-400 font-black uppercase tracking-widest mb-1">Artista</span>
-              <span className="text-base font-outfit font-black text-orange-400">€{prezzoArtista.toFixed(2)}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20">
-              <span className="text-[9px] text-emerald-400 font-black uppercase tracking-widest mb-1">Studio</span>
-              <span className="text-base font-outfit font-black text-emerald-400">€{guadagno.toFixed(2)}</span>
-            </div>
-          </div>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '8px',
+                px: 1.5,
+                py: 1.25,
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                border: '1px solid rgba(255, 152, 0, 0.2)'
+              }}
+            >
+              <Box
+                sx={{
+                  fontSize: '0.5625rem',
+                  color: '#ffb74d',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  mb: 0.5
+                }}
+              >
+                Artista
+              </Box>
+              <Box
+                sx={{
+                  fontSize: '1rem',
+                  fontFamily: 'Outfit',
+                  fontWeight: 900,
+                  color: '#ffb74d'
+                }}
+              >
+                €{prezzoArtista.toFixed(2)}
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '8px',
+                px: 1.5,
+                py: 1.25,
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                border: '1px solid rgba(76, 175, 80, 0.2)'
+              }}
+            >
+              <Box
+                sx={{
+                  fontSize: '0.5625rem',
+                  color: '#66bb6a',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  mb: 0.5
+                }}
+              >
+                Studio
+              </Box>
+              <Box
+                sx={{
+                  fontSize: '1rem',
+                  fontFamily: 'Outfit',
+                  fontWeight: 900,
+                  color: '#66bb6a'
+                }}
+              >
+                €{guadagno.toFixed(2)}
+              </Box>
+            </Box>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

@@ -1,39 +1,20 @@
-"use client";
+'use client';
 
-import { createElement, forwardRef, isValidElement, type ButtonHTMLAttributes, type ComponentType, type ElementType, type ReactNode } from 'react';
-import { Loader2 } from 'lucide-react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { forwardRef, type ReactNode, type ReactElement } from 'react';
+import { Button as MuiButton, type ButtonProps as MuiButtonProps, CircularProgress, useTheme } from '@mui/material';
 
 type ButtonVariant = 'primary' | 'secondary' | 'glass' | 'danger' | 'success' | 'ghost' | 'icon';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<MuiButtonProps, 'variant' | 'size'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
   loadingLabel?: string;
-  icon?: ReactNode | ComponentType<{ size?: number; className?: string }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any;
   fullWidth?: boolean;
 }
-
-const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-black font-bold shadow-[0_0_15px_rgba(0,191,255,0.3)] hover:scale-105 hover:shadow-[0_0_20px_rgba(0,191,255,0.5)]',
-  secondary: 'bg-[rgba(255,255,255,0.1)] border border-surface-border text-white hover:bg-[rgba(255,255,255,0.15)] hover:border-accent',
-  glass: 'bg-[rgba(255,255,255,0.05)] border border-surface-border text-white backdrop-blur-md hover:bg-[rgba(255,255,255,0.1)] hover:border-accent',
-  danger: 'bg-danger text-white font-bold shadow-[0_0_15px_rgba(255,82,82,0.3)] hover:scale-105 hover:shadow-[0_0_20px_rgba(255,82,82,0.5)]',
-  success: 'bg-success text-black font-bold shadow-[0_0_15px_rgba(37,211,102,0.3)] hover:scale-105 hover:shadow-[0_0_20px_rgba(37,211,102,0.5)]',
-  ghost: 'text-text-secondary hover:text-accent hover:bg-[rgba(0,191,255,0.05)]',
-  icon: 'p-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-white/8 transition-all duration-150',
-};
-
-const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-3 py-1.5 text-sm rounded-[10px]',
-  md: 'px-6 py-3 text-base rounded-[15px]',
-  lg: 'px-8 py-4 text-lg rounded-[20px]',
-};
-
-const baseStyles = 'inline-flex items-center justify-center gap-2 font-medium cursor-pointer transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -44,50 +25,142 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       loadingLabel,
       icon,
       fullWidth = false,
-      className,
       disabled,
       children,
+      sx,
       ...props
     },
     ref
   ) => {
-    const resolvedIcon = isValidElement(icon)
-      ? icon
-      : (
-        (typeof icon === 'function' || (typeof icon === 'object' && icon !== null && '$$typeof' in icon))
-          ? createElement(icon as ElementType, { size: 18 })
-          : icon
-      );
+    const theme = useTheme();
 
-    const combinedClassName = twMerge(
-      clsx(
-        baseStyles,
-        variantStyles[variant],
-        variant !== 'icon' && sizeStyles[size],
-        fullWidth && 'w-full',
-        className
-      )
-    );
+    // Get MUI size based on custom size prop
+    const getMuiSize = (): 'small' | 'medium' | 'large' => {
+      switch (size) {
+        case 'sm':
+          return 'small';
+        case 'md':
+          return 'medium';
+        case 'lg':
+          return 'large';
+        default:
+          return 'medium';
+      }
+    };
+
+    // Get variant-specific sx styling
+    const getVariantSx = () => {
+      switch (variant) {
+        case 'primary':
+          return {
+            backgroundColor: theme.palette.primary.main,
+            color: '#000',
+            fontWeight: 600,
+            boxShadow: '0 0 15px rgba(0, 191, 255, 0.3)',
+            '&:hover': {
+              backgroundColor: theme.palette.primary.dark,
+              boxShadow: '0 0 20px rgba(0, 191, 255, 0.5)',
+              transform: 'scale(1.02)',
+            },
+            '&:active': {
+              transform: 'scale(0.98)',
+            },
+          };
+        case 'secondary':
+          return {
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              borderColor: theme.palette.primary.main,
+            },
+          };
+        case 'glass':
+          return {
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+            backdropFilter: 'blur(10px)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderColor: theme.palette.primary.main,
+            },
+          };
+        case 'danger':
+          return {
+            backgroundColor: '#f44336',
+            color: '#fff',
+            fontWeight: 600,
+            boxShadow: '0 0 15px rgba(244, 67, 54, 0.3)',
+            '&:hover': {
+              backgroundColor: '#d32f2f',
+              boxShadow: '0 0 20px rgba(244, 67, 54, 0.5)',
+              transform: 'scale(1.02)',
+            },
+            '&:active': {
+              transform: 'scale(0.98)',
+            },
+          };
+        case 'success':
+          return {
+            backgroundColor: '#4caf50',
+            color: '#000',
+            fontWeight: 600,
+            boxShadow: '0 0 15px rgba(76, 175, 80, 0.3)',
+            '&:hover': {
+              backgroundColor: '#388e3c',
+              boxShadow: '0 0 20px rgba(76, 175, 80, 0.5)',
+              transform: 'scale(1.02)',
+            },
+            '&:active': {
+              transform: 'scale(0.98)',
+            },
+          };
+        case 'ghost':
+          return {
+            backgroundColor: 'transparent',
+            color: theme.palette.text.secondary,
+            '&:hover': {
+              backgroundColor: 'rgba(0, 191, 255, 0.05)',
+              color: theme.palette.primary.main,
+            },
+          };
+        case 'icon':
+          return {
+            minWidth: '44px',
+            width: '44px',
+            height: '44px',
+            padding: 0,
+            borderRadius: '8px',
+            color: theme.palette.text.secondary,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              color: theme.palette.text.primary,
+            },
+          };
+        default:
+          return {};
+      }
+    };
 
     return (
-      <button
+      <MuiButton
         ref={ref}
         disabled={disabled || isLoading}
-        className={combinedClassName}
+        size={getMuiSize()}
+        fullWidth={fullWidth}
+        startIcon={isLoading ? <CircularProgress size={18} /> : icon as ReactNode}
+        sx={{
+          textTransform: 'none',
+          transition: 'all 0.2s ease-in-out',
+          ...getVariantSx(),
+          ...sx,
+        }}
         {...props}
       >
-        {isLoading ? (
-          <>
-            <Loader2 className="animate-spin" size={20} />
-            <span>{loadingLabel || 'Caricamento...'}</span>
-          </>
-        ) : (
-          <>
-            {resolvedIcon && <span className="flex items-center justify-center shrink-0">{resolvedIcon}</span>}
-            {children && <span>{children}</span>}
-          </>
-        )}
-      </button>
+        {isLoading ? (loadingLabel || 'Caricamento...') : children}
+      </MuiButton>
     );
   }
 );

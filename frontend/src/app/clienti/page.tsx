@@ -2,17 +2,17 @@
 
 import dynamic from 'next/dynamic';
 
+import PaginationControls from '@/components/feedback/PaginationControls';
 import StatePanel from '@/components/feedback/StatePanel';
 import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
-import PaginationControls from '@/components/feedback/PaginationControls';
 import Avatar from '@/components/data-display/Avatar';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
 import Button from '@/components/ui/Button';
 import PermissionGate from '@/components/auth/PermissionGate';
 import { useAuth } from '@/context/AuthContext';
 import { DEBOUNCE_SEARCH_DELAY, EXPORT_FETCH_LIMIT } from '@/config/env';
-import { useCustomers } from '@/hooks/domain';
+import { useCustomers } from '@/hooks/domain/useCustomers';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -26,6 +26,7 @@ import { it } from 'date-fns/locale';
 import { Edit, Eye, Mail, MessageCircle, Phone, Trash2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { Box, Stack, TextField, Typography, useTheme } from '@mui/material';
 
 export default function CustomersPage() {
   const { isAdmin } = useAuth();
@@ -41,6 +42,8 @@ export default function CustomersPage() {
   const { data: result, mutate, isLoading, error } = useCustomers({ search: debouncedSearch, page, startDate, endDate });
   const customers = result?.data;
   const totalPages = result?.totalPages ?? 1;
+
+  const theme = useTheme();
 
   const handleSearch = () => {
     setPage(1);
@@ -98,17 +101,19 @@ export default function CustomersPage() {
       key: 'cliente',
       label: 'Cliente',
       render: (customer) => (
-        <div className="flex items-center gap-3">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar firstName={customer.firstName} lastName={customer.lastName} />
-          <div>
-            <div className="text-white font-semibold leading-tight">
+          <Box>
+            <Box sx={{ fontWeight: 600, lineHeight: 1.25, color: theme.palette.text.primary }}>
               {customer.firstName} {customer.lastName}
-            </div>
+            </Box>
             {customer.notes && (
-              <div className="text-xs text-text-secondary truncate max-w-[220px] mt-0.5">{customer.notes}</div>
+              <Box sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '220px', mt: 0.5 }}>
+                {customer.notes}
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
       ),
     },
     {
@@ -116,30 +121,34 @@ export default function CustomersPage() {
       label: 'Telefono',
       width: '160px',
       render: (customer) => (
-        <div className="flex items-center gap-2 text-sm text-text-secondary">
-          <Phone size={13} className="text-accent shrink-0" />
-          <span className="font-mono tracking-wide">{customer.phone}</span>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+          <Phone size={13} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+          <Box component="span" sx={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+            {customer.phone}
+          </Box>
+        </Box>
       ),
     },
     {
       key: 'email',
       label: 'Email',
       render: (customer) => customer.email ? (
-        <div className="flex items-center gap-2 text-sm text-text-secondary">
-          <Mail size={13} className="text-accent shrink-0" />
-          <span className="truncate max-w-[200px]">{customer.email}</span>
-        </div>
-      ) : <span className="text-text-secondary/40 text-sm">—</span>,
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+          <Mail size={13} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+          <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+            {customer.email}
+          </Box>
+        </Box>
+      ) : <Box component="span" sx={{ fontSize: '0.875rem', color: 'rgba(244,67,54,0.4)' }}>—</Box>,
     },
     {
       key: 'createdAt',
       label: 'Iscritto il',
       width: '130px',
       render: (customer) => (
-        <span className="text-sm text-text-secondary tabular-nums">
+        <Box component="span" sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary, fontVariant: 'tabular-nums' }}>
           {customer.createdAt ? format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it }) : '—'}
-        </span>
+        </Box>
       ),
     },
     {
@@ -148,11 +157,24 @@ export default function CustomersPage() {
       align: 'center',
       width: '110px',
       render: (customer) => (
-        <div className="flex justify-center">
-          <span className="inline-flex items-center justify-center min-w-[32px] h-7 px-2.5 rounded-full bg-accent/10 text-accent font-bold text-xs tabular-nums">
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '32px',
+            height: '28px',
+            px: 2.5,
+            borderRadius: '9999px',
+            backgroundColor: 'rgba(0, 191, 255, 0.1)',
+            color: theme.palette.primary.main,
+            fontWeight: 700,
+            fontSize: '0.75rem',
+            fontVariant: 'tabular-nums',
+          }}>
             {customer._count?.bookings || 0}
-          </span>
-        </div>
+          </Box>
+        </Box>
       ),
     },
   ], []);
@@ -168,7 +190,7 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col gap-6">
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title="Anagrafica Clienti"
         actions={
@@ -188,7 +210,7 @@ export default function CustomersPage() {
             <PermissionGate requireAdmin>
               <Button
                 variant="primary"
-                icon={UserPlus}
+                icon={<UserPlus />}
                 onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }}
               >
                 Nuovo Cliente
@@ -197,40 +219,68 @@ export default function CustomersPage() {
           </>
         }
       >
-        <div className="flex-1 flex items-center gap-4 max-w-2xl mx-auto">
-          <div className="flex-1">
+        <Stack
+          direction="row"
+          useFlexGap
+          sx={{
+            gap: 0.875,
+            alignItems: 'center',
+            justifyContent: { xs: 'flex-start', xl: 'center' },
+            flex: '1 1 auto',
+            minWidth: 0,
+            flexWrap: { xs: 'wrap', xl: 'nowrap' },
+          }}
+        >
+          <Box
+            sx={{
+              flex: { xs: '1 1 100%', md: '1 1 280px' },
+              minWidth: { xs: '100%', xl: 280 },
+              maxWidth: { xs: '100%', xl: 360 },
+            }}
+          >
             <SearchInput
               value={search}
               onChange={(v) => { setSearch(v); setPage(1); }}
               placeholder="Cerca per nome, cognome o telefono..."
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
+          </Box>
+
+          <Stack
+            direction="row"
+            useFlexGap
+            sx={{
+              gap: 0.625,
+              alignItems: 'center',
+              flexShrink: 0,
+              flexWrap: { xs: 'wrap', md: 'nowrap' },
+            }}
+          >
+            <TextField
               type="date"
               value={startDate}
               onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+              size="small"
+              sx={{ width: 126 }}
             />
-            <span className="text-text-secondary text-sm">—</span>
-            <input
+            <Typography sx={{ color: theme.palette.text.secondary, fontSize: '0.75rem' }}>—</Typography>
+            <TextField
               type="date"
               value={endDate}
               onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
+              size="small"
+              sx={{ width: 126 }}
             />
             {(startDate || endDate) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => { setStartDate(''); setEndDate(''); }}
-                className="text-xs"
               >
                 Reset
               </Button>
             )}
-          </div>
-        </div>
+          </Stack>
+        </Stack>
       </PageHeader>
 
       {error && (
@@ -243,7 +293,7 @@ export default function CustomersPage() {
       )}
 
       {!error && (
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <DataTable<Customer>
             columns={customerColumns}
             data={customers || []}
@@ -255,7 +305,7 @@ export default function CustomersPage() {
             }
             keyExtractor={(c) => c.id}
             actions={(customer) => (
-              <div className="flex items-center justify-center gap-2 w-full">
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%' }}>
                 <Button
                   variant="icon"
                   icon={<Eye size={18} />}
@@ -281,18 +331,21 @@ export default function CustomersPage() {
                     <Button
                       variant="icon"
                       icon={<Trash2 size={18} />}
-                      className="text-danger/60 hover:text-danger hover:bg-danger/10"
+                      sx={{
+                        color: 'rgba(244,67,54,0.6)',
+                        '&:hover': { color: theme.palette.error.main, backgroundColor: 'rgba(244,67,54,0.1)' },
+                      }}
                       title="Elimina"
                       onClick={() => handleDelete(customer.id)}
                     />
                   </>
                 </PermissionGate>
-              </div>
+              </Box>
             )}
           />
 
           {totalPages > 1 && (
-            <div className="bg-white/2 border-t border-surface-border">
+            <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, bgcolor: 'rgba(255,255,255,0.02)' }}>
               <PaginationControls
                 page={page}
                 totalPages={totalPages}
@@ -301,9 +354,9 @@ export default function CustomersPage() {
                 onNext={() => setPage(p => Math.min(totalPages, p + 1))}
                 label="clienti"
               />
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
 
       <CustomerModal
@@ -313,6 +366,6 @@ export default function CustomersPage() {
         customer={editingCustomer}
       />
       <ConfirmDialog {...confirmDialogProps} />
-    </div>
+    </Box>
   );
 }

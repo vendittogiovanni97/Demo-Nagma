@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import Button from '@/components/ui/Button';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography
+} from "@mui/material";
+import { useEffect } from "react";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -17,64 +23,62 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  // Blocca lo scroll del body quando il dialog è aperto
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  // Chiude con Escape
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === "Escape") onCancel();
     };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onCancel]);
 
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={onCancel}
-      aria-modal="true"
-      role="dialog"
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={onCancel}
       aria-labelledby="confirm-dialog-title"
+      slotProps={{
+        paper: {
+          sx: {
+            width: "100%",
+            maxWidth: 400,
+            backgroundColor: "rgba(10, 26, 38, 0.95)",
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 4,
+          },
+        },
+        backdrop: {
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(4px)",
+          },
+        },
+      }}
     >
-      {/* Pannello centrale — stopPropagation per non chiudere cliccando dentro */}
-      <div
-        className="w-full max-w-sm mx-4 bg-[rgba(10,26,38,0.95)] border border-surface-border rounded-2xl p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+      <DialogTitle
+        id="confirm-dialog-title"
+        sx={{ fontWeight: 700, fontSize: "1.125rem", pb: 1 }}
       >
-        <h2
-          id="confirm-dialog-title"
-          className="text-white font-bold text-lg mb-3"
+        Conferma
+      </DialogTitle>
+
+      <DialogContent>
+        <Typography
+          sx={{ color: "text.secondary", fontSize: "0.875rem", lineHeight: 1.6 }}
         >
-          Conferma
-        </h2>
-
-        <p className="text-text-secondary text-sm mb-6 leading-relaxed">
           {message}
-        </p>
+        </Typography>
+      </DialogContent>
 
-        <div className="flex justify-end gap-3">
-          <Button variant="secondary" size="sm" onClick={onCancel}>
-            Annulla
-          </Button>
-          <Button variant="danger" size="sm" onClick={onConfirm}>
-            Elimina
-          </Button>
-        </div>
-      </div>
-    </div>,
-    document.body
+      <DialogActions sx={{ px: 3, pb: 2, gap: 1.5 }}>
+        <Button variant="outlined" size="small" onClick={onCancel}>
+          Annulla
+        </Button>
+        <Button variant="contained" color="error" size="small" onClick={onConfirm}>
+          Elimina
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

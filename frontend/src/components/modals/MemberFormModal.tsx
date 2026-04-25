@@ -6,11 +6,10 @@ import { teamService } from '@/services/team.service';
 import type { Staff } from '@/types/team';
 import { extractErrorMessage } from '@/utils/extract-error';
 import { useState } from 'react';
+import { Box, MenuItem, TextField, Typography, useTheme } from '@mui/material';
 import StatePanel from '../feedback/StatePanel';
-import FormInput from '../forms/FormInput';
-import FormSelect from '../forms/FormSelect';
 import SubmitButton from '../forms/SubmitButton';
-import Button from '@/components/ui/Button';
+import Avatar from '../data-display/Avatar';
 import Modal from './Modal';
 
 const TYPE_OPTIONS = [
@@ -32,6 +31,7 @@ interface MemberFormModalProps {
 export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: MemberFormModalProps) {
   const toast = useToast();
   const { isAdmin } = useAuth();
+  const theme = useTheme();
   const [name, setName] = useState(member?.name || '');
   const [type, setType] = useState<StaffTypeValue>(member?.type || 'COLLABORATORE');
   const [color, setColor] = useState(member?.color || COLOR_PRESETS[0]);
@@ -68,7 +68,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
 
   if (!isAdmin) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title="Componente Team" maxWidth="max-w-md">
+      <Modal isOpen={isOpen} onClose={onClose} title="Componente Team" maxWidth="sm">
         <StatePanel
           variant="error"
           title="Permessi insufficienti"
@@ -78,44 +78,84 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
     );
   }
 
+  const fieldLabelSx = {
+    px: 0.5,
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    color: theme.palette.primary.main,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  } as const;
+
+  const inputSx = {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: 1.5,
+      fontSize: '0.9375rem',
+    },
+  } as const;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Modifica Membro' : 'Nuovo Membro'} maxWidth="max-w-md">
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <FormInput
-          label="Nome"
-          required
-          value={name}
-          onChange={setName}
-          placeholder="Nome del collaboratore..."
-        />
+    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Modifica Membro' : 'Nuovo Membro'} maxWidth="sm">
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onSubmit={handleSubmit}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 1.5, border: `1px solid ${theme.palette.divider}`, backgroundColor: 'rgba(255, 255, 255, 0.03)' }}>
+          <Avatar name={name || 'M'} color={color} size="lg" sx={{ cursor: 'default', '&:hover': { transform: 'none' } }} />
+          <Box>
+            <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600, color: theme.palette.text.primary }}>
+              {name.trim() || 'Nuovo membro'}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
+              {TYPE_OPTIONS.find((option) => option.value === type)?.label ?? 'Collaboratore'}
+            </Typography>
+          </Box>
+        </Box>
 
-        <FormSelect
-          label="Ruolo/Tipo"
-          value={type}
-          onChange={(value) => setType(value as StaffTypeValue)}
-          options={TYPE_OPTIONS}
-          required
-        />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Typography sx={fieldLabelSx}>Nome</Typography>
+          <TextField value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome del collaboratore..." size="small" fullWidth sx={inputSx} />
+        </Box>
 
-        <div className="space-y-2">
-          <label className="text-text-secondary text-sm px-1">Colore</label>
-          <div className="flex items-center gap-2 flex-wrap">
-            {COLOR_PRESETS.map((preset) => (
-              <Button
-                key={preset}
-                variant={color === preset ? 'primary' : 'ghost'}
-                size="sm"
-                onClick={() => setColor(preset)}
-                className="w-10 h-10 p-0 border-2"
-                style={{ backgroundColor: preset }}
-                title={preset}
-              />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Typography sx={fieldLabelSx}>Ruolo/Tipo</Typography>
+          <TextField select value={type} onChange={(e) => setType(e.target.value as StaffTypeValue)} size="small" fullWidth sx={inputSx}>
+            {TYPE_OPTIONS.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
             ))}
-          </div>
-        </div>
+          </TextField>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography sx={fieldLabelSx}>Colore</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+            {COLOR_PRESETS.map((preset) => {
+              const isSelected = color.toUpperCase() === preset.toUpperCase();
+              return (
+                <Box
+                  key={preset}
+                  component="button"
+                  type="button"
+                  onClick={() => setColor(preset)}
+                  title={preset}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    border: isSelected ? `2px solid ${theme.palette.common.white}` : `1px solid ${theme.palette.divider}`,
+                    outline: isSelected ? `2px solid ${preset}` : 'none',
+                    outlineOffset: 1,
+                    backgroundColor: preset,
+                    cursor: 'pointer',
+                  }}
+                />
+              );
+            })}
+          </Box>
+        </Box>
 
         <SubmitButton loading={loading} label={isEditing ? 'Salva Modifiche' : 'Crea Membro'} />
-      </form>
+      </Box>
     </Modal>
   );
 }

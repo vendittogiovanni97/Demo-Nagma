@@ -1,14 +1,15 @@
 "use client";
 
 import { ENDPOINTS } from '@/api/endpoints';
-import { Skeleton } from '@/components/feedback/Skeleton';
 import BookingStatsWidget from '@/components/widgets/dashboard/BookingStatsWidget';
 import FinanceOverviewWidget from '@/components/widgets/dashboard/FinanceOverviewWidget';
 import TodayAgendaWidget from '@/components/widgets/dashboard/TodayAgendaWidget';
 import { useAuth } from '@/context/AuthContext';
-import { useBookings, useBookingStats } from '@/hooks/domain';
+import { useBookings } from '@/hooks/domain/useBookings';
+import { useBookingStats } from '@/hooks/domain/useBookings';
 import { transactionService } from '@/services/transaction.service';
 import type { FinanceSummary } from '@/types/transaction';
+import { Box, Container, Grid, Skeleton } from '@mui/material';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -26,9 +27,9 @@ export default function DashboardPage() {
 
   if (isAuthLoading) {
     return (
-      <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
-        <Skeleton className="h-20 w-full" />
-      </div>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
+        <Skeleton variant="rectangular" height={80} width="100%" />
+      </Box>
     );
   }
 
@@ -57,19 +58,19 @@ function DashboardContent() {
 
   if (!financeDate || !bookingDate) {
     return (
-      <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
+        <Skeleton variant="rectangular" height={192} width="100%" />
+        <Skeleton variant="rectangular" height={192} width="100%" />
+      </Box>
     );
   }
   const totalIncome = financeSummary?.totalIncome ?? 0;
   const totalExpense = financeSummary?.totalExpense ?? 0;
 
   return (
-    <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-5">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-6">
+    <Container maxWidth={false} disableGutters sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
+      <Grid container spacing={2} sx={{ flex: 'auto', overflow: 'hidden' }}>
+        <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <FinanceOverviewWidget
             totalIncome={totalIncome}
             totalExpense={totalExpense}
@@ -77,8 +78,8 @@ function DashboardContent() {
             monthDate={financeDate}
             onMonthChange={setFinanceDate}
           />
-        </div>
-        <div className="flex flex-col gap-6">
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <BookingStatsWidget
             monthDate={bookingDate}
             onMonthChange={setBookingDate}
@@ -87,14 +88,14 @@ function DashboardContent() {
             completed={bookingStats?.completed ?? 0}
             isLoading={isStatsLoading}
           />
-        </div>
-      </div>
-      <div className="flex-1 min-h-0">
+        </Grid>
+      </Grid>
+      <Box sx={{ flex: 1, minHeight: 0 }}>
         <TodayAgendaWidget
           bookings={dailyBookings}
           isLoading={isDailyLoading}
         />
-      </div>
-    </div>
+      </Box>
+    </Container>
   );
 }

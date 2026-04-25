@@ -2,6 +2,19 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
+import {
+  Box,
+  Stack,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+  FormHelperText,
+  useTheme,
+} from '@mui/material';
 
 type FieldDef = {
   type: 'text' | 'number' | 'date' | 'select' | 'checkbox';
@@ -19,13 +32,26 @@ interface DynamicFormProps {
 
 export default function DynamicForm({ base64Schema, onSubmit, submitLabel = 'Salva Modulo' }: DynamicFormProps) {
   const [formData, setFormData] = useState<Record<string, string | number | boolean>>({});
+  const theme = useTheme();
 
   let fields: FieldDef[] = [];
   try {
     const jsonStr = atob(base64Schema);
     fields = JSON.parse(jsonStr);
   } catch {
-    return <div className="text-danger p-4 border border-danger/20 rounded bg-danger/5">Errore decodifica Base64 Schema Form</div>;
+    return (
+      <Box
+        sx={{
+          color: theme.palette.error.main,
+          p: 2,
+          border: `1px solid ${theme.palette.error.main}20`,
+          borderRadius: 1,
+          backgroundColor: `${theme.palette.error.main}08`,
+        }}
+      >
+        Errore decodifica Base64 Schema Form
+      </Box>
+    );
   }
 
   const handleChange = (name: string, value: string | number | boolean) => {
@@ -38,65 +64,94 @@ export default function DynamicForm({ base64Schema, onSubmit, submitLabel = 'Sal
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-sm p-4 bg-white/5 border border-surface-border rounded-xl">
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2.5,
+        fontSize: '0.875rem',
+        p: 2,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 2,
+      }}
+    >
       {fields.map((field, idx) => (
-        <div key={`${field.name}-${idx}`} className="flex flex-col gap-2">
-          <label className="text-text-secondary font-semibold">
-            {field.label} {field.required && <span className="text-danger">*</span>}
-          </label>
-          
+        <Stack key={`${field.name}-${idx}`} useFlexGap sx={{ gap: 1 }}>
           {field.type === 'text' && (
-            <input 
-              type="text" 
+            <TextField
+              label={field.label}
+              type="text"
               required={field.required}
               onChange={e => handleChange(field.name, e.target.value)}
-              className="p-3 rounded-[10px] bg-[#0a0a0a] border border-surface-border text-white focus:border-accent outline-none" 
+              fullWidth
+              size="small"
+              variant="outlined"
             />
           )}
 
           {field.type === 'date' && (
-             <input 
-               type="date" 
-               required={field.required}
-               onChange={e => handleChange(field.name, e.target.value)}
-               className="p-3 rounded-[10px] bg-[#0a0a0a] border border-surface-border text-white focus:border-accent outline-none appearance-none" 
-             />
+            <TextField
+              label={field.label}
+              type="date"
+              required={field.required}
+              onChange={e => handleChange(field.name, e.target.value)}
+              fullWidth
+              size="small"
+              variant="outlined"
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
           )}
 
           {field.type === 'select' && (
-             <select 
-               required={field.required}
-               onChange={e => handleChange(field.name, e.target.value)}
-               className="p-3 rounded-[10px] bg-[#0a0a0a] border border-surface-border text-white focus:border-accent outline-none appearance-none"
-             >
-               <option value="">Seleziona...</option>
-               {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
-             </select>
+            <FormControl fullWidth size="small">
+              <InputLabel>{field.label}</InputLabel>
+              <Select
+                label={field.label}
+                required={field.required}
+                onChange={e => handleChange(field.name, e.target.value)}
+                defaultValue=""
+              >
+                <MenuItem value="">Seleziona...</MenuItem>
+                {field.options?.map(o => (
+                  <MenuItem key={o} value={o}>
+                    {o}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           )}
 
           {field.type === 'number' && (
-            <input
+            <TextField
+              label={field.label}
               type="number"
               required={field.required}
               onChange={e => handleChange(field.name, Number(e.target.value))}
-              className="p-3 rounded-[10px] bg-[#0a0a0a] border border-surface-border text-white focus:border-accent outline-none"
+              fullWidth
+              size="small"
+              variant="outlined"
             />
           )}
 
           {field.type === 'checkbox' && (
-             <label className="flex items-center gap-3 cursor-pointer">
-               <input 
-                 type="checkbox" 
-                 required={field.required}
-                 onChange={e => handleChange(field.name, e.target.checked)}
-                 className="w-5 h-5 rounded accent-accent" 
-               />
-               <span className="text-white">Confermo</span>
-             </label>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  required={field.required}
+                  onChange={e => handleChange(field.name, e.target.checked)}
+                />
+              }
+              label="Confermo"
+            />
           )}
-        </div>
+        </Stack>
       ))}
-      <Button type="submit" variant="primary" fullWidth>{submitLabel}</Button>
-    </form>
+      <Button type="submit" variant="primary" fullWidth>
+        {submitLabel}
+      </Button>
+    </Box>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme as useThemeContext } from '@/context/ThemeContext';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { AgGridReact } from 'ag-grid-react';
 import React, { type ReactNode, useMemo } from 'react';
+import { Box, Divider } from '@mui/material';
 
 export interface Column<T> {
   key: string;
@@ -58,7 +60,8 @@ export default function DataTable<T extends object>({
   pageSize = 10,
 }: DataTableProps<T>) {
   // BREAKPOINT AWARENESS - ottieni flags responsive dal context
-  const { isSmall, isMedium } = useTheme();
+  const { isSmall, isMedium } = useThemeContext();
+  const muiTheme = useMuiTheme();
 
   // RESPONSIVE SIZING - adatta al breakpoint attuale
   // ROW_HEIGHT: mobile 48px, tablet 56px, desktop 64px
@@ -125,10 +128,22 @@ export default function DataTable<T extends object>({
   }, [safeColumns, actions]);
 
   return (
-    <div className="glass-panel table-panel rounded-2xl overflow-hidden flex flex-col">
-      <div
+    <Box
+      sx={{
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        border: `1px solid ${muiTheme.palette.divider}`,
+      }}
+    >
+      <Box
         className="ag-theme-alpine-dark nagma-grid"
-        style={{ width: '100%', height: `${gridHeight}px` }}
+        sx={{
+          width: '100%',
+          height: `${gridHeight}px`,
+        }}
       >
         <AgGridReact<T>
           rowData={data}
@@ -149,13 +164,13 @@ export default function DataTable<T extends object>({
           defaultColDef={{ sortable: true, resizable: true, filter: false }}
           domLayout="normal"
         />
-      </div>
+      </Box>
 
       {footer && (
-        <div className="border-t border-surface-border">
+        <Box sx={{ borderTop: `1px solid ${muiTheme.palette.divider}` }}>
           {footer}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

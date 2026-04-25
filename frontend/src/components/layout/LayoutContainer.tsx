@@ -30,40 +30,30 @@ export default function LayoutContainer({
   maxWidth = 'lg',
   sx,
 }: LayoutContainerProps) {
-  // Mapping dei maxWidth values
   const maxWidthMap = {
-    sm: '640px',      // sm breakpoint
-    md: '768px',      // md breakpoint
-    lg: '1024px',     // lg breakpoint (1280px in Tailwind)
-    xl: '1280px',     // xl breakpoint
-    '2xl': '1536px',  // 2xl breakpoint
-    full: '100%',     // full width con padding
+    sm: '640px',
+    md: '840px',
+    lg: '1120px',
+    xl: '1280px',
+    '2xl': '1440px',
+    full: '100%',
   };
 
   return (
     <Box
       component="div"
       sx={{
-        // Padding responsivo
-        px: { xs: 1, sm: 1.5, md: 2, lg: 3 },
-        py: { xs: 1.5, sm: 2, md: 2.5, lg: 3 },
-
-        // Width e centering
+        px: { xs: 1.25, sm: 2, md: 2.5, lg: 3 },
+        pt: { xs: 10, sm: 11, md: 12 },
+        pb: { xs: 2, sm: 2.5, md: 3 },
         width: '100%',
         maxWidth: maxWidthMap[maxWidth],
         mx: 'auto',
-
-        // Flex layout
         display: 'flex',
         flexDirection: 'column',
-
-        // Overflow
+        minHeight: '100vh',
         overflowX: 'hidden',
-
-        // Transizioni smooth (opzionale)
-        transition: 'all 0.3s ease-in-out',
-
-        // Merge con sx custom
+        transition: 'padding 0.2s ease-in-out',
         ...sx,
       }}
     >

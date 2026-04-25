@@ -1,25 +1,31 @@
 "use client";
 
-
 import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
 import itLocale from '@fullcalendar/core/locales/it';
 import type { DateClickArg } from '@fullcalendar/interaction';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import {
+  Box,
+  Typography,
+  Stack,
+  IconButton,
+  Tooltip,
+  useTheme,
+} from '@mui/material';
+import { MessageCircle, Pencil, Trash2, Clock } from 'lucide-react';
 
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
-import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
-import { useBookings } from '@/hooks/domain';
+import { useBookings } from '@/hooks/domain/useBookings';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { bookingService } from '@/services/booking.service';
 import type { Booking } from '@/types/booking';
 import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Clock, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 
 import BookingModal from '@/components/modals/BookingModal';
 import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
@@ -35,52 +41,135 @@ interface EventContentProps {
 }
 
 function CalendarEvent({ booking, canSendWhatsApp, onEdit, onDelete, onWhatsApp }: EventContentProps) {
-  const color = booking.artist?.color ?? '#00BFFF';
-  const isShort = (booking.duration ?? 60) <= 30;
+  const theme = useTheme();
+  const color = booking.artist?.color ?? theme.palette.primary.main;
+  const duration = booking.duration ?? 60;
+  const isShort = duration <= 45;
+  const isMedium = duration > 45 && duration <= 75;
+  const startTime = format(new Date(booking.date), 'HH:mm');
+  const isCancelled = booking.status === 'CANCELLED';
+  const isRescheduled = booking.status === 'RESCHEDULED';
 
   return (
-    <div className="h-full overflow-hidden px-2 py-1 flex flex-col gap-0.5 relative group/ev cursor-pointer select-none">
-      <p className="font-bold text-white text-xs truncate leading-tight">
-        {booking.customer?.firstName} {booking.customer?.lastName}
-      </p>
-      {!isShort && (
-        <p className="text-[10px] font-semibold truncate leading-tight" style={{ color }}>
-          ● {booking.artist?.name}
-        </p>
-      )}
-
-      <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover/ev:opacity-100 transition-opacity z-10">
-        {canSendWhatsApp && booking.customer?.id && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onWhatsApp(booking); }}
-            className="w-5 h-5 p-0 text-emerald-400 hover:bg-emerald-500 hover:text-white"
-            title="WhatsApp"
-            icon={<MessageCircle size={11} />}
-          />
+    <Box
+      sx={{
+        height: '100%',
+        overflow: 'hidden',
+        px: 0.75,
+        py: 0.5,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.25,
+        position: 'relative',
+        cursor: 'pointer',
+        userSelect: 'none',
+        background: `linear-gradient(135deg, ${color}18 0%, ${color}08 100%)`,
+        opacity: isCancelled ? 0.5 : 1,
+        '&:hover .event-actions': { opacity: 1 },
+      }}
+    >
+      {/* Top row: time + badges + icons (on hover) */}
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 20 }}>
+        <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: `${color}cc`, lineHeight: 1, letterSpacing: '0.04em' }}>
+          {startTime}
+          {!isShort && ` · ${duration}min`}
+        </Typography>
+        <Stack
+          className="event-actions"
+          direction="row"
+          useFlexGap
+          sx={{ gap: 0.25, opacity: 0, transition: 'opacity 0.15s ease', zIndex: 10, backgroundColor: 'rgba(10,20,35,0.75)', borderRadius: '6px', p: 0.25 }}
+        >
+          {canSendWhatsApp && booking.customer?.id && (
+            <Tooltip title="WhatsApp">
+              <IconButton
+                size="small"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onWhatsApp(booking); }}
+                sx={{ width: 22, height: 22, color: theme.palette.success.main, '&:hover': { backgroundColor: `${theme.palette.success.main}20` } }}
+              >
+                <MessageCircle size={12} />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title="Modifica">
+            <IconButton
+              size="small"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onEdit(booking); }}
+              sx={{ width: 22, height: 22, color: theme.palette.info.main, '&:hover': { backgroundColor: `${theme.palette.info.main}20` } }}
+            >
+              <Pencil size={12} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Elimina">
+            <IconButton
+              size="small"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onDelete(booking.id); }}
+              sx={{ width: 22, height: 22, color: theme.palette.error.main, '&:hover': { backgroundColor: `${theme.palette.error.main}20` } }}
+            >
+              <Trash2 size={12} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+        {(isCancelled || isRescheduled) && (
+          <Box sx={{
+            px: 0.5, py: 0.1, borderRadius: '3px',
+            backgroundColor: isCancelled ? `${theme.palette.error.main}30` : `${theme.palette.warning.main}30`,
+            fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.06em',
+            color: isCancelled ? theme.palette.error.main : theme.palette.warning.main,
+            textTransform: 'uppercase', lineHeight: 1.4,
+          }}>
+            {isCancelled ? 'Ann.' : 'Risc.'}
+          </Box>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onEdit(booking); }}
-          className="w-5 h-5 p-0 text-blue-400 hover:bg-blue-500 hover:text-white"
-          title="Modifica"
-          icon={<Pencil size={11} />}
-        />
-        <Button
-          variant="ghost"
-          size="sm"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onDelete(booking.id); }}
-          className="w-5 h-5 p-0 text-red-400 hover:bg-red-500 hover:text-white"
-          title="Elimina"
-          icon={<Trash2 size={11} />}
-        />
-      </div>
-    </div>
+      </Stack>
+
+      {/* Customer name */}
+      <Typography sx={{
+        fontWeight: 700,
+        color: '#fff',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        lineHeight: 1.2,
+        fontSize: isShort ? '0.75rem' : '0.8rem',
+        textAlign: 'center',
+      }}>
+        {booking.customer?.firstName} {booking.customer?.lastName}
+      </Typography>
+
+      {/* Artist pill */}
+      {!isShort && booking.artist && (
+        <Box sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 0.4,
+          px: 0.6,
+          py: 0.15,
+          borderRadius: '4px',
+          backgroundColor: `${color}25`,
+          border: `1px solid ${color}40`,
+          alignSelf: 'center',
+          maxWidth: '100%',
+          overflow: 'hidden',
+        }}>
+          <Box sx={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
+          <Typography sx={{
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            color: color,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: 1,
+          }}>
+            {booking.artist.name}
+          </Typography>
+        </Box>
+      )}
+    </Box>
   );
 }
 
@@ -117,7 +206,7 @@ export default function AgendaPage() {
       start: booking.date,
       end: new Date(new Date(booking.date).getTime() + (booking.duration ?? 60) * 60000).toISOString(),
       extendedProps: { booking },
-      backgroundColor: `${booking.artist?.color ?? '#00BFFF'}22`,
+      backgroundColor: `${booking.artist?.color ?? '#00BFFF'}15`,
       borderColor: booking.artist?.color ?? '#00BFFF',
       textColor: '#ffffff',
     })),
@@ -178,12 +267,30 @@ export default function AgendaPage() {
   }, [handleEditBooking]);
 
   return (
-    <div className="flex-1 flex flex-col gap-4">
-      <PageHeader title="Agenda Studio" />
-
-      <div
-        className="fc-nagma-wrapper border border-surface-border rounded-2xl overflow-hidden"
-        style={{ height: 'calc(100vh - 210px)' }}
+    <Box
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        mt: { xs: -2, md: -3 },
+        pt: 2,
+      }}
+    >
+      <Box
+        className="fc-nagma-wrapper"
+        sx={{
+          height: {
+            xs: 'calc(100vh - 100px)',
+            sm: 'calc(100vh - 112px)',
+            md: 'calc(100vh - 124px)',
+          },
+          width: '100%',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+          overflow: 'hidden',
+          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        }}
         role="grid"
         aria-label="Calendario appuntamenti"
       >
@@ -209,7 +316,7 @@ export default function AgendaPage() {
             locale={itLocale}
             firstDay={1}
             slotMinTime="08:00:00"
-            slotMaxTime="21:00:00"
+            slotMaxTime="19:30:00"
             slotDuration="00:30:00"
             slotLabelInterval="01:00:00"
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
@@ -234,9 +341,10 @@ export default function AgendaPage() {
             height="100%"
             allDaySlot={false}
             nowIndicator
+            eventMinHeight={18}
             dayMaxEvents={3}
             weekText="Settimana"
-            dayHeaderFormat={{ weekday: 'long', day: 'numeric', month: 'numeric' }}
+            dayHeaderFormat={{ weekday: 'short', day: '2-digit', month: '2-digit' }}
             dayCellContent={(arg) => ({
               html: `<span class="fc-daygrid-day-number" tabindex="0" role="gridcell" aria-label="${format(arg.date, 'EEEE d MMMM', { locale: it })}">${arg.dayNumberText}</span>`,
             })}
@@ -252,7 +360,7 @@ export default function AgendaPage() {
             }}
           />
         )}
-      </div>
+      </Box>
 
       <BookingModal
         isOpen={isModalOpen}
@@ -276,6 +384,6 @@ export default function AgendaPage() {
           loading={deletePasswordLoading}
         />
       )}
-    </div>
+    </Box>
   );
 }

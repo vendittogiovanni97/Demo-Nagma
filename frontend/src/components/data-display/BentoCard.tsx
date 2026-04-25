@@ -1,32 +1,57 @@
-"use client";
+'use client';
 
 import type { ReactNode } from 'react';
-
-import { cn } from '@/utils/cn';
+import { Box, Card, type SxProps, type Theme, Typography } from '@mui/material';
 
 interface BentoCardProps {
   title?: string;
   header?: ReactNode;
   children: ReactNode;
-  className?: string;
-  contentClassName?: string;
+  sx?: SxProps<Theme>;
+  contentSx?: SxProps<Theme>;
 }
 
 export default function BentoCard({
   title,
   header,
   children,
-  className,
-  contentClassName,
+  sx,
+  contentSx,
 }: BentoCardProps) {
   return (
-    <div className={cn('glass-panel p-6 flex flex-col', className)}>
+    <Card
+      sx={{
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        p: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        ...sx,
+      }}
+    >
       {header ? (
-        <div className="mb-4">{header}</div>
+        <Box sx={{ mb: 2 }}>{header}</Box>
       ) : title ? (
-        <h3 className="text-xl font-outfit mb-4">{title}</h3>
+        <Typography
+          variant="h6"
+          sx={{
+            mb: 2,
+            fontFamily: 'Outfit, sans-serif',
+            fontWeight: 600,
+          }}
+        >
+          {title}
+        </Typography>
       ) : null}
-      <div className={cn('flex-1', contentClassName)}>{children}</div>
-    </div>
+      <Box
+        sx={{
+          flex: 1,
+          ...contentSx,
+        }}
+      >
+        {children}
+      </Box>
+    </Card>
   );
 }

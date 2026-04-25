@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Download, FileSpreadsheet, FileText, FileDown, AlertCircle, SlidersHorizontal, X } from 'lucide-react';
+import { Alert, Box, MenuItem, Stack, TextField, Typography, useTheme } from '@mui/material';
 import Button from '@/components/ui/Button';
 import Modal from './Modal';
 import type { ExportColumn } from '@/utils/export';
@@ -44,6 +45,7 @@ export default function ExportModal<T>({
   useBackendFilters = false,
   getFilterParams,
 }: ExportModalProps<T>) {
+  const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [format, setFormat] = useState<ExportFormat>('xlsx');
   const [isExporting, setIsExporting] = useState(false);
@@ -135,103 +137,112 @@ export default function ExportModal<T>({
       </Button>
 
       <Modal isOpen={isOpen} onClose={handleClose} title="Esporta Dati">
-        <div className="flex flex-col gap-5">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
 
-          {error && (
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
-              <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-300">{error}</p>
-            </div>
-          )}
+          {error ? (
+            <Alert severity="error" icon={<AlertCircle size={18} />}>
+              {error}
+            </Alert>
+          ) : null}
 
-          {/* ── Filtri ── */}
           {filters && filters.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal size={14} className="text-accent" />
-                  <h4 className="text-sm font-bold text-text-secondary uppercase tracking-widest">Filtri</h4>
-                </div>
+            <Stack useFlexGap sx={{ gap: 1.5 }}>
+              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
+                  <SlidersHorizontal size={14} color={theme.palette.primary.main} />
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Filtri
+                  </Typography>
+                </Stack>
                 {hasActiveFilters && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={resetFilters}
-                    className="text-xs text-text-secondary hover:text-white"
                     icon={<X size={12} />}
                   >
                     Reset
                   </Button>
                 )}
-              </div>
+              </Stack>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
                 {filters.map((filter) => {
                   const val = filterValues[filter.key] ?? '';
                   const onChange = (v: string) => setFilterValues(prev => ({ ...prev, [filter.key]: v }));
 
                   return (
-                    <div key={filter.key} className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-text-secondary">{filter.label}</label>
+                    <Box key={filter.key} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.primary.main, textTransform: 'uppercase', letterSpacing: '0.08em', px: 0.5 }}>
+                        {filter.label}
+                      </Typography>
 
                       {filter.type === 'select' && filter.options ? (
-                        <select
+                        <TextField
+                          select
                           value={val}
-                          onChange={e => onChange(e.target.value)}
-                          className="rounded-xl border border-surface-border bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition focus:border-accent appearance-none"
+                          onChange={(e) => onChange(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
                         >
                           {filter.options.map(opt => (
-                            <option key={opt.value} value={opt.value} className="bg-[#0a1822]">
+                            <MenuItem key={opt.value} value={opt.value}>
                               {opt.label}
-                            </option>
+                            </MenuItem>
                           ))}
-                        </select>
+                        </TextField>
                       ) : filter.type === 'month' ? (
-                        <input
+                        <TextField
                           type="month"
                           value={val}
-                          onChange={e => onChange(e.target.value)}
-                          className="rounded-xl border border-surface-border bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition focus:border-accent"
+                          onChange={(e) => onChange(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
                         />
                       ) : filter.type === 'date' ? (
-                        <input
+                        <TextField
                           type="date"
                           value={val}
-                          onChange={e => onChange(e.target.value)}
-                          className="rounded-xl border border-surface-border bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition focus:border-accent"
+                          onChange={(e) => onChange(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
                         />
                       ) : (
-                        <input
-                          type="text"
+                        <TextField
                           value={val}
-                          onChange={e => onChange(e.target.value)}
+                          onChange={(e) => onChange(e.target.value)}
                           placeholder={filter.placeholder ?? filter.label}
-                          className="rounded-xl border border-surface-border bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition focus:border-accent placeholder:text-white/25"
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
                         />
                       )}
-                    </div>
+                    </Box>
                   );
                 })}
-              </div>
+              </Box>
 
-              {/* Conteggio record filtrati */}
-              <div className="flex items-center gap-2 text-xs">
-                <span className={`font-bold ${filteredRows.length === 0 ? 'text-danger' : 'text-accent'}`}>
+              <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: filteredRows.length === 0 ? theme.palette.error.main : theme.palette.primary.main }}>
                   {filteredRows.length}
-                </span>
-                <span className="text-text-secondary">
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
                   {filteredRows.length === rows.length
                     ? `record da esportare`
                     : `di ${rows.length} record corrispondono ai filtri`}
-                </span>
-              </div>
-            </div>
+                </Typography>
+              </Stack>
+            </Stack>
           )}
 
-          {/* ── Formato ── */}
-          <div className="flex flex-col gap-3">
-            <h4 className="text-sm font-bold text-text-secondary uppercase tracking-widest">Formato</h4>
-            <div className="flex flex-col gap-2">
+          <Stack useFlexGap sx={{ gap: 1.5 }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Formato
+            </Typography>
+            <Stack useFlexGap sx={{ gap: 1 }}>
               {formats.map((f) => {
                 const Icon = f.icon;
                 const isSelected = format === f.value;
@@ -240,25 +251,24 @@ export default function ExportModal<T>({
                     key={f.value}
                     variant={isSelected ? 'primary' : 'glass'}
                     onClick={() => setFormat(f.value)}
-                    className="justify-start"
+                    sx={{ justifyContent: 'flex-start' }}
                     icon={<Icon size={22} />}
                   >
-                    <div className="flex flex-col text-left">
-                      <span className="font-bold text-sm">{f.label}</span>
-                      <span className="text-xs opacity-70">{f.desc}</span>
-                    </div>
+                    <Stack sx={{ textAlign: 'left' }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>{f.label}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', opacity: 0.7 }}>{f.desc}</Typography>
+                    </Stack>
                   </Button>
                 );
               })}
-            </div>
-          </div>
+            </Stack>
+          </Stack>
 
-          {/* Conteggio se no filtri */}
           {(!filters || filters.length === 0) && (
-            <div className="text-sm text-text-secondary">
+            <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary }}>
               {rows.length} record da esportare
-              {resolveRows && <span className="text-accent"> (tutti i dati verranno scaricati)</span>}
-            </div>
+              {resolveRows && <Box component="span" sx={{ color: theme.palette.primary.main }}> (tutti i dati verranno scaricati)</Box>}
+            </Typography>
           )}
 
           <Button
@@ -273,7 +283,7 @@ export default function ExportModal<T>({
           >
             {!isExporting && `Esporta ${formats.find(f => f.value === format)?.label}`}
           </Button>
-        </div>
+        </Box>
       </Modal>
     </>
   );

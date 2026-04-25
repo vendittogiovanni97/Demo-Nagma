@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { addMonths, format, subMonths } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -8,33 +13,59 @@ import Button from '@/components/ui/Button';
 interface MonthPickerProps {
   value: Date;
   onChange: (date: Date) => void;
-  className?: string;
+  sx?: any;
 }
 
-export default function MonthPicker({ value, onChange, className }: MonthPickerProps) {
+export default function MonthPicker({ value, onChange, sx }: MonthPickerProps) {
+  const theme = useTheme();
   const monthLabel = format(value, 'MMMM yyyy', { locale: it });
 
   return (
-    <div className={`flex items-center gap-0.5 bg-white/5 rounded-lg px-2 py-1 border border-surface-border${className ? ` ${className}` : ''}`}>
+    <Stack
+      direction="row"
+      useFlexGap
+      sx={{ gap: 0.5, alignItems: 'center', bgcolor: `${theme.palette.primary.main}08`, borderRadius: 1, px: 1, py: 0.5, border: `1px solid ${theme.palette.primary.main}20`, ...sx }}
+    >
       <Button
         variant="ghost"
         size="sm"
         onClick={() => onChange(subMonths(value, 1))}
-        icon={<ArrowLeft size={14} />}
-        className="p-1"
         aria-label="Mese precedente"
-      />
-      <span className="text-xs font-semibold text-accent px-3 min-w-28 text-center capitalize">
+        sx={{
+          minWidth: 'auto',
+          p: 0.5,
+          color: theme.palette.primary.main,
+        }}
+      >
+        <ArrowLeft size={14} />
+      </Button>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 600,
+          color: theme.palette.primary.main,
+          px: 1.5,
+          minWidth: 112,
+          textAlign: 'center',
+          textTransform: 'capitalize',
+          fontSize: '0.75rem',
+        }}
+      >
         {monthLabel}
-      </span>
+      </Typography>
       <Button
         variant="ghost"
         size="sm"
         onClick={() => onChange(addMonths(value, 1))}
-        icon={<ArrowRight size={14} />}
-        className="p-1"
         aria-label="Mese successivo"
-      />
-    </div>
+        sx={{
+          minWidth: 'auto',
+          p: 0.5,
+          color: theme.palette.primary.main,
+        }}
+      >
+        <ArrowRight size={14} />
+      </Button>
+    </Stack>
   );
 }

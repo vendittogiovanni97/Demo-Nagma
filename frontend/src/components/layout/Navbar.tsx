@@ -3,7 +3,17 @@
 import { branding } from "@/config/branding";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import * as Popover from "@radix-ui/react-popover";
+import {
+  AppBar,
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Toolbar,
+  Typography,
+  useTheme as useMuiTheme,
+} from "@mui/material";
 import {
   Calendar,
   CalendarDays,
@@ -23,7 +33,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import Button from "@/components/ui/Button";
 import BookingModal from "../modals/BookingModal";
 
 function getInitials(name?: string, email?: string) {
@@ -39,18 +48,20 @@ function getInitials(name?: string, email?: string) {
 export default function Navbar() {
   const pathname = usePathname();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
   const { isSmall, isMedium } = useTheme();
+  const muiTheme = useMuiTheme();
 
-  // Responsive icon sizes: 18px mobile, 20px tablet, 22px desktop
-  const iconSize = isSmall ? 18 : isMedium ? 20 : 22;
-
-  // Responsive text size: 0.65rem mobile, 0.75rem tablet, text-xs desktop
-  const navTextSize = isSmall ? 'text-[0.65rem]' : isMedium ? 'text-[0.7rem]' : 'text-xs';
-
-  // Logo icon dimensions: 18px mobile, 20px tablet, 22px desktop
-  const logoSize = isSmall ? 18 : isMedium ? 20 : 22;
+  // ─── DIMENSIONI ──────────────────────────────────────────────
+  const iconSize    = isSmall ? 11 : isMedium ? 12 : 13;
+  const navTextSize = isSmall ? '0.4375rem' : isMedium ? '0.5rem' : '0.5rem';
+  const logoSize    = isSmall ? 11 : isMedium ? 12 : 13;
+  const logoBox     = isSmall ? 18 : 22;
+  const plusBtn     = isSmall ? 22 : 24;
+  const avatarBtn   = isSmall ? 24 : 26;
+  const dividerH    = 16;
+  // ─────────────────────────────────────────────────────────────
 
   const [authChecked, setAuthChecked] = useState(false);
   useEffect(() => {
@@ -58,206 +69,393 @@ export default function Navbar() {
   }, []);
 
   if (!authChecked) {
-    return (
-      <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]" />
-    );
+    return <Box component="nav" sx={{ height: 44 }} />;
   }
 
   if (!isAuthenticated) {
     if (pathname === '/login') return null;
     return (
-      <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
-        <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-1.5 px-3 sm:py-2 sm:px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
-          <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
-            <div className={`${isSmall ? 'h-7 w-7' : 'h-8 w-8'} rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden`}>
+      <AppBar
+        position="fixed"
+        sx={{
+          top: 6,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'fit-content',
+          maxWidth: 'calc(100% - 24px)',
+          right: 'auto',
+          backgroundColor: 'rgba(10, 26, 38, 0.86)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0, 191, 255, 0.12)',
+          borderRadius: '100px',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 191, 255, 0.1)',
+        }}
+      >
+        <Toolbar
+          sx={{
+            py: { xs: 0.375, sm: 0.5 },
+            px: { xs: 0.75, sm: 1.25 },
+            gap: 0.75,
+            minHeight: 'unset',
+          }}
+        >
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, paddingRight: 4, textDecoration: 'none' }}>
+            <Box
+              sx={{
+                width: logoBox,
+                height: logoBox,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(0, 191, 255, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
               <Image
                 src={branding.portalLogo}
                 alt={branding.portalName}
                 width={logoSize}
                 height={logoSize}
-                className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} object-contain`}
+                style={{ width: logoSize, height: logoSize, objectFit: 'contain' }}
               />
-            </div>
-            <span className="hidden md:block text-xs font-outfit font-semibold tracking-[0.4px]">
+            </Box>
+            <Typography
+              sx={{
+                display: { xs: 'none', md: 'block' },
+                fontSize: '0.6875rem',
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                letterSpacing: '0',
+                color: '#ffffff',
+              }}
+            >
               {branding.portalShortName}
-            </span>
+            </Typography>
           </Link>
-        </div>
-      </nav>
+        </Toolbar>
+      </AppBar>
     );
   }
 
   const navItems = [
-    { name: "Home", href: "/", icon: LayoutGrid },
-    { name: "Agenda", href: "/agenda", icon: Calendar },
+    { name: "Home",         href: "/",            icon: LayoutGrid   },
+    { name: "Agenda",       href: "/agenda",       icon: Calendar     },
     { name: "Prenotazioni", href: "/prenotazioni", icon: CalendarDays },
-    { name: "Clienti", href: "/clienti", icon: Users },
-    { name: "Team", href: "/team", icon: UsersRound },
+    { name: "Clienti",      href: "/clienti",      icon: Users        },
+    { name: "Team",         href: "/team",         icon: UsersRound   },
   ];
 
   const initials = getInitials(user?.name, user?.email);
 
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
   return (
     <>
-    <nav suppressHydrationWarning className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
-      <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
-        <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
-          <div className={`${isSmall ? 'h-7 w-7' : 'h-8 w-8'} rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden`}>
-            <Image
-              src={branding.portalLogo}
-              alt={branding.portalName}
-              width={logoSize}
-              height={logoSize}
-              className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} object-contain`}
-            />
-          </div>
-          <span className="hidden md:block text-xs font-outfit font-semibold tracking-[0.4px]">
-            {branding.portalShortName}
-          </span>
-        </Link>
-
-        <div className="w-px h-6.5 bg-surface-border" />
-
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 transition-all duration-200 p-1.5 ${
-                isActive
-                  ? "text-accent -translate-y-0.5"
-                  : "text-text-secondary hover:text-accent hover:-translate-y-0.5"
-              }`}
+      <AppBar
+        position="fixed"
+        suppressHydrationWarning
+        sx={{
+          top: 6,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'fit-content',
+          maxWidth: 'calc(100% - 24px)',
+          right: 'auto',
+          backgroundColor: 'rgba(10, 26, 38, 0.86)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0, 191, 255, 0.12)',
+          borderRadius: '100px',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 191, 255, 0.1)',
+        }}
+      >
+        <Toolbar
+          sx={{
+            py: 0.375,
+            px: { xs: 0.75, sm: 1.25 },
+            gap: 0.75,
+            minHeight: 'unset',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          {/* Logo */}
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, paddingRight: 4, textDecoration: 'none' }}>
+            <Box
+              sx={{
+                width: logoBox,
+                height: logoBox,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(0, 191, 255, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
             >
-              <Icon size={iconSize} className="shrink-0" />
-              <span className={`${navTextSize} font-bold uppercase tracking-[0.5px] font-outfit`}>
-                {item.name}
-              </span>
-            </Link>
-          );
-        })}
-
-        <div className="w-px h-6.5 bg-surface-border" />
-
-        <Button
-          variant="primary"
-          size="md"
-          icon={<Plus size={iconSize} className="shrink-0" />}
-          onClick={() => setIsBookingOpen(true)}
-          className="w-9.5 h-9.5 p-0 rounded-full flex items-center justify-center"
-        />
-
-        <div className="w-px h-6.5 bg-surface-border mx-1.5" />
-
-        <Popover.Root open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
-          <Popover.Trigger asChild>
-            <Button
-              variant="ghost"
-              size="md"
-              className="h-10.5 w-10.5 p-0 rounded-full bg-accent/15 border border-accent/40 flex items-center justify-center text-xs font-bold uppercase tracking-wider"
-              title={user?.name || user?.email || "Profilo utente"}
-              aria-label="Menu utente"
+              <Image
+                src={branding.portalLogo}
+                alt={branding.portalName}
+                width={logoSize}
+                height={logoSize}
+                style={{ width: logoSize, height: logoSize, objectFit: 'contain' }}
+              />
+            </Box>
+            <Typography
+              sx={{
+                display: { xs: 'none', md: 'block' },
+                fontSize: '0.6875rem',
+                fontFamily: 'Outfit',
+                fontWeight: 600,
+                letterSpacing: '0',
+                color: '#ffffff',
+              }}
             >
-              {initials}
-            </Button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              align="end"
-              sideOffset={14}
-              className="z-60 w-60 rounded-2xl border border-surface-border bg-[#0a1a26]/95 backdrop-blur-[20px] p-3 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]"
-            >
-              <div className="px-3 py-2 mb-2 border-b border-surface-border">
-                <div className="text-sm font-semibold text-white truncate">
-                  {user?.name || "Utente"}
-                </div>
-                <div className="text-[11px] text-text-secondary truncate">{user?.email}</div>
-                {user?.role && (
-                  <div className="mt-1 text-[9px] font-bold text-accent uppercase tracking-wider">
-                    {user.role}
-                  </div>
-                )}
-              </div>
+              {branding.portalShortName}
+            </Typography>
+          </Link>
 
-              <nav className="flex flex-col gap-1">
+          {/* Separatore */}
+          <Box sx={{ width: '1px', height: dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
+
+          {/* Nav items */}
+          <Stack direction="row" useFlexGap sx={{ gap: 0, display: 'flex', alignItems: 'center' }}>
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
                 <Link
-                  href="/settings"
-                  onClick={() => setIsUserMenuOpen(false)}
-                  className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
-                >
-                  <Settings size={16} className="shrink-0" />
-                  <span>Impostazioni</span>
-                </Link>
-                {isSuperAdmin && (
-                  <Link
-                    href="/form-templates"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
-                  >
-                    <FileText size={16} className="shrink-0" />
-                    <span>Form Template</span>
-                  </Link>
-                )}
-                {isAdmin && (
-                  <Link
-                    href="/whatsapp"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
-                  >
-                    <MessageSquare size={16} className="shrink-0" />
-                    <span>WhatsApp</span>
-                  </Link>
-                )}
-                {isAdmin && (
-                  <Link
-                    href="/admin/creams"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
-                  >
-                    <Package size={16} className="shrink-0" />
-                    <span>Vendite Crema</span>
-                  </Link>
-                )}
-                {isAdmin && (
-                  <Link
-                    href="/admin/booking-history"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
-                  >
-                    <History size={16} className="shrink-0" />
-                    <span>Storico Prenotazioni</span>
-                  </Link>
-                )}
-                <Link
-                  href="/spese-libere"
-                  onClick={() => setIsUserMenuOpen(false)}
-                  className="flex items-center justify-start gap-3 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-accent hover:bg-white/5 transition-colors"
-                >
-                  <Receipt size={16} className="shrink-0" />
-                  <span>Spese Libere</span>
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<LogOut size={16} />}
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    logout();
+                  key={item.name}
+                  href={item.href}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                    padding: isSmall ? 6 : 10,
+                    transition: 'all 0.3s ease',
+                    color: isActive ? muiTheme.palette.primary.main : muiTheme.palette.text.secondary,
+                    transform: isActive ? 'translateY(-1px)' : 'none',
+                    textDecoration: 'none',
+                    textAlign: 'center',
                   }}
-                  className="justify-start items-center text-text-secondary hover:text-danger hover:bg-danger/10 px-3"
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.color = muiTheme.palette.primary.main;
+                      (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.color = muiTheme.palette.text.secondary;
+                      (e.currentTarget as HTMLElement).style.transform = 'none';
+                    }
+                  }}
                 >
-                  Logout
-                </Button>
-              </nav>
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
-      </div>
-    </nav>
+                  <Icon size={iconSize} />
+                  <Typography
+                    sx={{
+                      fontSize: navTextSize,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      fontFamily: 'Outfit',
+                      textTransform: 'uppercase',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {item.name}
+                  </Typography>
+                </Link>
+              );
+            })}
+          </Stack>
 
-    <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
-  </>
+          {/* Separatore */}
+          <Box sx={{ width: '1px', height: dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
+
+          {/* Bottone + */}
+          <IconButton
+            onClick={() => setIsBookingOpen(true)}
+            sx={{
+              width: plusBtn,
+              height: plusBtn,
+              padding: 0,
+              borderRadius: '50%',
+              backgroundColor: muiTheme.palette.primary.main,
+              color: muiTheme.palette.background.default,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: muiTheme.palette.primary.light,
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            <Plus size={iconSize} />
+          </IconButton>
+
+          {/* Separatore */}
+          <Box sx={{ width: '1px', height: dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)', mx: 0.25 }} />
+
+          {/* Avatar */}
+          <IconButton
+            onClick={handleUserMenuOpen}
+            title={user?.name || user?.email || 'Profilo utente'}
+            aria-label="Menu utente"
+            sx={{
+              width: avatarBtn,
+              height: avatarBtn,
+              padding: 0,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(0, 191, 255, 0.15)',
+              border: '1px solid rgba(0, 191, 255, 0.4)',
+              color: 'inherit',
+              fontSize: '0.5rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 191, 255, 0.25)',
+              },
+            }}
+          >
+            {initials}
+          </IconButton>
+
+          {/* Menu utente */}
+          <Menu
+            anchorEl={userMenuAnchor}
+            open={Boolean(userMenuAnchor)}
+            onClose={handleUserMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            slotProps={{
+              paper: {
+                sx: {
+                  width: 200,
+                  borderRadius: 2,
+                  border: '1px solid rgba(0, 191, 255, 0.2)',
+                  backgroundColor: 'rgba(10, 26, 38, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 191, 255, 0.1)',
+                },
+              },
+            }}
+          >
+            {/* Header menu */}
+            <Box sx={{ px: 1.5, py: 1, mb: 1, borderBottom: '1px solid rgba(0, 191, 255, 0.12)' }}>
+              <Typography
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {user?.name || 'Utente'}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '0.5625rem',
+                  color: muiTheme.palette.text.secondary,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {user?.email}
+              </Typography>
+              {user?.role && (
+                <Typography
+                  sx={{
+                    mt: 0.25,
+                    fontSize: '0.5rem',
+                    fontWeight: 700,
+                    color: muiTheme.palette.primary.main,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  {user.role}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Voci menu */}
+            {[
+              { href: '/settings',             icon: Settings,     label: 'Impostazioni',        show: true         },
+              { href: '/form-templates',        icon: FileText,     label: 'Form Template',       show: isSuperAdmin },
+              { href: '/whatsapp',             icon: MessageSquare, label: 'WhatsApp',            show: isAdmin      },
+              { href: '/admin/creams',          icon: Package,      label: 'Vendite Crema',       show: isAdmin      },
+              { href: '/admin/booking-history', icon: History,      label: 'Storico Prenotazioni',show: isAdmin      },
+              { href: '/spese-libere',          icon: Receipt,      label: 'Spese Libere',        show: true         },
+            ].filter((i) => i.show).map(({ href, icon: Icon, label }) => (
+              <MenuItem
+                key={href}
+                component={Link}
+                href={href}
+                onClick={handleUserMenuClose}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.25,
+                  px: 1.25,
+                  py: 0.625,
+                  borderRadius: 1,
+                  fontSize: '0.6875rem',
+                  color: muiTheme.palette.text.secondary,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    color: muiTheme.palette.primary.main,
+                  },
+                }}
+              >
+                <Icon size={13} />
+                <span>{label}</span>
+              </MenuItem>
+            ))}
+
+            <MenuItem
+              onClick={() => { handleUserMenuClose(); logout(); }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.25,
+                px: 1.25,
+                py: 0.625,
+                borderRadius: 1,
+                fontSize: '0.6875rem',
+                color: muiTheme.palette.text.secondary,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  color: muiTheme.palette.error.main,
+                },
+              }}
+            >
+              <LogOut size={13} />
+              <span>Logout</span>
+            </MenuItem>
+          </Menu>
+        </Toolbar>
+      </AppBar>
+
+      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+    </>
   );
 }

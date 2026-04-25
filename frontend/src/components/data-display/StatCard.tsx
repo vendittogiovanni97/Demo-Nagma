@@ -1,21 +1,52 @@
 "use client";
 
+import { Box, useTheme } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import Card from '@/components/ui/Card';
 
 interface StatCardProps {
   value: string;
   label: string;
   color?: string;
-  className?: string;
+  sx?: SxProps<Theme>;
 }
 
-export default function StatCard({ value, label, color = 'text-white', className = '' }: StatCardProps) {
+export default function StatCard({
+  value,
+  label,
+  color,
+  sx = {}
+}: StatCardProps) {
+  const theme = useTheme();
+  const textColor = color || theme.palette.text.primary;
+
   return (
-    <Card variant="glass" size="md" className={`text-center group ${className}`}>
-      <div className={`text-3xl font-bold ${color} font-outfit group-hover:scale-110 transition-transform`}>
+    <Card variant="glass" size="md" sx={{ textAlign: 'center', ...sx }}>
+      <Box
+        sx={{
+          fontSize: '1.875rem',
+          fontWeight: 'bold',
+          color: textColor,
+          fontFamily: 'Outfit',
+          transition: 'transform 0.3s ease',
+          '&:hover': {
+            transform: 'scale(1.1)'
+          }
+        }}
+      >
         {value}
-      </div>
-      <div className="text-[10px] text-text-secondary uppercase tracking-widest mt-1">{label}</div>
+      </Box>
+      <Box
+        sx={{
+          fontSize: '0.625rem',
+          color: theme.palette.text.secondary,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          mt: 0.5
+        }}
+      >
+        {label}
+      </Box>
     </Card>
   );
 }

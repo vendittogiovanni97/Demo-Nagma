@@ -1,9 +1,16 @@
 "use client";
 
-import Button from '@/components/ui/Button';
 import type { Booking } from '@/types/booking';
+import {
+  Box,
+  IconButton,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { format } from 'date-fns';
 import { Clock, MessageCircle, Pencil, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}min`;
@@ -32,79 +39,178 @@ export default function BookingCard({
   onEdit,
   onDelete,
 }: BookingCardProps) {
-  const color = booking.artist?.color ?? 'var(--color-accent)';
+  const theme = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+  const color = booking.artist?.color ?? theme.palette.primary.main;
 
   return (
-    <div
+    <Box
       key={booking.id}
-      className="absolute left-1 right-1 rounded-xl p-3 text-xs border-l-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] backdrop-blur-md cursor-default group/card transition-all duration-300 hover:z-20 border"
-      style={{
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      sx={{
+        position: 'absolute',
+        left: 1,
+        right: 1,
         top: `${top}px`,
         height: `${height}px`,
+        borderRadius: 2,
+        p: 1.5,
+        fontSize: '0.75rem',
+        borderLeft: `4px solid ${color}`,
         backgroundColor: `${color}28`,
         borderColor: `${color}40`,
-        borderLeftColor: color,
+        border: `1px solid ${color}40`,
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+        backdropFilter: 'blur(8px)',
+        cursor: 'default',
+        transition: theme.transitions.create(['all'], { duration: 300 }),
+        zIndex: isHovered ? 20 : 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        pr: 5,
       }}
     >
-      {/* Actions column */}
-      <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
+      {/* Actions column - Hidden by default, visible on hover */}
+      <Stack
+        direction="column"
+        useFlexGap
+        sx={{ gap: 0.75, position: 'absolute', right: 1, top: 1, opacity: isHovered ? 1 : 0, transition: theme.transitions.create(['opacity'], { duration: 300 }), pointerEvents: isHovered ? 'auto' : 'none' }}
+      >
         {canSendWhatsApp && booking.customer?.id && (
-          <Button
-            variant="ghost"
-            size="sm"
+          <IconButton
+            size="small"
             onClick={(event) => {
               event.stopPropagation();
               onWhatsApp(booking);
             }}
-            icon={<MessageCircle size={14} />}
-            className="w-6 h-6 p-0 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
             title="WhatsApp"
-          />
+            sx={{
+              width: 24,
+              height: 24,
+              p: 0,
+              bgcolor: '#10b98115',
+              color: '#10b981',
+              '&:hover': {
+                bgcolor: '#10b981',
+                color: '#ffffff',
+                transform: 'scale(1.1)',
+              },
+              '&:active': {
+                transform: 'scale(0.95)',
+              },
+              borderRadius: 1,
+              boxShadow: theme.shadows[1],
+            }}
+          >
+            <MessageCircle size={14} />
+          </IconButton>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
+        <IconButton
+          size="small"
           onClick={(event) => {
             event.stopPropagation();
             onEdit(booking);
           }}
-          icon={<Pencil size={14} />}
-          className="w-6 h-6 p-0 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
           title="Modifica"
-        />
-        <Button
-          variant="ghost"
-          size="sm"
+          sx={{
+            width: 24,
+            height: 24,
+            p: 0,
+            bgcolor: '#3b82f615',
+            color: '#60a5fa',
+            '&:hover': {
+              bgcolor: '#3b82f6',
+              color: '#ffffff',
+              transform: 'scale(1.1)',
+            },
+            '&:active': {
+              transform: 'scale(0.95)',
+            },
+            borderRadius: 1,
+            boxShadow: theme.shadows[1],
+          }}
+        >
+          <Pencil size={14} />
+        </IconButton>
+        <IconButton
+          size="small"
           onClick={(event) => {
             event.stopPropagation();
             onDelete(booking.id);
           }}
-          icon={<Trash2 size={14} />}
-          className="w-6 h-6 p-0 bg-danger/20 text-danger hover:bg-danger hover:text-white rounded-lg shadow-sm hover:scale-110 active:scale-95"
           title="Elimina"
-        />
-      </div>
+          sx={{
+            width: 24,
+            height: 24,
+            p: 0,
+            bgcolor: `${theme.palette.error.main}15`,
+            color: theme.palette.error.main,
+            '&:hover': {
+              bgcolor: theme.palette.error.main,
+              color: '#ffffff',
+              transform: 'scale(1.1)',
+            },
+            '&:active': {
+              transform: 'scale(0.95)',
+            },
+            borderRadius: 1,
+            boxShadow: theme.shadows[1],
+          }}
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      </Stack>
 
-      <div className="flex flex-col h-full justify-between pr-8">
-        <div>
-          <div className="font-bold text-white text-sm truncate leading-tight mb-0.5">
-            {booking.customer?.firstName} {booking.customer?.lastName}
-          </div>
-          <div
-            className="font-semibold uppercase tracking-[0.5px] truncate leading-tight text-xs"
-            style={{ color }}
-          >
-            <span>●</span> {booking.artist?.name}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1 text-[10px] font-bold text-text-secondary/60">
-          <div className="flex items-center gap-1.5">
-            <Clock size={10} />
-            <span>{format(new Date(booking.date), 'HH:mm')}</span>
-          </div>
-          <div>{formatDuration(booking.duration)}</div>
-        </div>
-      </div>
-    </div>
+      {/* Content */}
+      <Box>
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 700,
+            color: theme.palette.text.primary,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: 1.2,
+            mb: 0.25,
+          }}
+        >
+          {booking.customer?.firstName} {booking.customer?.lastName}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            color,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: 1.2,
+          }}
+        >
+          ● {booking.artist?.name}
+        </Typography>
+      </Box>
+
+      {/* Time info */}
+      <Stack
+        useFlexGap
+        sx={{ gap: 0.5, fontSize: '10px', fontWeight: 700, color: `${theme.palette.text.secondary}99` }}
+      >
+        <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
+          <Clock size={10} style={{ flexShrink: 0 }} />
+          <Typography variant="caption" sx={{ fontWeight: 700 }}>
+            {format(new Date(booking.date), 'HH:mm')}
+          </Typography>
+        </Stack>
+        <Typography variant="caption" sx={{ fontWeight: 700 }}>
+          {formatDuration(booking.duration)}
+        </Typography>
+      </Stack>
+    </Box>
   );
 }

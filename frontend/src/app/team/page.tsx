@@ -1,26 +1,26 @@
 "use client";
 
-import dynamic from 'next/dynamic';
 
+import PermissionGate from '@/components/auth/PermissionGate';
+import Avatar from '@/components/data-display/Avatar';
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
 import WeekNavigator from '@/components/layout/WeekNavigator';
-import Avatar from '@/components/data-display/Avatar';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import PermissionGate from '@/components/auth/PermissionGate';
-import { useAuth } from '@/context/AuthContext';
-import { useTeamShifts, useTeamMembers } from '@/hooks/domain';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { DAYS_OF_WEEK, SHIFT_LABELS } from '@/config/team-config';
+import { useAuth } from '@/context/AuthContext';
+import { useTeamMembers, useTeamShifts } from '@/hooks/domain/useTeam';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useToast } from '@/hooks/useToast';
 import { teamService } from '@/services/team.service';
 import type { Shift } from '@/types/team';
-import { DAYS_OF_WEEK, SHIFT_LABELS } from '@/config/team-config';
 
 import ExportModal from '@/components/modals/ExportModal';
 import ShiftModal from '@/components/modals/ShiftModal';
 import StaffModal from '@/components/modals/StaffModal';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
 import { addDays, addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Edit, Loader2, Plus, Trash2 } from 'lucide-react';
@@ -28,6 +28,7 @@ import { useState } from 'react';
 
 export default function TeamPage() {
   const toast = useToast();
+  const theme = useTheme();
   const { isAdmin } = useAuth();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   const [week, setWeek] = useState(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
@@ -144,7 +145,7 @@ export default function TeamPage() {
   const weekDates = DAYS_OF_WEEK.map((_, i) => addDays(parseISO(week), i));
 
   return (
-    <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
       <PageHeader
         title="Team & Turni"
         actions={
@@ -164,12 +165,12 @@ export default function TeamPage() {
               ]}
             />
             <PermissionGate requireAdmin>
-               <Button variant="secondary" icon={Plus} onClick={() => openAddShift()} size="md">
+               <Button variant="secondary" icon={<Plus size={14} />} onClick={() => openAddShift()} size="sm">
                  Turno
                </Button>
             </PermissionGate>
             <PermissionGate requireAdmin>
-              <Button variant="primary" icon={Plus} onClick={() => setIsStaffModalOpen(true)} size="md">
+              <Button variant="primary" icon={<Plus size={14} />} onClick={() => setIsStaffModalOpen(true)} size="sm">
                 Staff
               </Button>
             </PermissionGate>
@@ -185,18 +186,18 @@ export default function TeamPage() {
         />
       </PageHeader>
 
-      <div className="glass-panel flex-1 rounded-2xl flex flex-col overflow-hidden w-full relative">
-        <div className="overflow-x-auto flex-1 w-full min-h-125">
-          <div className="min-w-250 h-full flex flex-col pb-4">
-            <div className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/50 bg-black/20 sticky top-0 z-10 backdrop-blur-md">
-              <div className="py-5 px-6 text-sm font-bold text-text-secondary uppercase tracking-widest">Collaboratore</div>
+      <Paper sx={{ flex: 1, borderRadius: 3, display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%', position: 'relative', bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}` }}>
+        <Box sx={{ overflowX: 'auto', flex: 1, width: '100%', minHeight: '500px' }}>
+          <Box sx={{ minWidth: '800px', height: '100%', display: 'flex', flexDirection: 'column', pb: 2 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '220px repeat(7, 1fr)', borderBottom: `1px solid ${theme.palette.divider}`, bgcolor: 'rgba(0,0,0,0.2)', position: 'sticky', top: 0, zIndex: 10, backdropFilter: 'blur(12px)' }}>
+              <Box sx={{ py: 2, px: 2, fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Collaboratore</Box>
               {weekDates.map((date, i) => (
-                <div key={i} className="py-4 px-4 text-center border-l border-surface-border/20 flex flex-col justify-center">
-                  <div className="text-white font-bold">{DAYS_OF_WEEK[i]}</div>
-                  <div className="text-xs text-text-secondary mt-1 tracking-wider uppercase">{format(date, 'd MMM', { locale: it })}</div>
-                </div>
+                <Box key={i} sx={{ py: 2, px: 1.5, textAlign: 'center', borderLeft: `1px solid ${theme.palette.divider}`, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: '0.75rem' }}>{DAYS_OF_WEEK[i]}</Typography>
+                  <Typography sx={{ fontSize: '0.625rem', color: theme.palette.text.secondary, mt: 0.25, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{format(date, 'd MMM', { locale: it })}</Typography>
+                </Box>
               ))}
-            </div>
+            </Box>
 
             {(loadingMembers || loadingShifts) && (
               <StatePanel
@@ -207,117 +208,155 @@ export default function TeamPage() {
             )}
 
             {!loadingMembers && !loadingShifts && membersList.length === 0 && (
-               <div className="flex-1 flex items-center justify-center text-text-secondary p-8">
+               <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.palette.text.secondary, p: 4 }}>
                  Nessun membro del team trovato. Aggiungi il primo componente.
-               </div>
+               </Box>
             )}
 
             {!loadingMembers && !loadingShifts && membersList.map(m => {
               const memberColor = m.color || '#3b82f6';
 
               return (
-                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/30 group/row hover:bg-white-[0.03] transition-colors relative min-h-36 py-2">
-                  <div className="py-4 px-5 flex items-center gap-3 relative group/member">
-                    <div
-                      className="w-1 absolute left-0 top-0 bottom-0 shadow-[0_0_10px_currentColor] opacity-70"
-                      style={{ backgroundColor: memberColor, color: memberColor }}
+                <Box key={m.id} sx={{ display: 'grid', gridTemplateColumns: '220px repeat(7, 1fr)', borderBottom: `1px solid ${theme.palette.divider}`, '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' }, transition: 'colors 0.2s', position: 'relative', minHeight: '80px', py: 1, '&:hover .hover-actions': { opacity: 1 } }}>
+                  <Box sx={{ py: 1.5, px: 2, display: 'flex', alignItems: 'center', gap: 1.5, position: 'relative' }}>
+                    <Box
+                      sx={{
+                        width: '3px',
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        backgroundColor: memberColor,
+                        boxShadow: `0 0 8px ${memberColor}`,
+                        opacity: 0.7
+                      }}
                     />
-                    <Avatar name={m.name} color={memberColor} size="md" />
-                    <div className="flex flex-col min-w-0">
-                       <span className="text-white font-bold text-base truncate">{m.name}</span>
+                    <Avatar name={m.name} color={memberColor} size="sm" />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                       <Typography sx={{ color: theme.palette.text.primary, fontWeight: 700, fontSize: '0.8125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</Typography>
                        <Badge
                          variant={m.type === 'COLLABORATORE' ? 'primary' : 'secondary'}
                          size="xs"
-                         className="w-fit mt-1"
+                         sx={{ width: 'fit-content', mt: 0.25 }}
                        >
                          {m.type}
                        </Badge>
-                    </div>
+                    </Box>
                     <PermissionGate requireAdmin>
-                      <div className="absolute right-2 top-2 flex gap-2 opacity-0 group-hover/member:opacity-100 transition-opacity duration-150">
+                      <Box className="hover-actions" sx={{ position: 'absolute', right: 1, top: 1, display: 'flex', gap: 0.5, opacity: 0, transition: 'opacity 0.15s' }}>
                         <Button
                           variant="icon"
-                          icon={<Edit size={16} />}
+                          icon={<Edit size={14} />}
                           title="Modifica"
                           onClick={() => setIsStaffModalOpen(true)}
                         />
                         <Button
                           variant="icon"
-                          icon={<Trash2 size={16} />}
-                          className="text-danger/60 hover:text-danger hover:bg-danger/10"
+                          icon={<Trash2 size={14} />}
+                          sx={{ color: theme.palette.error.light }}
                           title="Elimina"
                           onClick={() => handleDeleteMember(m.id, m.name)}
                         />
-                      </div>
+                      </Box>
                     </PermissionGate>
-                  </div>
+                  </Box>
 
                   {DAYS_OF_WEEK.map((_, dayIndex) => {
                     const shift = shifts?.find(s => s.staffId === m.id && s.dayOfWeek === dayIndex && s.weekStart === week);
 
                     return (
-                      <div
+                      <Box
                         key={dayIndex}
-                        className="p-3 border-l border-surface-border/20 relative group/cell flex flex-col justify-center min-h-25 hover:bg-white-[0.01]"
+                        sx={{
+                          p: 1,
+                          borderLeft: `1px solid ${theme.palette.divider}`,
+                          position: 'relative',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          minHeight: '72px',
+                          '&:hover': { bgcolor: 'rgba(255,255,255,0.01)' }
+                        }}
                       >
                         {shift ? (
-                          <div
+                          <Box
                             onClick={() => handleCycleShift(shift)}
-                            className={`relative rounded-xl p-3 text-center border transition-all duration-300 hover:scale-[1.02] ${updatingShiftId === shift.id ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:shadow-lg'}`}
-                            style={{
-                              backgroundColor: shift.isOff ? 'rgba(239, 68, 68, 0.1)' : `${memberColor}15`,
+                            sx={{
+                              position: 'relative',
+                              borderRadius: '8px',
+                              p: 1,
+                              textAlign: 'center',
+                              border: '1px solid',
                               borderColor: shift.isOff ? 'rgba(239, 68, 68, 0.3)' : `${memberColor}40`,
-                              boxShadow: updatingShiftId === shift.id ? 'none' : `0 8px 24px ${memberColor}10`
+                              backgroundColor: shift.isOff ? 'rgba(239, 68, 68, 0.1)' : `${memberColor}15`,
+                              boxShadow: updatingShiftId === shift.id ? 'none' : `0 4px 12px ${memberColor}10`,
+                              transition: 'all 0.3s',
+                              opacity: updatingShiftId === shift.id ? 0.5 : 1,
+                              cursor: updatingShiftId === shift.id ? 'wait' : 'pointer',
+                              '&:hover': updatingShiftId !== shift.id ? { transform: 'scale(1.02)', boxShadow: `0 4px 12px ${memberColor}20` } : {}
                             }}
                           >
-                            <div className="flex flex-col items-center justify-center min-h-10">
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '28px' }}>
                               {updatingShiftId === shift.id ? (
-                                <Loader2 size={18} className="animate-spin text-white/50" />
+                                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: 'rgba(255,255,255,0.5)' }} />
                               ) : (
-                                <span
-                                  className="text-sm font-bold block"
-                                  style={{ color: shift.isOff ? '#ef4444' : memberColor }}
+                                <Typography
+                                  sx={{
+                                    fontSize: '0.6875rem',
+                                    fontWeight: 700,
+                                    display: 'block',
+                                    color: shift.isOff ? theme.palette.error.main : memberColor
+                                  }}
                                 >
                                   {shift.label || (shift.isOff ? 'Riposo' : `${shift.startTime} - ${shift.endTime}`)}
-                                </span>
+                                </Typography>
                               )}
-                            </div>
-
-                          </div>
+                            </Box>
+                          </Box>
                         ) : (
-                          <div className="absolute inset-2 md:inset-3 flex items-center justify-center">
+                          <Box sx={{ position: 'absolute', inset: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {isAddingShift === `${m.id}-${dayIndex}` ? (
-                              <Loader2 size={24} className="animate-spin text-white/20" />
+                              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: 'rgba(255,255,255,0.2)' }} />
                             ) : canManageShiftData ? (
                               <>
-                                <div className="flex flex-col items-center gap-1 group-hover/cell:opacity-0 transition-opacity duration-150 pointer-events-none select-none">
-                                  <span className="text-[11px] font-semibold text-white/20 uppercase tracking-widest">Riposo</span>
-                                </div>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, opacity: 0, transition: 'opacity 0.15s', pointerEvents: 'none', userSelect: 'none', '&:hover + button': { opacity: 1 } }}>
+                                  <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Riposo</Typography>
+                                </Box>
                                 <Button
                                   variant="ghost"
                                   onClick={() => handleQuickAddShift(m.id, dayIndex)}
-                                  className="absolute inset-0 z-10 w-full h-full rounded-xl border-2 border-dashed border-white/10 opacity-0 group-hover/cell:opacity-100 transition-opacity duration-150"
+                                  sx={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    zIndex: 10,
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '8px',
+                                    border: '2px dashed rgba(255,255,255,0.1)',
+                                    opacity: 0,
+                                    transition: 'opacity 0.15s'
+                                  }}
                                   title="Aggiungi Mattina (Doppio click per opzioni)"
                                   onDoubleClick={() => openAddShift(m.id, dayIndex)}
-                                  icon={<Plus size={20} />}
+                                  icon={<Plus size={16} />}
                                 >
-                                  <span className="text-[10px] font-bold">MATTINA</span>
+                                  <span style={{ fontSize: '0.5rem', fontWeight: 700 }}>MATTINA</span>
                                 </Button>
                               </>
                             ) : (
-                              <span className="text-[11px] font-semibold text-white/20 uppercase tracking-widest select-none">Riposo</span>
+                              <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.1em', userSelect: 'none' }}>Riposo</Typography>
                             )}
-                          </div>
+                          </Box>
                         )}
-                      </div>
+                      </Box>
                     );
                   })}
-                </div>
+</Box>
               );
             })}
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Paper>
 
       <StaffModal isOpen={isStaffModalOpen} onClose={() => { setIsStaffModalOpen(false); mutateMembers(); }} />
       <ShiftModal
@@ -329,6 +368,6 @@ export default function TeamPage() {
         initialDayOfWeek={shiftModalData.dayOfWeek}
       />
       <ConfirmDialog {...confirmDialogProps} />
-    </div>
+    </Box>
   );
 }

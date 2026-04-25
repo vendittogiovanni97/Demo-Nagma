@@ -1,6 +1,6 @@
 "use client";
 
-import Button from '@/components/ui/Button';
+import { Box, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from '@mui/material';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -9,10 +9,18 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  maxWidth?: string;
+  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export default function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = 'md'
+}: ModalProps) {
+  const theme = useTheme();
+
   useEffect(() => {
     if (!isOpen) return;
     const handleEsc = (e: KeyboardEvent) => {
@@ -22,41 +30,81 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
     return () => document.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/75 backdrop-blur-sm flex justify-center items-center z-2005 p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth={maxWidth}
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: 'rgba(10, 26, 38, 0.95)',
+            backdropFilter: 'blur(40px)',
+            border: `1px solid rgba(255, 255, 255, 0.08)`,
+            borderRadius: '12px',
+            boxShadow: '0px 18px 44px rgba(0, 0, 0, 0.58), 0px 0px 28px rgba(0, 191, 255, 0.07)'
+          }
+        },
+        backdrop: {
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)'
+          }
+        },
+      }}
     >
-      <div
-        className={[
-          'w-full relative flex flex-col',
-          maxWidth,
-          'bg-[#0a1a26]/95 backdrop-blur-xl',
-          'border border-white/8',
-          'rounded-2xl overflow-hidden',
-          'shadow-[0_20px_60px_rgba(0,0,0,0.7),0_0_40px_rgba(0,191,255,0.08)]',
-          'animate-in fade-in zoom-in-95 duration-200',
-        ].join(' ')}
+      <DialogTitle
+        sx={{
+          fontSize: '1.125rem',
+          fontWeight: 600,
+          color: theme.palette.text.primary,
+          letterSpacing: '0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: '18px 20px',
+          borderBottom: `1px solid rgba(255, 255, 255, 0.06)`,
+          m: 0
+        }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-7 py-5 border-b border-white/6">
-          <h3 className="text-lg font-outfit font-semibold text-white tracking-wide">{title}</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            icon={<X size={18} className="text-text-secondary" />}
-            className="p-1.5 hover:bg-white/10 rounded-lg"
-          />
-        </div>
-
-        {/* Body */}
-        <div className="p-7 overflow-y-auto max-h-[80vh] custom-scrollbar">
-          {children}
-        </div>
-      </div>
-    </div>
+        <Box sx={{ flex: 1 }}>{title}</Box>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            ml: 1,
+            color: theme.palette.text.secondary,
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)'
+            }
+          }}
+          size="small"
+        >
+          <X size={18} />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent
+        sx={{
+          p: '18px 20px',
+          maxHeight: 'calc(100vh - 96px)',
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            width: '8px'
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0, 191, 255, 0.3)',
+            borderRadius: '4px',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 191, 255, 0.5)'
+            }
+          }
+        }}
+      >
+        {children}
+      </DialogContent>
+    </Dialog>
   );
 }

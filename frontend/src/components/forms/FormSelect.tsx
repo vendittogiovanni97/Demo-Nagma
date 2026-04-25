@@ -1,5 +1,7 @@
 "use client";
 
+import { MenuItem, TextField, useTheme } from '@mui/material';
+import { inputRootSx } from '@/theme/inputStyles';
 import type { LucideIcon } from 'lucide-react';
 
 interface SelectOption {
@@ -24,31 +26,39 @@ export default function FormSelect({
   onChange,
   options,
   required,
-  icon: Icon,
   placeholder,
   disabled,
 }: FormSelectProps) {
+  const theme = useTheme();
+
   return (
-    <div className="space-y-2">
-      <label className="text-text-secondary text-sm flex items-center gap-2 px-1">
-        {Icon && <Icon size={14} />}
-        {label}
-        {required && <span className="text-red-400">*</span>}
-      </label>
-      <select
-        required={required}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className="w-full bg-white/5 border border-surface-border rounded-xl p-3 text-white focus:outline-none focus:border-accent transition-all appearance-none disabled:opacity-50"
-      >
-        {placeholder && <option value="" className="bg-[#0a1a26]">{placeholder}</option>}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-[#0a1a26]">
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
+    <TextField
+      select
+      size="small"
+      label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      disabled={disabled}
+      fullWidth
+      slotProps={{
+        inputLabel: { shrink: true },
+      }}
+      sx={{
+        '& .MuiOutlinedInput-root': inputRootSx(theme),
+        '& .MuiSelect-icon': { color: theme.palette.text.secondary },
+      }}
+    >
+      {placeholder && (
+        <MenuItem value="" disabled>
+          {placeholder}
+        </MenuItem>
+      )}
+      {options.map((opt) => (
+        <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.875rem' }}>
+          {opt.label}
+        </MenuItem>
+      ))}
+    </TextField>
   );
 }

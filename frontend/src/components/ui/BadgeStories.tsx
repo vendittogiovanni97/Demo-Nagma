@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+import { Box, Typography } from '@mui/material';
 import Badge from './Badge';
 import { CheckCircle, AlertCircle, Info, Zap, Trash2, Star } from 'lucide-react';
 
-/**
- * BadgeStories: Showcase di tutti gli stati e variant del componente Badge
- * Utile per sviluppo, testing e documentazione
- */
 export default function BadgeStories() {
+  const theme = useTheme();
   const [removableStates, setRemovableStates] = useState({
     info: true,
     warning: true,
@@ -16,30 +15,58 @@ export default function BadgeStories() {
   });
 
   const handleRemove = (key: keyof typeof removableStates) => {
-    setRemovableStates(prev => ({ ...prev, [key]: false }));
+    setRemovableStates((prev) => ({ ...prev, [key]: false }));
   };
 
   return (
-    <div className="space-y-8 p-8 bg-background min-h-screen">
-      <h1 className="text-3xl font-bold text-white">Badge Component Stories</h1>
+    <Box
+      sx={{
+        p: { xs: 1, sm: 1.5, md: 2, lg: 3 },
+        minHeight: '100vh',
+        backgroundColor: theme.palette.background.default,
+      }}
+    >
+      <Typography
+        variant="h1"
+        sx={{
+          color: theme.palette.text.primary,
+          mb: 4,
+        }}
+      >
+        Badge Component Stories
+      </Typography>
 
-      {/* Variants */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">Variants (Size: SM)</h2>
-        <div className="flex flex-wrap gap-3">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          Variants (Size: SM)
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
           <Badge variant="primary">Primary</Badge>
           <Badge variant="secondary">Secondary</Badge>
           <Badge variant="danger">Danger</Badge>
           <Badge variant="success">Success</Badge>
           <Badge variant="info">Info</Badge>
           <Badge variant="warning">Warning</Badge>
-        </div>
-      </section>
+        </Box>
+      </Box>
 
-      {/* Sizes */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">Sizes (Primary)</h2>
-        <div className="flex flex-wrap items-center gap-3">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          Sizes (Primary)
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
           <Badge size="xs" variant="primary">
             Extra Small
           </Badge>
@@ -49,13 +76,20 @@ export default function BadgeStories() {
           <Badge size="md" variant="primary">
             Medium
           </Badge>
-        </div>
-      </section>
+        </Box>
+      </Box>
 
-      {/* With Icons */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">With Icons</h2>
-        <div className="flex flex-wrap gap-3">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          With Icons
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
           <Badge variant="success" icon={CheckCircle}>
             Completato
           </Badge>
@@ -68,31 +102,43 @@ export default function BadgeStories() {
           <Badge variant="primary" icon={Zap}>
             Premium
           </Badge>
-        </div>
-      </section>
+        </Box>
+      </Box>
 
-      {/* With Icons - Different Sizes */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">Icons + Different Sizes</h2>
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-3">
-            <Badge size="xs" variant="primary" icon={Star}>
-              XS
-            </Badge>
-            <Badge size="sm" variant="primary" icon={Star}>
-              SM
-            </Badge>
-            <Badge size="md" variant="primary" icon={Star}>
-              MD
-            </Badge>
-          </div>
-        </div>
-      </section>
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          Icons + Different Sizes
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+          <Badge size="xs" variant="primary" icon={Star}>
+            XS
+          </Badge>
+          <Badge size="sm" variant="primary" icon={Star}>
+            SM
+          </Badge>
+          <Badge size="md" variant="primary" icon={Star}>
+            MD
+          </Badge>
+        </Box>
+      </Box>
 
-      {/* Removable Badges */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">Removable</h2>
-        <div className="flex flex-wrap gap-3">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          Removable
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
           {removableStates.info && (
             <Badge
               variant="info"
@@ -123,40 +169,69 @@ export default function BadgeStories() {
               Completed Task
             </Badge>
           )}
-        </div>
-      </section>
+        </Box>
+      </Box>
 
-      {/* Combined - Complex Example */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">Complex Examples</h2>
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          Complex Examples
+        </Typography>
+        <Box sx={{ mb: 1.5 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             <Badge variant="secondary" size="xs">
               v2.1.0
             </Badge>
             <Badge variant="success" size="xs" icon={CheckCircle}>
               Active
             </Badge>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="primary" icon={Zap}>
-              New Feature
-            </Badge>
-            <Badge variant="danger" icon={Trash2}>
-              Beta
-            </Badge>
-          </div>
-        </div>
-      </section>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+          <Badge variant="primary" icon={Zap}>
+            New Feature
+          </Badge>
+          <Badge variant="danger" icon={Trash2}>
+            Beta
+          </Badge>
+        </Box>
+      </Box>
 
-      {/* Color Combinations */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">All Combinations</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-          {(['xs', 'sm', 'md'] as const).map(size => (
-            <div key={size} className="space-y-2">
-              <p className="text-sm text-text-secondary">Size: {size}</p>
-              <div className="space-y-2">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
+          All Combinations
+        </Typography>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            gap: 2,
+          }}
+        >
+          {(['xs', 'sm', 'md'] as const).map((size) => (
+            <Box key={size} sx={{ mb: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  mb: 0.5,
+                  display: 'block',
+                }}
+              >
+                Size: {size}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Badge size={size} variant="primary">
                   Primary
                 </Badge>
@@ -175,11 +250,11 @@ export default function BadgeStories() {
                 <Badge size={size} variant="warning">
                   Warning
                 </Badge>
-              </div>
-            </div>
+              </Box>
+            </Box>
           ))}
-        </div>
-      </section>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

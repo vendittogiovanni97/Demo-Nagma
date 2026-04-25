@@ -8,9 +8,12 @@ import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { useToast } from '@/hooks/useToast';
 import { formTemplateService } from '@/services/form-template.service';
 import type { FieldDef, FormTemplate } from '@/types/form-template';
-import { Check, Edit3, FileText, Plus, Save, Trash2, X } from 'lucide-react';
+import { Edit3, FileText, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Box from '@mui/material/Box';
+import { Checkbox, FormControlLabel, MenuItem, Select, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 function decodeFields(schemaB64: string): FieldDef[] {
   try {
@@ -33,97 +36,109 @@ interface FieldEditorProps {
 }
 
 function FieldEditor({ field, onChange, onRemove }: FieldEditorProps) {
+  const theme = useTheme();
+
+  const inputSx = {
+    width: '100%',
+    p: 1.5,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    border: `1px solid ${theme.palette.divider}`,
+    color: 'white',
+    fontSize: '0.875rem',
+    outline: 'none',
+    transition: 'border-color 0.2s ease',
+    '&:focus': {
+      borderColor: theme.palette.primary.main,
+    },
+  };
+
+  const labelSx = {
+    fontSize: '0.75rem',
+    color: 'text.secondary',
+    mb: 0.75,
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+    display: 'block',
+    cursor: 'pointer',
+  };
+
   return (
-    <div className="relative bg-white/5 border border-surface-border rounded-xl p-5 group transition-all hover:border-accent/30 hover:bg-white/10">
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="danger"
-          size="sm"
-          type="button"
-          onClick={onRemove}
-          icon={<Trash2 size={16} />}
-          className="p-1.5"
-          title="Elimina campo"
-        />
-      </div>
+    <Box sx={{ position: 'relative', backgroundColor: 'rgba(255,255,255,0.05)', border: `1px solid ${theme.palette.divider}`, borderRadius: 2, p: 2.5, transition: 'all 0.2s ease', '&:hover': { borderColor: 'rgba(0,191,255,0.3)', backgroundColor: 'rgba(255,255,255,0.1)' } }}>
+      <Box sx={{ position: 'absolute', top: 1, right: 1, opacity: 0, transition: 'opacity 0.2s ease', '.MuiBox-root:hover &': { opacity: 1 } }}>
+        <Button variant="danger" size="sm" type="button" onClick={onRemove} icon={<Trash2 size={16} />} sx={{ p: 0.75 }} title="Elimina campo" />
+      </Box>
 
-      <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs text-text-secondary mb-1.5 font-semibold uppercase tracking-wider block">Identificativo (key)</label>
-            <input
-              type="text"
-              value={field.name}
-              onChange={(e) => onChange({ ...field, name: e.target.value.replace(/[^a-zA-Z0-9_]/g, '') })}
-              className="w-full p-3 rounded-xl bg-black/40 border border-surface-border text-white text-sm focus:border-accent outline-none font-mono"
-              placeholder="es. nomeGatto"
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+          <Box>
+            <Box component="label" sx={labelSx}>Identificativo (key)</Box>
+            <Box component="input" type="text" value={field.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...field, name: e.target.value.replace(/[^a-zA-Z0-9_]/g, '') })} sx={{ ...inputSx, fontFamily: 'monospace' }} placeholder="es. nomeGatto" />
+          </Box>
+          <Box>
+            <Box component="label" sx={labelSx}>Etichetta Visibile</Box>
+            <Box component="input" type="text" value={field.label} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ ...field, label: e.target.value })} sx={inputSx} placeholder="es. Nome del Gatto" />
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+          <Box>
+            <Box component="label" sx={labelSx}>Tipologia di Campo</Box>
+            <Select
+              value={field.type}
+              onChange={(e) => onChange({ ...field, type: e.target.value as FieldDef['type'] })}
+              size="small"
+              fullWidth
+              sx={{
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                borderRadius: 2,
+                fontSize: '0.875rem',
+                color: 'white',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
+                '& .MuiSelect-icon': { color: theme.palette.text.secondary },
+              }}
+            >
+              {FIELD_TYPES.map((t) => (
+                <MenuItem key={t} value={t} sx={{ fontSize: '0.875rem' }}>{t.toUpperCase()}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', pt: 3 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={field.required || false}
+                  onChange={(e) => onChange({ ...field, required: e.target.checked })}
+                  size="small"
+                  sx={{
+                    color: theme.palette.divider,
+                    '&.Mui-checked': { color: theme.palette.primary.main },
+                  }}
+                />
+              }
+              label={<Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>Campo Obbligatorio</Typography>}
+              sx={{ userSelect: 'none', cursor: 'pointer', m: 0 }}
             />
-          </div>
-          <div>
-            <label className="text-xs text-text-secondary mb-1.5 font-semibold uppercase tracking-wider block">Etichetta Visibile</label>
-            <input
-              type="text"
-              value={field.label}
-              onChange={(e) => onChange({ ...field, label: e.target.value })}
-              className="w-full p-3 rounded-xl bg-black/40 border border-surface-border text-white text-sm focus:border-accent outline-none"
-              placeholder="es. Nome del Gatto"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs text-text-secondary mb-1.5 font-semibold uppercase tracking-wider block">Tipologia di Campo</label>
-            <div className="relative">
-              <select
-                value={field.type}
-                onChange={(e) => onChange({ ...field, type: e.target.value as FieldDef['type'] })}
-                className="w-full p-3 rounded-xl bg-black/40 border border-surface-border text-white text-sm focus:border-accent outline-none appearance-none"
-              >
-                {FIELD_TYPES.map((t) => (
-                  <option key={t} value={t}>{t.toUpperCase()}</option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary">
-                ▼
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center pt-6">
-            <label className="flex items-center gap-3 cursor-pointer select-none">
-               <div className="relative flex items-center justify-center">
-                  <input
-                    type="checkbox"
-                    checked={field.required || false}
-                    onChange={(e) => onChange({ ...field, required: e.target.checked })}
-                    className="peer appearance-none w-5 h-5 border-2 border-surface-border rounded bg-black/40 checked:bg-accent checked:border-accent transition-colors"
-                  />
-                  <Check size={14} className="absolute text-black opacity-0 peer-checked:opacity-100 pointer-events-none stroke-3" />
-               </div>
-              <span className="text-sm font-semibold text-white">Campo Obbligatorio</span>
-            </label>
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {field.type === 'select' && (
-          <div className="mt-2">
-            <label className="text-xs text-text-secondary mb-1.5 font-semibold uppercase tracking-wider block">Opzioni a tendina (una per riga)</label>
-            <textarea
-              value={(field.options || []).join('\n')}
-              onChange={(e) => onChange({ ...field, options: e.target.value.split('\n').filter(Boolean) })}
-              rows={3}
-              className="w-full p-3 rounded-xl bg-black/40 border border-surface-border text-white text-sm focus:border-accent outline-none custom-scrollbar"
-              placeholder={"Opzione 1\nOpzione 2\nAltro..."}
-            />
-          </div>
+          <Box sx={{ mt: 0.5 }}>
+            <Box component="label" sx={labelSx}>Opzioni a tendina (una per riga)</Box>
+            <Box component="textarea" value={(field.options || []).join('\n')} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange({ ...field, options: e.target.value.split('\n').filter(Boolean) })} rows={3} sx={inputSx} placeholder="Opzione 1&#10;Opzione 2&#10;Altro..." />
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
 export default function FormTemplatesPage() {
+  const theme = useTheme();
   const toast = useToast();
   const { user, isSuperAdmin } = useAuth();
   const router = useRouter();
@@ -223,64 +238,47 @@ export default function FormTemplatesPage() {
 
   if (!isSuperAdmin) return null;
 
+  const dateInputSx = {
+    borderRadius: 1,
+    border: `1px solid ${theme.palette.divider}`,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    px: 1.5,
+    py: 1,
+    fontSize: '0.875rem',
+    color: 'white',
+    outline: 'none',
+    width: '9rem',
+    transition: 'border-color 0.2s ease',
+    '&:focus': { borderColor: theme.palette.primary.main },
+  };
+
   return (
-    <div className="flex-1 flex flex-col gap-6 w-full max-w-full overflow-hidden">
-      <PageHeader
-        title="Workspace Template"
-        actions={
-          <>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
-              />
-              <span className="text-text-secondary text-sm">—</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent w-36"
-              />
-              {(startDate || endDate) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { setStartDate(''); setEndDate(''); }}
-                  className="text-xs"
-                >
-                  Reset
-                </Button>
-              )}
-            </div>
-            <Button
-              variant="primary"
-              icon={Plus}
-              onClick={handleNewTemplate}
-            >
-              Nuovo Template
-            </Button>
-          </>
-        }
-      />
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+      <PageHeader title="Workspace Template" actions={
+        <>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box component="input" type="date" value={startDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)} sx={dateInputSx} />
+            <Box component="span" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>—</Box>
+            <Box component="input" type="date" value={endDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)} sx={dateInputSx} />
+            {(startDate || endDate) && (<Button variant="ghost" size="sm" onClick={() => { setStartDate(''); setEndDate(''); }} sx={{ fontSize: '0.75rem' }}>Reset</Button>)}
+          </Box>
+          <Button variant="primary" icon={<Plus />} onClick={handleNewTemplate}>Nuovo Template</Button>
+        </>
+      } />
 
-      {/* Main Content Layout */}
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6">
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3 }}>
+        <Box sx={{ backgroundColor: 'rgba(26,35,50,0.8)', backdropFilter: 'blur(10px)', width: { xs: '100%', lg: '33.333%' }, display: 'flex', flexDirection: 'column', borderRadius: 2, p: 2.5, border: `1px solid ${theme.palette.divider}` }}>
+          <Box sx={{ mb: 2 }}>
+            <Box component="h2" sx={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', fontFamily: 'Outfit, sans-serif' }}>Raccoglitore</Box>
+            <Box component="p" sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.5 }}>Scegli un form da modificare</Box>
+          </Box>
 
-        {/* Left Column: Template List */}
-        <div className="glass-panel w-full lg:w-1/3 flex flex-col rounded-2xl p-5 border border-surface-border">
-          <div className="mb-4">
-             <h2 className="text-lg font-outfit font-bold text-white">Raccoglitore</h2>
-             <p className="text-xs text-text-secondary mt-1">Scegli un form da modificare</p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+          <Box sx={{ flex: 1, overflowY: 'auto', pr: 0.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {(!templates || templates.length === 0) && (
-              <div className="flex flex-col items-center justify-center h-40 text-center">
-                 <FileText size={32} className="text-surface-border/50 mb-3" />
-                 <p className="text-text-secondary text-sm font-semibold">Nessun template creato.</p>
-              </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 160, textAlign: 'center' }}>
+                <Box sx={{ color: 'rgba(255,255,255,0.2)', mb: 1.5 }}><FileText size={32} /></Box>
+                <Box component="p" sx={{ color: 'text.secondary', fontSize: '0.875rem', fontWeight: 600 }}>Nessun template creato.</Box>
+              </Box>
             )}
 
             {templates?.map((t) => {
@@ -288,164 +286,75 @@ export default function FormTemplatesPage() {
               const fieldCount = decodeFields(t.schemaB64).length;
 
               return (
-                <div
-                  key={t.id}
-                  onClick={() => handleSelectTemplate(t)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-3 group ${
-                    isSelected
-                      ? 'bg-accent/10 border-accent shadow-[0_0_15px_rgba(var(--color-accent-rgb),0.1)]'
-                      : 'bg-white/5 border-surface-border hover:bg-white/10'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-accent text-black' : 'bg-surface border border-surface-border text-white'}`}>
-                         <FileText size={18} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className={`font-bold truncate ${isSelected ? 'text-accent' : 'text-white'}`}>{t.name}</div>
-                        <div className="text-text-secondary text-xs mt-0.5.">Ultima modifica recente</div>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="icon"
-                      icon={<Trash2 size={18} />}
-                      className="text-danger/60 hover:text-danger hover:bg-danger/10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(t.id, t.name);
-                      }}
-                      title="Elimina"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-surface-border/50 pt-3">
-                     <span className="text-xs font-semibold uppercase tracking-widest text-text-secondary">
-                        Campi
-                     </span>
-                     <Badge variant="secondary" size="xs">
-                        {fieldCount}
-                     </Badge>
-                  </div>
-                </div>
+                <Box key={t.id} onClick={() => handleSelectTemplate(t)} sx={{ p: 2, borderRadius: 2, border: 1, cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', gap: 1.5, backgroundColor: isSelected ? 'rgba(0,191,255,0.1)' : 'rgba(255,255,255,0.05)', borderColor: isSelected ? 'primary.main' : 'divider', boxShadow: isSelected ? '0 0 15px rgba(0,191,255,0.1)' : 'none', '&:hover': { backgroundColor: isSelected ? 'rgba(0,191,255,0.1)' : 'rgba(255,255,255,0.1)' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0, pr: 2 }}>
+                      <Box sx={{ width: 40, height: 40, borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, backgroundColor: isSelected ? 'primary.main' : 'transparent', border: 1, borderColor: isSelected ? 'primary.main' : 'divider', color: isSelected ? 'black' : 'white' }}><FileText size={18} /></Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box sx={{ fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isSelected ? 'primary.main' : 'white' }}>{t.name}</Box>
+                        <Box sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 0.25 }}>Ultima modifica recente</Box>
+                      </Box>
+                    </Box>
+                    <Button variant="icon" icon={<Trash2 size={18} />} sx={{ color: 'rgba(244,67,54,0.6)', '&:hover': { color: 'error.main', backgroundColor: 'rgba(244,67,54,0.1)' } }} onClick={(e) => { e.stopPropagation(); handleDelete(t.id, t.name); }} title="Elimina" />
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: 1, borderColor: 'rgba(255,255,255,0.1)', pt: 1.5 }}>
+                    <Box component="span" sx={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'text.secondary' }}>Campi</Box>
+                    <Badge variant="secondary" size="xs">{fieldCount}</Badge>
+                  </Box>
+                </Box>
               );
             })}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        {/* Right Column: Editor */}
-        <div className="glass-panel flex-1 w-full flex flex-col rounded-2xl relative border border-surface-border/50 min-h-125 overflow-hidden">
+        <Box sx={{ backgroundColor: 'rgba(26,35,50,0.8)', backdropFilter: 'blur(10px)', flex: 1, width: { xs: '100%' }, display: 'flex', flexDirection: 'column', borderRadius: 2, position: 'relative', border: 1, borderColor: 'rgba(255,255,255,0.1)', minHeight: 500, overflow: 'hidden' }}>
           {(selectedId || isCreating) ? (
-            <div className="flex flex-col h-full">
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <Box sx={{ p: 3, pb: 2, borderBottom: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><Box component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'primary.main' }}>{isCreating ? 'Creazione Nuovo' : 'Modalità Modifica'}</Box><Edit3 size={12} /></Box>
+                  <Button variant="ghost" icon={<X size={20} />} onClick={handleCloseEditor} sx={{ p: 0.25 }} />
+                </Box>
+                <Box component="input" type="text" value={templateName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTemplateName(e.target.value)} sx={{ width: '100%', backgroundColor: 'transparent', color: 'white', fontSize: { xs: '1.875rem', md: '2.25rem' }, fontWeight: 900, fontFamily: 'Outfit, sans-serif', outline: 'none', '&::placeholder': { color: 'divider' } }} placeholder="Titolo del Template..." />
+              </Box>
 
-               {/* Editor Header */}
-               <div className="p-6 pb-4 border-b border-surface-border/50 bg-black/20 flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                     <span className="text-xs font-bold uppercase tracking-widest text-accent flex items-center gap-2">
-                        {isCreating ? 'Creazione Nuovo' : 'Modalità Modifica'}
-                        <Edit3 size={12} />
-                     </span>
-                     <Button
-                        variant="ghost"
-                        icon={<X size={20} />}
-                        onClick={handleCloseEditor}
-                        className="p-1"
-                     />
-                  </div>
+              <Box sx={{ flex: 1, overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <Box component="h3" sx={{ fontSize: '0.875rem', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Struttura Dati</Box>
+                  <Box component="span" sx={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'text.secondary' }}>{fields.length} elementi</Box>
+                </Box>
 
-                  <input
-                     type="text"
-                     value={templateName}
-                     onChange={(e) => setTemplateName(e.target.value)}
-                     className="w-full bg-transparent text-white font-outfit font-black text-3xl md:text-4xl placeholder:text-surface-border outline-none"
-                     placeholder="Titolo del Template..."
-                     autoFocus={isCreating}
-                  />
-               </div>
+                {fields.length === 0 ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 6, textAlign: 'center', borderRadius: 2, border: '2px dashed', borderColor: 'divider', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                    <Box sx={{ color: 'text.secondary', mb: 1.5, opacity: 0.5 }}><Plus size={40} /></Box>
+                    <Box component="p" sx={{ color: 'white', fontWeight: 600, mb: 0.25 }}>Nessun campo aggiunto</Box>
+                    <Box component="p" sx={{ color: 'text.secondary', fontSize: '0.875rem', px: 4, maxWidth: 'sm', mb: 3 }}>Inizia ad aggiungere campi per costruire la struttura informativa del tuo template form.</Box>
+                    <Button variant="secondary" onClick={handleAddField}>Aggiungi il primo campo</Button>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {fields.map((field, idx) => (<FieldEditor key={idx} field={field} onChange={(updated) => handleFieldChange(idx, updated)} onRemove={() => handleRemoveField(idx)} />))}
+                    <Button variant="secondary" size="md" icon={<Plus size={18} />} fullWidth onClick={handleAddField} sx={{ mt: 2 }}>Aggiungi un altro campo</Button>
+                  </Box>
+                )}
+              </Box>
 
-               {/* Editor Body (Fields) */}
-               <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                  <div className="flex items-center justify-between pb-2 border-b border-surface-border/50">
-                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">Struttura Dati</h3>
-                     <span className="text-xs font-mono text-text-secondary">{fields.length} elementi</span>
-                  </div>
-
-                  {fields.length === 0 ? (
-                     <div className="flex flex-col items-center justify-center py-12 text-center rounded-2xl border-2 border-dashed border-surface-border bg-white/5">
-                        <Plus size={40} className="text-text-secondary mb-3 opacity-50" />
-                        <p className="text-white font-semibold mb-1">Nessun campo aggiunto</p>
-                        <p className="text-sm text-text-secondary px-8 max-w-sm mb-6">Inizia ad aggiungere campi per costruire la struttura informativa del tuo template form.</p>
-                        <Button
-                           variant="secondary"
-                           onClick={handleAddField}
-                        >
-                           Aggiungi il primo campo
-                        </Button>
-                     </div>
-                  ) : (
-                     <div className="space-y-4">
-                        {fields.map((field, idx) => (
-                           <FieldEditor
-                              key={idx}
-                              field={field}
-                              onChange={(updated) => handleFieldChange(idx, updated)}
-                              onRemove={() => handleRemoveField(idx)}
-                           />
-                        ))}
-
-                        <Button
-                           variant="secondary"
-                           size="md"
-                           icon={<Plus size={18} />}
-                           fullWidth
-                           onClick={handleAddField}
-                           className="mt-4"
-                        >
-                           Aggiungi un altro campo
-                        </Button>
-                     </div>
-                  )}
-               </div>
-
-               {/* Editor Footer / Actions */}
-               <div className="p-6 bg-[#081018] border-t border-surface-border/50 flex justify-end gap-3 mt-auto sticky bottom-0 z-10">
-                  <Button
-                     variant="primary"
-                     size="md"
-                     icon={!saving && <Save size={18} />}
-                     onClick={handleSave}
-                     disabled={saving}
-                     isLoading={saving}
-                     loadingLabel="Salvataggio..."
-                     className="w-full md:w-auto"
-                  >
-                     {isCreating ? 'Pubblica Template' : 'Salva Modifiche'}
-                  </Button>
-               </div>
-            </div>
+              <Box sx={{ p: 3, backgroundColor: '#081018', borderTop: 1, borderColor: 'rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 'auto', position: 'sticky', bottom: 0, zIndex: 10 }}>
+                <Button variant="primary" size="md" icon={!saving && <Save size={18} />} onClick={handleSave} disabled={saving} isLoading={saving} loadingLabel="Salvataggio..." sx={{ width: { xs: '100%', md: 'auto' } }}>{isCreating ? 'Pubblica Template' : 'Salva Modifiche'}</Button>
+              </Box>
+            </Box>
           ) : (
-            // Empty State
-            <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-black/10">
-               <div className="w-24 h-24 rounded-full bg-accent/5 flex items-center justify-center mb-6 border border-accent/10">
-                  <FileText size={40} className="text-accent/60" />
-               </div>
-               <h3 className="text-2xl font-outfit font-bold text-white mb-2">Editor Template</h3>
-               <p className="text-text-secondary text-sm max-w-sm mb-8 leading-relaxed">
-                  Seleziona un template dal raccoglitore a sinistra per visualizzarne o modificarne la struttura, oppure creane uno partendo da zero.
-               </p>
-               <Button
-                  variant="primary"
-                  icon={Plus}
-                  size="lg"
-                  onClick={handleNewTemplate}
-               >
-                  Nuovo Template
-               </Button>
-            </div>
+            <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.1)' }}>
+              <Box sx={{ width: 96, height: 96, borderRadius: '50%', backgroundColor: 'rgba(0,191,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3, border: 1, borderColor: 'rgba(0,191,255,0.1)' }}>
+                <Box sx={{ color: 'rgba(0,191,255,0.6)' }}><FileText size={40} /></Box>
+              </Box>
+              <Box component="h3" sx={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', fontFamily: 'Outfit, sans-serif', mb: 0.5 }}>Editor Template</Box>
+              <Box component="p" sx={{ color: 'text.secondary', fontSize: '0.875rem', maxWidth: 'sm', mb: 4, lineHeight: 1.6 }}>Seleziona un template dal raccoglitore a sinistra per visualizzarne o modificarne la struttura, oppure creane uno partendo da zero.</Box>
+              <Button variant="primary" icon={<Plus />} size="lg" onClick={handleNewTemplate}>Nuovo Template</Button>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

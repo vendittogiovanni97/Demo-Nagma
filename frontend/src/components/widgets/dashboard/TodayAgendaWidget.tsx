@@ -1,12 +1,20 @@
 "use client";
 
-import { format } from 'date-fns';
-import { Calendar, Clock } from 'lucide-react';
-
-import BentoCard from '@/components/data-display/BentoCard';
-import { Skeleton } from '@/components/feedback/Skeleton';
 import type { Booking } from '@/types/booking';
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Skeleton,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { Calendar, Clock } from 'lucide-react';
 
 interface TodayAgendaWidgetProps {
   bookings?: Booking[];
@@ -19,6 +27,8 @@ export default function TodayAgendaWidget({
   isLoading,
   className,
 }: TodayAgendaWidgetProps) {
+  const theme = useTheme();
+
   const todayBookings = bookings?.filter((booking) => {
     const bookingDate = new Date(booking.date);
     const today = new Date();
@@ -30,74 +40,146 @@ export default function TodayAgendaWidget({
   }) || [];
 
   return (
-    <BentoCard
+    <Card
       className={className}
-      header={
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-accent/10 text-accent flex-shrink-0">
-              <Calendar size={18} />
-            </div>
-            <div>
-              <h3 className="text-lg font-outfit font-semibold">Appuntamenti Oggi</h3>
-              <p className="text-xs text-text-secondary">
-                {format(new Date(), 'EEEE dd MMMM', { locale: it })}
-              </p>
-            </div>
-          </div>
-          <div className="flex-shrink-0 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-bold">
-            {todayBookings.length}
-          </div>
-        </div>
-      }
-      contentClassName="overflow-y-auto space-y-3 custom-scrollbar min-h-[400px]"
+      sx={{
+        background: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.primary.main}20`,
+        borderRadius: 2,
+        transition: theme.transitions.create(['all'], { duration: 300 }),
+        '&:hover': {
+          borderColor: theme.palette.primary.main,
+          boxShadow: theme.shadows[3],
+        },
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      {isLoading ? (
-        <div className="space-y-3">
-          <Skeleton variant="rect" className="w-full h-16" />
-          <Skeleton variant="rect" className="w-full h-16" />
-          <Skeleton variant="rect" className="w-full h-16" />
-        </div>
-      ) : todayBookings.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-3">
-            <Calendar size={24} className="text-accent" />
-          </div>
-          <h4 className="text-sm font-semibold text-white mb-1">Nessun appuntamento oggi</h4>
-          <p className="text-xs text-text-secondary">Goditi la giornata libera!</p>
-        </div>
-      ) : (
-        todayBookings.map((booking) => {
-          const color = booking.artist?.color || '#00BFFF';
-          return (
-            <div
-              key={booking.id}
-              className="p-4 rounded-xl border border-surface-border bg-white/5 hover:bg-white/10 transition-colors group"
+      <CardHeader
+        title={
+          <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
+            <Box
+              sx={{
+                p: 0.75,
+                borderRadius: 1.25,
+                bgcolor: `${theme.palette.primary.main}15`,
+                color: theme.palette.primary.main,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
             >
-              <div className="flex items-start gap-3">
-                <div
-                  className="w-1 h-12 rounded-full shrink-0"
-                  style={{ backgroundColor: color }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock size={14} className="text-accent shrink-0" />
-                    <span className="text-sm font-bold text-white">
-                      {format(new Date(booking.date), 'HH:mm')}
-                    </span>
-                  </div>
-                  <div className="text-sm font-semibold text-white truncate">
-                    {booking.customer?.firstName} {booking.customer?.lastName}
-                  </div>
-                  <div className="text-xs text-text-secondary">
-                    {booking.artist?.name}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })
-      )}
-    </BentoCard>
+              <Calendar size={18} />
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Appuntamenti Oggi
+              </Typography>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                {format(new Date(), 'EEEE dd MMMM', { locale: it })}
+              </Typography>
+            </Box>
+          </Stack>
+        }
+        action={
+          <Chip
+            label={todayBookings.length}
+            sx={{
+              bgcolor: `${theme.palette.primary.main}15`,
+              color: theme.palette.primary.main,
+              fontWeight: 700,
+              fontSize: '0.75rem',
+            }}
+          />
+        }
+        sx={{ pb: 1.5, borderBottom: `1px solid ${theme.palette.primary.main}12` }}
+      />
+      <CardContent
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.25,
+          minHeight: 300,
+        }}
+      >
+        {isLoading ? (
+          <Stack useFlexGap sx={{ gap: 1.5 }}>
+            <Skeleton variant="rectangular" height={56} />
+            <Skeleton variant="rectangular" height={56} />
+            <Skeleton variant="rectangular" height={56} />
+          </Stack>
+        ) : todayBookings.length === 0 ? (
+          <Stack
+            direction="column"
+            useFlexGap
+            sx={{ gap: 1.5, alignItems: 'center', justifyContent: 'center', py: 6, flex: 1 }}
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: `${theme.palette.primary.main}15`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Calendar size={24} color={theme.palette.primary.main} />
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Nessun appuntamento oggi
+            </Typography>
+            <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+              Goditi la giornata libera!
+            </Typography>
+          </Stack>
+        ) : (
+          <Stack useFlexGap sx={{ gap: 1.5 }}>
+            {todayBookings.map((booking) => {
+              const color = booking.artist?.color || theme.palette.primary.main;
+              return (
+                <Card
+                  key={booking.id}
+                  variant="outlined"
+                  sx={{
+                    p: 1.5,
+                    bgcolor: `${theme.palette.primary.main}08`,
+                    border: `1px solid ${theme.palette.primary.main}20`,
+                    transition: theme.transitions.create(['all'], { duration: 300 }),
+                    '&:hover': {
+                      boxShadow: theme.shadows[1],
+                      borderColor: theme.palette.primary.main,
+                    },
+                    borderLeft: `3px solid ${color}`,
+                  }}
+                >
+                  <Stack direction="row" useFlexGap sx={{ gap: 1.5 }}>
+                    <Stack useFlexGap sx={{ gap: 0.5, flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
+                        <Clock size={14} color={theme.palette.primary.main} style={{ flexShrink: 0 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {format(new Date(booking.date), 'HH:mm')}
+                        </Typography>
+                      </Stack>
+                      <Typography variant="body2" sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {booking.customer?.firstName} {booking.customer?.lastName}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                        {booking.artist?.name}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Card>
+              );
+            })}
+          </Stack>
+        )}
+      </CardContent>
+    </Card>
   );
 }

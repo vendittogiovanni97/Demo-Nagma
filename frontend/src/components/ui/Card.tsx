@@ -1,41 +1,25 @@
-"use client";
+'use client';
 
-import { forwardRef, type ReactNode, type HTMLAttributes } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { clsx } from 'clsx';
+import { forwardRef, type ReactNode } from 'react';
+import { Card as MuiCard, type CardProps as MuiCardProps, useTheme } from '@mui/material';
 
 type CardVariant = 'glass' | 'primary' | 'elevated' | 'minimal';
 type CardSize = 'sm' | 'md' | 'lg';
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends Omit<MuiCardProps, 'variant'> {
   variant?: CardVariant;
   size?: CardSize;
   interactive?: boolean;
   children: ReactNode;
-  className?: string;
   onClick?: () => void;
 }
 
-// Variant styles basati sui design token
-// glass: semi-transparent con border accent
-// primary: sfondo accent leggero con border accent
-// elevated: sfondo più opaco con border sottile bianco
-// minimal: trasparente senza border
-const variantStyles: Record<CardVariant, string> = {
-  glass: 'bg-[rgba(255,255,255,0.05)] border border-surface-border backdrop-blur-md',
-  primary: 'bg-[rgba(0,191,255,0.1)] border border-accent/40',
-  elevated: 'bg-[rgba(255,255,255,0.1)] border border-white/20',
-  minimal: 'bg-transparent border-0',
+// Map sizes to padding values (in MUI spacing units: 8px base)
+const sizeMap: Record<CardSize, number> = {
+  sm: 1.5, // 12px
+  md: 3,   // 24px
+  lg: 4,   // 32px
 };
-
-// Padding basato su size - applica tailwind padding utilities
-const sizeStyles: Record<CardSize, string> = {
-  sm: 'p-3',
-  md: 'p-6',
-  lg: 'p-8',
-};
-
-const baseStyles = 'rounded-xl transition-all duration-200';
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   (
@@ -43,48 +27,73 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       variant = 'glass',
       size = 'md',
       interactive = false,
-      className,
       onClick,
       children,
+      sx,
       ...props
     },
     ref
   ) => {
-    const interactiveStyles = interactive
-      ? 'cursor-pointer hover:scale-105 active:scale-100'
-      : '';
+    const theme = useTheme();
+    const padding = sizeMap[size];
 
-    const combinedClassName = twMerge(
-      clsx(
-        baseStyles,
-        variantStyles[variant],
-        sizeStyles[size],
-        interactiveStyles,
-        className
-      )
-    );
+    // Build sx prop based on variant
+    const getVariantSx = () => {
+      switch (variant) {
+        case 'glass':
+          return {
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${theme.palette.divider}`,
+          };
+        case 'primary':
+          return {
+            backgroundColor: 'rgba(0, 191, 255, 0.1)',
+            border: `1px solid rgba(0, 191, 255, 0.4)`,
+          };
+        case 'elevated':
+          return {
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            border: `1px solid rgba(255, 255, 255, 0.2)`,
+          };
+        case 'minimal':
+          return {
+            backgroundColor: 'transparent',
+            border: 'none',
+          };
+        default:
+          return {};
+      }
+    };
 
     return (
-      <div
+      <MuiCard
         ref={ref}
-        className={combinedClassName}
-        onClick={onClick}
+        onClick={interactive ? onClick : undefined}
+        sx={{
+          p: padding,
+          borderRadius: '12px',
+          transition: 'all 0.2s ease-in-out',
+          cursor: interactive ? 'pointer' : 'default',
+          '&:hover': interactive
+            ? {
+                transform: 'scale(1.02)',
+              }
+            : {},
+          '&:active': interactive
+            ? {
+                transform: 'scale(0.98)',
+              }
+            : {},
+          ...getVariantSx(),
+          ...sx,
+        }}
         role={interactive ? 'button' : undefined}
         tabIndex={interactive ? 0 : undefined}
-        onKeyDown={
-          interactive && onClick
-            ? (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onClick();
-                }
-              }
-            : undefined
-        }
         {...props}
       >
         {children}
-      </div>
+      </MuiCard>
     );
   }
 );

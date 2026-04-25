@@ -1,6 +1,7 @@
 "use client";
 
 import FormSelect from '@/components/forms/FormSelect';
+import { Box, useTheme } from '@mui/material';
 import { Users } from 'lucide-react';
 
 interface CustomerOption { value: string; label: string; }
@@ -31,15 +32,36 @@ export default function BookingParticipantsSection({
   onCustomerChange,
   onArtistChange,
 }: Props) {
+  const theme = useTheme();
   const hasDateTime = Boolean(date && time);
 
   return (
-    <div className={`space-y-4 transition-all duration-300 ${!hasDateTime ? 'opacity-40 pointer-events-none' : ''}`}>
-      <div className="flex items-center gap-2">
-        <Users size={14} className="text-accent" />
-        <span className="text-[11px] font-bold text-accent uppercase tracking-widest">Chi coinvolge</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        transition: 'all 0.3s ease',
+        opacity: !hasDateTime ? 0.4 : 1,
+        pointerEvents: !hasDateTime ? 'none' : 'auto'
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Users size={14} style={{ color: theme.palette.primary.main }} />
+        <Box
+          component="span"
+          sx={{
+            fontSize: '0.6875rem',
+            fontWeight: 'bold',
+            color: theme.palette.primary.main,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em'
+          }}
+        >
+          Chi coinvolge
+        </Box>
+      </Box>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
         <FormSelect
           label="Cliente *"
           value={customerId}
@@ -57,12 +79,18 @@ export default function BookingParticipantsSection({
           required
           options={artistOptions}
         />
-      </div>
+      </Box>
       {hasDateTime && noArtistAvailable && !loadingArtists && (
-        <p className="text-[11px] text-danger/80 italic">
+        <Box
+          sx={{
+            fontSize: '0.6875rem',
+            color: 'rgba(244, 67, 54, 0.8)',
+            fontStyle: 'italic'
+          }}
+        >
           Nessun artista disponibile in questo orario.
-        </p>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

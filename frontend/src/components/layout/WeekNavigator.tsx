@@ -3,8 +3,7 @@
 import { addDays, format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import { cn } from '@/utils/cn';
+import { Box, Stack, Typography, IconButton, useTheme } from '@mui/material';
 
 type FormatStyle = 'short' | 'full';
 type Variant = 'header' | 'minimal';
@@ -18,21 +17,6 @@ interface WeekNavigatorProps {
   className?: string;
 }
 
-const variantStyles = {
-  minimal: 'flex items-center bg-white/5 rounded-lg p-0.5 border border-surface-border',
-  header: 'flex items-center gap-4 bg-surface/50 border border-surface-border rounded-xl px-2 py-1 shadow-lg backdrop-blur-md',
-};
-
-const textStyles = {
-  minimal: 'px-3 font-bold text-xs min-w-32 text-center uppercase tracking-widest text-accent',
-  header: 'text-white font-bold min-w-50 text-center tracking-wide',
-};
-
-const buttonSizeMap = {
-  minimal: 16,
-  header: 20,
-};
-
 export default function WeekNavigator({
   weekStart,
   onPrev,
@@ -41,6 +25,7 @@ export default function WeekNavigator({
   variant = 'minimal',
   className,
 }: WeekNavigatorProps) {
+  const theme = useTheme();
   const date = typeof weekStart === 'string' ? new Date(weekStart) : weekStart;
   const endDate = addDays(date, 6);
 
@@ -48,27 +33,100 @@ export default function WeekNavigator({
     ? `${format(date, 'dd MMM', { locale: it })} — ${format(endDate, 'dd MMM', { locale: it })}`
     : `${format(date, 'dd MMM', { locale: it })} — ${format(endDate, 'dd MMM yyyy', { locale: it })}`;
 
-  const iconSize = buttonSizeMap[variant];
+  const variantConfig = {
+    minimal: {
+      height: '48px',
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      border: `1px solid ${theme.palette.divider}`,
+      padding: '4px',
+      borderRadius: '8px',
+    },
+    header: {
+      height: '48px',
+      backgroundColor: 'rgba(26, 35, 50, 0.5)',
+      border: `1px solid ${theme.palette.divider}`,
+      padding: '8px 16px',
+      borderRadius: '12px',
+      backdropFilter: 'blur(8px)',
+      boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
+    },
+  };
+
+  const textConfig = {
+    minimal: {
+      fontSize: '12px',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+      color: theme.palette.primary.main,
+      minWidth: '128px',
+      textAlign: 'center',
+    },
+    header: {
+      fontSize: '16px',
+      fontWeight: 700,
+      color: theme.palette.text.primary,
+      minWidth: '200px',
+      textAlign: 'center',
+      letterSpacing: '0.02em',
+    },
+  };
+
+  const iconSize = variant === 'minimal' ? 16 : 20;
 
   return (
-    <div className={cn(variantStyles[variant], className)}>
-      <Button
-        variant="ghost"
-        size="sm"
+    <Stack
+      direction="row"
+      className={className}
+      sx={{
+        alignItems: 'center',
+        ...variantConfig[variant],
+        transition: 'all 0.3s ease',
+      }}
+    >
+      <IconButton
+        size="small"
         onClick={onPrev}
         title="Settimana precedente"
-        icon={<ChevronLeft size={iconSize} />}
-        className="p-2"
-      />
-      <span className={textStyles[variant]}>{displayText}</span>
-      <Button
-        variant="ghost"
-        size="sm"
+        sx={{
+          color: theme.palette.text.primary,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            color: theme.palette.primary.main,
+            backgroundColor: `rgba(0, 191, 255, 0.08)`,
+          },
+          padding: '8px',
+        }}
+      >
+        <ChevronLeft size={iconSize} />
+      </IconButton>
+
+      <Typography
+        sx={{
+          ...textConfig[variant],
+          flex: 1,
+          padding: '0 12px',
+        }}
+      >
+        {displayText}
+      </Typography>
+
+      <IconButton
+        size="small"
         onClick={onNext}
         title="Settimana successiva"
-        icon={<ChevronRight size={iconSize} />}
-        className="p-2"
-      />
-    </div>
+        sx={{
+          color: theme.palette.text.primary,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            color: theme.palette.primary.main,
+            backgroundColor: `rgba(0, 191, 255, 0.08)`,
+          },
+          padding: '8px',
+        }}
+      >
+        <ChevronRight size={iconSize} />
+      </IconButton>
+    </Stack>
   );
 }

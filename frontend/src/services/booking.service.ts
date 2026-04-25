@@ -1,10 +1,10 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
-import type { Booking, BookingStats, BookingHistory, CreateBookingData } from '@/types/booking';
+import type { Booking, BookingStats, BookingHistory, CreateBookingData, AvailableArtist } from '@/types/booking';
 
 export const bookingService = {
-  getAll: async (month?: string, startDate?: string, endDate?: string): Promise<Booking[]> => {
-    return apiClient.get<Booking[]>(ENDPOINTS.BOOKINGS.BASE, { month, startDate, endDate });
+  getAll: async (month?: string, startDate?: string, endDate?: string, page?: number, limit?: number): Promise<Booking[]> => {
+    return apiClient.get<Booking[]>(ENDPOINTS.BOOKINGS.BASE, { month, startDate, endDate, page, limit });
   },
   getStats: async (month?: string): Promise<BookingStats> => {
     return apiClient.get<BookingStats>(ENDPOINTS.BOOKINGS.STATS, { month });
@@ -21,8 +21,8 @@ export const bookingService = {
   delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.BOOKINGS.BY_ID(id));
   },
-  getAvailableArtists: async (date: string): Promise<any[]> => {
-    return apiClient.get<any[]>(`${ENDPOINTS.BOOKINGS.BASE}/available-artists`, { date });
+  getAvailableArtists: async (date: string): Promise<AvailableArtist[]> => {
+    return apiClient.get<AvailableArtist[]>(`${ENDPOINTS.BOOKINGS.BASE}/available-artists`, { date });
   },
   verifyPassword: async (password: string): Promise<void> => {
     return apiClient.post(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });

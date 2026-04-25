@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Stack, Typography } from '@mui/material';
 import Button from '@/components/ui/Button';
 
 interface PaginationControlsProps {
@@ -23,18 +24,21 @@ export default function PaginationControls({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between p-4 border-t border-surface-border">
-      <span className="text-sm text-text-secondary">
+    <Stack
+      direction="row"
+      sx={{ alignItems: 'center', justifyContent: 'space-between', p: 2, borderTop: 1, borderColor: 'divider' }}
+    >
+      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
         Pagina {page} di {totalPages} ({total} {label})
-      </span>
-      <div className="flex gap-2">
+      </Typography>
+      <Stack direction="row" sx={{ gap: 1 }}>
         <Button
           variant="ghost"
           size="sm"
           onClick={onPrev}
           disabled={page <= 1}
           icon={<ChevronLeft size={18} />}
-          className="p-0 w-auto"
+          sx={{ p: 0, minWidth: 'auto' }}
         />
         <Button
           variant="ghost"
@@ -42,9 +46,9 @@ export default function PaginationControls({
           onClick={onNext}
           disabled={page >= totalPages}
           icon={<ChevronRight size={18} />}
-          className="p-0 w-auto"
+          sx={{ p: 0, minWidth: 'auto' }}
         />
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

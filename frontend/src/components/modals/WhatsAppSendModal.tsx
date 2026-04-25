@@ -1,5 +1,6 @@
 "use client";
 
+import { Box, Typography, useTheme } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
 import StatePanel from '@/components/feedback/StatePanel';
@@ -10,10 +11,11 @@ import Modal from '@/components/modals/Modal';
 import Button from '@/components/ui/Button';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
-import { useCustomers, useWhatsAppTemplates } from '@/hooks/domain';
+import { useCustomers } from '@/hooks/domain/useCustomers';
+import { useWhatsAppTemplates } from '@/hooks/domain/useWhatsApp';
 import { useWhatsAppComposer } from '@/hooks/useWhatsAppComposer';
 import { useToast } from '@/hooks/useToast';
-import { sendWhatsAppMessageSchema } from '@/schemas';
+import { sendWhatsAppMessageSchema } from '@/schemas/whatsapp';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { Booking } from '@/types/booking';
 import type { Customer } from '@/types/customer';
@@ -35,10 +37,10 @@ export default function WhatsAppSendModal({
   customer,
   booking,
 }: WhatsAppSendModalProps) {
+  const theme = useTheme();
   const toast = useToast();
   const { isAdmin } = useAuth();
   const canSend = isAdmin;
-  // Keep as string for FormSelect compatibility; convert to number when sending
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(
     customer?.id?.toString() || booking?.customer?.id?.toString() || ''
@@ -149,7 +151,7 @@ export default function WhatsAppSendModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Invio WhatsApp Manuale" maxWidth="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Invio WhatsApp Manuale" maxWidth="xl">
       {!canSend ? (
         <StatePanel
           variant="error"
@@ -169,8 +171,8 @@ export default function WhatsAppSendModal({
           description="Riprova tra poco o aggiorna la pagina."
         />
       ) : (
-        <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-2">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <FormSelect
               label="Template"
               value={selectedTemplateId}
@@ -193,15 +195,15 @@ export default function WhatsAppSendModal({
                 label: `${entry.firstName} ${entry.lastName}`,
               }))}
             />
-          </div>
+          </Box>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <FormInput label="Nome destinatario" value={recipientName} onChange={setRecipientName} />
             <FormInput label="Telefono destinatario" value={recipientPhone} onChange={setRecipientPhone} required />
-          </div>
+          </Box>
 
           {templateVariables.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
+            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
               {templateVariables.map((key) => (
                 <FormInput
                   key={key}
@@ -215,15 +217,41 @@ export default function WhatsAppSendModal({
                   }
                 />
               ))}
-            </div>
+            </Box>
           ) : null}
 
-          <div className="rounded-[28px] border border-surface-border bg-[#081018] p-5">
-            <div className="mb-3 text-sm font-semibold text-white">Anteprima messaggio</div>
-            <div className="rounded-3xl border border-surface-border bg-[#10202e] p-4 text-sm leading-6 text-white/90">
-              {selectedTemplate ? previewMessage : 'Seleziona prima un template.'}
-            </div>
-          </div>
+          <Box
+            sx={{
+              borderRadius: 5,
+              border: 1,
+              borderColor: 'divider',
+              backgroundColor: theme.palette.background.default,
+              p: 3,
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}
+            >
+              Anteprima messaggio
+            </Typography>
+            <Box
+              sx={{
+                borderRadius: 4,
+                border: 1,
+                borderColor: 'divider',
+                backgroundColor: theme.palette.background.paper,
+                p: 2,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}
+              >
+                {selectedTemplate ? previewMessage : 'Seleziona prima un template.'}
+              </Typography>
+            </Box>
+          </Box>
 
           <FormTextarea
             label="Modifica rapida messaggio"
@@ -237,7 +265,7 @@ export default function WhatsAppSendModal({
             placeholder="Qui puoi rifinire il messaggio prima di aprire WhatsApp."
           />
 
-          <div className="flex flex-wrap gap-3">
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Button
               variant="primary"
               size="md"
@@ -248,15 +276,11 @@ export default function WhatsAppSendModal({
             >
               Apri WhatsApp
             </Button>
-            <Button
-              variant="glass"
-              size="md"
-              onClick={onClose}
-            >
+            <Button variant="glass" size="md" onClick={onClose}>
               Chiudi
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
     </Modal>
   );

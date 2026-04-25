@@ -2,17 +2,23 @@
 
 import dynamic from 'next/dynamic';
 
-import { useState, useMemo } from 'react';
-import useSWR from 'swr';
-import PageHeader from '@/components/layout/PageHeader';
 import DataTable, { type Column } from '@/components/data-display/DataTable';
+import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
+import { useToast } from '@/hooks/useToast';
 import { creamService, type CreamSale } from '@/services/cream.service';
 import { teamService } from '@/services/team.service';
+import Box from '@mui/material/Box';
+import FormControl from '@mui/material/FormControl';
+import Input from '@mui/material/Input';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import { useTheme } from '@mui/material/styles';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Plus, Package, User, Hash, X } from 'lucide-react';
-import { useToast } from '@/hooks/useToast';
+import { Hash, Package, Plus, User, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
 
 const Modal = dynamic(
   () => import('@/components/modals/Modal'),
@@ -33,6 +39,7 @@ interface StaffMember {
 }
 
 export default function CreamsPage() {
+  const theme = useTheme();
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -117,22 +124,30 @@ export default function CreamsPage() {
       label: 'Data',
       width: '140px',
       render: (row) => (
-        <span className="text-sm text-white">
+        <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.primary }}>
           {format(new Date(row.soldAt), 'dd MMM yyyy', { locale: it })}
-        </span>
+        </Box>
       ),
     },
     {
       key: 'artist',
       label: 'Artista',
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2 h-2 rounded-full shrink-0 ring-1 ring-white/10"
-            style={{ backgroundColor: row.artist.color || '#3b82f6' }}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              bgcolor: row.artist.color || theme.palette.primary.main,
+              flexShrink: 0,
+              boxShadow: `0 0 0 1px ${theme.palette.text.disabled}`,
+            }}
           />
-          <span className="text-white font-medium">{row.artist.name}</span>
-        </div>
+          <Box sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
+            {row.artist.name}
+          </Box>
+        </Box>
       ),
     },
     {
@@ -141,9 +156,22 @@ export default function CreamsPage() {
       width: '80px',
       align: 'center',
       render: (row) => (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-accent/15 text-accent font-bold text-sm">
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
+            height: 32,
+            borderRadius: 1.5,
+            bgcolor: `${theme.palette.primary.main}26`,
+            color: theme.palette.primary.main,
+            fontWeight: 700,
+            fontSize: '0.875rem',
+          }}
+        >
           {row.quantity}
-        </span>
+        </Box>
       ),
     },
   ];
@@ -153,7 +181,7 @@ export default function CreamsPage() {
   const hasFilters = startDate || endDate || artistFilter;
 
   return (
-    <div className="flex-1 flex flex-col gap-6">
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title="Vendite Crema Tattoo"
         actions={
@@ -166,39 +194,113 @@ export default function CreamsPage() {
           </Button>
         }
       >
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-text-secondary font-medium">Dal:</label>
-            <input
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              component="label"
+              sx={{
+                fontSize: '0.75rem',
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+              }}
+            >
+              Dal:
+            </Box>
+            <Input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent"
+              disableUnderline
+              sx={{
+                borderRadius: 1.5,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'rgba(255,255,255,0.05)',
+                px: 1.5,
+                py: 1,
+                fontSize: '0.875rem',
+                color: theme.palette.text.primary,
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                '&:focus': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '& .MuiInput-input': {
+                  '&::-webkit-calendar-picker-indicator': {
+                    filter: 'invert(1)',
+                  },
+                },
+              }}
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-text-secondary font-medium">Al:</label>
-            <input
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              component="label"
+              sx={{
+                fontSize: '0.75rem',
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+              }}
+            >
+              Al:
+            </Box>
+            <Input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent"
+              disableUnderline
+              sx={{
+                borderRadius: 1.5,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'rgba(255,255,255,0.05)',
+                px: 1.5,
+                py: 1,
+                fontSize: '0.875rem',
+                color: theme.palette.text.primary,
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                '&:focus': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '& .MuiInput-input': {
+                  '&::-webkit-calendar-picker-indicator': {
+                    filter: 'invert(1)',
+                  },
+                },
+              }}
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <select
+          </Box>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Select
               value={artistFilter}
               onChange={(e) => setArtistFilter(e.target.value ? Number(e.target.value) : '')}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent"
+              displayEmpty
+              sx={{
+                borderRadius: 1.5,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: 'rgba(255,255,255,0.05)',
+                fontSize: '0.875rem',
+                color: theme.palette.text.primary,
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                '&:focus': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '& .MuiSelect-select': {
+                  py: 1,
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'transparent',
+                },
+              }}
             >
-              <option value="">Tutti gli artisti</option>
+              <MenuItem value="">Tutti gli artisti</MenuItem>
               {teamMembers?.map((member) => (
-                <option key={member.id} value={member.id}>
+                <MenuItem key={member.id} value={member.id}>
                   {member.name} ({member.type === 'APPRENDISTA' ? 'Appr.' : 'Coll.'})
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
+            </Select>
+          </FormControl>
           <Button variant="primary" size="sm" onClick={handleSearch}>
             Filtra
           </Button>
@@ -207,32 +309,91 @@ export default function CreamsPage() {
               Reset
             </Button>
           )}
-        </div>
+        </Box>
       </PageHeader>
 
       {creamData && (
-        <div className="glass-panel p-5 flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0">
-            <Package size={28} className="text-accent" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-semibold text-white font-outfit">{creamData.name}</h2>
+        <Box
+          sx={{
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2.5,
+            bgcolor: 'rgba(26, 35, 50, 0.6)',
+            backdropFilter: 'blur(12px)',
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: 2.5,
+              bgcolor: `${theme.palette.primary.main}1a`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              color: theme.palette.primary.main,
+            }}
+          >
+            <Package size={28} />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Box
+              component="h2"
+              sx={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                fontFamily: theme.typography.fontFamily,
+              }}
+            >
+              {creamData.name}
+            </Box>
             {creamData.description && (
-              <p className="text-sm text-text-secondary mt-1 truncate">
+              <Box
+                sx={{
+                  fontSize: '0.875rem',
+                  color: theme.palette.text.secondary,
+                  mt: 0.5,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {creamData.description}
-              </p>
+              </Box>
             )}
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-2xl font-bold text-accent font-outfit">
+          </Box>
+          <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+            <Box
+              sx={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: theme.palette.primary.main,
+                fontFamily: theme.typography.fontFamily,
+              }}
+            >
               {salesData?.total ?? 0}
-            </div>
-            <div className="text-xs text-text-secondary uppercase tracking-wider">Vendute</div>
-          </div>
-        </div>
+            </Box>
+            <Box
+              sx={{
+                fontSize: '0.75rem',
+                color: theme.palette.text.secondary,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+              }}
+            >
+              Vendute
+            </Box>
+          </Box>
+        </Box>
       )}
 
-      <div className="flex-1">
+      <Box sx={{ flex: 1 }}>
         <DataTable
           data={salesData?.data ?? []}
           columns={columns}
@@ -241,7 +402,7 @@ export default function CreamsPage() {
           keyExtractor={(row) => row.id}
           pageSize={7}
         />
-      </div>
+      </Box>
 
       <Modal
         isOpen={isModalOpen}
@@ -251,48 +412,110 @@ export default function CreamsPage() {
           setQuantity(1);
         }}
         title="Registra Vendita"
-        maxWidth="max-w-md"
+        maxWidth="sm"
       >
-        <div className="space-y-5">
-          <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-surface-border">
-            <Package size={20} className="text-accent" />
-            <span className="text-white font-medium">{creamData?.name}</span>
-          </div>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              p: 2,
+              bgcolor: 'rgba(255,255,255,0.05)',
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Package size={20} color={theme.palette.primary.main} />
+            <Box sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
+              {creamData?.name}
+            </Box>
+          </Box>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-text-secondary mb-2">
+          <Box>
+            <Box
+              component="label"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: theme.palette.text.secondary,
+                mb: 1,
+              }}
+            >
               <User size={14} />
               Artista
-            </label>
-            <select
-              value={selectedArtistId}
-              onChange={(e) => setSelectedArtistId(Number(e.target.value))}
-              className="w-full bg-white/5 border border-surface-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent"
-            >
-              <option value={0}>Seleziona artista...</option>
-              {teamMembers?.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.name} ({member.type === 'APPRENDISTA' ? 'Apprendista' : 'Collaboratore'})
-                </option>
-              ))}
-            </select>
-          </div>
+            </Box>
+            <FormControl fullWidth size="small">
+              <Select
+                value={selectedArtistId}
+                onChange={(e) => setSelectedArtistId(Number(e.target.value))}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.05)',
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  color: theme.palette.text.primary,
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'transparent',
+                  },
+                  '&:focus': {
+                    borderColor: theme.palette.primary.main,
+                  },
+                }}
+              >
+                <MenuItem value={0}>Seleziona artista...</MenuItem>
+                {teamMembers?.map((member) => (
+                  <MenuItem key={member.id} value={member.id}>
+                    {member.name} ({member.type === 'APPRENDISTA' ? 'Apprendista' : 'Collaboratore'})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-text-secondary mb-2">
+          <Box>
+            <Box
+              component="label"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: theme.palette.text.secondary,
+                mb: 1,
+              }}
+            >
               <Hash size={14} />
               Quantità
-            </label>
-            <input
+            </Box>
+            <Input
               type="number"
-              min={1}
+              inputProps={{ min: 1 }}
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-              className="w-full bg-white/5 border border-surface-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent text-center font-mono text-lg"
+              fullWidth
+              disableUnderline
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.05)',
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                px: 2,
+                py: 1.5,
+                color: theme.palette.text.primary,
+                fontFamily: 'monospace',
+                fontSize: '1.125rem',
+                textAlign: 'center',
+                '&:focus': {
+                  borderColor: theme.palette.primary.main,
+                },
+              }}
             />
-          </div>
+          </Box>
 
-          <div className="flex gap-3 pt-2">
+          <Box sx={{ display: 'flex', gap: 1.5, pt: 0.5 }}>
             <Button
               variant="secondary"
               onClick={() => {
@@ -300,7 +523,7 @@ export default function CreamsPage() {
                 setSelectedArtistId(0);
                 setQuantity(1);
               }}
-              className="flex-1"
+              sx={{ flex: 1 }}
             >
               Annulla
             </Button>
@@ -308,13 +531,13 @@ export default function CreamsPage() {
               variant="primary"
               onClick={handleCreateSale}
               disabled={!selectedArtistId}
-              className="flex-1"
+              sx={{ flex: 1 }}
             >
               Registra
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </Modal>
-    </div>
+    </Box>
   );
 }

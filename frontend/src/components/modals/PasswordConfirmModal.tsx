@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { Alert, Box, IconButton, InputAdornment, Stack, TextField, Typography, useTheme } from '@mui/material';
 import Button from '@/components/ui/Button';
 import Modal from './Modal';
 
@@ -16,6 +17,7 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const theme = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,47 +37,50 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Conferma Modifica">
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <p className="text-text-secondary text-sm">
+    <Modal isOpen={isOpen} onClose={onClose} title="Conferma Modifica" maxWidth="sm">
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onSubmit={handleSubmit}>
+        <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary }}>
           Inserisci la password per confermare la modifica della prenotazione.
-        </p>
+        </Typography>
 
-        <div className="space-y-2">
-          <label className="text-sm text-text-secondary">Password *</label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Inserisci password..."
-              className="w-full h-12 px-4 rounded-xl bg-white/5 text-white border border-surface-border focus:border-accent focus:outline-none transition-colors pr-12"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-accent transition-colors cursor-pointer"
-              title={showPassword ? 'Nascondi' : 'Mostra'}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </div>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Typography sx={{ px: 0.5, fontSize: '0.75rem', fontWeight: 600, color: theme.palette.primary.main, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Password
+          </Typography>
+          <TextField
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Inserisci password..."
+            size="small"
+            fullWidth
+            error={!!error}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton edge="end" onClick={() => setShowPassword(!showPassword)} title={showPassword ? 'Nascondi' : 'Mostra'}>
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5, fontSize: '0.9375rem' } }}
+          />
+        </Box>
 
-        {error && (
-          <p className="text-danger text-sm font-medium">{error}</p>
-        )}
+        {error ? <Alert severity="error">{error}</Alert> : null}
 
-        <div className="flex gap-3 justify-end pt-4">
+        <Stack direction="row" useFlexGap sx={{ gap: 1, justifyContent: 'flex-end', pt: 1 }}>
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             Annulla
           </Button>
           <Button variant="primary" type="submit" isLoading={loading}>
             Conferma
           </Button>
-        </div>
-      </form>
+        </Stack>
+      </Box>
     </Modal>
   );
 }

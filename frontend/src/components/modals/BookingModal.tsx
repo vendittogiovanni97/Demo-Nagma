@@ -3,15 +3,16 @@
 import { PERCENTUALE_OPTIONS_VALUES } from '@/config/booking-config';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
-import { useCustomers } from '@/hooks/domain';
+import { useCustomers } from '@/hooks/domain/useCustomers';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { useToast } from '@/hooks/useToast';
-import { createBookingSchema } from '@/schemas';
+import { createBookingSchema } from '@/schemas/booking';
 import { bookingService } from '@/services/booking.service';
 import type { Booking, BookingStatus, CreateBookingData } from '@/types/booking';
 import type { FieldDef } from '@/types/form-template';
 import { extractErrorMessage } from '@/utils/extract-error';
 import { validateData } from '@/utils/validation';
+import { Box, useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import SubmitButton from '../forms/SubmitButton';
@@ -39,6 +40,7 @@ interface AvailableArtist {
 
 export default function BookingModal({ isOpen, onClose, onSuccess, booking, initialDate, initialTime }: Props) {
   const toast = useToast();
+  const theme = useTheme();
   const { isSuperAdmin } = useAuth();
   const [customerId, setCustomerId] = useState('');
   const [artistId, setArtistId] = useState('');
@@ -278,10 +280,10 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={booking ? 'Modifica Prenotazione' : 'Nuova Prenotazione'} maxWidth="max-w-6xl">
-      <form className="space-y-6" onSubmit={handleSubmit}>
+    <Modal isOpen={isOpen} onClose={onClose} title={booking ? 'Modifica Prenotazione' : 'Nuova Prenotazione'} maxWidth="lg">
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onSubmit={handleSubmit}>
         {/* Sezione data/ora + partecipanti */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2 }}>
           <BookingDateTimeSection
             date={date}
             time={time}
@@ -302,9 +304,9 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
             onCustomerChange={setCustomerId}
             onArtistChange={setArtistId}
           />
-        </div>
+        </Box>
 
-        <div className="h-px bg-white/6" />
+        <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
 
         <BookingFinancialSection
           price={price}
@@ -319,24 +321,61 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           onCustomPercentualeChange={setCustomPercentuale}
         />
 
+        <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
+
         {templates && templates.length > 1 && (
           <>
-            <div className="h-px bg-white/6" />
-            <div className="flex items-center gap-3">
-              <label htmlFor="template-select" className="text-[11px] font-bold text-accent uppercase tracking-widest whitespace-nowrap">
+            <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                component="label"
+                htmlFor="template-select"
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 'bold',
+                  color: theme.palette.primary.main,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  whiteSpace: 'nowrap'
+                }}
+              >
                 Schema campi
-              </label>
-              <select
+              </Box>
+              <Box
+                component="select"
                 id="template-select"
                 value={selectedTemplateId ?? ''}
                 onChange={(e) => setSelectedTemplateId(Number(e.target.value))}
-                className="flex-1 rounded-xl border border-surface-border bg-white/5 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-accent transition-all"
+                sx={{
+                  flex: 1,
+                  borderRadius: 10,
+                  border: `1px solid rgba(0, 191, 255, 0.2)`,
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  px: 1.25,
+                  py: 1,
+                  fontSize: '0.8125rem',
+                  color: theme.palette.text.primary,
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: 'rgba(0, 191, 255, 0.4)'
+                  },
+                  '&:focus': {
+                    outline: 'none',
+                    borderColor: theme.palette.primary.main,
+                    boxShadow: `0 0 0 3px rgba(0, 191, 255, 0.1)`
+                  },
+                  '& option': {
+                    backgroundColor: '#0a1a26',
+                    color: theme.palette.text.primary
+                  }
+                }}
               >
                 {templates.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-[#0a1a26]">{t.name}</option>
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
-              </select>
-            </div>
+              </Box>
+            </Box>
           </>
         )}
 
@@ -346,55 +385,111 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           onChange={handleDynamicChange}
         />
 
-        <div className="h-px bg-white/6" />
+        <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
 
         {/* Stato — solo in modifica */}
         {booking?.id && (
-          <div className="space-y-3">
-            <span className="text-[11px] font-bold text-accent uppercase tracking-widest">Stato prenotazione</span>
-            <div className="flex gap-2 flex-wrap">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+            <Box
+              component="span"
+              sx={{
+                fontSize: '0.6875rem',
+                fontWeight: 'bold',
+                color: theme.palette.primary.main,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em'
+              }}
+            >
+              Stato prenotazione
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {([
-                { value: 'CONFIRMED',   label: 'Confermato',    color: 'border-accent/60 bg-accent/10 text-accent' },
-                { value: 'COMPLETED',   label: 'Completato',    color: 'border-emerald-500/60 bg-emerald-500/10 text-emerald-400' },
-                { value: 'RESCHEDULED', label: 'Spostato',      color: 'border-amber-500/60 bg-amber-500/10 text-amber-400' },
-                { value: 'CANCELLED',   label: 'Annullato',     color: 'border-red-500/60 bg-red-500/10 text-red-400' },
-              ] as const).map((opt) => (
-                <button
+                { value: 'CONFIRMED' as const, label: 'Confermato', palette: theme.palette.primary },
+                { value: 'COMPLETED' as const, label: 'Completato', palette: theme.palette.success },
+                { value: 'RESCHEDULED' as const, label: 'Spostato', palette: theme.palette.warning },
+                { value: 'CANCELLED' as const, label: 'Annullato', palette: theme.palette.error },
+              ]).map((opt) => (
+                <Box
                   key={opt.value}
+                  component="button"
                   type="button"
                   onClick={() => setStatus(opt.value)}
-                  className={[
-                    'px-4 py-1.5 rounded-full text-xs font-bold border transition-all',
-                    status === opt.value
-                      ? opt.color
-                      : 'border-white/10 bg-white/5 text-text-secondary hover:border-white/25',
-                  ].join(' ')}
+                  sx={{
+                    px: 1.5,
+                    py: 0.625,
+                    borderRadius: '9999px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    border: `1px solid ${status === opt.value ? `${opt.palette.main}99` : 'rgba(255, 255, 255, 0.1)'}`,
+                    backgroundColor: status === opt.value ? `${opt.palette.main}1a` : 'rgba(255, 255, 255, 0.05)',
+                    color: status === opt.value ? opt.palette.main : theme.palette.text.secondary,
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: status === opt.value ? `${opt.palette.main}99` : 'rgba(255, 255, 255, 0.25)',
+                    }
+                  }}
                 >
                   {opt.label}
-                </button>
+                </Box>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
 
-        <div className="h-px bg-white/6" />
+        <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
 
         {/* Note */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-accent uppercase tracking-widest">Note interne</span>
-          </div>
-          <textarea
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              component="span"
+              sx={{
+                fontSize: '0.6875rem',
+                fontWeight: 'bold',
+                color: theme.palette.primary.main,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em'
+              }}
+            >
+              Note interne
+            </Box>
+          </Box>
+          <Box
+            component="textarea"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Aggiungi note sull'appuntamento..."
             rows={3}
-            className="w-full rounded-xl border border-surface-border bg-white/5 px-4 py-3 text-sm text-white placeholder:text-text-secondary/40 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all resize-none"
+            sx={{
+              width: '100%',
+              borderRadius: '8px',
+              border: `1px solid rgba(0, 191, 255, 0.2)`,
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              px: 1.5,
+              py: 1,
+              fontSize: '0.8125rem',
+              color: theme.palette.text.primary,
+              '&::placeholder': {
+                color: 'rgba(176, 176, 176, 0.4)'
+              },
+              outline: 'none',
+              transition: 'all 0.3s ease',
+              resize: 'none',
+              fontFamily: 'inherit',
+              '&:focus': {
+                borderColor: theme.palette.primary.main,
+                boxShadow: `0 0 0 3px rgba(0, 191, 255, 0.1)`
+              },
+              '&:hover': {
+                borderColor: 'rgba(0, 191, 255, 0.4)'
+              }
+            }}
           />
-        </div>
+        </Box>
 
         <SubmitButton loading={loading} label={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'} />
-      </form>
+      </Box>
 
       {!isSuperAdmin && (
         <PasswordConfirmModal

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
 import { memo } from 'react';
-import { cn } from '@/utils/cn';
+import { Avatar as MuiAvatar, useTheme, type SxProps, type Theme } from '@mui/material';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 
@@ -11,13 +11,13 @@ interface AvatarProps {
   name?: string;
   color?: string;
   size?: AvatarSize;
-  className?: string;
+  sx?: SxProps<Theme>;
 }
 
-const sizeStyles: Record<AvatarSize, string> = {
-  sm: 'w-8 h-8 text-xs',
-  md: 'w-10 h-10 text-sm',
-  lg: 'w-12 h-12 text-lg',
+const sizeMap: Record<AvatarSize, number> = {
+  sm: 32,
+  md: 40,
+  lg: 48,
 };
 
 function Avatar({
@@ -26,8 +26,10 @@ function Avatar({
   name,
   color,
   size = 'md',
-  className,
+  sx,
 }: AvatarProps) {
+  const theme = useTheme();
+
   const getInitials = (): string => {
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`;
@@ -38,19 +40,29 @@ function Avatar({
     return '?';
   };
 
+  const avatarSize = sizeMap[size];
+
   return (
-    <div
-      className={cn(
-        'rounded-full flex items-center justify-center font-bold shrink-0 transition-transform hover:scale-110',
-        sizeStyles[size],
-        !color && 'bg-linear-to-br from-accent/20 to-accent/5 text-accent',
-        color && 'text-white',
-        className
-      )}
-      style={color ? { backgroundColor: color } : undefined}
+    <MuiAvatar
+      sx={{
+        width: avatarSize,
+        height: avatarSize,
+        fontWeight: 600,
+        flexShrink: 0,
+        transition: 'transform 0.2s ease-in-out',
+        cursor: 'pointer',
+        '&:hover': {
+          transform: 'scale(1.1)',
+        },
+        backgroundColor: color || `linear-gradient(135deg, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.main}11 100%)`,
+        color: color ? '#fff' : theme.palette.primary.main,
+        fontSize: size === 'sm' ? '0.75rem' : size === 'lg' ? '1.125rem' : '0.875rem',
+        ...sx,
+      }}
+      src={undefined}
     >
       {getInitials()}
-    </div>
+    </MuiAvatar>
   );
 }
 

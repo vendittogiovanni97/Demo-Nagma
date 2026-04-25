@@ -3,6 +3,7 @@
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 import type { FieldDef } from '@/types/form-template';
+import { Box, useTheme } from '@mui/material';
 import { FileText } from 'lucide-react';
 
 interface Props {
@@ -12,15 +13,34 @@ interface Props {
 }
 
 export default function BookingDynamicFieldsSection({ fields, values, onChange }: Props) {
+  const theme = useTheme();
+
   if (fields.length === 0) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <FileText size={14} className="text-accent" />
-        <span className="text-[11px] font-bold text-accent uppercase tracking-widest">Dettagli tattoo</span>
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <FileText size={14} style={{ color: theme.palette.primary.main }} />
+        <Box
+          component="span"
+          sx={{
+            fontSize: '0.6875rem',
+            fontWeight: 'bold',
+            color: theme.palette.primary.main,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em'
+          }}
+        >
+          Dettagli tattoo
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr 1fr', lg: '1fr 1fr 1fr 1fr' },
+          gap: 1.5
+        }}
+      >
         {fields.map((field) => {
           const commonProps = {
             label: field.label,
@@ -48,7 +68,7 @@ export default function BookingDynamicFieldsSection({ fields, values, onChange }
             />
           );
         })}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

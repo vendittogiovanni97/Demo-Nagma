@@ -29,9 +29,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/customer.service';
 import type { Customer, CustomerSummary, WhatsAppLog } from '@/types/customer';
+import { Box, Paper, Typography, useTheme, Alert, Link, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 
 export default function CustomerDetailPage() {
   const toast = useToast();
+  const theme = useTheme();
   const params = useParams();
   const router = useRouter();
   const { isAdmin } = useAuth();
@@ -89,7 +91,7 @@ export default function CustomerDetailPage() {
 
   if (customerError) {
     return (
-      <div className="flex-1 flex flex-col">
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <StatePanel
           variant="error"
           title="Cliente non trovato"
@@ -98,297 +100,326 @@ export default function CustomerDetailPage() {
             <Button
               variant="primary"
               onClick={() => router.push('/clienti')}
-              className="mt-4"
+              sx={{ mt: 2 }}
             >
               Torna alla lista
             </Button>
           }
         />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, overflow: 'hidden' }}>
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.push('/clienti')}
           icon={<ArrowLeft size={20} />}
-          className="p-2"
+          sx={{ p: 1 }}
         />
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold font-outfit">
-            {isLoadingCustomer ? <Skeleton variant="text" className="w-48" /> : `${customer?.firstName} ${customer?.lastName}`}
-          </h1>
-          <p className="text-sm text-text-secondary">Scheda cliente</p>
-        </div>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            {isLoadingCustomer ? <Skeleton variant="text" sx={{ width: 'auto', maxWidth: '192px' }} /> : `${customer?.firstName} ${customer?.lastName}`}
+          </Typography>
+          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>Scheda cliente</Typography>
+        </Box>
         {isAdmin ? (
           <>
             <Button
               variant="secondary"
-              icon={Edit}
+              icon={<Edit />}
               onClick={handleEdit}
             >
               Modifica
             </Button>
             <Button
-              variant="danger"
+              variant="primary"
               onClick={handleDelete}
             >
               Elimina
             </Button>
           </>
         ) : null}
-      </div>
+      </Box>
 
       {isLoadingCustomer ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <div className="glass-panel p-6 space-y-4">
-              <Skeleton variant="text" className="w-3/4 h-6" />
-              <Skeleton variant="text" className="w-1/2 h-4" />
-              <Skeleton variant="text" className="w-full h-4" />
-              <Skeleton variant="text" className="w-2/3 h-4" />
-            </div>
-          </div>
-          <div className="lg:col-span-2 space-y-6">
-            <div className="glass-panel p-6"><Skeleton variant="text" className="w-full h-32" /></div>
-            <div className="glass-panel p-6"><Skeleton variant="text" className="w-full h-32" /></div>
-          </div>
-        </div>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(12, 1fr)' }, gap: 3 }}>
+          <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
+            <Paper sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}`, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Skeleton variant="text" sx={{ width: '75%', height: '24px' }} />
+              <Skeleton variant="text" sx={{ width: '50%', height: '16px' }} />
+              <Skeleton variant="text" sx={{ width: '100%', height: '16px' }} />
+              <Skeleton variant="text" sx={{ width: '66%', height: '16px' }} />
+            </Paper>
+          </Box>
+<Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 8' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Skeleton variant="text" sx={{ width: '75%', height: '24px' }} />
+            <Skeleton variant="text" sx={{ width: '50%', height: '16px' }} />
+          </Box>
+        </Box>
       ) : customer ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(12, 1fr)' }, gap: 3 }}>
           {/* Sidebar: Info Cliente */}
-          <div className="lg:col-span-1 space-y-6">
+          <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Dati Anagrafici */}
-            <div className="glass-panel p-6">
-              <h2 className="text-lg font-bold font-outfit mb-4 flex items-center gap-2">
-                <User size={18} className="text-accent" />
+            <Paper sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <User size={18} style={{ color: theme.palette.primary.main }} />
                 Dati Anagrafici
-              </h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Phone size={16} className="text-accent shrink-0" />
-                  <a href={`tel:${customer.phone}`} className="text-white hover:text-accent transition">
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '0.875rem' }}>
+                  <Phone size={16} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+                  <Link href={`tel:${customer.phone}`} sx={{ color: 'text.primary', textDecoration: 'none', '&:hover': { color: 'primary.main' } }}>
                     {customer.phone}
-                  </a>
-                </div>
+                  </Link>
+                </Box>
                 {customer.email && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Mail size={16} className="text-accent shrink-0" />
-                    <a href={`mailto:${customer.email}`} className="text-white hover:text-accent transition">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '0.875rem' }}>
+                    <Mail size={16} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+                    <Link href={`mailto:${customer.email}`} sx={{ color: 'text.primary', textDecoration: 'none', '&:hover': { color: 'primary.main' } }}>
                       {customer.email}
-                    </a>
-                  </div>
+                    </Link>
+                  </Box>
                 )}
-                <div className="flex items-center gap-3 text-sm text-text-secondary">
-                  <Calendar size={16} className="shrink-0" />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+                  <Calendar size={16} style={{ flexShrink: 0 }} />
                   Cliente dal {format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it })}
-                </div>
-              </div>
+                </Box>
+              </Box>
 
               {customer.notes && (
-                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Note</p>
-                      <p className="text-sm text-white">{customer.notes}</p>
-                    </div>
-                  </div>
-                </div>
+                <Alert severity="warning" sx={{ mt: 2, bgcolor: 'rgba(255, 152, 0, 0.08)', border: `1px solid rgba(255, 152, 0, 0.2)` }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '4px' }} />
+                    <Box>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5, color: theme.palette.warning.main }}>Note</Typography>
+                      <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.primary }}>{customer.notes}</Typography>
+                    </Box>
+                  </Box>
+                </Alert>
               )}
-            </div>
+            </Paper>
 
             {/* Riepilogo */}
             {summary && !isLoadingSummary && (
-              <div className="glass-panel p-6">
-                <h2 className="text-lg font-bold font-outfit mb-4 flex items-center gap-2">
-                  <TrendingUp size={18} className="text-accent" />
+              <Paper sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TrendingUp size={18} style={{ color: theme.palette.primary.main }} />
                   Riepilogo
-                </h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-green-400">€{summary.totalSpent.toFixed(0)}</p>
-                    <p className="text-xs text-text-secondary mt-1">Totale Speso</p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-blue-400">{summary._count.bookings}</p>
-                    <p className="text-xs text-text-secondary mt-1">Appuntamenti</p>
-                  </div>
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-purple-400">{summary.upcomingBookings}</p>
-                    <p className="text-xs text-text-secondary mt-1">Futuri</p>
-                  </div>
-                </div>
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 2, mb: 2 }}>
+                  <Box sx={{ gridColumn: 'span 3' }}>
+                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1, p: 2, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: theme.palette.success.main }}>€{summary.totalSpent.toFixed(0)}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, mt: 0.5 }}>Totale Speso</Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ gridColumn: 'span 3' }}>
+                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1, p: 2, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: theme.palette.info.main }}>{summary._count.bookings}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, mt: 0.5 }}>Appuntamenti</Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ gridColumn: 'span 3' }}>
+                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.05)', borderRadius: 1, p: 2, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: theme.palette.warning.main }}>{summary.upcomingBookings}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, mt: 0.5 }}>Futuri</Typography>
+                    </Box>
+                  </Box>
+                </Box>
 
                 {summary.lastBooking && (
-                  <div className="mt-4 pt-4 border-t border-surface-border">
-                    <p className="text-xs text-text-secondary mb-1">Ultimo servizio</p>
-                    <p className="text-sm text-white">
+                  <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, mb: 0.5 }}>Ultimo servizio</Typography>
+                    <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.primary }}>
                       Appuntamento — {summary.lastBooking.artist.name}
-                    </p>
-                    <p className="text-xs text-text-secondary">
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
                       {format(new Date(summary.lastBooking.date), 'dd MMM yyyy', { locale: it })}
-                    </p>
-                  </div>
+                    </Typography>
+                  </Box>
                 )}
-              </div>
+              </Paper>
             )}
-          </div>
+          </Box>
 
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 8' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Prossimi Appuntamenti */}
-            <div className="glass-panel p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold font-outfit flex items-center gap-2">
-                  <Calendar size={18} className="text-accent" />
+            <Paper sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Calendar size={18} style={{ color: theme.palette.primary.main }} />
                   Prossimi Appuntamenti
-                </h2>
+                </Typography>
                 {upcomingBookings.length > 0 && (
-                  <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
+                  <Box sx={{ fontSize: '0.75rem', bgcolor: theme.palette.info.light, color: theme.palette.info.dark, px: 1.5, py: 0.5, borderRadius: '12px' }}>
                     {upcomingBookings.length}
-                  </span>
+                  </Box>
                 )}
-              </div>
+              </Box>
               {upcomingBookings.length === 0 ? (
-                <div className="text-center py-8 text-text-secondary">
-                  <Calendar size={32} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Nessun appuntamento futuro</p>
-                </div>
+                <Box sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
+                  <Calendar size={32} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
+                  <Typography variant="body2">Nessun appuntamento futuro</Typography>
+                </Box>
               ) : (
-                <div className="space-y-2">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {upcomingBookings.map((booking) => (
-                    <div
+                    <Box
                       key={booking.id}
-                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 1.5,
+                        bgcolor: 'rgba(255,255,255,0.05)',
+                        borderRadius: 1,
+                        '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' },
+                        transition: 'colors 0.2s'
+                      }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-1 h-10 rounded-full"
-                          style={{ backgroundColor: booking.artist?.color || '#6b7280' }}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: '4px',
+                            height: '40px',
+                            borderRadius: '4px',
+                            backgroundColor: booking.artist?.color || '#6b7280'
+                          }}
                         />
-                        <div>
-                          <p className="text-sm font-bold text-white">Appuntamento</p>
-                          <p className="text-xs text-text-secondary">
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>Appuntamento</Typography>
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                             {booking.artist?.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-white">
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
                           {format(new Date(booking.date), 'dd MMM', { locale: it })}
-                        </p>
-                        <p className="text-xs text-text-secondary">
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                           {format(new Date(booking.date), 'HH:mm')}
-                        </p>
-                        <Badge
-                          variant={getBookingStatusBadgeVariant(booking.status)}
-                          size="xs"
-                        >
-                          {BOOKING_STATUS_CONFIG[booking.status]?.label ?? booking.status}
-                        </Badge>
-                      </div>
-                    </div>
+                        </Typography>
+                        <Box>
+                          <Badge
+                            variant={getBookingStatusBadgeVariant(booking.status)}
+                            size="xs"
+                          >
+                            {BOOKING_STATUS_CONFIG[booking.status]?.label ?? booking.status}
+                          </Badge>
+                        </Box>
+                      </Box>
+                    </Box>
                   ))}
-                </div>
+                </Box>
               )}
-            </div>
+            </Paper>
 
             {/* Storico Appuntamenti */}
-            <div className="glass-panel p-6">
-              <h2 className="text-lg font-bold font-outfit mb-4 flex items-center gap-2">
-                <Clock size={18} className="text-text-secondary" />
+            <Paper sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Clock size={18} style={{ color: theme.palette.text.secondary }} />
                 Storico Appuntamenti
-              </h2>
+              </Typography>
               {pastBookings.length === 0 ? (
-                <div className="text-center py-8 text-text-secondary">
-                  <Clock size={32} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Nessun appuntamento passato</p>
-                </div>
+                <Box sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
+                  <Clock size={32} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
+                  <Typography variant="body2">Nessun appuntamento passato</Typography>
+                </Box>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-text-secondary text-xs uppercase tracking-wider border-b border-surface-border">
-                        <th className="pb-2 font-bold">Data</th>
-                        <th className="pb-2 font-bold">Artista</th>
-                        <th className="pb-2 font-bold text-right">Prezzo</th>
-                        <th className="pb-2 font-bold text-right">Stato</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm">
+                <Box sx={{ overflowX: 'auto' }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        {['Data', 'Artista', 'Prezzo', 'Stato'].map((h, i) => (
+                          <TableCell key={h} align={i >= 2 ? 'right' : 'left'} sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', borderColor: 'divider', pb: 1 }}>
+                            {h}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
                       {pastBookings.map((booking) => (
-                        <tr key={booking.id} className="border-b border-surface-border/50 hover:bg-white/2 transition-colors">
-                          <td className="py-2 text-white">
+                        <TableRow key={booking.id} sx={{ '&:last-child td': { border: 0 } }}>
+                          <TableCell sx={{ color: 'text.primary', fontSize: '0.875rem', borderColor: 'divider', py: 1 }}>
                             {format(new Date(booking.date), 'dd MMM yyyy', { locale: it })}
-                          </td>
-                          <td className="py-2 text-text-secondary">
+                          </TableCell>
+                          <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem', borderColor: 'divider', py: 1 }}>
                             {booking.artist?.name}
-                          </td>
-                          <td className="py-2 text-right text-white">
+                          </TableCell>
+                          <TableCell align="right" sx={{ color: 'text.primary', fontSize: '0.875rem', borderColor: 'divider', py: 1 }}>
                             {booking.price ? `€${booking.price.toFixed(0)}` : '—'}
-                          </td>
-                          <td className="py-2 text-right">
-                            <Badge
-                              variant={getBookingStatusBadgeVariant(booking.status)}
-                              size="xs"
-                            >
+                          </TableCell>
+                          <TableCell align="right" sx={{ borderColor: 'divider', py: 1 }}>
+                            <Badge variant={getBookingStatusBadgeVariant(booking.status)} size="xs">
                               {BOOKING_STATUS_CONFIG[booking.status]?.label ?? booking.status}
                             </Badge>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </TableBody>
+                  </Table>
+                </Box>
               )}
-            </div>
+            </Paper>
 
             {/* Ultimi WhatsApp */}
             {whatsappLogs.length > 0 && (
-              <div className="glass-panel p-6">
-                <h2 className="text-lg font-bold font-outfit mb-4 flex items-center gap-2">
-                  <MessageCircle size={18} className="text-emerald-400" />
+              <Paper sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.04)', border: `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <MessageCircle size={18} style={{ color: theme.palette.success.main }} />
                   Ultimi WhatsApp
-                </h2>
-                <div className="space-y-2">
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {whatsappLogs.map((log: WhatsAppLog) => (
-                    <div
+                    <Box
                       key={log.id}
-                      className="flex items-start justify-between p-3 bg-white/5 rounded-lg"
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        p: 1.5,
+                        bgcolor: 'rgba(255,255,255,0.05)',
+                        borderRadius: 1
+                      }}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-white">
+                      <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
                             {log.templateName || 'Messaggio personalizzato'}
-                          </span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            log.status === 'MANUAL_SENT'
-                              ? 'bg-green-500/20 text-green-300'
-                              : 'bg-red-500/20 text-red-300'
-                          }`}>
+                          </Typography>
+                          <Box sx={{
+                            fontSize: '0.75rem',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: '12px',
+                            bgcolor: log.status === 'MANUAL_SENT' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)',
+                            color: log.status === 'MANUAL_SENT' ? theme.palette.success.light : theme.palette.error.light
+                          }}>
                             {log.status === 'MANUAL_SENT' ? 'Inviato' : 'Fallito'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-text-secondary mt-1 line-clamp-2">
+                          </Box>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: theme.palette.text.secondary, mt: 0.5, display: 'block', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {log.message}
-                        </p>
-                      </div>
-                      <p className="text-xs text-text-secondary ml-3 shrink-0">
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: theme.palette.text.secondary, ml: 2, flexShrink: 0 }}>
                         {format(new Date(log.createdAt), 'dd MMM', { locale: it })}
-                      </p>
-                    </div>
+                      </Typography>
+                    </Box>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Paper>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
       ) : (
         <StatePanel
           variant="empty"
@@ -404,6 +435,6 @@ export default function CustomerDetailPage() {
         onSuccess={handleModalSuccess}
         customer={editingCustomer}
       />
-    </div>
+    </Box>
   );
 }

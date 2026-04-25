@@ -27,7 +27,7 @@ export function useBookingsPaged(month?: string, page?: number, limit?: number, 
   const enabled = options?.enabled ?? true;
   return useSWR<Booking[]>(
     enabled ? [ENDPOINTS.BOOKINGS.BASE, month, page, limit, startDate, endDate] : null,
-    () => bookingService.getAll(month, startDate, endDate),
+    () => bookingService.getAll(month, startDate, endDate, page, limit),
     {
       revalidateOnFocus: true,
       dedupingInterval: 2000,

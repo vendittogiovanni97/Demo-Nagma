@@ -1,23 +1,71 @@
-"use client";
+'use client';
+
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
+import {
+  AlertCircle,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  User,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import {
+  Box,
+  Chip,
+  Stack,
+  TextField,
+  Select,
+  MenuItem,
+  Typography,
+  useTheme,
+  type SxProps,
+  type Theme,
+} from '@mui/material';
 
 import DataTable, { type Column } from '@/components/data-display/DataTable';
 import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
-import { bookingHistoryService, type BookingAction, type BookingHistoryEntry, type BookingHistoryResponse } from '@/services/booking-history.service';
-import { cn } from '@/utils/cn';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { AlertCircle, CalendarDays, ChevronLeft, ChevronRight, User } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import useSWR from 'swr';
+import {
+  bookingHistoryService,
+  type BookingAction,
+  type BookingHistoryEntry,
+  type BookingHistoryResponse,
+} from '@/services/booking-history.service';
 
-const ACTION_CONFIG: Record<BookingAction, { label: string; className: string }> = {
-  CREATED: { label: 'Creato', className: 'bg-blue-500/15 text-blue-400' },
-  UPDATED: { label: 'Modificato', className: 'bg-amber-500/15 text-amber-400' },
-  RESCHEDULED: { label: 'Spostato', className: 'bg-purple-500/15 text-purple-400' },
-  CANCELLED: { label: 'Annullato', className: 'bg-red-500/15 text-red-400' },
-  COMPLETED: { label: 'Completato', className: 'bg-emerald-500/15 text-emerald-400' },
+type ActionConfig = Record<
+  BookingAction,
+  { label: string; color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'; sx?: SxProps<Theme> }
+>;
+
+const ACTION_CONFIG: ActionConfig = {
+  CREATED: {
+    label: 'Creato',
+    color: 'info',
+    sx: { backgroundColor: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' },
+  },
+  UPDATED: {
+    label: 'Modificato',
+    color: 'warning',
+    sx: { backgroundColor: 'rgba(217, 119, 6, 0.2)', color: '#d97706' },
+  },
+  RESCHEDULED: {
+    label: 'Spostato',
+    color: 'secondary',
+    sx: { backgroundColor: 'rgba(139, 92, 246, 0.2)', color: '#8b5cf6' },
+  },
+  CANCELLED: {
+    label: 'Annullato',
+    color: 'error',
+    sx: { backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' },
+  },
+  COMPLETED: {
+    label: 'Completato',
+    color: 'success',
+    sx: { backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#10b981' },
+  },
 };
 
 const ACTION_OPTIONS: { value: BookingAction | ''; label: string }[] = [
@@ -52,37 +100,62 @@ export default function BookingHistoryPage() {
     return ACTION_CONFIG[action]?.label ?? action;
   };
 
+  const theme = useTheme();
+
   const renderDateChange = (entry: BookingHistoryEntry) => {
     const actionType = entry.action;
 
     if (entry.oldDate || entry.newDate) {
       return (
-        <div className="text-sm">
+        <Stack direction="row" useFlexGap sx={{ gap: 1, fontSize: '0.875rem' }}>
           {entry.oldDate && (
-            <span className="text-red-400 line-through mr-2">
+            <Typography
+              sx={{
+                color: '#ef4444',
+                textDecoration: 'line-through',
+                fontSize: '0.875rem',
+              }}
+            >
               {format(new Date(entry.oldDate), 'dd/MM/yyyy HH:mm', { locale: it })}
-            </span>
+            </Typography>
           )}
           {entry.newDate && (
-            <span className="text-emerald-400">
+            <Typography
+              sx={{
+                color: '#10b981',
+                fontSize: '0.875rem',
+              }}
+            >
               {format(new Date(entry.newDate), 'dd/MM/yyyy HH:mm', { locale: it })}
-            </span>
+            </Typography>
           )}
-        </div>
+        </Stack>
       );
     }
 
     if (actionType === 'CREATED') {
-      return <span className="text-blue-400 text-sm">Nuova prenotazione</span>;
+      return (
+        <Typography sx={{ color: '#3b82f6', fontSize: '0.875rem' }}>
+          Nuova prenotazione
+        </Typography>
+      );
     }
     if (actionType === 'CANCELLED') {
-      return <span className="text-red-400 text-sm">Prenotazione annullata</span>;
+      return (
+        <Typography sx={{ color: '#ef4444', fontSize: '0.875rem' }}>
+          Prenotazione annullata
+        </Typography>
+      );
     }
     if (actionType === 'COMPLETED') {
-      return <span className="text-emerald-400 text-sm">Prenotazione completata</span>;
+      return (
+        <Typography sx={{ color: '#10b981', fontSize: '0.875rem' }}>
+          Prenotazione completata
+        </Typography>
+      );
     }
 
-    return <span className="text-text-secondary text-sm">—</span>;
+    return <Typography sx={{ fontSize: '0.875rem' }}>—</Typography>;
   };
 
   const columns: Column<BookingHistoryEntry>[] = useMemo(() => [
@@ -91,10 +164,10 @@ export default function BookingHistoryPage() {
       label: 'Data',
       width: '150px',
       render: (entry) => (
-        <div className="flex items-center gap-1.5 text-sm text-white">
-          <CalendarDays size={14} className="text-accent shrink-0" />
+        <Stack direction="row" useFlexGap sx={{ fontSize: '0.875rem', alignItems: 'center', gap: 0.75 }}>
+          <CalendarDays size={14} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
           {format(new Date(entry.changedAt), 'dd MMM yyyy', { locale: it })}
-        </div>
+        </Stack>
       ),
     },
     {
@@ -104,37 +177,72 @@ export default function BookingHistoryPage() {
       render: (entry) => {
         const cfg = ACTION_CONFIG[entry.action];
         return (
-          <span className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide', cfg?.className)}>
-            {getActionLabel(entry.action)}
-          </span>
+          <Chip
+            label={getActionLabel(entry.action)}
+            size="small"
+            sx={{
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              ...cfg?.sx,
+            }}
+          />
         );
       },
     },
     {
       key: 'cliente',
       label: 'Cliente',
-      render: (entry) => entry.booking?.customer ? (
-        <div>
-          <div className="text-white font-semibold">
-            {entry.booking.customer.firstName} {entry.booking.customer.lastName}
-          </div>
-          <div className="text-xs text-text-secondary font-mono">{entry.booking.customer.phone}</div>
-        </div>
-      ) : <span className="text-text-secondary/40">—</span>,
+      render: (entry) =>
+        entry.booking?.customer ? (
+          <Stack direction="column" useFlexGap sx={{ gap: 0.5 }}>
+            <Typography
+              sx={{
+                color: theme.palette.text.primary,
+                fontWeight: 600,
+                fontSize: '0.875rem',
+              }}
+            >
+              {entry.booking.customer.firstName} {entry.booking.customer.lastName}
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '0.75rem',
+                color: theme.palette.text.secondary,
+                fontFamily: 'monospace',
+              }}
+            >
+              {entry.booking.customer.phone}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography sx={{ opacity: 0.4 }}>—</Typography>
+        ),
     },
     {
       key: 'artista',
       label: 'Artista',
       width: '140px',
-      render: (entry) => entry.booking?.artist ? (
-        <div className="flex items-center gap-2">
-          <span
-            className="w-2 h-2 rounded-full shrink-0 ring-1 ring-white/10"
-            style={{ backgroundColor: entry.booking.artist.color }}
-          />
-          <span className="text-sm text-text-secondary">{entry.booking.artist.name}</span>
-        </div>
-      ) : <span className="text-text-secondary/40 text-sm">—</span>,
+      render: (entry) =>
+        entry.booking?.artist ? (
+          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', fontSize: '0.875rem' }}>
+            <Box
+              sx={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                flexShrink: 0,
+                border: `1px solid rgba(255, 255, 255, 0.1)`,
+                backgroundColor: entry.booking.artist.color,
+              }}
+            />
+            <Typography sx={{ color: theme.palette.text.secondary, fontSize: '0.875rem' }}>
+              {entry.booking.artist.name}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography sx={{ opacity: 0.4, fontSize: '0.875rem' }}>—</Typography>
+        ),
     },
     {
       key: 'data',
@@ -146,67 +254,85 @@ export default function BookingHistoryPage() {
       label: 'Utente',
       width: '150px',
       render: (entry) => (
-        <div className="flex items-center gap-1.5 text-sm text-white">
-          <User size={12} className="text-accent shrink-0" />
-          <span className="truncate font-medium">{entry.changedBy?.name || '—'}</span>
-        </div>
+        <Stack
+          direction="row"
+          useFlexGap
+          sx={{ gap: 0.75, alignItems: 'center', fontSize: '0.875rem', textOverflow: 'ellipsis' }}
+        >
+          <User size={12} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+          <Typography
+            sx={{
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {entry.changedBy?.name || '—'}
+          </Typography>
+        </Stack>
       ),
     },
-  ], []);
+  ], [theme]);
 
   return (
-    <div className="flex-1 flex flex-col gap-6">
+    <Stack direction="column" useFlexGap sx={{ gap: 3, flex: 1 }}>
       <PageHeader
         title="Storico Prenotazioni"
         subtitle={user ? `Accesso come ${user.name}` : undefined}
       >
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-text-secondary font-medium">Dal:</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-text-secondary font-medium">Al:</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={action}
-              onChange={(e) => setAction(e.target.value as BookingAction | '')}
-              className="rounded-lg border border-surface-border bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-accent"
-            >
-              {ACTION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <Stack direction="row" useFlexGap sx={{ gap: 1.5, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <TextField
+            label="Dal"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            size="small"
+            sx={{ width: '140px' }}
+          />
+          <TextField
+            label="Al"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            size="small"
+            sx={{ width: '140px' }}
+          />
+          <Select
+            value={action}
+            onChange={(e) => setAction(e.target.value as BookingAction | '')}
+            size="small"
+            sx={{ width: '180px' }}
+          >
+            <MenuItem value="">Tutte le azioni</MenuItem>
+            <MenuItem value="UPDATED">Modificato</MenuItem>
+            <MenuItem value="RESCHEDULED">Spostato</MenuItem>
+            <MenuItem value="CANCELLED">Annullato</MenuItem>
+            <MenuItem value="COMPLETED">Completato</MenuItem>
+          </Select>
           <Button variant="primary" size="sm" onClick={handleSearch}>
             Filtra
           </Button>
-        </div>
+        </Stack>
       </PageHeader>
 
       {error && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-red-400">
-          <AlertCircle size={40} className="opacity-60" />
-          <p className="text-sm">Errore nel caricamento dei dati</p>
-        </div>
+        <Stack
+          useFlexGap
+          sx={{ direction: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5, py: 8 }}
+        >
+          <AlertCircle size={40} style={{ opacity: 0.6, color: theme.palette.error.main }} />
+          <Box sx={{ fontSize: '0.875rem', color: theme.palette.error.main }}>
+            Errore nel caricamento dei dati
+          </Box>
+        </Stack>
       )}
 
       {!error && (
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <DataTable<BookingHistoryEntry>
             columns={columns}
             data={data?.data ?? []}
@@ -214,11 +340,21 @@ export default function BookingHistoryPage() {
             emptyMessage="Nessuna modifica trovata per i filtri selezionati."
             keyExtractor={(entry) => entry.id}
           />
-        </div>
+        </Box>
       )}
 
       {!error && data && data.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 py-4 border-t border-surface-border">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 2,
+            py: 2,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -228,9 +364,9 @@ export default function BookingHistoryPage() {
           >
             Precedente
           </Button>
-          <span className="text-sm text-text-secondary">
+          <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
             Pagina {page} di {data.totalPages}
-          </span>
+          </Box>
           <Button
             variant="ghost"
             size="sm"
@@ -240,8 +376,8 @@ export default function BookingHistoryPage() {
           >
             Successiva
           </Button>
-        </div>
+        </Box>
       )}
-    </div>
+    </Stack>
   );
 }

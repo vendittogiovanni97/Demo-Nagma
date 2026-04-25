@@ -3,12 +3,14 @@
 import { branding } from '@/config/branding';
 import { useAuth } from '@/context/AuthContext';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import Button from '@/components/ui/Button';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Box, Typography, useTheme, TextField, InputAdornment, IconButton } from '@mui/material';
+import Button from '@/components/ui/Button';
 
 export default function LoginPage() {
+  const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -40,55 +42,155 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[70vh]">
-      <div className="w-full max-w-md flex flex-col items-center p-8 glass-panel animate-in fade-in zoom-in duration-500">
-        <div className="w-20 h-20 bg-black/40 rounded-full flex items-center justify-center mb-6 border border-surface-border shadow-xl overflow-hidden">
+    <Box
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        minHeight: '70vh',
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: theme.breakpoints.values.sm,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          p: 3,
+          backgroundColor: 'rgba(26, 35, 50, 0.7)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: 3,
+          border: 1,
+          borderColor: 'divider',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          animation: 'fadeIn 0.5s ease-out',
+          '@keyframes fadeIn': {
+            from: { opacity: 0, transform: 'scale(0.95)' },
+            to: { opacity: 1, transform: 'scale(1)' },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 80,
+            height: 80,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 3,
+            border: 1,
+            borderColor: 'divider',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden',
+          }}
+        >
           <Image
             src={branding.portalLogo}
             alt={branding.portalName}
             width={56}
             height={56}
-            className="h-14 w-14 object-contain"
+            style={{ height: 56, width: 56, objectFit: 'contain' }}
           />
-        </div>
+        </Box>
 
-        <h1 className="text-3xl font-outfit font-bold text-white mb-2">Benvenuto</h1>
-        <p className="text-text-secondary text-sm mb-1">{branding.portalName}</p>
-        <p className="text-text-secondary text-sm mb-8">{branding.portalLoginTagline}</p>
+        <Typography variant="h2" sx={{ fontWeight: 700, color: 'white', mb: 1 }}>
+          Benvenuto
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+          {branding.portalName}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4 }}>
+          {branding.portalLoginTagline}
+        </Typography>
 
-        <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type="email"
-              placeholder="Email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[rgba(255,255,255,0.03)] border border-surface-border text-white pl-12 pr-4 py-4 rounded-[15px] focus:border-accent focus:outline-none transition-colors"
-            />
-          </div>
+        <Box
+          component="form"
+          onSubmit={handleLogin}
+          sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+          }}
+        >
+          <TextField
+            type="email"
+            placeholder="Email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            slotProps={{
+              inputLabel: { shrink: true },
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Mail size={18} style={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                '& fieldset': { borderColor: theme.palette.divider },
+                '&:hover fieldset': { borderColor: theme.palette.primary.main },
+                '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
+              },
+              '& .MuiInputBase-input': { color: 'white', py: '14px' },
+            }}
+          />
 
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[rgba(255,255,255,0.03)] border border-surface-border text-white pl-12 pr-12 py-4 rounded-[15px] focus:border-accent focus:outline-none transition-colors"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-2"
-              tabIndex={-1}
-            />
-          </div>
+          <TextField
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            slotProps={{
+              inputLabel: { shrink: true },
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock size={18} style={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      edge="end"
+                      size="small"
+                      sx={{ color: theme.palette.text.secondary }}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                '& fieldset': { borderColor: theme.palette.divider },
+                '&:hover fieldset': { borderColor: theme.palette.primary.main },
+                '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main },
+              },
+              '& .MuiInputBase-input': { color: 'white', py: '14px' },
+            }}
+          />
 
           <Button
             type="submit"
@@ -103,10 +205,12 @@ export default function LoginPage() {
           </Button>
 
           {error && (
-            <p className="text-danger text-sm text-center mt-1">{error}</p>
+            <Typography variant="body2" sx={{ color: 'error.main', textAlign: 'center', mt: 0.5 }}>
+              {error}
+            </Typography>
           )}
-        </form>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

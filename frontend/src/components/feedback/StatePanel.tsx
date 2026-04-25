@@ -2,8 +2,8 @@
 
 import type { ElementType, ReactNode } from 'react';
 import { AlertCircle, Inbox, Loader2 } from 'lucide-react';
-
-import { cn } from '@/utils/cn';
+import { Box, CircularProgress, keyframes, useTheme } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 
 type StateVariant = 'loading' | 'empty' | 'error';
 
@@ -14,7 +14,7 @@ interface StatePanelProps {
   action?: ReactNode;
   icon?: ElementType;
   fullPage?: boolean;
-  className?: string;
+  sx?: SxProps<Theme>;
 }
 
 const defaultIcons = {
@@ -23,11 +23,14 @@ const defaultIcons = {
   error: AlertCircle,
 } as const;
 
-const variantStyles = {
-  error: { ring: 'border-danger/20 bg-danger/10 text-danger', ringFull: 'bg-danger/10 text-danger' },
-  empty: { ring: 'border-surface-border bg-white/5 text-text-secondary', ringFull: 'bg-accent/10 text-accent' },
-  loading: { ring: 'border-surface-border bg-white/5 text-text-secondary', ringFull: 'bg-accent/10 text-accent' },
-} as const;
+const spin = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
 
 export default function StatePanel({
   variant,
@@ -36,46 +39,127 @@ export default function StatePanel({
   action,
   icon,
   fullPage = false,
-  className,
+  sx = {},
 }: StatePanelProps) {
+  const theme = useTheme();
   const Icon = icon ?? defaultIcons[variant];
-  const styles = variantStyles[variant];
+
+  const variantConfig = {
+    error: {
+      bg: 'rgba(244, 67, 54, 0.1)',
+      border: 'rgba(244, 67, 54, 0.2)',
+      text: '#f44336',
+      ringBg: 'rgba(244, 67, 54, 0.1)'
+    },
+    empty: {
+      bg: 'rgba(255, 255, 255, 0.05)',
+      border: 'rgba(0, 191, 255, 0.2)',
+      text: theme.palette.text.secondary,
+      ringBg: 'rgba(0, 191, 255, 0.1)'
+    },
+    loading: {
+      bg: 'rgba(255, 255, 255, 0.05)',
+      border: 'rgba(0, 191, 255, 0.2)',
+      text: theme.palette.text.secondary,
+      ringBg: 'rgba(0, 191, 255, 0.1)'
+    }
+  };
+
+  const config = variantConfig[variant];
 
   if (fullPage) {
     return (
-      <div className={cn('flex-1 flex items-center justify-center p-6', className)}>
-        <div className="text-center max-w-md">
-          <div className={cn('w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4', styles.ringFull)}>
-            <Icon size={28} className={variant === 'loading' ? 'animate-spin' : ''} />
-          </div>
-          <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-          {description ? <p className="text-sm text-text-secondary">{description}</p> : null}
-          {action ? <div className="mt-4">{action}</div> : null}
-        </div>
-      </div>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 3,
+          ...sx
+        }}
+      >
+        <Box sx={{ textAlign: 'center', maxWidth: 320 }}>
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2,
+              backgroundColor: config.ringBg
+            }}
+          >
+            {variant === 'loading' ? (
+              <CircularProgress size={28} sx={{ color: theme.palette.primary.main }} />
+            ) : (
+              <Icon size={28} color={config.text} />
+            )}
+          </Box>
+          <Box component="h3" sx={{ fontSize: '1.125rem', fontWeight: 'bold', color: theme.palette.text.primary, mb: 1 }}>
+            {title}
+          </Box>
+          {description && (
+            <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+              {description}
+            </Box>
+          )}
+          {action && <Box sx={{ mt: 2 }}>{action}</Box>}
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div
-      className={cn(
-        'flex min-h-40 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-surface-border bg-white/2 px-6 py-10 text-center',
-        className
-      )}
+    <Box
+      sx={{
+        display: 'flex',
+        minHeight: 160,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1.5,
+        borderRadius: 3.75,
+        border: `1px dashed ${config.border}`,
+        backgroundColor: config.bg,
+        px: 3,
+        py: 5,
+        textAlign: 'center',
+        ...sx
+      }}
     >
-      <div
-        className={cn(
-          'flex h-12 w-12 items-center justify-center rounded-2xl border',
-          styles.ring
-        )}
+      <Box
+        sx={{
+          width: 48,
+          height: 48,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 2.5,
+          border: `1px solid ${config.border}`,
+          backgroundColor: config.ringBg
+        }}
       >
-        <Icon size={22} className={variant === 'loading' ? 'animate-spin' : ''} />
-      </div>
-      <div className="space-y-1">
-        <p className="text-sm font-semibold text-white">{title}</p>
-        {description ? <p className="text-sm text-text-secondary">{description}</p> : null}
-      </div>
+        {variant === 'loading' ? (
+          <CircularProgress size={22} sx={{ color: theme.palette.primary.main }} />
+        ) : (
+          <Icon size={22} color={config.text} />
+        )}
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <Box component="p" sx={{ fontSize: '0.875rem', fontWeight: 600, color: theme.palette.text.primary }}>
+          {title}
+        </Box>
+        {description && (
+          <Box component="p" sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+            {description}
+          </Box>
+        )}
+      </Box>
       {action}
-    </div>
+    </Box>
   );
 }

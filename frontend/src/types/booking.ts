@@ -37,6 +37,12 @@ export interface CreateBookingData {
   formData?: Record<string, unknown>;
 }
 
+export interface AvailableArtist {
+  id: number;
+  name: string;
+  color?: string;
+}
+
 export interface BookingHistory {
   id: number;
   bookingId: number;

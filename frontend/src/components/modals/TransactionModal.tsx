@@ -4,7 +4,7 @@ import StatePanel from '@/components/feedback/StatePanel';
 import { useAuth } from '@/context/AuthContext';
 import { useFormModal } from '@/hooks/useFormModal';
 import { useToast } from '@/hooks/useToast';
-import { createTransactionSchema } from '@/schemas';
+import { createTransactionSchema } from '@/schemas/transaction';
 import { transactionService } from '@/services/transaction.service';
 import type { CreateTransactionData, TransactionType } from '@/types/transaction';
 import { validateData } from '@/utils/validation';

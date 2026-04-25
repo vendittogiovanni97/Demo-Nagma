@@ -1,6 +1,8 @@
 "use client";
 
+import { Box, TextField, useTheme } from '@mui/material';
 import type { LucideIcon } from 'lucide-react';
+import { inputRootSx } from '@/theme/inputStyles';
 
 interface FormTextareaProps {
   label: string;
@@ -23,21 +25,45 @@ export default function FormTextarea({
   rows = 3,
   disabled,
 }: FormTextareaProps) {
+  const theme = useTheme();
+
   return (
-    <div className="space-y-2">
-      <label className="text-text-secondary text-sm flex items-center gap-2 px-1">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Box
+        component="label"
+        sx={{
+          fontSize: '0.875rem',
+          color: theme.palette.text.secondary,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 0.5
+        }}
+      >
         {Icon && <Icon size={14} />}
         {label}
-      </label>
-      <textarea
-        required={required}
-        placeholder={placeholder}
+      </Box>
+      <TextField
+        multiline
+        rows={rows}
+        fullWidth
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        rows={rows}
+        placeholder={placeholder}
+        required={required}
         disabled={disabled}
-        className="w-full bg-white/5 border border-surface-border rounded-xl p-3 text-white focus:outline-none focus:border-accent transition-all resize-none disabled:opacity-50"
+        variant="outlined"
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            ...inputRootSx(theme),
+            borderRadius: '12px',
+          },
+          '& .MuiOutlinedInput-input': {
+            color: theme.palette.text.primary,
+            resize: 'none',
+          },
+        }}
       />
-    </div>
+    </Box>
   );
 }

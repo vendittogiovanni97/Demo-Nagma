@@ -1,35 +1,36 @@
-'use client';
-
-import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
-import Navbar from '@/components/layout/Navbar';
-import LayoutContainer from '@/components/layout/LayoutContainer';
-import { ToastContainer } from '@/components/ui/Toast/ToastContainer';
-import { AuthProvider } from '@/context/AuthContext';
-import { ThemeProvider } from '@/context/ThemeContext';
+import type { Metadata } from 'next';
+import { Outfit } from 'next/font/google';
 import './globals.css';
+import { AppProviders } from './providers';
 
-function RootLayoutContent({ children }: { children: React.ReactNode }) {
-  return (
-    <GlobalErrorBoundary>
-      <Navbar />
-      {/* Layout responsivo con padding e max-width intelligente */}
-      <LayoutContainer maxWidth="lg">
-        {children}
-      </LayoutContainer>
-    </GlobalErrorBoundary>
-  );
-}
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700', '900'],
+});
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  title: process.env.NEXT_PUBLIC_PORTAL_NAME || 'Nagma Tattoo CRM',
+  description:
+    process.env.NEXT_PUBLIC_PORTAL_DESCRIPTION ||
+    'Gestionale completo per prenotazioni, clienti e agenda del tuo studio tattoo.',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="it">
-      <body className="font-sans antialiased text-text-primary">
-        <ThemeProvider>
-          <AuthProvider>
-            <RootLayoutContent>{children}</RootLayoutContent>
-          </AuthProvider>
-        </ThemeProvider>
-        <ToastContainer />
+    <html lang="it" suppressHydrationWarning>
+      <body
+        className={`${outfit.variable} ${outfit.className} antialiased`}
+        suppressHydrationWarning
+      >
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

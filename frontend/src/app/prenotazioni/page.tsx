@@ -431,35 +431,32 @@ export default function PrenotazioniPage() {
             }
             keyExtractor={(b) => b.id}
             actions={(b) => (
-              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity w-full">
+              <div className="flex items-center justify-center gap-2 w-full">
                 <PermissionGate requireAdmin>
                   <>
                     {b.status !== 'COMPLETED' && b.status !== 'CANCELLED' && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="icon"
+                        icon={<CheckCircle2 size={18} />}
+                        className="text-emerald-400/60 hover:text-emerald-400 hover:bg-emerald-400/10"
+                        title="Completato"
                         onClick={() => handleComplete(b.id)}
-                        title="Segna come completato"
-                        className="p-2 rounded-lg text-text-secondary hover:text-emerald-400 hover:bg-emerald-400/10 transition-colors"
-                      >
-                        <CheckCircle2 size={16} />
-                      </button>
+                        aria-label="Segna come completato"
+                      />
                     )}
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => { setEditingBooking(b); setIsModalOpen(true); }}
-                      icon={<Edit size={16} />}
-                      className="p-2"
+                      variant="icon"
+                      icon={<Edit size={18} />}
                       title="Modifica"
+                      onClick={() => { setEditingBooking(b); setIsModalOpen(true); }}
                       aria-label="Modifica prenotazione"
                     />
                     <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(b.id)}
-                      icon={<Trash2 size={16} />}
-                      className="p-2"
+                      variant="icon"
+                      icon={<Trash2 size={18} />}
+                      className="text-danger/60 hover:text-danger hover:bg-danger/10"
                       title="Elimina"
+                      onClick={() => handleDelete(b.id)}
                       aria-label="Elimina prenotazione"
                     />
                   </>

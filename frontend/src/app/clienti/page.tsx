@@ -255,40 +255,35 @@ export default function CustomersPage() {
             }
             keyExtractor={(c) => c.id}
             actions={(customer) => (
-              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity w-full">
-                <Link
-                  href={`/clienti/${customer.id}`}
-                  className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-white transition"
+              <div className="flex items-center justify-center gap-2 w-full">
+                <Button
+                  variant="icon"
+                  icon={<Eye size={18} />}
                   title="Dettagli"
-                >
-                  <Eye size={16} />
-                </Link>
+                  onClick={() => window.location.href = `/clienti/${customer.id}`}
+                />
                 <PermissionGate requireAdmin>
-                  <Link
-                    href={`/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`}
-                    className="p-2 hover:bg-white/10 rounded-lg text-text-secondary hover:text-emerald-400 transition"
-                    title="Invia WhatsApp"
-                  >
-                    <MessageCircle size={16} />
-                  </Link>
+                  <Button
+                    variant="icon"
+                    icon={<MessageCircle size={18} />}
+                    title="WhatsApp"
+                    onClick={() => window.location.href = `/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`}
+                  />
                 </PermissionGate>
                 <PermissionGate requireAdmin>
                   <>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
-                      icon={<Edit size={16} />}
-                      className="p-2"
+                      variant="icon"
+                      icon={<Edit size={18} />}
                       title="Modifica"
+                      onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }}
                     />
                     <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(customer.id)}
-                      icon={<Trash2 size={16} />}
-                      className="p-2"
+                      variant="icon"
+                      icon={<Trash2 size={18} />}
+                      className="text-danger/60 hover:text-danger hover:bg-danger/10"
                       title="Elimina"
+                      onClick={() => handleDelete(customer.id)}
                     />
                   </>
                 </PermissionGate>

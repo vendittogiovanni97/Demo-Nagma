@@ -156,25 +156,22 @@ export default function WhatsAppTemplatesPage() {
                        <span className="text-xs uppercase font-bold tracking-widest text-warning mt-1">Inattivo</span>
                     )}
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-2">
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant="icon"
+                      icon={<Edit size={18} />}
+                      title="Modifica"
                       onClick={() => {
                         setEditingTemplate(template);
                         setIsTemplateModalOpen(true);
                       }}
-                      icon={<Edit size={16} />}
-                      className="p-2"
-                      title="Modifica"
                     />
                     <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDeleteTemplate(template.id)}
-                      icon={<Trash2 size={16} />}
-                      className="p-2"
+                      variant="icon"
+                      icon={<Trash2 size={18} />}
+                      className="text-danger/60 hover:text-danger hover:bg-danger/10"
                       title="Elimina"
+                      onClick={() => handleDeleteTemplate(template.id)}
                     />
                   </div>
                 </div>

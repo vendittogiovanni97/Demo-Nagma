@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from '@/context/ThemeContext';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -33,8 +34,7 @@ function parsePxWidth(width?: string): number | undefined {
 
 type AgCellStyle = { [key: string]: string | number };
 
-const ROW_HEIGHT = 100;
-const HEADER_HEIGHT = 44;
+// STATIC PAGINATION HEIGHT - costante su tutti i breakpoint
 const PAGINATION_HEIGHT = 48;
 
 const CELL_WRAP: React.CSSProperties = {
@@ -55,9 +55,23 @@ export default function DataTable<T extends object>({
   actions,
   keyExtractor,
   footer,
-  pageSize = 8,
+  pageSize = 10,
 }: DataTableProps<T>) {
-  const gridHeight = HEADER_HEIGHT + ROW_HEIGHT * pageSize + PAGINATION_HEIGHT;
+  // BREAKPOINT AWARENESS - ottieni flags responsive dal context
+  const { isSmall, isMedium } = useTheme();
+
+  // RESPONSIVE SIZING - adatta al breakpoint attuale
+  // ROW_HEIGHT: mobile 48px, tablet 56px, desktop 64px
+  const ROW_HEIGHT = isSmall ? 48 : isMedium ? 56 : 64;
+
+  // HEADER_HEIGHT: mobile 40px, desktop 44px
+  const HEADER_HEIGHT = isSmall ? 40 : 44;
+
+  // PAGE SIZE: mobile 4 righe, tablet 6, desktop 8
+  const responsivePageSize = isSmall ? 4 : isMedium ? 6 : pageSize;
+
+  // GRID HEIGHT - ricalcolato dinamicamente per ogni resize
+  const gridHeight = HEADER_HEIGHT + ROW_HEIGHT * responsivePageSize + PAGINATION_HEIGHT;
 
   const safeColumns = columns.length > 0 ? columns : [{ key: '_empty', label: 'Nessun dato' }];
 
@@ -125,7 +139,7 @@ export default function DataTable<T extends object>({
           rowHeight={ROW_HEIGHT}
           headerHeight={HEADER_HEIGHT}
           pagination
-          paginationPageSize={pageSize}
+          paginationPageSize={responsivePageSize}
           paginationPageSizeSelector={false}
           rowSelection={{ mode: 'multiRow', enableClickSelection: false }}
           suppressMovableColumns
@@ -133,6 +147,7 @@ export default function DataTable<T extends object>({
           enableCellTextSelection
           animateRows
           defaultColDef={{ sortable: true, resizable: true, filter: false }}
+          domLayout="normal"
         />
       </div>
 

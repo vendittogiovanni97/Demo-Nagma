@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-type ButtonVariant = 'primary' | 'secondary' | 'glass' | 'danger' | 'success' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'glass' | 'danger' | 'success' | 'ghost' | 'icon';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -24,6 +24,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   danger: 'bg-danger text-white font-bold shadow-[0_0_15px_rgba(255,82,82,0.3)] hover:scale-105 hover:shadow-[0_0_20px_rgba(255,82,82,0.5)]',
   success: 'bg-success text-black font-bold shadow-[0_0_15px_rgba(37,211,102,0.3)] hover:scale-105 hover:shadow-[0_0_20px_rgba(37,211,102,0.5)]',
   ghost: 'text-text-secondary hover:text-accent hover:bg-[rgba(0,191,255,0.05)]',
+  icon: 'p-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-white/8 transition-all duration-150',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -62,7 +63,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       clsx(
         baseStyles,
         variantStyles[variant],
-        sizeStyles[size],
+        variant !== 'icon' && sizeStyles[size],
         fullWidth && 'w-full',
         className
       )

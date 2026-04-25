@@ -309,14 +309,14 @@ export default function FormTemplatesPage() {
                     </div>
 
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={<Trash2 size={16} />}
+                      variant="icon"
+                      icon={<Trash2 size={18} />}
+                      className="text-danger/60 hover:text-danger hover:bg-danger/10"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(t.id, t.name);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Elimina"
                     />
                   </div>
 

@@ -2,6 +2,7 @@
 
 import { branding } from "@/config/branding";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import * as Popover from "@radix-ui/react-popover";
 import {
   Calendar,
@@ -40,6 +41,16 @@ export default function Navbar() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
+  const { isSmall, isMedium } = useTheme();
+
+  // Responsive icon sizes: 18px mobile, 20px tablet, 22px desktop
+  const iconSize = isSmall ? 18 : isMedium ? 20 : 22;
+
+  // Responsive text size: 0.65rem mobile, 0.75rem tablet, text-xs desktop
+  const navTextSize = isSmall ? 'text-[0.65rem]' : isMedium ? 'text-[0.7rem]' : 'text-xs';
+
+  // Logo icon dimensions: 18px mobile, 20px tablet, 22px desktop
+  const logoSize = isSmall ? 18 : isMedium ? 20 : 22;
 
   const [authChecked, setAuthChecked] = useState(false);
   useEffect(() => {
@@ -56,15 +67,15 @@ export default function Navbar() {
     if (pathname === '/login') return null;
     return (
       <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
-        <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
+        <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-1.5 px-3 sm:py-2 sm:px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
           <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
-            <div className="h-8 w-8 rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden">
+            <div className={`${isSmall ? 'h-7 w-7' : 'h-8 w-8'} rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden`}>
               <Image
                 src={branding.portalLogo}
                 alt={branding.portalName}
-                width={22}
-                height={22}
-                className="h-5 w-5 object-contain"
+                width={logoSize}
+                height={logoSize}
+                className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} object-contain`}
               />
             </div>
             <span className="hidden md:block text-xs font-outfit font-semibold tracking-[0.4px]">
@@ -91,13 +102,13 @@ export default function Navbar() {
     <nav suppressHydrationWarning className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[90%]">
       <div className="bg-[#0a1a26]/80 backdrop-blur-[20px] border-[1.5px] border-surface-border rounded-full py-2 px-5 flex items-center gap-5 shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(0,191,255,0.15)]">
         <Link href="/" className="flex items-center gap-2.5 pr-1 text-white">
-          <div className="h-8 w-8 rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden">
+          <div className={`${isSmall ? 'h-7 w-7' : 'h-8 w-8'} rounded-full bg-white/5 border border-surface-border flex items-center justify-center overflow-hidden`}>
             <Image
               src={branding.portalLogo}
               alt={branding.portalName}
-              width={22}
-              height={22}
-              className="h-5 w-5 object-contain"
+              width={logoSize}
+              height={logoSize}
+              className={`${isSmall ? 'h-4 w-4' : 'h-5 w-5'} object-contain`}
             />
           </div>
           <span className="hidden md:block text-xs font-outfit font-semibold tracking-[0.4px]">
@@ -120,8 +131,8 @@ export default function Navbar() {
                   : "text-text-secondary hover:text-accent hover:-translate-y-0.5"
               }`}
             >
-              <Icon size={20} className="shrink-0" />
-              <span className="text-[0.6rem] font-bold uppercase tracking-[0.5px] font-outfit">
+              <Icon size={iconSize} className="shrink-0" />
+              <span className={`${navTextSize} font-bold uppercase tracking-[0.5px] font-outfit`}>
                 {item.name}
               </span>
             </Link>
@@ -133,7 +144,7 @@ export default function Navbar() {
         <Button
           variant="primary"
           size="md"
-          icon={<Plus size={22} className="shrink-0" />}
+          icon={<Plus size={iconSize} className="shrink-0" />}
           onClick={() => setIsBookingOpen(true)}
           className="w-9.5 h-9.5 p-0 rounded-full flex items-center justify-center"
         />

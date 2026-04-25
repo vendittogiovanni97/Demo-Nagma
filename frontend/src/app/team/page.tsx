@@ -216,13 +216,13 @@ export default function TeamPage() {
               const memberColor = m.color || '#3b82f6';
 
               return (
-                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/30 group/row hover:bg-white-[0.03] transition-colors relative min-h-44 py-2">
-                  <div className="py-5 px-6 flex items-center gap-4 relative group/member">
+                <div key={m.id} className="grid grid-cols-[250px_repeat(7,1fr)] border-b border-surface-border/30 group/row hover:bg-white-[0.03] transition-colors relative min-h-36 py-2">
+                  <div className="py-4 px-5 flex items-center gap-3 relative group/member">
                     <div
                       className="w-1 absolute left-0 top-0 bottom-0 shadow-[0_0_10px_currentColor] opacity-70"
                       style={{ backgroundColor: memberColor, color: memberColor }}
                     />
-                    <Avatar name={m.name} color={memberColor} size="lg" />
+                    <Avatar name={m.name} color={memberColor} size="md" />
                     <div className="flex flex-col min-w-0">
                        <span className="text-white font-bold text-base truncate">{m.name}</span>
                        <Badge
@@ -234,20 +234,19 @@ export default function TeamPage() {
                        </Badge>
                     </div>
                     <PermissionGate requireAdmin>
-                      <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 group-hover/member:opacity-100 transition-opacity duration-200">
+                      <div className="absolute right-2 top-2 flex gap-2 opacity-0 group-hover/member:opacity-100 transition-opacity duration-150">
                         <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setIsStaffModalOpen(true)}
+                          variant="icon"
                           icon={<Edit size={16} />}
-                          title="Modifica staff"
+                          title="Modifica"
+                          onClick={() => setIsStaffModalOpen(true)}
                         />
                         <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleDeleteMember(m.id, m.name)}
+                          variant="icon"
                           icon={<Trash2 size={16} />}
-                          title="Rimuovi dal team"
+                          className="text-danger/60 hover:text-danger hover:bg-danger/10"
+                          title="Elimina"
+                          onClick={() => handleDeleteMember(m.id, m.name)}
                         />
                       </div>
                     </PermissionGate>

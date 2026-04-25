@@ -295,30 +295,26 @@ export default function SettingsPage() {
               emptyMessage="Nessun componente trovato. Clicca 'Nuovo Utente' per aggiungere il primo collaboratore."
               keyExtractor={(m) => m.id}
               actions={(memberData) => (
-                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-full">
+                <div className="flex items-center justify-center gap-2 w-full">
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditUser(memberData as unknown as User)}
-                    icon={<Edit size={16} />}
-                    className="p-2"
+                    variant="icon"
+                    icon={<Edit size={18} />}
                     title="Modifica"
+                    onClick={() => handleEditUser(memberData as unknown as User)}
                   />
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleResetPassword(memberData as unknown as User)}
-                    icon={<KeyRound size={16} />}
-                    className="p-2 text-amber-400 hover:text-amber-300"
+                    variant="icon"
+                    icon={<KeyRound size={18} />}
+                    className="text-amber-400/60 hover:text-amber-400 hover:bg-amber-400/10"
                     title="Reset Password"
+                    onClick={() => handleResetPassword(memberData as unknown as User)}
                   />
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteMember(memberData.id, memberData.name)}
-                    icon={<Trash2 size={16} />}
-                    className="p-2"
+                    variant="icon"
+                    icon={<Trash2 size={18} />}
+                    className="text-danger/60 hover:text-danger hover:bg-danger/10"
                     title="Elimina"
+                    onClick={() => handleDeleteMember(memberData.id, memberData.name)}
                   />
                 </div>
               )}

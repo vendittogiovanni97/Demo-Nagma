@@ -231,6 +231,161 @@ npm run db:studio        # = prisma studio
 
 ---
 
+## 🔧 Gestione Centralizzata della Configurazione
+
+### Introduzione alla Config Table
+
+A partire da Aprile 2026, tutti i parametri di configurazione sono gestiti centralmente nella tabella `Config` del database. Questo approccio offre:
+
+- **Dinamicità:** Cambiare parametri senza riavviare il server
+- **Sicurezza:** Password e segreti vivono solo nel database, mai nel codice
+- **Type-safety:** TypeScript getters garantiscono accesso tipizzato
+- **Performance:** TTL-based caching (5 minuti default) riduce accessi al DB
+- **Tracciabilità:** Tutte le configurazioni sono versionabili e auditable
+
+### Parametri Centralizzati
+
+| Parametro | Tipo | Default | Descrizione |
+|-----------|------|---------|-------------|
+| `FILES_PATH` | string | `/uploads/attachments/` | Cartella allegati |
+| `DEBUG_HTTP` | boolean | `false` | Abilita debug logging HTTP |
+| `LOG_LEVEL` | string | `INFO` | Livello logging (DEBUG, INFO, WARN, ERROR) |
+| `JWT_EXPIRY` | string | `8h` | Durata token JWT |
+| `BCRYPT_SALT_ROUNDS` | number | `10` | Round bcrypt per password hashing |
+| `LOGIN_RATE_LIMIT_WINDOW_MINUTES` | number | `15` | Finestra temporale rate limit login |
+| `LOGIN_RATE_LIMIT_MAX_ATTEMPTS` | number | `5` | Tentativi massimi prima blocco |
+| `SESSION_TIMEOUT_MINUTES` | number | `30` | Timeout sessione |
+| `MAX_PAGE_LIMIT` | number | `100` | Limite massimo items per pagina |
+| `APP_VERSION` | string | `1.0.0` | Versione applicazione |
+| `BOOKING_UPDATE_PASSWORD` | string | *(nessuno)* | **Password per modificare prenotazioni** ⚠️ |
+
+### ConfigService — Come Usarlo
+
+#### Setup al Boot (initializeConfig)
+
+Nel file `src/index.ts`, il ConfigService viene inizializzato al startup:
+
+```typescript
+import { configService } from '@/services/config.service';
+
+async function startServer() {
+  // Carica TUTTI i config dal DB in memoria (critical config + cache)
+  await configService.initializeConfig();
+  
+  // Ora i getters sincronistici sono disponibili
+  const logLevel = configService.getLogLevelSync();
+  
+  // Avvia server
+  app.listen(PORT);
+}
+```
+
+#### Runtime — Getters Asincroni con Cache
+
+Per accessi durante richieste HTTP, usa i getter asincroni (con caching TTL di 5 minuti):
+
+```typescript
+// Nel controller o service
+async function someHandler() {
+  const jwtExpiry = await configService.getJwtExpiry();      // '8h'
+  const saltRounds = await configService.getBcryptSaltRounds(); // 10
+  const logLevel = await configService.getLogLevel();         // 'INFO'
+}
+```
+
+#### Boot-Time — Getters Sincroni (post-initializeConfig)
+
+Per accessi sincronistici dopo boot (middleware, startup logging):
+
+```typescript
+// Nel middleware (durante richiesta)
+function someMiddleware(req, res, next) {
+  const shouldLogHttp = configService.getDebugHttpSync();
+  const maxPageLimit = configService.getMaxPageLimitSync();
+}
+```
+
+### 🔐 Sicurezza: Password nel Database, Mai nel Codice
+
+**IMPORTANTE:** Password come `BOOKING_UPDATE_PASSWORD` vivono **SOLO** nel database, mai nel codebase.
+
+#### Come impostare la password al primo seed
+
+**1. Impostare la variabile d'ambiente:**
+```bash
+export BOOKING_UPDATE_PASSWORD="nagmatatto12"
+npm run db:seed
+```
+
+**2. Verificare nel database (Prisma Studio):**
+```bash
+npx prisma studio
+# Vai su Config → verifica che BOOKING_UPDATE_PASSWORD è presente
+```
+
+**3. Verificare nel codice — Nessun hardcoded default!**
+```typescript
+// ✅ CORRETTO: seed.ts
+value: process.env.BOOKING_UPDATE_PASSWORD || '', // fallback vuoto
+
+// ❌ SBAGLIATO: NON fare mai
+value: process.env.BOOKING_UPDATE_PASSWORD || 'nagmatatto12', // VIETATO!
+```
+
+#### Se password non è configurata
+
+Se `BOOKING_UPDATE_PASSWORD` non è impostata nel DB, l'API ritorna:
+
+```json
+{
+  "statusCode": 503,
+  "message": "Password non configurata. Contattare l'amministratore.",
+  "errorCode": "PASSWORD_NOT_CONFIGURED"
+}
+```
+
+### Workflow Tipico
+
+```bash
+# 1. Al primo setup, imposta le variabili critiche
+export DATABASE_URL="postgresql://..."
+export JWT_SECRET="dev-secret"
+export BOOKING_UPDATE_PASSWORD="your-secure-password"
+
+# 2. Esegui seed (carica Config dal .env in DB)
+npm run db:seed
+
+# 3. Verifica con Prisma Studio
+npx prisma studio
+# Vai su Config table e controlla che i parametri sono caricati
+
+# 4. Durante development
+npm run dev
+# Il server carica i config dal DB automaticamente
+
+# 5. Se cambi un parametro in produzione
+# Accedi direttamente al DB (UI Prisma Studio o raw SQL)
+# Il cache si invalida dopo 5 minuti oppure usa:
+# configService.invalidateCache('PARAMETER_KEY')
+```
+
+### Invalidare il Cache
+
+Se cambi un parametro direttamente nel database in produzione, il server userà il valore cache per 5 minuti. Per invalidare manualmente:
+
+```typescript
+// Nel controller/service se hai modificato il config
+import { configService } from '@/services/config.service';
+
+// Invalida un singolo parametro
+configService.invalidateCache('LOG_LEVEL');
+
+// O pulisci tutto il cache
+configService.invalidateCache();
+```
+
+---
+
 ## Build & Deployment
 
 ### Build

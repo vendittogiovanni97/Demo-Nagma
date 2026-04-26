@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 const BREAKPOINTS = {
-  small: 400,
+  small: 450,
   medium: 768,
 } as const;
 

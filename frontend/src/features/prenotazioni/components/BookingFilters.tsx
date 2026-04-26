@@ -10,7 +10,7 @@ import {
   Typography,
   Button as MuiButton,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SearchInput from '@/components/forms/SearchInput';
 
@@ -43,19 +43,18 @@ export default function BookingFilters({
   onPrevMonth,
   onNextMonth,
 }: BookingFiltersProps) {
-  const theme = useTheme();
+  const theme = useMuiTheme();
 
   return (
-    <Stack
-      direction="row"
-      useFlexGap
+    <Box
       sx={{
-        gap: 1.25,
-        alignItems: 'center',
-        justifyContent: { xs: 'flex-start', xl: 'center' },
-        flex: '1 1 auto',
+        display: 'flex',
+        flexDirection: { xs: 'column', lg: 'row' },
+        alignItems: { xs: 'stretch', lg: 'center' },
+        gap: { xs: 1, lg: 1.5 },
         minWidth: 0,
-        flexWrap: { xs: 'wrap', xl: 'nowrap' },
+        flex: 1,
+        width: '100%',
       }}
     >
       <Stack
@@ -85,26 +84,26 @@ export default function BookingFilters({
 
       <Box
         sx={{
-          flex: { xs: '1 1 100%', md: '1 1 240px' },
-          minWidth: { xs: '100%', xl: 240 },
-          maxWidth: { xs: '100%', xl: 320 },
+          flex: { xs: '1 1 100%', lg: '1 1 200px' },
+          minWidth: { xs: '100%', lg: 150 },
+          maxWidth: { xs: '100%', lg: 280 },
         }}
       >
         <SearchInput
           value={search}
           onChange={onSearchChange}
-          placeholder="Cerca cliente, artista, telefono..."
+          placeholder="Cerca cliente, artista..."
+          sx={{ width: '100%' }}
         />
       </Box>
 
       <Stack
-        direction="row"
+        direction={{ xs: 'column', sm: 'row' }}
         useFlexGap
         sx={{
-          gap: 0.75,
-          alignItems: 'center',
-          flexShrink: 0,
-          flexWrap: { xs: 'wrap', md: 'nowrap' },
+          gap: { xs: 0.75, sm: 0.75 },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          width: { xs: '100%', lg: 'auto' },
         }}
       >
         <TextField
@@ -112,9 +111,9 @@ export default function BookingFilters({
           value={startDate}
           onChange={(e) => onStartDateChange(e.target.value)}
           size="small"
-          sx={{ width: 138 }}
+          sx={{ flex: { xs: 1, sm: 'none' }, width: { xs: '100%', sm: 130 } }}
         />
-        <Typography sx={{ color: theme.palette.text.secondary, fontSize: '0.8125rem' }}>
+        <Typography sx={{ display: { xs: 'none', sm: 'block' }, color: theme.palette.text.secondary, fontSize: '0.8125rem' }}>
           —
         </Typography>
         <TextField
@@ -122,7 +121,7 @@ export default function BookingFilters({
           value={endDate}
           onChange={(e) => onEndDateChange(e.target.value)}
           size="small"
-          sx={{ width: 138 }}
+          sx={{ flex: { xs: 1, sm: 'none' }, width: { xs: '100%', sm: 130 } }}
         />
         {(startDate || endDate) && (
           <MuiButton variant="text" size="small" onClick={onResetDateRange}>
@@ -143,11 +142,12 @@ export default function BookingFilters({
           ml: 0,
           mr: 0,
           flexShrink: 0,
+          width: { xs: '100%', lg: 'auto' },
           '& .MuiFormControlLabel-label': {
             fontSize: '0.8125rem',
           },
         }}
       />
-    </Stack>
+    </Box>
   );
 }

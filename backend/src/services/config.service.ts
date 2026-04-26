@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma';
-import { Cache } from '@/utils/cache';
+import prisma from '../utils/prisma';
+import { Cache } from '../utils/cache';
 
 /**
  * ConfigService - Gestisce i parametri di configurazione dalla tabella Config

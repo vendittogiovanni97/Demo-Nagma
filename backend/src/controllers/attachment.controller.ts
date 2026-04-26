@@ -20,7 +20,7 @@ export class AttachmentController {
       const bookingIdParam = req.query.bookingId as string;
 
       if (!bookingIdParam) {
-        throw new AppError('bookingId mancante in query string', 'MISSING_BOOKING_ID', 400);
+        throw new AppError('bookingId mancante in query string', 400, 'MISSING_BOOKING_ID');
       }
 
       let bookingId: number;
@@ -30,14 +30,20 @@ export class AttachmentController {
           throw new Error('Invalid number');
         }
       } catch {
-        throw new AppError('bookingId deve essere un numero intero', 'INVALID_BOOKING_ID', 400);
+        throw new AppError('bookingId deve essere un numero intero', 400, 'INVALID_BOOKING_ID');
       }
 
       // Usa busboy per parsare multipart/form-data
       const bb = busboy({ headers: req.headers });
 
       let uploadCount = 0;
-      const results = [];
+      const results: Array<{
+        id: string;
+        fileName: string;
+        fileSize: number;
+        mimeType: string;
+        createdAt: Date;
+      }> = [];
 
       bb.on('file', async (fieldname: string, file, info: { filename: string; mimeType: string }) => {
         try {
@@ -93,7 +99,7 @@ export class AttachmentController {
 
       bb.on('error', (error: unknown) => {
         logger.errorWithStack('Errore durante il parsing multipart', error, { bookingId });
-        next(new AppError('Errore durante il parsing della richiesta', 'MULTIPART_PARSE_ERROR', 400));
+        next(new AppError('Errore durante il parsing della richiesta', 400, 'MULTIPART_PARSE_ERROR'));
       });
 
       req.pipe(bb);
@@ -112,11 +118,11 @@ export class AttachmentController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { attachmentId } = req.params;
+      const { attachmentId } = req.params as { attachmentId: string };
 
       const attachment = await AttachmentService.getAttachment(attachmentId);
       if (!attachment) {
-        throw new AppError('Allegato non trovato', 'ATTACHMENT_NOT_FOUND', 404);
+        throw new AppError('Allegato non trovato', 404, 'ATTACHMENT_NOT_FOUND');
       }
 
       const fileBuffer = await AttachmentService.getAttachmentFile(attachment);
@@ -141,7 +147,7 @@ export class AttachmentController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { attachmentId } = req.params;
+      const { attachmentId } = req.params as { attachmentId: string };
 
       const preview = await AttachmentService.getAttachmentPreview(attachmentId);
 
@@ -174,7 +180,7 @@ export class AttachmentController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { bookingId } = req.params;
+      const { bookingId } = req.params as { bookingId: string };
 
       let parsedBookingId: number;
       try {
@@ -183,7 +189,7 @@ export class AttachmentController {
           throw new Error('Invalid number');
         }
       } catch {
-        throw new AppError('bookingId deve essere un numero intero', 'INVALID_BOOKING_ID', 400);
+        throw new AppError('bookingId deve essere un numero intero', 400, 'INVALID_BOOKING_ID');
       }
 
       const attachments = await AttachmentService.getAttachmentsByBookingId(parsedBookingId);
@@ -221,7 +227,7 @@ export class AttachmentController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { attachmentId } = req.params;
+      const { attachmentId } = req.params as { attachmentId: string };
 
       await AttachmentService.deleteAttachment(attachmentId);
 

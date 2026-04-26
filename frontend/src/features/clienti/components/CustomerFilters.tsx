@@ -2,7 +2,7 @@
 
 import SearchInput from '@/components/forms/SearchInput';
 import Button from '@/components/ui/Button';
-import { Box, Stack, TextField, Typography, useTheme } from '@mui/material';
+import { Box, Stack, TextField, Typography, useTheme as useMuiTheme } from '@mui/material';
 
 interface Props {
   search: string;
@@ -23,26 +23,27 @@ export default function CustomerFilters({
   onEndDateChange,
   onResetDates,
 }: Props) {
-  const theme = useTheme();
+  const theme = useMuiTheme();
 
   return (
     <Stack
-      direction="row"
+      direction={{ xs: 'column', lg: 'row' }}
       useFlexGap
       sx={{
-        gap: 0.875,
-        alignItems: 'center',
+        gap: { xs: 1, lg: 0.875 },
+        alignItems: { xs: 'stretch', lg: 'center' },
         justifyContent: { xs: 'flex-start', xl: 'center' },
         flex: '1 1 auto',
         minWidth: 0,
-        flexWrap: { xs: 'wrap', xl: 'nowrap' },
+        width: '100%',
       }}
     >
       <Box
         sx={{
-          flex: { xs: '1 1 100%', md: '1 1 280px' },
-          minWidth: { xs: '100%', xl: 280 },
+          flex: { xs: '1 1 100%', lg: '1 1 280px' },
+          minWidth: { xs: '100%', lg: 280 },
           maxWidth: { xs: '100%', xl: 360 },
+          width: { xs: '100%', lg: 'auto' },
         }}
       >
         <SearchInput
@@ -53,13 +54,13 @@ export default function CustomerFilters({
       </Box>
 
       <Stack
-        direction="row"
+        direction={{ xs: 'column', lg: 'row' }}
         useFlexGap
         sx={{
-          gap: 0.625,
-          alignItems: 'center',
+          gap: { xs: 1, lg: 0.625 },
+          alignItems: { xs: 'stretch', lg: 'center' },
           flexShrink: 0,
-          flexWrap: { xs: 'wrap', md: 'nowrap' },
+          width: { xs: '100%', lg: 'auto' },
         }}
       >
         <TextField
@@ -67,15 +68,17 @@ export default function CustomerFilters({
           value={startDate}
           onChange={(e) => onStartDateChange(e.target.value)}
           size="small"
-          sx={{ width: 126 }}
+          sx={{ width: { xs: '100%', lg: 126 } }}
         />
-        <Typography sx={{ color: theme.palette.text.secondary, fontSize: '0.75rem' }}>—</Typography>
+        <Typography sx={{ display: { xs: 'none', lg: 'block' }, color: theme.palette.text.secondary, fontSize: '0.75rem' }}>
+          —
+        </Typography>
         <TextField
           type="date"
           value={endDate}
           onChange={(e) => onEndDateChange(e.target.value)}
           size="small"
-          sx={{ width: 126 }}
+          sx={{ width: { xs: '100%', lg: 126 } }}
         />
         {(startDate || endDate) && (
           <Button variant="ghost" size="sm" onClick={onResetDates}>

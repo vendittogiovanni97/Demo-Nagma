@@ -24,7 +24,7 @@ export class AttachmentService {
       // Verifica che il booking esista
       const bookingExists = await AttachmentRepository.bookingExists(bookingId);
       if (!bookingExists) {
-        throw new AppError('Booking non trovato', 'BOOKING_NOT_FOUND', 404);
+        throw new AppError('Booking non trovato', 404, 'BOOKING_NOT_FOUND');
       }
 
       // Salva il file nel filesystem
@@ -62,7 +62,7 @@ export class AttachmentService {
         fileName,
       });
 
-      throw new AppError('Errore durante il caricamento dell\'allegato', 'UPLOAD_FAILED', 500);
+      throw new AppError('Errore durante il caricamento dell\'allegato', 500, 'UPLOAD_FAILED');
     }
   }
 
@@ -74,7 +74,7 @@ export class AttachmentService {
       return await AttachmentRepository.findById(attachmentId);
     } catch (error) {
       logger.errorWithStack('Errore recupero attachment', error, { attachmentId });
-      throw new AppError('Errore durante il recupero dell\'allegato', 'GET_FAILED', 500);
+      throw new AppError('Errore durante il recupero dell\'allegato', 500, 'GET_FAILED');
     }
   }
 
@@ -89,7 +89,7 @@ export class AttachmentService {
         attachmentId: attachment.id,
         filePath: attachment.filePath,
       });
-      throw new AppError('File non trovato', 'FILE_NOT_FOUND', 404);
+      throw new AppError('File non trovato', 404, 'FILE_NOT_FOUND');
     }
   }
 
@@ -100,7 +100,7 @@ export class AttachmentService {
     try {
       const bookingExists = await AttachmentRepository.bookingExists(bookingId);
       if (!bookingExists) {
-        throw new AppError('Booking non trovato', 'BOOKING_NOT_FOUND', 404);
+        throw new AppError('Booking non trovato', 404, 'BOOKING_NOT_FOUND');
       }
 
       return await AttachmentRepository.findByBookingId(bookingId);
@@ -110,7 +110,7 @@ export class AttachmentService {
       }
 
       logger.errorWithStack('Errore recupero allegati', error, { bookingId });
-      throw new AppError('Errore durante il recupero degli allegati', 'GET_FAILED', 500);
+      throw new AppError('Errore durante il recupero degli allegati', 500, 'GET_FAILED');
     }
   }
 
@@ -133,7 +133,7 @@ export class AttachmentService {
     try {
       const attachment = await AttachmentRepository.findById(attachmentId);
       if (!attachment) {
-        throw new AppError('Allegato non trovato', 'ATTACHMENT_NOT_FOUND', 404);
+        throw new AppError('Allegato non trovato', 404, 'ATTACHMENT_NOT_FOUND');
       }
 
       // Elimina il file dal filesystem
@@ -149,7 +149,7 @@ export class AttachmentService {
       }
 
       logger.errorWithStack('Errore eliminazione attachment', error, { attachmentId });
-      throw new AppError('Errore durante l\'eliminazione dell\'allegato', 'DELETE_FAILED', 500);
+      throw new AppError('Errore durante l\'eliminazione dell\'allegato', 500, 'DELETE_FAILED');
     }
   }
 }

@@ -1,12 +1,14 @@
 "use client";
 
-import { Stack } from '@mui/material';
+import { Stack, Box, CircularProgress } from '@mui/material';
 import { CheckCircle2, Edit, Trash2 } from 'lucide-react';
-import { useTheme } from '@mui/material/styles';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
+import { useTheme } from '@/context/ThemeContext';
 import DataTable from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import PermissionGate from '@/components/auth/PermissionGate';
 import Button from '@/components/ui/Button';
+import BookingCard from './BookingCard';
 import type { Column } from '@/components/data-display/DataTable';
 import type { Booking } from '@/types/booking';
 
@@ -31,7 +33,8 @@ export default function BookingDataTable({
   onEdit,
   onDelete,
 }: BookingDataTableProps) {
-  const theme = useTheme();
+  const theme = useMuiTheme();
+  const { isSmall } = useTheme();
 
   if (hasError) {
     return (
@@ -44,6 +47,53 @@ export default function BookingDataTable({
     );
   }
 
+  // Mobile Layout: Card view for small screens
+  if (isSmall) {
+    return (
+      <Stack spacing={2}>
+        {/* Loading State */}
+        {isLoading && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              py: 6,
+            }}
+          >
+            <CircularProgress size={40} sx={{ color: theme.palette.primary.main }} />
+          </Box>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && data.length === 0 && (
+          <StatePanel
+            variant="info"
+            title={debouncedSearch ? 'Nessun risultato' : 'Nessuna prenotazione'}
+            description={
+              debouncedSearch
+                ? 'Prova a modificare i termini di ricerca.'
+                : 'Nessuna prenotazione per questo mese.'
+            }
+          />
+        )}
+
+        {/* Cards List */}
+        {!isLoading &&
+          data.map((booking) => (
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onComplete={onComplete}
+            />
+          ))}
+      </Stack>
+    );
+  }
+
+  // Desktop Layout: DataTable view for larger screens
   return (
     <DataTable<Booking>
       columns={columns}

@@ -23,7 +23,7 @@ export class AuthController {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: configService.getJwtExpirySync() }
+      { expiresIn: configService.getJwtExpirySync() as any }
     );
 
     res.json({
@@ -93,7 +93,7 @@ export class AuthController {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: configService.getJwtExpirySync() }
+      { expiresIn: configService.getJwtExpirySync() as any }
     );
 
     res.json({

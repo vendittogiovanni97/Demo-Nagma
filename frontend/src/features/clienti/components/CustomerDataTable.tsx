@@ -4,10 +4,12 @@ import PaginationControls from '@/components/feedback/PaginationControls';
 import DataTable from '@/components/data-display/DataTable';
 import Button from '@/components/ui/Button';
 import PermissionGate from '@/components/auth/PermissionGate';
+import CustomerCard from './CustomerCard';
 import type { Customer } from '@/types/customer';
 import { Edit, Eye, MessageCircle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme as useMuiTheme, Stack, Typography } from '@mui/material';
+import { useTheme } from '@/context/ThemeContext';
 import type { Column } from '@/components/data-display/DataTable';
 
 interface Props {
@@ -37,73 +39,105 @@ export default function CustomerDataTable({
   onEdit,
   onDelete,
 }: Props) {
-  const theme = useTheme();
+  const theme = useMuiTheme();
   const router = useRouter();
+  const { isSmall } = useTheme();
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <DataTable<Customer>
-        columns={columns}
-        data={customers}
-        isLoading={isLoading}
-        emptyMessage={
-          debouncedSearch
-            ? 'Nessun risultato trovato. Prova a modificare i termini di ricerca.'
-            : 'Nessun cliente presente. Clicca "Nuovo Cliente" per aggiungere il primo contatto.'
-        }
-        keyExtractor={(c) => c.id}
-        actions={(customer) => (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%' }}>
-            <Button
-              variant="icon"
-              icon={<Eye size={18} />}
-              title="Dettagli"
-              onClick={() => router.push(`/clienti/${customer.id}`)}
-            />
-            <PermissionGate requireAdmin>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+      {/* Desktop: DataTable */}
+      {!isSmall && (
+        <DataTable<Customer>
+          columns={columns}
+          data={customers}
+          isLoading={isLoading}
+          emptyMessage={
+            debouncedSearch
+              ? 'Nessun risultato trovato. Prova a modificare i termini di ricerca.'
+              : 'Nessun cliente presente. Clicca "Nuovo Cliente" per aggiungere il primo contatto.'
+          }
+          keyExtractor={(c) => c.id}
+          actions={(customer) => (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%' }}>
               <Button
                 variant="icon"
-                icon={<MessageCircle size={18} />}
-                title="WhatsApp"
-                onClick={() =>
-                  router.push(
-                    `/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`
-                  )
-                }
+                icon={<Eye size={18} />}
+                title="Dettagli"
+                onClick={() => router.push(`/clienti/${customer.id}`)}
               />
-            </PermissionGate>
-            <PermissionGate requireAdmin>
-              <>
+              <PermissionGate requireAdmin>
                 <Button
                   variant="icon"
-                  icon={<Edit size={18} />}
-                  title="Modifica"
-                  onClick={() => onEdit(customer)}
+                  icon={<MessageCircle size={18} />}
+                  title="WhatsApp"
+                  onClick={() =>
+                    router.push(
+                      `/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`
+                    )
+                  }
                 />
-                <Button
-                  variant="icon"
-                  icon={<Trash2 size={18} />}
-                  sx={{
-                    color: 'rgba(244,67,54,0.6)',
-                    '&:hover': {
-                      color: theme.palette.error.main,
-                      backgroundColor: 'rgba(244,67,54,0.1)',
-                    },
-                  }}
-                  title="Elimina"
-                  onClick={() => onDelete(customer.id)}
-                />
-              </>
-            </PermissionGate>
-          </Box>
-        )}
-      />
+              </PermissionGate>
+              <PermissionGate requireAdmin>
+                <>
+                  <Button
+                    variant="icon"
+                    icon={<Edit size={18} />}
+                    title="Modifica"
+                    onClick={() => onEdit(customer)}
+                  />
+                  <Button
+                    variant="icon"
+                    icon={<Trash2 size={18} />}
+                    sx={{
+                      color: 'rgba(244,67,54,0.6)',
+                      '&:hover': {
+                        color: theme.palette.error.main,
+                        backgroundColor: 'rgba(244,67,54,0.1)',
+                      },
+                    }}
+                    title="Elimina"
+                    onClick={() => onDelete(customer.id)}
+                  />
+                </>
+              </PermissionGate>
+            </Box>
+          )}
+        />
+      )}
+
+      {/* Mobile: Card Layout */}
+      {isSmall && (
+        <Stack spacing={2} sx={{ p: 2 }}>
+          {isLoading && (
+            <Typography sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
+              Caricamento...
+            </Typography>
+          )}
+          {!isLoading && customers.length === 0 && (
+            <Typography sx={{ textAlign: 'center', color: theme.palette.text.secondary, py: 4 }}>
+              {debouncedSearch
+                ? 'Nessun risultato trovato. Prova a modificare i termini di ricerca.'
+                : 'Nessun cliente presente. Clicca "Nuovo Cliente" per aggiungere il primo contatto.'}
+            </Typography>
+          )}
+          {!isLoading &&
+            customers.map((customer) => (
+              <CustomerCard
+                key={customer.id}
+                customer={customer}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+        </Stack>
+      )}
 
       {totalPages > 1 && (
         <Box
           sx={{
             borderTop: `1px solid ${theme.palette.divider}`,
             bgcolor: 'rgba(255,255,255,0.02)',
+            marginTop: 'auto',
           }}
         >
           <PaginationControls

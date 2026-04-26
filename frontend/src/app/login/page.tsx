@@ -56,11 +56,11 @@ export default function LoginPage() {
       <Box
         sx={{
           width: '100%',
-          maxWidth: theme.breakpoints.values.sm,
+          maxWidth: 320,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          p: 3,
+          p: 2,
           backgroundColor: 'rgba(26, 35, 50, 0.7)',
           backdropFilter: 'blur(20px)',
           borderRadius: 3,
@@ -76,14 +76,14 @@ export default function LoginPage() {
       >
         <Box
           sx={{
-            width: 80,
-            height: 80,
+            width: 56,
+            height: 56,
             backgroundColor: 'rgba(0, 0, 0, 0.4)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            mb: 3,
+            mb: 2,
             border: 1,
             borderColor: 'divider',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
@@ -93,19 +93,19 @@ export default function LoginPage() {
           <Image
             src={branding.portalLogo}
             alt={branding.portalName}
-            width={56}
-            height={56}
-            style={{ height: 56, width: 56, objectFit: 'contain' }}
+            width={40}
+            height={40}
+            style={{ height: 40, width: 40, objectFit: 'contain' }}
           />
         </Box>
 
-        <Typography variant="h2" sx={{ fontWeight: 700, color: 'white', mb: 1 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, color: 'white', mb: 0.5 }}>
           Benvenuto
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 0.5 }}>
           {branding.portalName}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 3 }}>
           {branding.portalLoginTagline}
         </Typography>
 
@@ -116,7 +116,7 @@ export default function LoginPage() {
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            gap: 3,
+            gap: 2,
           }}
         >
           <TextField

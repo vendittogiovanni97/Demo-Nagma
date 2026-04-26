@@ -1,8 +1,8 @@
 "use client";
 
 import type { SxProps, Theme } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import type { ReactNode } from 'react';
-import { Box, Stack, Typography, useTheme } from '@mui/material';
 
 interface PageHeaderProps {
   title: string;
@@ -17,65 +17,50 @@ export default function PageHeader({ title, subtitle, children, actions, bottomC
   const theme = useTheme();
 
   return (
-    <Stack
+    <Box
       sx={{
-        gap: 1.5,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 2,
         width: '100%',
+        minHeight: 48,
+        minWidth: 0,
       }}
     >
-      <Stack
-        direction="row"
-        useFlexGap
-        sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 1.5,
-          flexWrap: 'wrap',
-          width: '100%',
-        }}
-      >
-        <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, flex: 1 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontSize: { xs: '1.4rem', md: '1.6rem' },
+            fontWeight: 700,
+            color: theme.palette.primary.main,
+            fontFamily: 'Outfit, sans-serif',
+            lineHeight: 1.1,
+            flexShrink: 0,
+            ...titleSx,
+          }}
+        >
+          {title}
+        </Typography>
+        {subtitle && (
           <Typography
-            variant="h4"
+            variant="body2"
             sx={{
-              fontSize: { xs: '1.6rem', md: '1.8rem' },
-              fontWeight: 700,
-              color: theme.palette.primary.main,
-              fontFamily: 'Outfit, sans-serif',
-              lineHeight: 1.1,
-              ...titleSx,
+              fontSize: '0.8125rem',
+              color: theme.palette.text.secondary,
             }}
           >
-            {title}
+            {subtitle}
           </Typography>
-          {subtitle && (
-            <Typography
-              variant="body2"
-              sx={{
-                fontSize: '0.8125rem',
-                color: theme.palette.text.secondary,
-                marginTop: theme.spacing(0.5),
-              }}
-            >
-              {subtitle}
-            </Typography>
-          )}
-        </Box>
-
+        )}
         {children}
+      </Box>
 
-        {actions ? (
-          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {actions}
-          </Stack>
-        ) : null}
-      </Stack>
-
-      {bottomContent ? (
-        <Box sx={{ width: '100%' }}>
-          {bottomContent}
-        </Box>
-      ) : null}
-    </Stack>
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: { xs: 'wrap', lg: 'nowrap' }, flexShrink: 0 }}>
+        {actions}
+      </Box>
+    </Box>
   );
 }

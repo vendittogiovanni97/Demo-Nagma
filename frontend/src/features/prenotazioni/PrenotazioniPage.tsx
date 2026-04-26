@@ -115,7 +115,7 @@ export default function PrenotazioniPage() {
         />
       </PageHeader>
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
         <BookingDataTable
           columns={bookingColumns}
           data={filteredBookings}

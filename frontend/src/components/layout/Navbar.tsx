@@ -50,7 +50,7 @@ export default function Navbar() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
-  const { isSmall, isMedium } = useTheme();
+  const { isSmall, isMedium, isLarge } = useTheme();
   const muiTheme = useMuiTheme();
 
   // ─── DIMENSIONI ──────────────────────────────────────────────
@@ -69,7 +69,13 @@ export default function Navbar() {
   }, []);
 
   if (!authChecked) {
-    return <Box component="nav" sx={{ height: 44 }} />;
+    return (
+      <Box
+        component="nav"
+        sx={{ height: 44 }}
+        suppressHydrationWarning
+      />
+    );
   }
 
   if (!isAuthenticated) {
@@ -283,30 +289,34 @@ export default function Navbar() {
           <Box sx={{ width: '1px', height: dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
 
           {/* Bottone + */}
-          <IconButton
-            onClick={() => setIsBookingOpen(true)}
-            sx={{
-              width: plusBtn,
-              height: plusBtn,
-              padding: 0,
-              borderRadius: '50%',
-              backgroundColor: muiTheme.palette.primary.main,
-              color: muiTheme.palette.background.default,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: muiTheme.palette.primary.light,
-                transform: 'translateY(-1px)',
-              },
-            }}
-          >
-            <Plus size={iconSize} />
-          </IconButton>
+          {isLarge && (
+            <>
+              <IconButton
+                onClick={() => setIsBookingOpen(true)}
+                sx={{
+                  width: plusBtn,
+                  height: plusBtn,
+                  padding: 0,
+                  borderRadius: '50%',
+                  backgroundColor: muiTheme.palette.primary.main,
+                  color: muiTheme.palette.background.default,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: muiTheme.palette.primary.light,
+                    transform: 'translateY(-1px)',
+                  },
+                }}
+              >
+                <Plus size={iconSize} />
+              </IconButton>
 
-          {/* Separatore */}
-          <Box sx={{ width: '1px', height: dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)', mx: 0.25 }} />
+              {/* Separatore */}
+              <Box sx={{ width: '1px', height: dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)', mx: 0.25 }} />
+            </>
+          )}
 
           {/* Avatar */}
           <IconButton

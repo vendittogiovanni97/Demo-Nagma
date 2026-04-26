@@ -166,6 +166,9 @@ const themeOptions: ThemeOptions = {
     '0px 48px 88px rgba(0, 191, 255, 0.32)',
     '0px 52px 96px rgba(0, 191, 255, 0.34)',
     '0px 56px 104px rgba(0, 191, 255, 0.36)',
+    '0px 60px 112px rgba(0, 191, 255, 0.38)',
+    '0px 64px 120px rgba(0, 191, 255, 0.4)',
+    '0px 68px 128px rgba(0, 191, 255, 0.42)',
   ] as unknown as Shadows,
   breakpoints: {
     values: {

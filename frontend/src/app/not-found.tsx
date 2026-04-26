@@ -1,36 +1,114 @@
+"use client";
+
 import Link from 'next/link';
+import { Box, Typography } from '@mui/material';
 
 export default function NotFound() {
   return (
-    <div className="fixed inset-0 bg-[#0f0f0f] flex flex-col items-center justify-center w-full h-screen overflow-hidden">
-      <div className="absolute top-8 left-8">
-        <Link href="/" className="text-white/40 hover:text-white/60 transition-colors duration-300">
-          <span className="font-outfit font-bold text-lg tracking-widest">NAGMA</span>
+    <Box
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: '#0f0f0f',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100vh',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 32,
+          left: 32,
+        }}
+      >
+        <Link
+          href="/"
+          style={{
+            color: 'rgba(255, 255, 255, 0.4)',
+            transition: 'color 0.3s',
+          }}
+        >
+          <Typography
+            component="span"
+            sx={{
+              fontFamily: 'var(--font-outfit)',
+              fontWeight: 700,
+              letterSpacing: '0.2em',
+              fontSize: '1.125rem',
+            }}
+          >
+            NAGMA
+          </Typography>
         </Link>
-      </div>
+      </Box>
 
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="text-white/10 font-serif select-none" style={{ fontSize: '25rem', lineHeight: 1, fontWeight: 'bold' }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        <Typography
+          sx={{
+            color: 'rgba(255, 255, 255, 0.1)',
+            fontFamily: 'serif',
+            fontSize: '25rem',
+            lineHeight: 1,
+            fontWeight: 700,
+            userSelect: 'none',
+          }}
+        >
           404
-        </div>
-      </div>
+        </Typography>
+      </Box>
 
-      <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-4 max-w-lg text-center">
-        <h1 className="text-4xl md:text-5xl font-outfit font-bold text-white">
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 3,
+          px: 2,
+          maxWidth: 360,
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant="h3" sx={{ fontWeight: 700, color: 'white' }}>
           Pagina non trovata
-        </h1>
+        </Typography>
 
-        <p className="text-text-secondary text-base md:text-lg">
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           La pagina che cerchi non esiste o è stata spostata.
-        </p>
+        </Typography>
 
         <Link
           href="/"
-          className="mt-4 px-8 py-3 rounded-lg border border-[#4ec9e0] text-[#4ec9e0] font-medium hover:bg-[#4ec9e0] hover:text-[#0f0f0f] transition-all duration-300 ease-out"
+          style={{
+            marginTop: 16,
+            padding: '12px 32px',
+            borderRadius: 8,
+            border: '1px solid #00bfff',
+            color: '#00bfff',
+            fontWeight: 500,
+            transition: 'all 0.3s ease-out',
+            textDecoration: 'none',
+          }}
         >
           Torna alla home
         </Link>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

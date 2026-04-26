@@ -51,7 +51,7 @@ export default function LayoutContainer({
         mx: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        minHeight: { xs: 'auto', md: '100vh' },
         overflowX: 'hidden',
         transition: 'padding 0.2s ease-in-out',
         ...sx,

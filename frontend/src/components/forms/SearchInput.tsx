@@ -10,6 +10,7 @@ interface SearchInputProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  sx?: object;
 }
 
 /**
@@ -28,6 +29,7 @@ export default function SearchInput({
   placeholder = 'Cerca...',
   className,
   disabled,
+  sx,
 }: SearchInputProps) {
   const theme = useTheme();
 
@@ -59,6 +61,7 @@ export default function SearchInput({
           minHeight: 40,
         },
         '& .MuiInputBase-input': { py: 1.125 },
+        ...sx,
       }}
     />
   );

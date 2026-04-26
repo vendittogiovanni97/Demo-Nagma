@@ -11,30 +11,41 @@ import {
 import { useEffect } from "react";
 
 interface ConfirmDialogProps {
-  isOpen: boolean;
+  open?: boolean;
+  isOpen?: boolean;
+  title?: string;
   message: string;
-  onConfirm: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  isDangerous?: boolean;
+  onConfirm: () => void | Promise<void>;
   onCancel: () => void;
 }
 
 export default function ConfirmDialog({
-  isOpen,
+  open,
+  isOpen: isOpenFromProps,
+  title = "Conferma",
   message,
+  confirmText = "Conferma",
+  cancelText = "Annulla",
+  isDangerous = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const isDialogOpen = open ?? isOpenFromProps ?? false;
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isDialogOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCancel();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onCancel]);
+  }, [isDialogOpen, onCancel]);
 
   return (
     <Dialog
-      open={isOpen}
+      open={isDialogOpen}
       onClose={onCancel}
       aria-labelledby="confirm-dialog-title"
       slotProps={{
@@ -60,7 +71,7 @@ export default function ConfirmDialog({
         id="confirm-dialog-title"
         sx={{ fontWeight: 700, fontSize: "1.125rem", pb: 1 }}
       >
-        Conferma
+        {title}
       </DialogTitle>
 
       <DialogContent>
@@ -73,10 +84,15 @@ export default function ConfirmDialog({
 
       <DialogActions sx={{ px: 3, pb: 2, gap: 1.5 }}>
         <Button variant="outlined" size="small" onClick={onCancel}>
-          Annulla
+          {cancelText}
         </Button>
-        <Button variant="contained" color="error" size="small" onClick={onConfirm}>
-          Elimina
+        <Button
+          variant="contained"
+          color={isDangerous ? "error" : "primary"}
+          size="small"
+          onClick={onConfirm}
+        >
+          {confirmText}
         </Button>
       </DialogActions>
     </Dialog>

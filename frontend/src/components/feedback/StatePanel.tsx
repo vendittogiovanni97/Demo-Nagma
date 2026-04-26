@@ -5,7 +5,7 @@ import { AlertCircle, Inbox, Loader2 } from 'lucide-react';
 import { Box, CircularProgress, keyframes, useTheme } from '@mui/material';
 import type { SxProps, Theme } from '@mui/material';
 
-type StateVariant = 'loading' | 'empty' | 'error';
+type StateVariant = 'loading' | 'empty' | 'error' | 'info';
 
 interface StatePanelProps {
   variant: StateVariant;
@@ -21,6 +21,7 @@ const defaultIcons = {
   loading: Loader2,
   empty: Inbox,
   error: AlertCircle,
+  info: Inbox,
 } as const;
 
 const spin = keyframes`

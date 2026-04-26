@@ -10,16 +10,17 @@ import DataTable, { type Column } from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import type { Staff } from '@/types/team';
+import type { ReactNode } from 'react';
+import type { User } from '@/types/team';
 
 interface SettingsTeamTabProps {
-  members: Staff[];
+  members: User[];
   membersLoading: boolean;
-  membersError: unknown;
-  columns: Column<Staff>[];
+  membersError: ReactNode;
+  columns: Column<User>[];
   onAdd: () => void;
-  onEdit: (member: Staff) => void;
-  onReset: (member: Staff) => void;
+  onEdit: (member: User) => void;
+  onReset: (member: User) => void;
   onDelete: (memberId: number, memberName: string) => void;
 }
 
@@ -34,11 +35,11 @@ export default function SettingsTeamTab({
 }: SettingsTeamTabProps) {
   const theme = useTheme();
 
-  const memberColumns: Column<Staff>[] = [
+  const memberColumns: Column<User>[] = [
     {
       key: 'nome',
       label: 'Nome',
-      render: (memberData: Staff) => (
+      render: (memberData: User) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar name={memberData.name} color={memberData.color} />
           <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>{memberData.name}</Typography>
@@ -48,9 +49,9 @@ export default function SettingsTeamTab({
     {
       key: 'type',
       label: 'Tipo',
-      render: (memberData: Staff) => (
+      render: (memberData: User) => (
         <Badge variant="info" size="sm">
-          {memberData.type}
+          {(memberData as any).type || '—'}
         </Badge>
       ),
     },
@@ -109,7 +110,7 @@ export default function SettingsTeamTab({
       )}
 
       {!membersError && (
-        <DataTable<Staff>
+        <DataTable<User>
           columns={memberColumns}
           data={members}
           isLoading={membersLoading}

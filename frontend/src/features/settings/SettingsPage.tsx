@@ -75,7 +75,7 @@ export default function SettingsPage() {
 
       {activeTab === 'users' && isAdmin && (
         <SettingsTeamTab
-          members={members as User[]}
+          members={members as unknown as User[]}
           membersLoading={membersLoading}
           membersError={membersError}
           columns={memberColumns as any}

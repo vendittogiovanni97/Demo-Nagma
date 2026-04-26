@@ -5,6 +5,7 @@ import { config } from '../config/env';
 import { paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
 import { parseId } from '../utils/parse-id';
+import { configService } from '../services/config.service';
 
 const baseInclude = {
   _count: {
@@ -93,7 +94,7 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
   // SPECIALIZED METHODS - Custom business logic
   // ============================================================================
 
-  async findAllPaged(search?: string, page = 1, limit = config.defaultPageLimit, startDate?: string, endDate?: string) {
+  async findAllPaged(search?: string, page = 1, limit = configService.getMaxPageLimitSync(), startDate?: string, endDate?: string) {
     const where = buildWhere(search, startDate, endDate);
 
     const [data, total] = await this.prisma.$transaction([

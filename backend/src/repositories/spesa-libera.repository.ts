@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { getMonthRange, paginate } from '../utils/date-utils';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
+import { configService } from '../services/config.service';
 
 export class SpesaLiberaRepository {
   protected prisma: PrismaClient;
@@ -26,7 +27,7 @@ export class SpesaLiberaRepository {
     });
   }
 
-  async findAllPaged(month?: string, page = 1, limit = config.defaultPageLimit) {
+  async findAllPaged(month?: string, page = 1, limit = configService.getMaxPageLimitSync()) {
     const where: Prisma.SpesaLiberaWhereInput = {};
     if (month) {
       where.createdAt = getMonthRange(month);

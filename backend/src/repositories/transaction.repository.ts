@@ -5,6 +5,7 @@ import { config } from '../config/env';
 import { getMonthRange, paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
 import { parseId } from '../utils/parse-id';
+import { configService } from '../services/config.service';
 
 export class TransactionRepository extends BaseRepository<Transaction, Prisma.TransactionCreateInput, Prisma.TransactionUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -50,7 +51,7 @@ export class TransactionRepository extends BaseRepository<Transaction, Prisma.Tr
     monthStr,
     search,
     page = 1,
-    limit = config.defaultPageLimit,
+    limit = configService.getMaxPageLimitSync(),
   }: {
     type?: TransactionType;
     monthStr?: string;

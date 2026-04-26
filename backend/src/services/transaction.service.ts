@@ -2,11 +2,12 @@ import { TransactionRepository } from '../repositories/transaction.repository';
 import { TransactionType } from '@prisma/client';
 import { config } from '../config/env';
 import { validate, createTransactionSchema } from '../schemas';
+import { configService } from './config.service';
 
 const repository = new TransactionRepository();
 
 export class TransactionService {
-  async getTransactions(type?: string, month?: string, search?: string, page = 1, limit = config.defaultPageLimit) {
+  async getTransactions(type?: string, month?: string, search?: string, page = 1, limit = configService.getMaxPageLimitSync()) {
     const enumType = type?.toUpperCase() as TransactionType | undefined;
     return repository.findAllPaged({ type: enumType, monthStr: month, search, page, limit });
   }

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma';
 import { validate, loginSchema, registerSchema, updateMeSchema, changePasswordSchema } from '../schemas';
-import { config } from '../config/env';
+import { configService } from '../services/config.service';
 import { AppError } from '../utils/AppError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
@@ -23,7 +23,7 @@ export class AuthController {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: config.jwtExpiry }
+      { expiresIn: configService.getJwtExpirySync() }
     );
 
     res.json({
@@ -38,7 +38,7 @@ export class AuthController {
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) throw new AppError('Utente già registrato con questa email.', 400, 'DUPLICATE_EMAIL');
 
-    const hashedPassword = await bcrypt.hash(password, config.bcryptSaltRounds);
+    const hashedPassword = await bcrypt.hash(password, configService.getBcryptSaltRoundsSync());
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword, role: role ?? 'ADMIN' },
     });
@@ -93,7 +93,7 @@ export class AuthController {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: config.jwtExpiry }
+      { expiresIn: configService.getJwtExpirySync() }
     );
 
     res.json({
@@ -121,7 +121,7 @@ export class AuthController {
     }
 
     // Hash la nuova password e aggiorna
-    const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
+    const hashedPassword = await bcrypt.hash(data.newPassword, configService.getBcryptSaltRoundsSync());
     await prisma.user.update({
       where: { id: req.user.id },
       data: { password: hashedPassword },

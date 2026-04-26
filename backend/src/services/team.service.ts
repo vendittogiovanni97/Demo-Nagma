@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { Prisma, Shift } from '@prisma/client';
-import { config } from '../config/env';
+import { configService } from './config.service';
 import { UserRepository } from '../repositories/user.repository';
 import { StaffRepository } from '../repositories/staff.repository';
 import { ShiftRepository } from '../repositories/shift.repository';
@@ -182,7 +182,7 @@ export class TeamService {
     const user = await userRepo.findById(id);
     if (!user) throw new AppError('Utente non trovato.', 404);
 
-    const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
+    const hashedPassword = await bcrypt.hash(data.newPassword, configService.getBcryptSaltRoundsSync());
     return userRepo.updatePassword(id, hashedPassword);
   }
 }

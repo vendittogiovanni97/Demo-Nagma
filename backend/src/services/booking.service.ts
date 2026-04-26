@@ -1,6 +1,7 @@
 import { Prisma, Booking } from '@prisma/client';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
+import { configService } from './config.service';
 import { BookingRepository } from '../repositories/booking.repository';
 import { validate, createBookingSchema, updateBookingSchema } from '../schemas';
 import { AppError } from '../utils/AppError';
@@ -194,7 +195,16 @@ export class BookingService {
   }
 
   async verifyPassword(password: string): Promise<void> {
-    const expectedPassword = config.bookingUpdatePassword;
+    const expectedPassword = configService.getBookingUpdatePasswordSync();
+
+    if (!expectedPassword) {
+      throw new AppError(
+        'Password non configurata. Contattare l\'amministratore.',
+        503,
+        'PASSWORD_NOT_CONFIGURED'
+      );
+    }
+
     if (password !== expectedPassword) {
       throw new AppError('Password non corretta', 403, 'INVALID_PASSWORD');
     }

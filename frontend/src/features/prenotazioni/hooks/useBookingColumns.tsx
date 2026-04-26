@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { useTheme } from '@mui/material/styles';
-import { Box, Chip, Stack, Typography } from '@mui/material';
-import { Clock, Phone, Timer } from 'lucide-react';
+import { Box, Chip, Stack, Typography, Badge } from '@mui/material';
+import { Clock, Phone, Timer, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Avatar from '@/components/data-display/Avatar';
@@ -335,6 +335,48 @@ export function useBookingColumns() {
         >
           {booking.notes || '—'}
         </Typography>
+      ),
+    },
+    {
+      key: 'allegati',
+      label: 'Allegati',
+      align: 'center',
+      width: '90px',
+      render: (booking) => (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Badge
+            badgeContent={0}
+            color="primary"
+            overlap="circular"
+            sx={{
+              '& .MuiBadge-badge': {
+                backgroundColor: theme.palette.primary.main,
+                color: '#0a1a26',
+                fontWeight: 600,
+                fontSize: '0.65rem',
+              },
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                },
+              }}
+            >
+              <Paperclip size={16} color={theme.palette.primary.main} />
+            </Box>
+          </Badge>
+        </Box>
       ),
     },
   ], [theme]);

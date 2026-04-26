@@ -6,6 +6,7 @@ import prisma from './utils/prisma';
 import { createApp } from './app';
 import { config } from './config/env';
 import { isDebugHttpEnabled, logger } from './utils/logger';
+import { configService } from './services/config.service';
 
 const RESTART_DELAY_MS = config.restartDelayMs;
 const port = Number(process.env.PORT || 3001);
@@ -52,6 +53,9 @@ async function startServer() {
 
   await prisma.$connect();
   logger.info('Connessione Prisma aperta');
+
+  // Inizializza config dalla tabella Config
+  await configService.initializeConfig();
 
   await new Promise<void>((resolve, reject) => {
     const nextServer = app.listen(port, () => {

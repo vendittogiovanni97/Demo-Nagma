@@ -14,11 +14,13 @@ import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
 import spesaLiberaRoutes from './routes/spesa-libera.routes';
 import creamRouter from './routes/cream.routes';
+import attachmentRoutes from './routes/attachment.routes';
 import { config } from './config/env';
 import { getSwaggerSpec } from './config/swagger';
 import { AppError } from './utils/AppError';
 import { getRequestContext, isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
 import prisma from './utils/prisma';
+import { configService } from './services/config.service';
 
 export function createApp() {
   const app = express();
@@ -115,7 +117,8 @@ export function createApp() {
   app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
   app.use('/api/spese-libere', spesaLiberaRoutes);
-app.use('/api/cream', creamRouter);
+  app.use('/api/cream', creamRouter);
+  app.use('/api/attachments', attachmentRoutes);
 
   // Build the Swagger spec only when /api-docs is actually requested.
   app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {
@@ -132,7 +135,8 @@ app.use('/api/cream', creamRouter);
   app.get('/health', async (_req: Request, res: Response) => {
     try {
       await prisma.$queryRaw`SELECT 1`;
-      res.json({ status: 'ok', db: 'connected' });
+      const appVersion = configService.getAppVersionSync();
+      res.json({ status: 'ok', db: 'connected', version: appVersion });
     } catch (error) {
       logger.errorWithStack('Health check fallito per errore database', error);
       res.status(500).json({

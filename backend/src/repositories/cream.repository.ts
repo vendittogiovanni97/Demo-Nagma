@@ -1,6 +1,7 @@
 import type { CreamTattoo, CreamSale } from '@prisma/client';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
+import { configService } from '../services/config.service';
 
 export class CreamRepository {
   async findActive(): Promise<CreamTattoo | null> {
@@ -24,7 +25,7 @@ export class CreamRepository {
     });
   }
 
-  async getSalesByCream(creamId: number, page = 1, limit = config.defaultPageLimit, filters?: { startDate?: string; endDate?: string; artistId?: number }) {
+  async getSalesByCream(creamId: number, page = 1, limit = configService.getMaxPageLimitSync(), filters?: { startDate?: string; endDate?: string; artistId?: number }) {
     const skip = (page - 1) * limit;
     const where: any = { creamId };
 

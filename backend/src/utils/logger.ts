@@ -12,6 +12,14 @@ const ANSI = {
   red: '\x1b[31m',
 } as const;
 
+// Log level hierarchy: DEBUG < INFO < WARN < ERROR
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const;
+
 function timestamp() {
   return new Date().toISOString();
 }
@@ -47,7 +55,44 @@ function colorize(level: LogLevel, value: string) {
   return `${ANSI.gray}${value}${ANSI.reset}`;
 }
 
+/**
+ * Ottieni il livello di log configurato (reads from configService post-init)
+ * Fallback a .env se config non ancora inizializzato
+ */
+function getLogLevelSync(): LogLevel {
+  try {
+    const { configService } = require('@/services/config.service');
+    const level = configService.getLogLevelSync() as string;
+    // Valida che sia un livello conosciuto
+    if (level in LOG_LEVEL_PRIORITY) {
+      return level as LogLevel;
+    }
+  } catch {
+    // Fallback durante boot (prima di initializeConfig)
+    const envLevel = process.env.LOG_LEVEL as string | undefined;
+    if (envLevel && envLevel in LOG_LEVEL_PRIORITY) {
+      return envLevel as LogLevel;
+    }
+  }
+  // Default fallback
+  return 'INFO';
+}
+
+/**
+ * Controlla se il log dovrebbe essere scritto in base al livello configurato
+ * Es: se LOG_LEVEL='WARN', scrive solo WARN e ERROR (skippa DEBUG e INFO)
+ */
+function shouldLog(level: LogLevel): boolean {
+  const configuredLevel = getLogLevelSync();
+  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[configuredLevel];
+}
+
 function writeLog(level: LogLevel, message: string, meta?: LogMeta) {
+  // Skip se il livello di log è sotto la soglia configurata
+  if (!shouldLog(level)) {
+    return;
+  }
+
   const line = `${colorize(level, timestamp())} ${colorize(level, `[${level}]`)} ${message}${formatMeta(meta)}`;
 
   if (level === 'ERROR') {
@@ -84,8 +129,18 @@ export const logger = {
   },
 };
 
-export function isDebugHttpEnabled() {
-  return process.env.DEBUG_HTTP === 'true';
+/**
+ * Leggi DEBUG_HTTP dalla config (post-init)
+ * Fallback a .env se config non ancora inizializzato
+ */
+export function isDebugHttpEnabled(): boolean {
+  try {
+    const { configService } = require('@/services/config.service');
+    return configService.getDebugHttpSync();
+  } catch {
+    // Fallback durante boot (prima di initializeConfig)
+    return process.env.DEBUG_HTTP === 'true';
+  }
 }
 
 export function isDevelopmentEnv() {

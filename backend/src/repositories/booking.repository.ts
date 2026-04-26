@@ -4,6 +4,7 @@ import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
 import { getMonthRange, paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
+import { configService } from '../services/config.service';
 
 export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCreateInput, Prisma.BookingUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -62,7 +63,7 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
   async findAllPaged({
     monthStr,
     page = 1,
-    limit = config.defaultPageLimit,
+    limit = configService.getMaxPageLimitSync(),
     startDate,
     endDate,
   }: {

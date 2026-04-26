@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { SpesaLiberaRepository } from '../repositories/spesa-libera.repository';
 import { config } from '../config/env';
+import { configService } from './config.service';
 
 const repo = new SpesaLiberaRepository();
 
@@ -11,7 +12,7 @@ export class SpesaLiberaService {
     this.repo = repository;
   }
 
-  async getAll(month?: string, page = 1, limit = config.defaultPageLimit) {
+  async getAll(month?: string, page = 1, limit = configService.getMaxPageLimitSync()) {
     return this.repo.findAllPaged(month, page, limit);
   }
 

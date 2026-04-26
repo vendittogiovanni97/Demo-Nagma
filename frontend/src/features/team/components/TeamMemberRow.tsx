@@ -6,8 +6,9 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { DAYS_OF_WEEK } from '@/config/team-config';
 import type { Shift, Staff } from '@/types/team';
-import { Box, Typography, useTheme } from '@mui/material';
-import { Edit, Trash2 } from 'lucide-react';
+import { Box, Typography, useTheme, IconButton, Menu, MenuItem } from '@mui/material';
+import { Edit, Trash2, MoreVertical } from 'lucide-react';
+import { useState } from 'react';
 import ShiftCell from './ShiftCell';
 
 interface TeamMemberRowProps {
@@ -39,6 +40,26 @@ export default function TeamMemberRow({
 }: TeamMemberRowProps) {
   const theme = useTheme();
   const memberColor = member.color || '#3b82f6';
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    onEditMember(member);
+    handleMenuClose();
+  };
+
+  const handleDelete = () => {
+    onDeleteMember(member.id, member.name);
+    handleMenuClose();
+  };
 
   return (
     <Box
@@ -90,24 +111,48 @@ export default function TeamMemberRow({
           </Badge>
         </Box>
         <PermissionGate requireAdmin>
-          <Box
-            className="hover-actions"
-            sx={{ position: 'absolute', right: 1, top: 1, display: 'flex', gap: 0.5, opacity: 0, transition: 'opacity 0.15s' }}
+          <IconButton
+            size="small"
+            onClick={handleMenuOpen}
+            sx={{
+              position: 'absolute',
+              right: 1,
+              top: 1,
+              color: theme.palette.primary.main,
+              '&:hover': {
+                bgcolor: 'rgba(0, 191, 255, 0.1)',
+              },
+            }}
           >
-            <Button
-              variant="icon"
-              icon={<Edit size={14} />}
-              title="Modifica"
-              onClick={() => onEditMember(member)}
-            />
-            <Button
-              variant="icon"
-              icon={<Trash2 size={14} />}
-              sx={{ color: theme.palette.error.light }}
-              title="Elimina"
-              onClick={() => onDeleteMember(member.id, member.name)}
-            />
-          </Box>
+            <MoreVertical size={18} />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem onClick={handleEdit} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Edit size={16} />
+              <Typography variant="body2">Modifica</Typography>
+            </MenuItem>
+            <MenuItem
+              onClick={handleDelete}
+              sx={{
+                display: 'flex',
+                gap: 1,
+                alignItems: 'center',
+                color: theme.palette.error.main,
+                '&:hover': {
+                  bgcolor: 'rgba(244, 67, 54, 0.1)',
+                },
+              }}
+            >
+              <Trash2 size={16} />
+              <Typography variant="body2">Elimina</Typography>
+            </MenuItem>
+          </Menu>
         </PermissionGate>
       </Box>
 

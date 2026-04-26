@@ -109,6 +109,7 @@ model Booking {
   outlookEventId  String?         // riservato per futura integrazione Outlook
   formData        Json?           // dati dinamici da form in base64
   history         BookingHistory[]
+  attachments     Attachment[]
   deletedAt       DateTime?       // soft delete
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -248,4 +249,29 @@ model WhatsAppMessageLog {
 enum WhatsAppMessageStatus {
   MANUAL_SENT
   FAILED
+}
+
+model Config {
+  id        Int     @id @default(autoincrement())
+  paramsKey String  @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([paramsKey])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  bookingId Int
+  fileName  String
+  fileSize  Int
+  mimeType  String
+  filePath  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
 }

@@ -1,9 +1,14 @@
 import rateLimit from 'express-rate-limit';
-import { config } from '../config/env';
+import { configService } from '../services/config.service';
+
+// Login rate limiter - legge LOGIN_RATE_LIMIT_WINDOW_MINUTES e LOGIN_RATE_LIMIT_MAX_ATTEMPTS
+// da configService (valorizzati in DB o fallback a defaults)
+const loginWindowMinutes = configService.getLoginRateLimitWindowMinutesSync();
+const loginMaxAttempts = configService.getLoginRateLimitMaxAttemptsSync();
 
 export const loginRateLimiter = rateLimit({
-  windowMs: config.loginRateLimitWindowMs,
-  limit: config.loginRateLimitMaxAttempts,
+  windowMs: loginWindowMinutes * 60 * 1000,
+  limit: loginMaxAttempts,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,

@@ -5,6 +5,7 @@ import { config } from '../config/env';
 import { paginate } from '../utils/date-utils';
 import prisma, { softDelete } from '../utils/prisma';
 import { parseId } from '../utils/parse-id';
+import { configService } from '../services/config.service';
 
 export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput, Prisma.UserUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -47,7 +48,7 @@ export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput,
     role,
     excludeRoles,
     page = 1,
-    limit = config.defaultPageLimit,
+    limit = configService.getMaxPageLimitSync(),
   }: {
     search?: string;
     role?: string;

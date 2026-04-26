@@ -137,6 +137,75 @@ async function seedFormTemplates(): Promise<void> {
 }
 
 /**
+ * Seed Config (parametri di sistema)
+ * IMPORTANTE: BOOKING_UPDATE_PASSWORD deve essere impostata via .env, non ha default nel codice
+ */
+async function seedConfig(): Promise<void> {
+  const configs = [
+    // File Management
+    {
+      paramsKey: 'FILES_PATH',
+      value: '/uploads/attachments/',
+    },
+    // Debug & Logging
+    {
+      paramsKey: 'DEBUG_HTTP',
+      value: process.env.DEBUG_HTTP === 'true' ? 'true' : 'false',
+    },
+    {
+      paramsKey: 'LOG_LEVEL',
+      value: process.env.LOG_LEVEL || 'INFO',
+    },
+    // Security & Authentication
+    {
+      paramsKey: 'JWT_EXPIRY',
+      value: process.env.JWT_EXPIRY || '8h',
+    },
+    {
+      paramsKey: 'BCRYPT_SALT_ROUNDS',
+      value: process.env.BCRYPT_SALT_ROUNDS || '10',
+    },
+    {
+      paramsKey: 'LOGIN_RATE_LIMIT_WINDOW_MINUTES',
+      value: process.env.LOGIN_RATE_LIMIT_WINDOW_MINUTES || '15',
+    },
+    {
+      paramsKey: 'LOGIN_RATE_LIMIT_MAX_ATTEMPTS',
+      value: process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS || '5',
+    },
+    {
+      paramsKey: 'SESSION_TIMEOUT_MINUTES',
+      value: process.env.SESSION_TIMEOUT_MINUTES || '30',
+    },
+    // Pagination & Limits
+    {
+      paramsKey: 'MAX_PAGE_LIMIT',
+      value: process.env.MAX_PAGE_LIMIT || '100',
+    },
+    // Application
+    {
+      paramsKey: 'APP_VERSION',
+      value: process.env.APP_VERSION || '1.0.0',
+    },
+    // Booking & Security (no default password)
+    {
+      paramsKey: 'BOOKING_UPDATE_PASSWORD',
+      value: process.env.BOOKING_UPDATE_PASSWORD || '',
+    },
+  ];
+
+  for (const config of configs) {
+    await prisma.config.upsert({
+      where: { paramsKey: config.paramsKey },
+      update: { value: config.value },
+      create: config,
+    });
+  }
+
+  console.log('✅ Config di sistema creati');
+}
+
+/**
  * Seed Crema Tattoo
  */
 async function seedCreamTattoo(): Promise<void> {
@@ -213,6 +282,7 @@ async function main(): Promise<void> {
 
   await seedSuperAdmin();
   await seedAdmin();
+  await seedConfig();
   await seedWhatsAppTemplates();
   await seedFormTemplates();
   await seedCreamTattoo();

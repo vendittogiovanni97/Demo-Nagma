@@ -3,6 +3,7 @@ import { BaseRepository } from './BaseRepository';
 import { config } from '../config/env';
 import { paginate } from '../utils/date-utils';
 import prisma from '../utils/prisma';
+import { configService } from '../services/config.service';
 
 export class BookingHistoryRepository extends BaseRepository<BookingHistory, Prisma.BookingHistoryCreateInput, Prisma.BookingHistoryUpdateInput> {
   constructor(prismaClient: PrismaClient = prisma) {
@@ -37,7 +38,7 @@ export class BookingHistoryRepository extends BaseRepository<BookingHistory, Pri
     action,
     changedBy,
     page = 1,
-    limit = config.defaultPageLimit,
+    limit = configService.getMaxPageLimitSync(),
   }: {
     startDate?: string;
     endDate?: string;

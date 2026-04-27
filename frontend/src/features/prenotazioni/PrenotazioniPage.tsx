@@ -82,22 +82,6 @@ export default function PrenotazioniPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title="Prenotazioni"
-        customFilters={
-          <BookingFilters
-            monthLabel={monthLabel}
-            search={search}
-            startDate={startDate}
-            endDate={endDate}
-            showCancelled={showCancelled}
-            onSearchChange={setSearch}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onShowCancelledChange={setShowCancelled}
-            onResetDateRange={resetDateRange}
-            onPrevMonth={prevMonth}
-            onNextMonth={nextMonth}
-          />
-        }
         extraActions={
           <ExportModal
             filenameBase={`prenotazioni-${month}`}
@@ -114,6 +98,21 @@ export default function PrenotazioniPage() {
         buttonIcon={<Plus size={18} />}
         buttonRequiresAdmin
         onButtonClick={handleOpenNewModal}
+      />
+
+      <BookingFilters
+        monthLabel={monthLabel}
+        search={search}
+        startDate={startDate}
+        endDate={endDate}
+        showCancelled={showCancelled}
+        onSearchChange={setSearch}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onShowCancelledChange={setShowCancelled}
+        onResetDateRange={resetDateRange}
+        onPrevMonth={prevMonth}
+        onNextMonth={nextMonth}
       />
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>

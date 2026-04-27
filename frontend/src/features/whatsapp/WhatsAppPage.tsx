@@ -85,16 +85,6 @@ export default function WhatsAppPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden', pt: 3 }}>
       <PageHeader
         title="WhatsApp Templates"
-        showSearch
-        searchValue={templateSearch}
-        searchPlaceholder="Cerca template..."
-        onSearchChange={setTemplateSearch}
-        showDateRange
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        onResetDates={resetDates}
         showButton
         buttonLabel="Nuovo Template"
         buttonIcon={<Plus size={16} />}

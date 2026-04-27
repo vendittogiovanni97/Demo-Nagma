@@ -3,26 +3,10 @@
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import { Settings } from 'lucide-react';
+import { Box, Stack, useTheme } from '@mui/material';
 
-// Simple decorative avatar with a gear icon for the header
-const AvatarIcon = () => (
-  <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main', color: 'common.white' }}>
-    <Settings size={20} />
-  </Avatar>
-);
-
-const SettingsIconPanel = () => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'common.white' }}>
-    <Typography variant="caption" sx={{ opacity: 0.9 }}>LIVE</Typography>
-  </Box>
-);
-
-import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import PageHeader from '@/components/layout/PageHeader';
 import { useAuth } from '@/context/AuthContext';
 
 import SettingsProfileTab from './components/SettingsProfileTab';
@@ -33,9 +17,50 @@ import { useTeamMemberActions } from './hooks/useTeamMemberActions';
 const MemberFormModal = dynamic(() => import('./components/MemberFormModal'), { ssr: false });
 const ResetPasswordModal = dynamic(() => import('./components/ResetPasswordModal'), { ssr: false });
 
+type SettingsTab = 'profile' | 'users';
+
+interface TabPillProps {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}
+
+function TabPill({ label, active, onClick }: TabPillProps) {
+  const theme = useTheme();
+  return (
+    <Box
+      component="button"
+      type="button"
+      onClick={onClick}
+      sx={{
+        flex: 1,
+        py: 1.25,
+        px: 2,
+        border: 'none',
+        borderRadius: 999,
+        cursor: 'pointer',
+        fontFamily: 'Outfit, sans-serif',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        letterSpacing: '0.02em',
+        transition: 'all 0.25s ease',
+        backgroundColor: active ? theme.palette.primary.main : 'transparent',
+        color: active ? '#0a1a26' : theme.palette.text.secondary,
+        boxShadow: active ? '0 4px 14px rgba(0, 191, 255, 0.35)' : 'none',
+        '&:hover': {
+          color: active ? '#0a1a26' : theme.palette.text.primary,
+          backgroundColor: active ? theme.palette.primary.main : 'rgba(255, 255, 255, 0.04)',
+        },
+      }}
+    >
+      {label}
+    </Box>
+  );
+}
+
 export default function SettingsPage() {
   const { user, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'users'>('profile');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
   const profileForm = useProfileForm({ initialName: user?.name || '' });
 
@@ -60,73 +85,71 @@ export default function SettingsPage() {
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-      {/* Rich header con look più carico */}
+      <PageHeader
+        title="Impostazioni"
+        subtitle="Configura profilo e team"
+      />
+
+      {/* Contenuto centrato */}
       <Box
         sx={{
+          width: '100%',
+          maxWidth: 880,
+          mx: 'auto',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          p: 3,
-          borderRadius: 2,
-          bgcolor: 'linear-gradient(135deg, rgba(0,112,255,0.25) 0%, rgba(0,0,0,0) 60%)',
-          background: 'linear-gradient(135deg, rgba(0,120,255,.25) 0%, rgba(0,0,0,0) 60%)',
-          boxShadow: 'inset 0 0 0 1px rgba(0,120,255,.4), 0 6px 18px rgba(0,0,0,.25)',
+          flexDirection: 'column',
+          gap: 3,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <AvatarIcon />
-          <Box>
-            <Typography variant="h4" sx={{ color: 'common.white', fontWeight: 700 }}>
-              Impostazioni
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'common.white', opacity: 0.9 }}>
-              Configura profili e utenti
-            </Typography>
-          </Box>
-        </Box>
-        <SettingsIconPanel />
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <Button
-          variant={activeTab === 'profile' ? 'secondary' : 'ghost'}
-          size="md"
-          onClick={() => setActiveTab('profile')}
-          sx={activeTab === 'profile' ? { borderColor: 'primary.main', color: 'primary.main' } : undefined}
-        >
-          Il mio profilo
-        </Button>
+        {/* Tabs segmentati a pill */}
         {isAdmin && (
-          <Button
-            variant={activeTab === 'users' ? 'secondary' : 'ghost'}
-            size="md"
-            onClick={() => setActiveTab('users')}
-            sx={activeTab === 'users' ? { borderColor: 'primary.main', color: 'primary.main' } : undefined}
+          <Stack
+            direction="row"
+            useFlexGap
+            sx={{
+              gap: 0.5,
+              p: 0.5,
+              borderRadius: 999,
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              border: 1,
+              borderColor: 'divider',
+              alignSelf: { xs: 'stretch', sm: 'center' },
+              width: { xs: '100%', sm: 'auto' },
+            }}
           >
-            Gestione utenti
-          </Button>
+            <TabPill
+              label="Il mio profilo"
+              active={activeTab === 'profile'}
+              onClick={() => setActiveTab('profile')}
+            />
+            <TabPill
+              label="Gestione utenti"
+              active={activeTab === 'users'}
+              onClick={() => setActiveTab('users')}
+            />
+          </Stack>
+        )}
+
+        {activeTab === 'profile' && (
+          <SettingsProfileTab user={user ?? null} form={profileForm} />
+        )}
+
+        {activeTab === 'users' && isAdmin && (
+          <SettingsTeamTab
+            members={members}
+            membersLoading={membersLoading}
+            membersError={membersError}
+            columns={memberColumns}
+            onAdd={() => {
+              setEditingUser(null);
+              setIsUserFormOpen(true);
+            }}
+            onEdit={handleEditUser}
+            onReset={handleResetPassword}
+            onDelete={handleDeleteMember}
+          />
         )}
       </Box>
-
-      {activeTab === 'profile' && (
-        <SettingsProfileTab user={user ?? null} form={profileForm} />
-      )}
-
-      {activeTab === 'users' && isAdmin && (
-        <SettingsTeamTab
-          members={members}
-          membersLoading={membersLoading}
-          membersError={membersError}
-          columns={memberColumns}
-          onAdd={() => {
-            setEditingUser(null);
-            setIsUserFormOpen(true);
-          }}
-          onEdit={handleEditUser}
-          onReset={handleResetPassword}
-          onDelete={handleDeleteMember}
-        />
-      )}
 
       <MemberFormModal
         isOpen={isUserFormOpen}

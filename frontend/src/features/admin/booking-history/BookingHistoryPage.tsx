@@ -3,18 +3,22 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Stack, Box, Typography, useTheme } from '@mui/material';
+import { CircularProgress, Stack, Box, Typography, useTheme as useMuiTheme } from '@mui/material';
 
 import DataTable from '@/components/data-display/DataTable';
+import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { bookingHistoryService, type BookingAction, type BookingHistoryResponse } from '@/services/booking-history.service';
+import BookingHistoryCard from './components/BookingHistoryCard';
 import { useBookingHistoryColumns } from './hooks/useBookingHistoryColumns';
 
 export default function BookingHistoryPage() {
   const { user } = useAuth();
-  const theme = useTheme();
+  const theme = useMuiTheme();
+  const { isSmall } = useTheme();
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -68,7 +72,31 @@ export default function BookingHistoryPage() {
         </Stack>
       )}
 
-      {!error && (
+      {!error && isSmall && (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+          {isLoading && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 6 }}>
+              <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
+            </Box>
+          )}
+          {!isLoading && (data?.data?.length ?? 0) === 0 && (
+            <StatePanel
+              variant="empty"
+              title="Nessuna modifica"
+              description="Nessuna modifica trovata per i filtri selezionati."
+            />
+          )}
+          {!isLoading && (data?.data?.length ?? 0) > 0 && (
+            <Stack spacing={1.5}>
+              {data!.data.map((entry) => (
+                <BookingHistoryCard key={entry.id} entry={entry} />
+              ))}
+            </Stack>
+          )}
+        </Box>
+      )}
+
+      {!error && !isSmall && (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <DataTable
             columns={columns}

@@ -54,8 +54,14 @@ async function startServer() {
   await prisma.$connect();
   logger.info('Connessione Prisma aperta');
 
-  // Inizializza config dalla tabella Config
-  await configService.initializeConfig();
+  // Inizializza config dalla tabella Config in base ai flag di env
+  const initFromDb = (process.env.INIT_CONFIG_FROM_DB ?? 'false').toLowerCase() === 'true';
+  const seedFlag = (process.env.INIT_CONFIG_SEED ?? 'false').toLowerCase() === 'true';
+  if (initFromDb) {
+    await configService.initializeConfig(seedFlag);
+  } else {
+    logger.info('INIT_CONFIG_FROM_DB=false; skip init config from DB');
+  }
 
   await new Promise<void>((resolve, reject) => {
     const nextServer = app.listen(port, () => {

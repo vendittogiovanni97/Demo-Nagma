@@ -5,12 +5,22 @@
 
 import { useToast } from '@/hooks/useToast';
 import type { Attachment } from '@/types/attachment';
+import { getToken } from '@/utils/auth';
 import { extractErrorMessage } from '@/utils/extract-error';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+/**
+ * Costruisce gli headers di autenticazione per le chiamate axios.
+ * Allineato con apiClient (`/api/client.ts`) che usa JWT Bearer.
+ */
+function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}`, ...extra } : extra;
+}
 
 interface UseAttachmentsOptions {
   bookingId?: string;
@@ -26,11 +36,11 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  // Fetch lista attachment per booking
+  // Fetch lista attachment per booking — assoluto verso il backend, con JWT.
   const { data: attachments = [], isLoading, mutate } = useSWR<Attachment[]>(
-    enabled && bookingId ? `/api/attachments/booking/${bookingId}` : null,
+    enabled && bookingId ? `${API_BASE}/attachments/booking/${bookingId}` : null,
     async (url) => {
-      const response = await axios.get(url);
+      const response = await axios.get(url, { headers: authHeaders() });
       return response.data.data || [];
     },
     {
@@ -62,7 +72,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
           `${API_BASE}/attachments/upload?bookingId=${bookingId}`,
           formData,
           {
-            headers: { 'Content-Type': 'multipart/form-data' },
+            headers: authHeaders({ 'Content-Type': 'multipart/form-data' }),
             onUploadProgress: (progressEvent) => {
               const progress = Math.round(
                 (progressEvent.loaded / (progressEvent.total || 1)) * 100
@@ -97,7 +107,9 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
       setDeleting(attachmentId);
 
       try {
-        await axios.delete(`${API_BASE}/attachments/${attachmentId}`);
+        await axios.delete(`${API_BASE}/attachments/${attachmentId}`, {
+          headers: authHeaders(),
+        });
         toast.success('File eliminato');
         await mutate(); // Refresh list
         return true;
@@ -121,7 +133,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
       try {
         const response = await axios.get(
           `${API_BASE}/attachments/${attachmentId}/download`,
-          { responseType: 'blob' }
+          { responseType: 'blob', headers: authHeaders() }
         );
 
         const url = window.URL.createObjectURL(response.data);

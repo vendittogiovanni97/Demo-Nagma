@@ -88,6 +88,7 @@ export default function WeekNavigator({
         size="small"
         onClick={onPrev}
         title="Settimana precedente"
+        aria-label="Settimana precedente"
         sx={{
           color: theme.palette.text.primary,
           transition: 'all 0.3s ease',
@@ -115,6 +116,7 @@ export default function WeekNavigator({
         size="small"
         onClick={onNext}
         title="Settimana successiva"
+        aria-label="Settimana successiva"
         sx={{
           color: theme.palette.text.primary,
           transition: 'all 0.3s ease',

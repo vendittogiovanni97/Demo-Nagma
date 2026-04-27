@@ -1,12 +1,12 @@
 'use client';
 
-import { Box, Avatar, Typography, useTheme, Stack } from '@mui/material';
-import { Edit, Eye, MessageCircle, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import PermissionGate from '@/components/auth/PermissionGate';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import PermissionGate from '@/components/auth/PermissionGate';
 import type { Customer } from '@/types/customer';
+import { Avatar, Box, Stack, Typography, useTheme } from '@mui/material';
+import { Edit, Eye, MessageCircle, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface CustomerCardProps {
   customer: Customer;
@@ -41,7 +41,7 @@ export default function CustomerCard({
     <Card variant="glass" size="md">
       <Stack spacing={2}>
         {/* Header: Avatar + Name */}
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
           <Avatar
             sx={{
               width: 48,

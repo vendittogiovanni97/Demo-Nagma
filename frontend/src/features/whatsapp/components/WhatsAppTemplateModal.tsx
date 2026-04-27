@@ -8,11 +8,11 @@ import FormTextarea from '@/components/forms/FormTextarea';
 import SubmitButton from '@/components/forms/SubmitButton';
 import Modal from '@/components/modals/Modal';
 import { useToast } from '@/hooks/useToast';
-import { extractErrorMessage } from '@/utils/extract-error';
+import { createWhatsAppTemplateSchema } from '@/schemas/whatsapp';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '@/types/whatsapp';
+import { extractErrorMessage } from '@/utils/extract-error';
 import { validateData } from '@/utils/validation';
-import { createWhatsAppTemplateSchema } from '@/schemas/whatsapp';
 
 interface WhatsAppTemplateModalProps {
   isOpen: boolean;
@@ -85,7 +85,7 @@ export default function WhatsAppTemplateModal({
       title={template ? 'Modifica Template WhatsApp' : 'Nuovo Template WhatsApp'}
       maxWidth="lg"
     >
-      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onSubmit={handleSubmit}>
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }} onSubmit={handleSubmit}>
         <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
           <FormInput label="Nome template" value={name} onChange={setName} required />
           <FormInput

@@ -2,9 +2,7 @@
 
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
-import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import PermissionGate from '@/components/auth/PermissionGate';
 import ExportModal from '@/components/modals/ExportModal';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
@@ -73,45 +71,40 @@ export default function ClientiPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title="Anagrafica Clienti"
-        actions={
-          <>
-            <ExportModal
-              filenameBase="clienti"
-              title="Anagrafica Clienti"
-              rows={customers}
-              columns={exportColumns}
-              filters={exportFilters}
-              filtersLabel={`Ricerca: ${debouncedSearch || 'nessuna'}`}
-              resolveRows={async () => {
-                const response = await customerService.getAll(debouncedSearch, 1, EXPORT_FETCH_LIMIT);
-                return response.data;
-              }}
-            />
-            <PermissionGate requireAdmin>
-              <Button
-                variant="primary"
-                icon={<UserPlus />}
-                onClick={() => {
-                  setEditingCustomer(null);
-                  setIsModalOpen(true);
-                }}
-              >
-                Nuovo Cliente
-              </Button>
-            </PermissionGate>
-          </>
+        customFilters={
+          <CustomerFilters
+            search={search}
+            startDate={startDate}
+            endDate={endDate}
+            onSearchChange={setSearch}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onResetDates={resetDates}
+          />
         }
-      >
-        <CustomerFilters
-          search={search}
-          startDate={startDate}
-          endDate={endDate}
-          onSearchChange={setSearch}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onResetDates={resetDates}
-        />
-      </PageHeader>
+        extraActions={
+          <ExportModal
+            filenameBase="clienti"
+            title="Anagrafica Clienti"
+            rows={customers}
+            columns={exportColumns}
+            filters={exportFilters}
+            filtersLabel={`Ricerca: ${debouncedSearch || 'nessuna'}`}
+            resolveRows={async () => {
+              const response = await customerService.getAll(debouncedSearch, 1, EXPORT_FETCH_LIMIT);
+              return response.data;
+            }}
+          />
+        }
+        showButton
+        buttonLabel="Nuovo Cliente"
+        buttonIcon={<UserPlus />}
+        buttonRequiresAdmin
+        onButtonClick={() => {
+          setEditingCustomer(null);
+          setIsModalOpen(true);
+        }}
+      />
 
       {error && (
         <StatePanel

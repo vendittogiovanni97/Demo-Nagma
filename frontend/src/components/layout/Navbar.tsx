@@ -293,6 +293,8 @@ export default function Navbar() {
             <>
               <IconButton
                 onClick={() => setIsBookingOpen(true)}
+                aria-label="Nuova prenotazione"
+                title="Nuova prenotazione"
                 sx={{
                   width: plusBtn,
                   height: plusBtn,

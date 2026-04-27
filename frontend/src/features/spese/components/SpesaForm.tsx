@@ -108,7 +108,7 @@ export default function SpesaForm({ monthStr }: SpesaFormProps) {
         type="submit"
         variant="primary"
         size="md"
-        disabled={isAdding || !name.trim() || !price}
+        disabled={isAdding}
         isLoading={isAdding}
         loadingLabel="Aggiungo..."
         icon={isAdding ? undefined : <Plus size={18} />}

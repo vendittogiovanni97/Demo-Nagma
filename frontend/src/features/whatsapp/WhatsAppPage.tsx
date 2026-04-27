@@ -6,11 +6,9 @@ import { MessageCircle, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import StatePanel from '@/components/feedback/StatePanel';
-import SearchInput from '@/components/forms/SearchInput';
 import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -87,90 +85,24 @@ export default function WhatsAppPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
       <PageHeader
         title="WhatsApp Templates"
-        actions={
-          <Button
-            variant="primary"
-            icon={<Plus size={16} />}
-            onClick={() => {
-              setEditingTemplate(null);
-              setIsTemplateModalOpen(true);
-            }}
-          >
-            Nuovo Template
-          </Button>
-        }
-      >
-        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 2, maxWidth: '42rem', margin: '0 auto' }}>
-          <Box sx={{ flex: 1 }}>
-            <SearchInput
-              value={templateSearch}
-              onChange={setTemplateSearch}
-              placeholder="Cerca template..."
-            />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TextField
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{
-                borderRadius: 2,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  '& fieldset': { borderColor: 'divider' },
-                  '&:hover fieldset': { borderColor: 'primary.main' },
-                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
-                },
-                '& .MuiInputBase-input': {
-                  fontSize: '0.875rem',
-                  color: 'white',
-                  py: 1,
-                  px: 1.5,
-                },
-                width: '9rem',
-              }}
-            />
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>—</Typography>
-            <TextField
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{
-                borderRadius: 2,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  '& fieldset': { borderColor: 'divider' },
-                  '&:hover fieldset': { borderColor: 'primary.main' },
-                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
-                },
-                '& .MuiInputBase-input': {
-                  fontSize: '0.875rem',
-                  color: 'white',
-                  py: 1,
-                  px: 1.5,
-                },
-                width: '9rem',
-              }}
-            />
-            {(startDate || endDate) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetDates}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                Reset
-              </Button>
-            )}
-          </Box>
-        </Box>
-      </PageHeader>
+        showSearch
+        searchValue={templateSearch}
+        searchPlaceholder="Cerca template..."
+        onSearchChange={setTemplateSearch}
+        showDateRange
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onResetDates={resetDates}
+        showButton
+        buttonLabel="Nuovo Template"
+        buttonIcon={<Plus size={16} />}
+        onButtonClick={() => {
+          setEditingTemplate(null);
+          setIsTemplateModalOpen(true);
+        }}
+      />
 
       <Box
         sx={{

@@ -2,13 +2,12 @@
 
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
-import { Package, Plus, X } from 'lucide-react';
-import { Box, TextField, Select, MenuItem, FormControl } from '@mui/material';
+import { Package, Plus } from 'lucide-react';
+import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 import DataTable from '@/components/data-display/DataTable';
 import PageHeader from '@/components/layout/PageHeader';
-import Button from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { creamService, type CreamSale } from '@/services/cream.service';
 import { teamService } from '@/services/team.service';
@@ -97,68 +96,38 @@ export default function CreamsPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title="Vendite Crema Tattoo"
-        actions={
-          <Button variant="primary" icon={<Plus size={18} />} onClick={() => setIsModalOpen(true)}>
-            Nuova Vendita
-          </Button>
-        }
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-          <TextField
-            label="Dal"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            size="small"
-            sx={{ width: '140px' }}
-          />
-          <TextField
-            label="Al"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            size="small"
-            sx={{ width: '140px' }}
-          />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <Select
-              value={artistFilter}
-              onChange={(e) => setArtistFilter(e.target.value ? Number(e.target.value) : '')}
-              displayEmpty
-              sx={{
-                borderRadius: 1.5,
-                bgcolor: 'rgba(255,255,255,0.05)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
-              }}
-            >
-              <MenuItem value="">Tutti gli artisti</MenuItem>
-              {teamMembers?.map((member) => (
-                <MenuItem key={member.id} value={member.id}>
-                  {member.name} ({member.type === 'APPRENDISTA' ? 'Appr.' : 'Coll.'})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button variant="primary" size="sm" onClick={() => setPage(1)}>
-            Filtra
-          </Button>
-          {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={handleReset} icon={<X size={14} />}>
-              Reset
-            </Button>
-          )}
-        </Box>
-      </PageHeader>
+        showDateRange
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onResetDates={hasFilters ? handleReset : undefined}
+        showFilter
+        filterValue={artistFilter}
+        filterPlaceholder="Tutti gli artisti"
+        filterMinWidth={160}
+        filterOptions={(teamMembers ?? []).map((member) => ({
+          label: `${member.name} (${member.type === 'APPRENDISTA' ? 'Appr.' : 'Coll.'})`,
+          value: member.id,
+        }))}
+        onFilterChange={(value) => setArtistFilter(value === '' ? '' : Number(value))}
+        showApplyButton
+        applyButtonLabel="Filtra"
+        onApply={() => setPage(1)}
+        showButton
+        buttonLabel="Nuova Vendita"
+        buttonIcon={<Plus size={18} />}
+        onButtonClick={() => setIsModalOpen(true)}
+      />
 
       {creamData && (
         <Box
           sx={{
-            p: 3,
+            px: 2,
+            py: 1.25,
             display: 'flex',
             alignItems: 'center',
-            gap: 2.5,
+            gap: 1.5,
             bgcolor: 'rgba(26, 35, 50, 0.6)',
             backdropFilter: 'blur(12px)',
             borderRadius: 2,
@@ -167,9 +136,9 @@ export default function CreamsPage() {
         >
           <Box
             sx={{
-              width: 56,
-              height: 56,
-              borderRadius: 2.5,
+              width: 36,
+              height: 36,
+              borderRadius: 1.5,
               bgcolor: `${theme.palette.primary.main}1a`,
               display: 'flex',
               alignItems: 'center',
@@ -178,23 +147,23 @@ export default function CreamsPage() {
               color: theme.palette.primary.main,
             }}
           >
-            <Package size={28} />
+            <Package size={18} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box component="h2" sx={{ fontSize: '1.25rem', fontWeight: 600, color: theme.palette.text.primary }}>
+            <Box component="h2" sx={{ fontSize: '0.9375rem', fontWeight: 600, color: theme.palette.text.primary, lineHeight: 1.2, m: 0 }}>
               {creamData.name}
             </Box>
             {creamData.description && (
-              <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary, mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <Box sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, mt: 0.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {creamData.description}
               </Box>
             )}
           </Box>
-          <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-            <Box sx={{ fontSize: '1.5rem', fontWeight: 700, color: theme.palette.primary.main }}>
+          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, flexShrink: 0 }}>
+            <Box sx={{ fontSize: '1.125rem', fontWeight: 700, color: theme.palette.primary.main, lineHeight: 1 }}>
               {salesData?.total ?? 0}
             </Box>
-            <Box sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <Box sx={{ fontSize: '0.6875rem', color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Vendute
             </Box>
           </Box>

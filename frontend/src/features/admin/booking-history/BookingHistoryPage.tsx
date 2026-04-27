@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Stack, TextField, Select, MenuItem, Box, Typography, useTheme } from '@mui/material';
+import { Stack, Box, Typography, useTheme } from '@mui/material';
 
 import DataTable from '@/components/data-display/DataTable';
 import PageHeader from '@/components/layout/PageHeader';
@@ -38,43 +38,26 @@ export default function BookingHistoryPage() {
       <PageHeader
         title="Storico Prenotazioni"
         subtitle={user ? `Accesso come ${user.name}` : undefined}
-      >
-        <Stack direction="row" useFlexGap sx={{ gap: 1.5, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <TextField
-            label="Dal"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            size="small"
-            sx={{ width: '140px' }}
-          />
-          <TextField
-            label="Al"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            size="small"
-            sx={{ width: '140px' }}
-          />
-          <Select
-            value={action}
-            onChange={(e) => setAction(e.target.value as BookingAction | '')}
-            size="small"
-            sx={{ width: '180px' }}
-          >
-            <MenuItem value="">Tutte le azioni</MenuItem>
-            <MenuItem value="UPDATED">Modificato</MenuItem>
-            <MenuItem value="RESCHEDULED">Spostato</MenuItem>
-            <MenuItem value="CANCELLED">Annullato</MenuItem>
-            <MenuItem value="COMPLETED">Completato</MenuItem>
-          </Select>
-          <Button variant="primary" size="sm" onClick={() => setPage(1)}>
-            Filtra
-          </Button>
-        </Stack>
-      </PageHeader>
+        showDateRange
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        showFilter
+        filterValue={action}
+        filterPlaceholder="Tutte le azioni"
+        filterMinWidth={180}
+        filterOptions={[
+          { label: 'Modificato', value: 'UPDATED' },
+          { label: 'Spostato', value: 'RESCHEDULED' },
+          { label: 'Annullato', value: 'CANCELLED' },
+          { label: 'Completato', value: 'COMPLETED' },
+        ]}
+        onFilterChange={(value) => setAction(value as BookingAction | '')}
+        showApplyButton
+        applyButtonLabel="Filtra"
+        onApply={() => setPage(1)}
+      />
 
       {error && (
         <Stack useFlexGap sx={{ direction: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5, py: 8 }}>

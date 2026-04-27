@@ -1,16 +1,16 @@
 "use client";
 
-import PaginationControls from '@/components/feedback/PaginationControls';
-import DataTable from '@/components/data-display/DataTable';
-import Button from '@/components/ui/Button';
 import PermissionGate from '@/components/auth/PermissionGate';
-import CustomerCard from './CustomerCard';
+import type { Column } from '@/components/data-display/DataTable';
+import DataTable from '@/components/data-display/DataTable';
+import PaginationControls from '@/components/feedback/PaginationControls';
+import Button from '@/components/ui/Button';
+import { useTheme } from '@/context/ThemeContext';
 import type { Customer } from '@/types/customer';
+import { Box, Stack, Typography, useTheme as useMuiTheme } from '@mui/material';
 import { Edit, Eye, MessageCircle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Box, useTheme as useMuiTheme, Stack, Typography } from '@mui/material';
-import { useTheme } from '@/context/ThemeContext';
-import type { Column } from '@/components/data-display/DataTable';
+import CustomerCard from './CustomerCard';
 
 interface Props {
   customers: Customer[];
@@ -107,7 +107,7 @@ export default function CustomerDataTable({
 
       {/* Mobile: Card Layout */}
       {isSmall && (
-        <Stack spacing={2} sx={{ p: 2 }}>
+        <Stack spacing={2} sx={{ p: 1 }}>
           {isLoading && (
             <Typography sx={{ textAlign: 'center', color: theme.palette.text.secondary }}>
               Caricamento...

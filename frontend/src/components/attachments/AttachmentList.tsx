@@ -151,10 +151,15 @@ export default function AttachmentList({
         sx={{
           borderRadius: '8px',
           border: `1px solid rgba(255, 255, 255, 0.06)`,
-          overflow: 'hidden',
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': { height: '6px' },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0, 191, 255, 0.3)',
+            borderRadius: '3px',
+          },
         }}
       >
-        <Table size="small">
+        <Table size="small" sx={{ minWidth: { xs: 0, sm: 520 } }}>
           <TableHead>
             <TableRow
               sx={{
@@ -167,12 +172,17 @@ export default function AttachmentList({
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   p: 1.5,
+                  whiteSpace: 'nowrap',
                 },
               }}
             >
               <TableCell>Nome file</TableCell>
-              <TableCell align="right">Dimensione</TableCell>
-              <TableCell align="right">Data caricamento</TableCell>
+              <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                Dimensione
+              </TableCell>
+              <TableCell align="right" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                Data caricamento
+              </TableCell>
               <TableCell align="center">Azioni</TableCell>
             </TableRow>
           </TableHead>
@@ -237,13 +247,13 @@ export default function AttachmentList({
                     </Box>
                   </Box>
                 </TableCell>
-                <TableCell align="right">
-                  <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.primary }}>
+                <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                  <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.primary, whiteSpace: 'nowrap' }}>
                     {formatFileSize(attachment.fileSize)}
                   </Box>
                 </TableCell>
-                <TableCell align="right">
-                  <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+                <TableCell align="right" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                  <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary, whiteSpace: 'nowrap' }}>
                     {formatDate(attachment.createdAt)}
                   </Box>
                 </TableCell>

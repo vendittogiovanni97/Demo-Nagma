@@ -18,8 +18,13 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'primary' | '
   RESCHEDULED: { label: 'Spostato', color: 'warning' },
 };
 
-export function useBookingColumns() {
+interface UseBookingColumnsOptions {
+  onAttachmentClick?: (booking: Booking) => void;
+}
+
+export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
   const theme = useTheme();
+  const { onAttachmentClick } = options;
 
   const bookingColumns: Column<Booking>[] = useMemo(() => [
     {
@@ -342,44 +347,61 @@ export function useBookingColumns() {
       label: 'Allegati',
       align: 'center',
       width: '90px',
-      render: (booking) => (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Badge
-            badgeContent={0}
-            color="primary"
-            overlap="circular"
-            sx={{
-              '& .MuiBadge-badge': {
-                backgroundColor: theme.palette.primary.main,
-                color: '#0a1a26',
-                fontWeight: 600,
-                fontSize: '0.65rem',
-              },
-            }}
-          >
-            <Box
+      render: (booking) => {
+        const count = booking.attachments?.length ?? 0;
+        return (
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Badge
+              badgeContent={count}
+              color="primary"
+              overlap="circular"
               sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'rgba(0, 191, 255, 0.1)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                '& .MuiBadge-badge': {
+                  backgroundColor: theme.palette.primary.main,
+                  color: '#0a1a26',
+                  fontWeight: 600,
+                  fontSize: '0.65rem',
                 },
               }}
             >
-              <Paperclip size={16} color={theme.palette.primary.main} />
-            </Box>
-          </Badge>
-        </Box>
-      ),
+              <Box
+                role="button"
+                tabIndex={0}
+                aria-label={`Allegati prenotazione (${count})`}
+                onClick={() => onAttachmentClick?.(booking)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onAttachmentClick?.(booking);
+                  }
+                }}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                  },
+                  '&:focus-visible': {
+                    outline: `2px solid ${theme.palette.primary.main}`,
+                    outlineOffset: 2,
+                  },
+                }}
+              >
+                <Paperclip size={16} color={theme.palette.primary.main} />
+              </Box>
+            </Badge>
+          </Box>
+        );
+      },
     },
-  ], [theme]);
+  ], [theme, onAttachmentClick]);
 
   const exportColumns = useMemo(() => [
     { label: 'Cliente', value: (b: Booking) => b.customer ? `${b.customer.firstName} ${b.customer.lastName}` : '-' },

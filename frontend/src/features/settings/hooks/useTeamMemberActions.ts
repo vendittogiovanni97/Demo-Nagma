@@ -13,7 +13,9 @@ export function useTeamMemberActions() {
     page: 1,
     limit: 100,
   });
-  const members = membersResult?.data || [];
+  // useTeamMembers restituisce Staff[]; SettingsTeamTab consuma User[].
+  // Adapter via unknown localizzato qui (centralizzato), così i call-site sono type-safe.
+  const members: User[] = (membersResult?.data ?? []) as unknown as User[];
 
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
@@ -42,7 +44,7 @@ export function useTeamMemberActions() {
     });
   };
 
-  const memberColumns: Column<(typeof members)[number]>[] = useMemo(() => [
+  const memberColumns: Column<User>[] = useMemo(() => [
     { key: 'nome', label: 'Nome' },
     { key: 'type', label: 'Tipo' },
     { key: 'phone', label: 'Telefono' },

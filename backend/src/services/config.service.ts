@@ -23,7 +23,7 @@ interface ConfigValue {
  * Inizializza i config critici dal DB al boot del server
  * Deve essere chiamato in index.ts::startServer()
  */
-async function initializeConfig(): Promise<void> {
+async function initializeConfig(seed: boolean = false): Promise<void> {
   try {
     const allConfigs = await prisma.config.findMany();
 
@@ -33,8 +33,47 @@ async function initializeConfig(): Promise<void> {
     }
 
     console.log(`✅ Config inizializzato (${allConfigs.length} parametri caricati)`);
+    // Seed opzionale after inizializzazione
+    if (seed) {
+      await seedInitialConfig();
+    }
   } catch (error) {
     console.warn('⚠️ Errore inizializzazione config:', error);
+  }
+}
+
+/**
+ * Seed iniziale della tabella Config (solo se vuota)
+ */
+async function seedInitialConfig(): Promise<void> {
+  try {
+    const count = await prisma.config.count();
+    if (count > 0) {
+      console.log('ℹ️ Seed config skipped: config table already populated');
+      return;
+    }
+
+    const defaults = [
+      { paramsKey: 'FILES_PATH', value: '/uploads/attachments/' },
+      { paramsKey: 'DEBUG_HTTP', value: 'false' },
+      { paramsKey: 'LOG_LEVEL', value: 'INFO' },
+      { paramsKey: 'JWT_EXPIRY', value: '8h' },
+      { paramsKey: 'BCRYPT_SALT_ROUNDS', value: '10' },
+      { paramsKey: 'LOGIN_RATE_LIMIT_WINDOW_MINUTES', value: '15' },
+      { paramsKey: 'LOGIN_RATE_LIMIT_MAX_ATTEMPTS', value: '5' },
+      { paramsKey: 'SESSION_TIMEOUT_MINUTES', value: '30' },
+      { paramsKey: 'MAX_PAGE_LIMIT', value: '100' },
+      { paramsKey: 'APP_VERSION', value: '1.0.0' },
+      { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
+    ];
+
+    for (const d of defaults) {
+      // Crear una riga singola per ogni entry (compat con versioni di Prisma se createMany non disponibile)
+      await prisma.config.create({ data: d });
+    }
+    console.log(`✅ Seed completo (${defaults.length} righe inserite in config)`);
+  } catch (error) {
+    console.error('❌ Errore seed config:', error);
   }
 }
 

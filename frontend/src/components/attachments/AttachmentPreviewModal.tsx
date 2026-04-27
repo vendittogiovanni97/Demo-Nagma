@@ -1,7 +1,17 @@
 "use client";
 
 import type { Attachment } from '@/types/attachment';
-import { Box, Dialog, DialogContent, DialogTitle, IconButton, useTheme } from '@mui/material';
+import { getToken } from '@/utils/auth';
+import {
+  Box,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  useTheme,
+} from '@mui/material';
+import axios from 'axios';
 import { X, FileText, Music, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -40,20 +50,82 @@ export default function AttachmentPreviewModal({
   const theme = useTheme();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const category = getFileCategory(attachment.mimeType);
 
-  // Costruisci URL per preview
+  // Categorie renderizzabili nativamente dal browser tramite blob URL.
+  // Document/other non hanno preview reale — mostriamo direttamente il
+  // fallback "Scarica il file" senza fetch.
+  const isRenderable = ['image', 'pdf', 'video', 'audio', 'text'].includes(category);
+
+  // Scarichiamo il file con il JWT come blob e creiamo un Object URL — i tag
+  // <img>/<iframe>/<video>/<audio> non possono passare header custom.
+  // Usiamo l'endpoint /download (che restituisce il file reale) invece di
+  // /preview (che il backend serve come placeholder SVG, vedi backend/src/utils/preview.ts).
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setPreviewUrl(null);
+      return;
+    }
+
     setPreviewError(false);
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-    const url = `${API_BASE}/attachments/${attachment.id}/preview`;
-    setPreviewUrl(url);
-  }, [open, attachment.id]);
+    if (!isRenderable) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    let cancelled = false;
+    let objectUrl: string | null = null;
+
+    (async () => {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const token = getToken();
+        const response = await axios.get(
+          `${API_BASE}/attachments/${attachment.id}/download`,
+          {
+            responseType: 'blob',
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          }
+        );
+        if (cancelled) return;
+        // Forziamo il MIME type sul blob: alcuni endpoint download impostano
+        // application/octet-stream e iframe/video non lo renderizzano.
+        const typedBlob = new Blob([response.data], { type: attachment.mimeType });
+        objectUrl = URL.createObjectURL(typedBlob);
+        setPreviewUrl(objectUrl);
+      } catch {
+        if (!cancelled) setPreviewError(true);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [open, attachment.id, attachment.mimeType, isRenderable]);
 
   const renderContent = () => {
+    if (isLoading) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '300px',
+          }}
+        >
+          <CircularProgress sx={{ color: theme.palette.primary.main }} />
+        </Box>
+      );
+    }
+
     if (previewError) {
       return (
         <Box
@@ -73,12 +145,14 @@ export default function AttachmentPreviewModal({
               Anteprima non disponibile
             </Box>
             <Box sx={{ fontSize: '0.75rem' }}>
-              Tipo di file non supportato per l'anteprima ({attachment.mimeType})
+              Impossibile caricare il file ({attachment.mimeType})
             </Box>
           </Box>
         </Box>
       );
     }
+
+    if (!previewUrl) return null;
 
     switch (category) {
       case 'image':

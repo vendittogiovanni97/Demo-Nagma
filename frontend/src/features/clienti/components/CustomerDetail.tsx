@@ -5,9 +5,10 @@ import { Skeleton } from '@/components/feedback/Skeleton';
 import StatePanel from '@/components/feedback/StatePanel';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { BOOKING_STATUS_CONFIG, getBookingStatusBadgeVariant } from '@/config/status-config';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/useToast';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { customerService } from '@/services/customer.service';
 import type { Customer, CustomerSummary, WhatsAppLog } from '@/types/customer';
 import {
@@ -47,13 +48,13 @@ interface Props {
 }
 
 export default function CustomerDetail({ id }: Props) {
-  const toast = useToast();
   const theme = useTheme();
   const router = useRouter();
   const { isAdmin } = useAuth();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const {
     data: customer,
@@ -82,17 +83,13 @@ export default function CustomerDetail({ id }: Props) {
 
   const handleDelete = async () => {
     if (!isAdmin) return;
-    if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
-      try {
-        await customerService.delete(id);
-        toast.success('Cliente eliminato');
-        router.push('/clienti');
-      } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Errore durante l'eliminazione";
-        toast.error(errorMessage);
-      }
-    }
+    await deleteItem({
+      confirmMessage: 'Sei sicuro di voler eliminare questo cliente?',
+      action: () => customerService.delete(id),
+      successMessage: 'Cliente eliminato',
+      errorMessage: "Errore durante l'eliminazione",
+      onSuccess: () => router.push('/clienti'),
+    });
   };
 
   const handleEdit = () => {
@@ -737,6 +734,7 @@ export default function CustomerDetail({ id }: Props) {
         onSuccess={handleModalSuccess}
         customer={editingCustomer}
       />
+      <ConfirmDialog {...confirmDialogProps} />
     </Box>
   );
 }

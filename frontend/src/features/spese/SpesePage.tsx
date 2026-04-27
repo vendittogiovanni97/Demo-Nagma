@@ -1,17 +1,16 @@
 "use client";
 
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { spesaLiberaService } from '@/services/spesa-libera.service';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { spesaLiberaService } from '@/services/spesa-libera.service';
 import type { SpesaLibera } from '@/types/spesa-libera';
+import Box from '@mui/material/Box';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { mutate } from 'swr';
-import useSWR from 'swr';
-import Box from '@mui/material/Box';
+import useSWR, { mutate } from 'swr';
+import SpesaDataTable from './components/SpesaDataTable';
 import SpesaFilters from './components/SpesaFilters';
 import SpesaForm from './components/SpesaForm';
-import SpesaDataTable from './components/SpesaDataTable';
 import { useSpesaFilters } from './hooks/useSpesaFilters';
 
 export default function SpesePage() {
@@ -48,7 +47,7 @@ export default function SpesePage() {
         display: 'flex',
         flexDirection: 'column',
         gap: 3,
-        maxWidth: 'md',
+        maxWidth: 'lg',
         mx: 'auto',
         width: '100%',
         pt: 4,

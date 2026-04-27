@@ -1,10 +1,8 @@
 "use client";
 
-import PermissionGate from '@/components/auth/PermissionGate';
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
 import WeekNavigator from '@/components/layout/WeekNavigator';
-import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import ExportModal from '@/components/modals/ExportModal';
 import { useAuth } from '@/context/AuthContext';
@@ -109,49 +107,43 @@ export default function TeamPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
       <PageHeader
         title="Team & Turni"
-        actions={
-          <>
-            <ExportModal
-              filenameBase="turni"
-              title="Turni Settimanali"
-              rows={shifts || []}
-              columns={[
-                { label: 'Collaboratore', value: (shift: Shift) => shift.staff?.name || '' },
-                { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
-                { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek.toString() },
-                {
-                  label: 'Orario',
-                  value: (shift: Shift) =>
-                    shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`,
-                },
-              ]}
-            />
-            <PermissionGate requireAdmin>
-              <Button variant="secondary" icon={<Plus size={14} />} onClick={() => openAddShift()} size="sm">
-                Turno
-              </Button>
-            </PermissionGate>
-            <PermissionGate requireAdmin>
-              <Button
-                variant="primary"
-                icon={<Plus size={14} />}
-                onClick={() => setIsStaffModalOpen(true)}
-                size="sm"
-              >
-                Staff
-              </Button>
-            </PermissionGate>
-          </>
+        customFilters={
+          <WeekNavigator
+            weekStart={week}
+            onPrev={handlePrevWeek}
+            onNext={handleNextWeek}
+            format="short"
+            variant="header"
+          />
         }
-      >
-        <WeekNavigator
-          weekStart={week}
-          onPrev={handlePrevWeek}
-          onNext={handleNextWeek}
-          format="short"
-          variant="header"
-        />
-      </PageHeader>
+        extraActions={
+          <ExportModal
+            filenameBase="turni"
+            title="Turni Settimanali"
+            rows={shifts || []}
+            columns={[
+              { label: 'Collaboratore', value: (shift: Shift) => shift.staff?.name || '' },
+              { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
+              { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek.toString() },
+              {
+                label: 'Orario',
+                value: (shift: Shift) =>
+                  shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`,
+              },
+            ]}
+          />
+        }
+        showSecondaryButton
+        secondaryButtonLabel="Turno"
+        secondaryButtonIcon={<Plus size={14} />}
+        secondaryButtonRequiresAdmin
+        onSecondaryButtonClick={() => openAddShift()}
+        showButton
+        buttonLabel="Staff"
+        buttonIcon={<Plus size={14} />}
+        buttonRequiresAdmin
+        onButtonClick={() => setIsStaffModalOpen(true)}
+      />
 
       <Paper
         sx={{

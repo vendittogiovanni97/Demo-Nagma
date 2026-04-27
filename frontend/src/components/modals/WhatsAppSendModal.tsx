@@ -6,15 +6,14 @@ import { useEffect, useMemo, useState } from 'react';
 import StatePanel from '@/components/feedback/StatePanel';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
-import FormTextarea from '@/components/forms/FormTextarea';
 import Modal from '@/components/modals/Modal';
 import Button from '@/components/ui/Button';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers } from '@/hooks/domain/useCustomers';
 import { useWhatsAppTemplates } from '@/hooks/domain/useWhatsApp';
-import { useWhatsAppComposer } from '@/hooks/useWhatsAppComposer';
 import { useToast } from '@/hooks/useToast';
+import { useWhatsAppComposer } from '@/hooks/useWhatsAppComposer';
 import { sendWhatsAppMessageSchema } from '@/schemas/whatsapp';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { Booking } from '@/types/booking';
@@ -76,8 +75,6 @@ export default function WhatsAppSendModal({
     variables,
     setVariables,
     messageDraft,
-    setMessageDraft,
-    setMessageDirty,
     templateVariables,
     previewMessage,
     resetComposer,
@@ -171,7 +168,7 @@ export default function WhatsAppSendModal({
           description="Riprova tra poco o aggiorna la pagina."
         />
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
           <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
             <FormSelect
               label="Template"
@@ -252,18 +249,6 @@ export default function WhatsAppSendModal({
               </Typography>
             </Box>
           </Box>
-
-          <FormTextarea
-            label="Modifica rapida messaggio"
-            value={messageDraft}
-            onChange={(value) => {
-              setMessageDirty(true);
-              setMessageDraft(value);
-            }}
-            rows={7}
-            disabled={!selectedTemplate}
-            placeholder="Qui puoi rifinire il messaggio prima di aprire WhatsApp."
-          />
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Button

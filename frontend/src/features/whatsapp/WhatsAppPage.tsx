@@ -2,23 +2,23 @@
 
 import dynamic from 'next/dynamic';
 
+import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import { MessageCircle, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 
 import StatePanel from '@/components/feedback/StatePanel';
 import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { useWhatsAppTemplates } from '@/hooks/domain/useWhatsApp';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { whatsappService } from '@/services/whatsapp.service';
 import type { WhatsAppTemplate } from '@/types/whatsapp';
-import { useTemplateFilters } from './hooks/useTemplateFilters';
 import TemplateList from './components/TemplateList';
+import { useTemplateFilters } from './hooks/useTemplateFilters';
 
 const WhatsAppTemplateModal = dynamic(
   () => import('./components/WhatsAppTemplateModal'),
@@ -82,7 +82,7 @@ export default function WhatsAppPage() {
   }
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden', pt: 3 }}>
       <PageHeader
         title="WhatsApp Templates"
         showSearch

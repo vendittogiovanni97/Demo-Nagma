@@ -1,4 +1,5 @@
 import { TransactionRepository } from '../repositories/transaction.repository';
+import { SpesaLiberaRepository } from '../repositories/spesa-libera.repository';
 import { TransactionType } from '@prisma/client';
 import { config } from '../config/env';
 import { validate, createTransactionSchema } from '../schemas';
@@ -6,6 +7,7 @@ import { configService } from './config.service';
 import { mapTransactionDecimals } from '../utils/decimal-mapper';
 
 const repository = new TransactionRepository();
+const spesaLiberaRepository = new SpesaLiberaRepository();
 
 export class TransactionService {
   async getTransactions(type?: string, month?: string, search?: string, page = 1, limit = configService.getMaxPageLimitSync()) {
@@ -38,6 +40,12 @@ export class TransactionService {
       else acc.totalExpense += sum;
       return acc;
     }, { totalIncome: 0, totalExpense: 0, balance: 0 });
+
+    // Aggiungi le spese libere al totale delle uscite
+    const speseLIbere = await spesaLiberaRepository.findAll(month);
+    const speseLibereTotalExpense = speseLIbere.reduce((sum, spesa) => sum + (typeof spesa.price === 'number' ? spesa.price : spesa.price.toNumber()), 0);
+    result.totalExpense += speseLibereTotalExpense;
+
     result.balance = result.totalIncome - result.totalExpense;
     return result;
   }

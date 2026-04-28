@@ -63,7 +63,13 @@ export default function StatePanel({
       border: 'rgba(0, 191, 255, 0.2)',
       text: theme.palette.text.secondary,
       ringBg: 'rgba(0, 191, 255, 0.1)'
-    }
+    },
+    info: {
+      bg: 'rgba(59, 130, 246, 0.08)',
+      border: 'rgba(59, 130, 246, 0.3)',
+      text: '#3b82f6',
+      ringBg: 'rgba(59, 130, 246, 0.15)',
+    },
   };
 
   const config = variantConfig[variant];

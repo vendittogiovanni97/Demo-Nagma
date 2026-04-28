@@ -14,6 +14,7 @@ import {
 import axios from 'axios';
 import { X, FileText, Music, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/useToast';
 
 interface AttachmentPreviewModalProps {
   open: boolean;
@@ -48,6 +49,7 @@ export default function AttachmentPreviewModal({
   attachment,
 }: AttachmentPreviewModalProps) {
   const theme = useTheme();
+  const toast = useToast();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,7 +100,10 @@ export default function AttachmentPreviewModal({
         objectUrl = URL.createObjectURL(typedBlob);
         setPreviewUrl(objectUrl);
       } catch {
-        if (!cancelled) setPreviewError(true);
+        if (!cancelled) {
+          setPreviewError(true);
+          toast.error('Impossibile caricare l\'anteprima del file');
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }

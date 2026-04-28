@@ -335,7 +335,7 @@ export default function AttachmentList({
       <ConfirmDialog
         open={deleteConfirmOpen}
         title="Elimina allegato"
-        message={`Sei sicuro di voler eliminare "${selectedAttachment?.fileName}"? Questa azione non può essere annullata.`}
+        message={`Sei sicuro di voler eliminare "${attachments.find(a => a.id === pendingDeleteId)?.fileName ?? ''}"? Questa azione non può essere annullata.`}
         confirmText="Elimina"
         cancelText="Annulla"
         isDangerous

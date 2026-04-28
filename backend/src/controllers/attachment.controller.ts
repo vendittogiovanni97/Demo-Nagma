@@ -36,7 +36,6 @@ export class AttachmentController {
       // Usa busboy per parsare multipart/form-data
       const bb = busboy({ headers: req.headers });
 
-      let uploadCount = 0;
       const results: Array<{
         id: string;
         fileName: string;
@@ -45,15 +44,38 @@ export class AttachmentController {
         createdAt: Date;
       }> = [];
 
-      bb.on('file', async (fieldname: string, file, info: { filename: string; mimeType: string }) => {
-        try {
-          const chunks: Buffer[] = [];
+      let pendingUploads = 0;
+      let closed = false;
+      let errored: unknown = null;
+      let responded = false;
 
-          file.on('data', (data: Buffer) => {
-            chunks.push(data);
-          });
+      const tryFinish = () => {
+        if (responded) return;
+        if (!closed) return;
+        if (pendingUploads > 0) return;
+        responded = true;
+        if (errored) {
+          next(errored);
+          return;
+        }
+        res.status(201).json({
+          success: true,
+          message: `${results.length} file caricato/i con successo`,
+          data: results,
+          requestId: req.requestId,
+        });
+      };
 
-          file.on('end', async () => {
+      bb.on('file', (fieldname: string, file, info: { filename: string; mimeType: string }) => {
+        pendingUploads++;
+        const chunks: Buffer[] = [];
+
+        file.on('data', (data: Buffer) => {
+          chunks.push(data);
+        });
+
+        file.on('end', async () => {
+          try {
             const buffer = Buffer.concat(chunks);
 
             const attachment = await AttachmentService.uploadAttachment(
@@ -70,36 +92,38 @@ export class AttachmentController {
               mimeType: attachment.mimeType,
               createdAt: attachment.createdAt,
             });
-
-            uploadCount++;
-          });
-
-          file.on('error', (error: unknown) => {
-            logger.errorWithStack('Errore durante la lettura del file streaming', error, {
+          } catch (error) {
+            logger.errorWithStack('Errore durante l\'upload del file', error, {
               bookingId,
               filename: info.filename,
             });
-          });
-        } catch (error) {
-          logger.errorWithStack('Errore durante l\'upload del file', error, {
+            if (!errored) errored = error;
+          } finally {
+            pendingUploads--;
+            tryFinish();
+          }
+        });
+
+        file.on('error', (error: unknown) => {
+          logger.errorWithStack('Errore durante la lettura del file streaming', error, {
             bookingId,
             filename: info.filename,
           });
-        }
+          if (!errored) errored = error;
+        });
       });
 
       bb.on('close', () => {
-        res.status(200).json({
-          success: true,
-          message: `${uploadCount} file caricato/i con successo`,
-          data: results,
-          requestId: req.requestId,
-        });
+        closed = true;
+        tryFinish();
       });
 
       bb.on('error', (error: unknown) => {
         logger.errorWithStack('Errore durante il parsing multipart', error, { bookingId });
-        next(new AppError('Errore durante il parsing della richiesta', 400, 'MULTIPART_PARSE_ERROR'));
+        if (!responded) {
+          responded = true;
+          next(new AppError('Errore durante il parsing della richiesta', 400, 'MULTIPART_PARSE_ERROR'));
+        }
       });
 
       req.pipe(bb);

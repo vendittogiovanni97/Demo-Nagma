@@ -85,7 +85,7 @@ router.get('/members/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getM
 router.delete('/members/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.deleteUser);
 router.put('/members/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.updateUser);
 router.put('/members/:id/reset-password', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.resetPassword);
-router.get('/shifts', controller.getAllShifts);
+router.get('/shifts', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getAllShifts);
 router.post('/shifts', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.createNewShift);
 router.put('/shifts/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.updateShift);
 router.delete('/shifts/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.deleteShiftById);

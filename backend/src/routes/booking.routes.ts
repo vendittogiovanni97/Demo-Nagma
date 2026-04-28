@@ -93,7 +93,7 @@ router.get('/export', authMiddleware, controller.export);
  *       200:
  *         description: Statistiche appuntamenti
  */
-router.post('/verify-password', authRateLimiter, controller.verifyPassword);
+router.post('/verify-password', authRateLimiter, authMiddleware, controller.verifyPassword);
 router.get('/stats', authMiddleware, controller.getStats);
 router.get('/available-artists', authMiddleware, controller.getAvailable);
 

@@ -32,7 +32,7 @@ router.use(authMiddleware);
  *       200:
  *         description: Lista template
  */
-router.get('/', controller.getAll);
+router.get('/', authMiddleware, controller.getAll);
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ router.get('/', controller.getAll);
  *       200:
  *         description: Template trovato
  */
-router.get('/:id', controller.getById);
+router.get('/:id', authMiddleware, controller.getById);
 
 /**
  * @swagger

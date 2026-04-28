@@ -139,9 +139,12 @@ export class CustomerRepository extends BaseRepository<Customer, Prisma.Customer
       }),
     ]);
 
-    const totalSpent = aggregateResult._sum.price ?? 0;
+    const totalSpent = aggregateResult._sum.price ? aggregateResult._sum.price.toNumber() : 0;
     const upcomingBookings = bookingsResult.filter((b) => b.status === 'CONFIRMED' || b.date > new Date()).length;
-    const lastBooking = bookingsResult[0] ?? null;
+    const lastBookingRaw = bookingsResult[0] ?? null;
+    const lastBooking = lastBookingRaw
+      ? { ...lastBookingRaw, price: lastBookingRaw.price ? lastBookingRaw.price.toNumber() : null }
+      : null;
 
     return {
       ...customer,

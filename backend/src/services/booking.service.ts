@@ -1,4 +1,4 @@
-import { Prisma, Booking } from '@prisma/client';
+import { Prisma, Booking, Role } from '@prisma/client';
 import prisma from '../utils/prisma';
 import { config } from '../config/env';
 import { configService } from './config.service';
@@ -6,6 +6,7 @@ import { BookingRepository } from '../repositories/booking.repository';
 import { validate, createBookingSchema, updateBookingSchema } from '../schemas';
 import { AppError } from '../utils/AppError';
 import { buildWhereClause, filterByWeekday, type ExportFilters } from '../utils/export-filters';
+import { mapBookingDecimals } from '../utils/decimal-mapper';
 
 const repository = new BookingRepository();
 
@@ -13,11 +14,13 @@ type BookingForIncome = Pick<Booking, 'id' | 'price' | 'date' | 'formData'> & { 
 
 export class BookingService {
   async getBookings(month?: string, startDate?: string, endDate?: string) {
-    return repository.findAll(month, startDate, endDate);
+    const bookings = await repository.findAll(month, startDate, endDate);
+    return bookings.map(mapBookingDecimals);
   }
 
   async getBookingsPaged(month: string | undefined, page: number, limit: number, startDate?: string, endDate?: string) {
-    return repository.findAllPaged({ monthStr: month, page, limit, startDate, endDate });
+    const result = await repository.findAllPaged({ monthStr: month, page, limit, startDate, endDate });
+    return { ...result, data: result.data.map(mapBookingDecimals) };
   }
 
   async getStats(month?: string) {
@@ -54,11 +57,16 @@ export class BookingService {
         },
       });
 
-      return booking;
+      return mapBookingDecimals(booking);
     });
   }
 
-  async updateBooking(id: number, body: unknown, changedById?: number) {
+  async updateBooking(id: number, body: unknown, changedById?: number, userRole?: Role) {
+    // Strategia conservativa pre-demo: solo ADMIN/SUPER_ADMIN possono modificare bookings (IDOR fix)
+    if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
+      throw new AppError('Permessi insufficienti per modificare questa prenotazione', 403, 'FORBIDDEN');
+    }
+
     const data = validate(updateBookingSchema, body);
 
     const oldBooking = await repository.findById(id);
@@ -115,7 +123,7 @@ export class BookingService {
         await this.createIncomeTransactionForBooking(tx, bookingForIncome);
       }
 
-      return booking;
+      return mapBookingDecimals(booking);
     });
   }
 
@@ -130,27 +138,29 @@ export class BookingService {
     const booking = await prisma.booking.findUnique({ where: { id } });
     if (!booking) throw new AppError('Prenotazione non trovata', 404);
 
-    const updated = await prisma.booking.update({
-      where: { id },
-      data: { status: 'CANCELLED', price: 0 },
-    });
-
-    await prisma.bookingHistory.create({
-      data: {
-        bookingId: id,
-        action: 'CANCELLED',
-        oldDate: booking.date,
-        changedById: booking.artistId,
-      },
-    });
-
-    if (booking.price) {
-      await prisma.transaction.deleteMany({
-        where: { description: { contains: `#${id}` } },
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id },
+        data: { status: 'CANCELLED', price: 0 },
       });
-    }
 
-    return updated;
+      await tx.bookingHistory.create({
+        data: {
+          bookingId: id,
+          action: 'CANCELLED',
+          oldDate: booking.date,
+          changedById: booking.artistId,
+        },
+      });
+
+      if (booking.price) {
+        await tx.transaction.deleteMany({
+          where: { description: { contains: `#${id}` } },
+        });
+      }
+
+      return updated;
+    });
   }
 
   async getAvailableArtists(dateIso: string) {
@@ -250,6 +260,6 @@ export class BookingService {
       bookings = filterByWeekday(bookings, filters.weekday);
     }
 
-    return bookings;
+    return bookings.map(mapBookingDecimals);
   }
 }

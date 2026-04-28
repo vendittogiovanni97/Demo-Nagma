@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Dialog,
@@ -44,6 +44,10 @@ export default function BookingAttachmentsModal({
   const { mutate: mutateSwr } = useSWRConfig();
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+
+  useEffect(() => {
+    setIsUploadOpen(false);
+  }, [booking?.id]);
 
   const bookingId = booking ? String(booking.id) : '';
   const swrKey = bookingId ? `${API_BASE}/attachments/booking/${bookingId}` : null;

@@ -103,8 +103,8 @@ model Booking {
   date            DateTime
   duration        Int             @default(120)  // durata in minuti
   status          BookingStatus   @default(CONFIRMED)
-  price           Float?
-  deposit         Float?
+  price           Decimal?        @db.Decimal(10, 2)
+  deposit         Decimal?        @db.Decimal(10, 2)
   notes           String?
   outlookEventId  String?         // riservato per futura integrazione Outlook
   formData        Json?           // dati dinamici da form in base64
@@ -175,7 +175,7 @@ model Transaction {
   type          TransactionType
   category      String            // "Affitto", "Materiali", "Acconto", ecc.
   description   String
-  amount        Float
+  amount        Decimal           @db.Decimal(10, 2)
   date          DateTime          @default(now())
   attachmentUrl String?
   deletedAt     DateTime?         // soft delete come da regole globali utente
@@ -202,7 +202,7 @@ model FormTemplate {
 model SpesaLibera {
   id        Int      @id @default(autoincrement())
   name      String
-  price     Float
+  price     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
 
   @@index([createdAt])

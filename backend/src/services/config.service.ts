@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma';
 import { Cache } from '../utils/cache';
+import { logger } from '../utils/logger';
 
 /**
  * ConfigService - Gestisce i parametri di configurazione dalla tabella Config
@@ -32,13 +33,13 @@ async function initializeConfig(seed: boolean = false): Promise<void> {
       configCache.set(cfg.paramsKey, cfg.value);
     }
 
-    console.log(`✅ Config inizializzato (${allConfigs.length} parametri caricati)`);
+    logger.info(`✅ Config inizializzato (${allConfigs.length} parametri caricati)`);
     // Seed opzionale after inizializzazione
     if (seed) {
       await seedInitialConfig();
     }
   } catch (error) {
-    console.warn('⚠️ Errore inizializzazione config:', error);
+    logger.warn('⚠️ Errore inizializzazione config', { error });
   }
 }
 
@@ -49,7 +50,7 @@ async function seedInitialConfig(): Promise<void> {
   try {
     const count = await prisma.config.count();
     if (count > 0) {
-      console.log('ℹ️ Seed config skipped: config table already populated');
+      logger.info('ℹ️ Seed config skipped: config table already populated');
       return;
     }
 
@@ -71,9 +72,9 @@ async function seedInitialConfig(): Promise<void> {
       // Crear una riga singola per ogni entry (compat con versioni di Prisma se createMany non disponibile)
       await prisma.config.create({ data: d });
     }
-    console.log(`✅ Seed completo (${defaults.length} righe inserite in config)`);
+    logger.info(`✅ Seed completo (${defaults.length} righe inserite in config)`);
   } catch (error) {
-    console.error('❌ Errore seed config:', error);
+    logger.errorWithStack('❌ Errore seed config', error);
   }
 }
 
@@ -104,7 +105,7 @@ async function getConfigValue(paramsKey: string, defaultValue?: string): Promise
 
     return value;
   } catch (error) {
-    console.warn(`⚠️ Errore lettura config "${paramsKey}":`, error);
+    logger.warn(`⚠️ Errore lettura config "${paramsKey}"`, { error });
     return defaultValue || '';
   }
 }
@@ -122,9 +123,9 @@ async function setConfigValue(paramsKey: string, value: string): Promise<void> {
 
     // Invalidate cache
     configCache.delete(paramsKey);
-    console.log(`✅ Config "${paramsKey}" aggiornato`);
+    logger.info(`✅ Config "${paramsKey}" aggiornato`);
   } catch (error) {
-    console.error(`❌ Errore scrittura config "${paramsKey}":`, error);
+    logger.errorWithStack(`❌ Errore scrittura config "${paramsKey}"`, error);
     throw error;
   }
 }
@@ -136,7 +137,7 @@ async function getAllConfig(): Promise<ConfigValue[]> {
   try {
     return await prisma.config.findMany();
   } catch (error) {
-    console.error('❌ Errore lettura config:', error);
+    logger.errorWithStack('❌ Errore lettura config', error);
     return [];
   }
 }

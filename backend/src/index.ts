@@ -17,8 +17,15 @@ let isRestarting = false;
 let isShuttingDown = false;
 
 function validateEnv() {
-  if (!process.env.JWT_SECRET) {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
     throw new Error('JWT_SECRET non configurato. Aggiungilo al file .env');
+  }
+  if (jwtSecret.length < 32) {
+    throw new Error('JWT_SECRET troppo corto (minimo 32 caratteri richiesti per HS256)');
+  }
+  if (/change-this|your-super-secret|placeholder|example/i.test(jwtSecret)) {
+    console.warn('⚠️  ATTENZIONE: JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
   }
 
   if (!process.env.DATABASE_URL) {

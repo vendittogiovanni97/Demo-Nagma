@@ -33,7 +33,7 @@ export class BookingController {
 
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
-    res.json(await service.updateBooking(parseId(req.params.id), req.body, userId));
+    res.json(await service.updateBooking(parseId(req.params.id), req.body, userId, req.user?.role));
   });
 
   getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {

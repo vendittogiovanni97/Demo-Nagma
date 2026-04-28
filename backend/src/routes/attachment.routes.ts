@@ -191,6 +191,7 @@ router.get(
 router.delete(
   '/:attachmentId',
   authMiddleware,
+  requireRoles('ADMIN', 'SUPER_ADMIN'),
   AttachmentController.deleteAttachment.bind(AttachmentController),
 );
 

@@ -61,7 +61,7 @@ router.get('/performance', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getA
  *       200:
  *         description: Lista transazioni paginata
  */
-router.get('/', controller.getAll);
+router.get('/', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getAll);
 
 /**
  * @swagger

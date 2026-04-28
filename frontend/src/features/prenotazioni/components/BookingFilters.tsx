@@ -115,7 +115,7 @@ export default function BookingFilters({
         />
       </Box>
 
-      {/* Date range — flex equal su mobile, fixed width su desktop */}
+      {/* Date range + Annullate checkbox */}
       <Stack
         direction="row"
         useFlexGap
@@ -154,29 +154,25 @@ export default function BookingFilters({
             Reset
           </MuiButton>
         )}
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={showCancelled}
+              onChange={(e) => onShowCancelledChange(e.target.checked)}
+              size="small"
+            />
+          }
+          label="Annullate"
+          sx={{
+            ml: 0.5,
+            mr: 0,
+            flexShrink: 0,
+            '& .MuiFormControlLabel-label': {
+              fontSize: '0.8125rem',
+            },
+          }}
+        />
       </Stack>
-
-      {/* Annullate checkbox */}
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={showCancelled}
-            onChange={(e) => onShowCancelledChange(e.target.checked)}
-            size="small"
-          />
-        }
-        label="Annullate"
-        sx={{
-          ml: 0,
-          mr: 0,
-          flexShrink: 0,
-          width: { xs: '100%', lg: 'auto' },
-          justifyContent: { xs: 'flex-start', lg: 'center' },
-          '& .MuiFormControlLabel-label': {
-            fontSize: '0.8125rem',
-          },
-        }}
-      />
     </Box>
   );
 }

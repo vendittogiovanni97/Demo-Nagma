@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ReactNode, type ReactElement } from 'react';
+import { forwardRef, type ReactNode, type ReactElement, createElement, isValidElement } from 'react';
 import { Button as MuiButton, type ButtonProps as MuiButtonProps, CircularProgress, useTheme } from '@mui/material';
 
 type ButtonVariant = 'primary' | 'secondary' | 'glass' | 'danger' | 'success' | 'ghost' | 'icon';
@@ -153,13 +153,31 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
     };
 
+    // Render icon if it's a component function
+    const renderIcon = () => {
+      if (isLoading) return <CircularProgress size={18} />;
+      if (!icon) return undefined;
+
+      // Se è già un elemento JSX valido, usalo direttamente
+      if (isValidElement(icon)) {
+        return icon;
+      }
+
+      // Se è un componente (funzione, forward ref, memo, ecc.), renderizzalo
+      if (icon && typeof icon !== 'string') {
+        return createElement(icon as React.ComponentType<{ size?: number }>, { size: 18 });
+      }
+
+      return icon as ReactNode;
+    };
+
     return (
       <MuiButton
         ref={ref}
         disabled={disabled || isLoading}
         size={getMuiSize()}
         fullWidth={fullWidth}
-        startIcon={isLoading ? <CircularProgress size={18} /> : icon as ReactNode}
+        startIcon={renderIcon()}
         sx={{
           textTransform: 'none',
           transition: 'all 0.2s ease-in-out',

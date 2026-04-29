@@ -43,7 +43,8 @@ export default function Modal({
             backdropFilter: 'blur(40px)',
             border: `1px solid rgba(255, 255, 255, 0.08)`,
             borderRadius: '12px',
-            boxShadow: '0px 18px 44px rgba(0, 0, 0, 0.58), 0px 0px 28px rgba(0, 191, 255, 0.07)'
+            boxShadow: '0px 18px 44px rgba(0, 0, 0, 0.58), 0px 0px 28px rgba(0, 191, 255, 0.07)',
+            pt: 1
           }
         },
         backdrop: {

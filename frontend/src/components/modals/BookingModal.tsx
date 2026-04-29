@@ -189,9 +189,22 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   const { isSuperAdmin } = useAuth();
   const [formState, dispatch] = useReducer(bookingFormReducer, initialFormState);
 
-  const { data: customerResult } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
+  const { data: customerResult, isLoading: customersLoading, error: customersError } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT });
   const { data: templates } = useFormTemplates();
   const customers = customerResult?.data;
+
+  // Debug: Log customers loading state
+  useEffect(() => {
+    if (isOpen) {
+      console.log('🔍 BookingModal Debug:', {
+        isOpen,
+        customersLoading,
+        customersError: customersError ? customersError.message : null,
+        customersCount: customers?.length ?? 0,
+        customerResult
+      });
+    }
+  }, [isOpen, customersLoading, customersError, customers, customerResult]);
 
   // Load booking or reset form when modal opens/booking changes
   useEffect(() => {
@@ -408,6 +421,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
             time={formState.time}
             customerId={formState.customerId}
             artistId={formState.artistId}
+            loadingCustomers={customersLoading}
             loadingArtists={formState.loadingArtists}
             customerOptions={customerOptions}
             artistOptions={artistOptions}

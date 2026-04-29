@@ -12,6 +12,7 @@ interface Props {
   time: string;
   customerId: string;
   artistId: string;
+  loadingCustomers?: boolean;
   loadingArtists: boolean;
   customerOptions: CustomerOption[];
   artistOptions: ArtistOption[];
@@ -25,6 +26,7 @@ export default function BookingParticipantsSection({
   time,
   customerId,
   artistId,
+  loadingCustomers = false,
   loadingArtists,
   customerOptions,
   artistOptions,
@@ -66,7 +68,8 @@ export default function BookingParticipantsSection({
           label="Cliente *"
           value={customerId}
           onChange={onCustomerChange}
-          placeholder="Seleziona..."
+          disabled={loadingCustomers || customerOptions.length === 0}
+          placeholder={loadingCustomers ? 'Caricamento clienti...' : customerOptions.length === 0 ? 'Nessun cliente' : 'Seleziona...'}
           required
           options={customerOptions}
         />

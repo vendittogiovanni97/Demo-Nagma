@@ -166,7 +166,7 @@ export default function StatePanel({
           </Box>
         )}
       </Box>
-      {action}
+      {action && <Box sx={{ mt: 2 }}>{action}</Box>}
     </Box>
   );
 }

@@ -49,9 +49,19 @@ async function checkUserCanAccessBooking(userId: number, bookingId: number, user
 type BookingForIncome = Pick<Booking, 'id' | 'price' | 'date' | 'formData'> & { customerId: number };
 
 export class BookingService {
-  async getBookings(month?: string, startDate?: string, endDate?: string) {
-    const bookings = await repository.findAll(month, startDate, endDate);
-    return bookings.map(mapBookingDecimals);
+  async getBookings(
+    month?: string,
+    startDate?: string,
+    endDate?: string,
+    limit?: number,
+    offset?: number
+  ) {
+    const result = await repository.findAll(month, startDate, endDate, limit, offset);
+    return {
+      data: result.data.map(mapBookingDecimals),
+      total: result.total,
+      hasMore: result.hasMore,
+    };
   }
 
   async getBookingsPaged(month: string | undefined, page: number, limit: number, startDate?: string, endDate?: string) {
@@ -296,9 +306,9 @@ export class BookingService {
   }
 
   async verifyPassword(password: string): Promise<void> {
-    const expectedPassword = configService.getBookingUpdatePasswordSync();
+    const storedPasswordHash = await configService.getBookingUpdatePassword();
 
-    if (!expectedPassword) {
+    if (!storedPasswordHash) {
       throw new AppError(
         'Password non configurata. Contattare l\'amministratore.',
         503,
@@ -306,7 +316,8 @@ export class BookingService {
       );
     }
 
-    if (password !== expectedPassword) {
+    const isValid = await configService.verifyBookingUpdatePassword(password);
+    if (!isValid) {
       throw new AppError('Password non corretta', 403, 'INVALID_PASSWORD');
     }
   }

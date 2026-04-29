@@ -1,3 +1,4 @@
+import bcryptjs from 'bcryptjs';
 import prisma from '../utils/prisma';
 import { Cache } from '../utils/cache';
 import { logger } from '../utils/logger';
@@ -14,6 +15,22 @@ const configCache = new Cache<string>(CONFIG_CACHE_TTL);
 
 // In-memory store per valori critici (letti una sola volta al boot)
 const criticalConfig: Record<string, string> = {};
+
+// Prefix for bcrypt-hashed values to distinguish from plain text
+const HASH_PREFIX = '$2b$';
+
+async function hashPassword(password: string, saltRounds: number = 10): Promise<string> {
+  try {
+    return await bcryptjs.hash(password, saltRounds);
+  } catch (error) {
+    logger.errorWithStack('Errore hashing password', error);
+    throw error;
+  }
+}
+
+async function isPasswordHashed(value: string): Promise<boolean> {
+  return value.startsWith(HASH_PREFIX);
+}
 
 interface ConfigValue {
   paramsKey: string;
@@ -112,13 +129,23 @@ async function getConfigValue(paramsKey: string, defaultValue?: string): Promise
 
 /**
  * Scrivi valore a config
+ * Nota: Se paramsKey è BOOKING_UPDATE_PASSWORD, il valore viene automaticamente hashed
  */
 async function setConfigValue(paramsKey: string, value: string): Promise<void> {
   try {
+    let finalValue = value;
+
+    // Hash password per booking update
+    if (paramsKey === 'BOOKING_UPDATE_PASSWORD' && value && !value.startsWith(HASH_PREFIX)) {
+      const saltRounds = await getBcryptSaltRounds();
+      finalValue = await hashPassword(value, saltRounds);
+      logger.info(`🔐 Password per booking update hashed (${paramsKey})`);
+    }
+
     await prisma.config.upsert({
       where: { paramsKey },
-      update: { value },
-      create: { paramsKey, value },
+      update: { value: finalValue },
+      create: { paramsKey, value: finalValue },
     });
 
     // Invalidate cache
@@ -236,9 +263,35 @@ async function getAppVersion(): Promise<string> {
 /**
  * BOOKING_UPDATE_PASSWORD - Password per modificare prenotazioni
  * IMPORTANTE: Deve essere impostata nel database, non ha default nel codice
+ * Ritorna la password hashed (mai il plain text)
  */
 async function getBookingUpdatePassword(): Promise<string> {
   return getConfigValue('BOOKING_UPDATE_PASSWORD', '');
+}
+
+/**
+ * Verifica una password contro il booking update password hash
+ * Supporta transizione da plain text a hashed (backward compatibility)
+ */
+async function verifyBookingUpdatePassword(plainPassword: string): Promise<boolean> {
+  const storedPassword = await getBookingUpdatePassword();
+
+  if (!storedPassword) {
+    return false;
+  }
+
+  // Se il valore non è hashed, fai migrazione al primo check
+  if (!storedPassword.startsWith(HASH_PREFIX)) {
+    logger.warn('⚠️ Password booking update è in plain text. Migrazione in corso...');
+    const saltRounds = await getBcryptSaltRounds();
+    const hashed = await hashPassword(storedPassword, saltRounds);
+    await setConfigValue('BOOKING_UPDATE_PASSWORD', hashed);
+    // Compara contro il nuovo hash
+    return await bcryptjs.compare(plainPassword, hashed);
+  }
+
+  // Compara contro hash existente
+  return await bcryptjs.compare(plainPassword, storedPassword);
 }
 
 // ============================================
@@ -344,6 +397,7 @@ export const configService = {
   getMaxPageLimit,
   getAppVersion,
   getBookingUpdatePassword,
+  verifyBookingUpdatePassword,
   // Sync getters (post-init)
   getConfigValueSync,
   getDebugHttpSync,

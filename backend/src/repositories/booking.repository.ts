@@ -37,12 +37,30 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     return this.prisma.booking.findUnique({ where: { id } });
   }
 
-  async findAll(monthStr?: string, startDate?: string, endDate?: string): Promise<Booking[]> {
-    return this.prisma.booking.findMany({
-      where: this.buildBaseWhere(monthStr, startDate, endDate),
-      orderBy: { date: 'asc' },
-      include: { customer: true, artist: true },
-    });
+  async findAll(
+    monthStr?: string,
+    startDate?: string,
+    endDate?: string,
+    limit?: number,
+    offset?: number
+  ): Promise<{ data: Booking[]; total: number; hasMore: boolean }> {
+    const where = this.buildBaseWhere(monthStr, startDate, endDate);
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.booking.findMany({
+        where,
+        orderBy: { date: 'asc' },
+        include: { customer: true, artist: true },
+        ...(limit && { take: limit }),
+        ...(offset && { skip: offset }),
+      }),
+      this.prisma.booking.count({ where }),
+    ]);
+
+    const paginatedOffset = offset ?? 0;
+    const hasMore = limit ? paginatedOffset + data.length < total : false;
+
+    return { data, total, hasMore };
   }
 
   async update(id: number, data: Prisma.BookingUpdateInput): Promise<Booking> {

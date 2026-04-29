@@ -15,11 +15,17 @@ export class BookingController {
     const { month, page, limit } = parsePageQuery(req.query);
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
-    if (req.query.page || req.query.limit) {
+    const customLimit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+
+    // Support both page-based (legacy) and offset-based pagination
+    if (req.query.page || (req.query.limit && !req.query.offset)) {
       res.json(await service.getBookingsPaged(month, page, limit, startDate, endDate));
       return;
     }
-    res.json(await service.getBookings(month, startDate, endDate));
+
+    // New: offset-based pagination via getBookings()
+    res.json(await service.getBookings(month, startDate, endDate, customLimit, offset));
   });
 
   getStats = asyncHandler(async (req: AuthRequest, res: Response) => {

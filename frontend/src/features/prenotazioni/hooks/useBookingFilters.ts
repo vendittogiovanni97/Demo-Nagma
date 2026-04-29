@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import type { Booking } from '@/types/booking';
+import type { Booking, BookingStatus } from '@/types/booking';
 
 function monthKey(date: Date) {
   return format(date, 'yyyy-MM');
@@ -16,7 +16,8 @@ export function useBookingFilters() {
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [showCancelled, setShowCancelled] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | 'ALL'>('ALL');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // 'desc' = più recente per primo
 
   const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
 
@@ -32,12 +33,12 @@ export function useBookingFilters() {
   };
 
   const filterBookings = useMemo(() => (bookings: Booking[]): Booking[] => {
-    const withCancelled = bookings.filter(b => {
-      if (!showCancelled && b.status === 'CANCELLED') return false;
-      return true;
-    });
+    let result = bookings;
 
-    let result = withCancelled;
+    // Filtra per stato
+    if (statusFilter !== 'ALL') {
+      result = result.filter(b => b.status === statusFilter);
+    }
 
     if (startDate) {
       const from = new Date(startDate);
@@ -50,18 +51,25 @@ export function useBookingFilters() {
       result = result.filter(b => new Date(b.date) <= to);
     }
 
-    if (!debouncedSearch.trim()) return result;
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(b => {
+        const clienteName = b.customer
+          ? `${b.customer.firstName} ${b.customer.lastName}`.toLowerCase()
+          : '';
+        const phone = b.customer?.phone?.toLowerCase() ?? '';
+        const artist = b.artist?.name?.toLowerCase() ?? '';
+        return clienteName.includes(q) || phone.includes(q) || artist.includes(q);
+      });
+    }
 
-    const q = debouncedSearch.toLowerCase();
-    return result.filter(b => {
-      const clienteName = b.customer
-        ? `${b.customer.firstName} ${b.customer.lastName}`.toLowerCase()
-        : '';
-      const phone = b.customer?.phone?.toLowerCase() ?? '';
-      const artist = b.artist?.name?.toLowerCase() ?? '';
-      return clienteName.includes(q) || phone.includes(q) || artist.includes(q);
+    // Ordina per data
+    return result.sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
-  }, [debouncedSearch, showCancelled, startDate, endDate]);
+  }, [debouncedSearch, statusFilter, startDate, endDate, sortOrder]);
 
   return {
     month,
@@ -70,12 +78,14 @@ export function useBookingFilters() {
     search,
     startDate,
     endDate,
-    showCancelled,
+    statusFilter,
+    sortOrder,
     debouncedSearch,
     setSearch,
     setStartDate,
     setEndDate,
-    setShowCancelled,
+    setStatusFilter,
+    setSortOrder,
     resetDateRange,
     prevMonth,
     nextMonth,

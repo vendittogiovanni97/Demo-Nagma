@@ -26,6 +26,7 @@ export interface DataTableProps<T> {
   keyExtractor: (item: T) => string | number;
   footer?: ReactNode;
   pageSize?: number;
+  getRowStyle?: (item: T) => React.CSSProperties | undefined;
 }
 
 function parsePxWidth(width?: string): number | undefined {
@@ -58,6 +59,7 @@ export default function DataTable<T extends object>({
   keyExtractor,
   footer,
   pageSize = 10,
+  getRowStyle,
 }: DataTableProps<T>) {
   // BREAKPOINT AWARENESS - ottieni flags responsive dal context
   const { isSmall, isMedium } = useThemeContext();
@@ -149,6 +151,7 @@ export default function DataTable<T extends object>({
           rowData={data}
           columnDefs={colDefs}
           getRowId={(params) => params.data ? String(keyExtractor(params.data)) : ''}
+          getRowStyle={(params) => getRowStyle && params.data ? getRowStyle(params.data) : undefined}
           loading={isLoading}
           overlayNoRowsTemplate={`<span class="nagma-grid-empty">${emptyMessage}</span>`}
           rowHeight={ROW_HEIGHT}

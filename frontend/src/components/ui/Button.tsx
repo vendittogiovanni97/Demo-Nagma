@@ -132,8 +132,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             width: '44px',
             height: '44px',
             padding: 0,
-            borderRadius: '8px',
+            borderRadius: '50%',
             color: theme.palette.text.secondary,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            '& .MuiButton-startIcon': {
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               color: theme.palette.text.primary,

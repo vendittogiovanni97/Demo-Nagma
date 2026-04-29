@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import { useTheme } from '@/context/ThemeContext';
 import type { Customer } from '@/types/customer';
 import { Box, Stack, Typography, useTheme as useMuiTheme } from '@mui/material';
-import { Edit, Eye, MessageCircle, Trash2 } from 'lucide-react';
+import { Edit, Eye, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CustomerCard from './CustomerCard';
 
@@ -65,18 +65,6 @@ export default function CustomerDataTable({
                 title="Dettagli"
                 onClick={() => router.push(`/clienti/${customer.id}`)}
               />
-              <PermissionGate requireAdmin>
-                <Button
-                  variant="icon"
-                  icon={<MessageCircle size={18} />}
-                  title="WhatsApp"
-                  onClick={() =>
-                    router.push(
-                      `/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`
-                    )
-                  }
-                />
-              </PermissionGate>
               <PermissionGate requireAdmin>
                 <>
                   <Button

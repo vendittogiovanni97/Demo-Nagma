@@ -176,7 +176,7 @@ export class BookingService {
     });
   }
 
-  async deleteBooking(id: number) {
+  async deleteBooking(id: number, changedById?: number) {
     const booking = await prisma.booking.findUnique({ where: { id } });
     if (!booking) throw new AppError('Prenotazione non trovata', 404);
 
@@ -191,7 +191,7 @@ export class BookingService {
           bookingId: id,
           action: 'CANCELLED',
           oldDate: booking.date,
-          changedById: booking.artistId,
+          changedById,
         },
       });
 

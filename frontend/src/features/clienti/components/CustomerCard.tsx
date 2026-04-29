@@ -4,8 +4,8 @@ import PermissionGate from '@/components/auth/PermissionGate';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import type { Customer } from '@/types/customer';
-import { Avatar, Box, Stack, Typography, useTheme } from '@mui/material';
-import { Edit, Eye, MessageCircle, Trash2 } from 'lucide-react';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
+import { Edit, Eye, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface CustomerCardProps {
@@ -32,41 +32,22 @@ export default function CustomerCard({
   // Get booking count from _count or bookings array
   const bookingCount = customer._count?.bookings ?? customer.bookings?.length ?? 0;
 
-  // Generate initials for avatar
-  const getInitials = () => {
-    return `${customer.firstName.charAt(0)}${customer.lastName.charAt(0)}`.toUpperCase();
-  };
-
   return (
     <Card variant="glass" size="md">
       <Stack spacing={2}>
-        {/* Header: Avatar + Name */}
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
-          <Avatar
+        {/* Header: Name */}
+        <Box>
+          <Typography
+            variant="h5"
             sx={{
-              width: 48,
-              height: 48,
-              backgroundColor: theme.palette.primary.main,
-              color: '#000',
-              fontWeight: 700,
-              fontSize: '1.25rem',
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              wordBreak: 'break-word',
             }}
           >
-            {getInitials()}
-          </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                wordBreak: 'break-word',
-              }}
-            >
-              {customer.firstName} {customer.lastName}
-            </Typography>
-          </Box>
-        </Stack>
+            {customer.firstName} {customer.lastName}
+          </Typography>
+        </Box>
 
         {/* Customer Info */}
         <Stack spacing={1.5}>
@@ -192,22 +173,6 @@ export default function CustomerCard({
           >
             Dettagli
           </Button>
-
-          <PermissionGate requireAdmin>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<MessageCircle size={16} />}
-              fullWidth
-              onClick={() =>
-                router.push(
-                  `/whatsapp?customerId=${customer.id}&customerName=${encodeURIComponent(`${customer.firstName} ${customer.lastName}`)}&customerPhone=${encodeURIComponent(customer.phone)}`
-                )
-              }
-            >
-              WhatsApp
-            </Button>
-          </PermissionGate>
 
           <PermissionGate requireAdmin>
             <Button

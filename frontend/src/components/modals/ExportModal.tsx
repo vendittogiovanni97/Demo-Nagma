@@ -137,7 +137,7 @@ export default function ExportModal<T>({
       </Button>
 
       <Modal isOpen={isOpen} onClose={handleClose} title="Esporta Dati">
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
 
           {error ? (
             <Alert severity="error" icon={<AlertCircle size={18} />}>
@@ -167,7 +167,66 @@ export default function ExportModal<T>({
               </Stack>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
-                {filters.map((filter) => {
+                {filters.filter(f => ['cliente', 'artista'].includes(f.key)).map((filter) => {
+                  const val = filterValues[filter.key] ?? '';
+                  const onChange = (v: string) => setFilterValues(prev => ({ ...prev, [filter.key]: v }));
+
+                  return (
+                    <Box key={filter.key} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.primary.main, textTransform: 'uppercase', letterSpacing: '0.08em', px: 0.5 }}>
+                        {filter.label}
+                      </Typography>
+
+                      {filter.type === 'select' && filter.options ? (
+                        <TextField
+                          select
+                          value={val}
+                          onChange={(e) => onChange(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
+                        >
+                          {filter.options.map(opt => (
+                            <MenuItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      ) : filter.type === 'month' ? (
+                        <TextField
+                          type="month"
+                          value={val}
+                          onChange={(e) => onChange(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
+                        />
+                      ) : filter.type === 'date' ? (
+                        <TextField
+                          type="date"
+                          value={val}
+                          onChange={(e) => onChange(e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
+                        />
+                      ) : (
+                        <TextField
+                          value={val}
+                          onChange={(e) => onChange(e.target.value)}
+                          placeholder={filter.placeholder ?? filter.label}
+                          size="small"
+                          fullWidth
+                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
+                        />
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 1.5 }}>
+                {filters.filter(f => ['stato', 'giorno', 'mese'].includes(f.key)).map((filter) => {
                   const val = filterValues[filter.key] ?? '';
                   const onChange = (v: string) => setFilterValues(prev => ({ ...prev, [filter.key]: v }));
 

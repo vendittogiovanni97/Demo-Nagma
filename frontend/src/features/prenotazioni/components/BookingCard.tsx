@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, Box, Typography, Avatar, useTheme } from '@mui/material';
-import { CheckCircle2, Edit, Trash2 } from 'lucide-react';
+import { Stack, Box, Typography, useTheme } from '@mui/material';
+import { CheckCircle2, Edit, Trash2, MessageCircle, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Card from '@/components/ui/Card';
@@ -15,6 +15,8 @@ interface BookingCardProps {
   onEdit: (booking: Booking) => void;
   onDelete: (id: number) => void;
   onComplete: (id: number) => void;
+  onRestore: (id: number) => void;
+  onWhatsApp: () => void;
 }
 
 // Helper function to get status badge variant
@@ -39,18 +41,13 @@ const getStatusLabel = (status: string) => {
   return statusMap[status] || status;
 };
 
-// Helper function to get initials from name
-const getInitials = (firstName?: string, lastName?: string) => {
-  const first = firstName?.charAt(0) || '';
-  const last = lastName?.charAt(0) || '';
-  return (first + last).toUpperCase();
-};
-
 export default function BookingCard({
   booking,
   onEdit,
   onDelete,
   onComplete,
+  onRestore,
+  onWhatsApp,
 }: BookingCardProps) {
   const theme = useTheme();
 
@@ -65,49 +62,43 @@ export default function BookingCard({
   const formattedDate = format(bookingDate, 'EEEE d MMMM yyyy', { locale: it });
   const formattedTime = format(bookingDate, 'HH:mm');
 
+  const cardBgColor =
+    booking.status === 'COMPLETED' ? `${theme.palette.success.main}08` :
+    booking.status === 'CANCELLED' ? `${theme.palette.error.main}08` :
+    undefined;
+
   return (
-    <Card variant="glass" size="md">
-<Stack spacing={2}>
+    <Card
+      variant="glass"
+      size="md"
+      sx={cardBgColor ? { backgroundColor: cardBgColor } : undefined}
+    >
+      <Stack spacing={2}>
         {/* Header: Customer Info + Status Badge */}
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
-            {/* Avatar */}
-            <Avatar
+          <Stack spacing={0.5} sx={{ flex: 1 }}>
+            {/* Customer Details */}
+            <Typography
+              variant="h6"
               sx={{
-                width: 48,
-                height: 48,
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                fontWeight: 700,
+                fontSize: '14px',
+                fontWeight: 600,
+                color: theme.palette.text.primary,
               }}
             >
-              {getInitials(booking.customer?.firstName, booking.customer?.lastName)}
-            </Avatar>
-
-            {/* Customer Details */}
-            <Stack spacing={0.5} sx={{ flex: 1 }}>
+              {customerName}
+            </Typography>
+            {booking.customer?.phone && (
               <Typography
-                variant="h6"
+                variant="body2"
                 sx={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
+                  fontSize: '12px',
+                  color: theme.palette.text.secondary,
                 }}
               >
-                {customerName}
+                {booking.customer.phone}
               </Typography>
-              {booking.customer?.phone && (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: '12px',
-                    color: theme.palette.text.secondary,
-                  }}
-                >
-                  {booking.customer.phone}
-                </Typography>
-              )}
-            </Stack>
+            )}
           </Stack>
 
           {/* Status Badge */}
@@ -256,25 +247,57 @@ export default function BookingCard({
                 onClick={() => onComplete(booking.id)}
               />
             )}
-            <Button
-              variant="icon"
-              icon={<Edit size={18} />}
-              title="Modifica"
-              onClick={() => onEdit(booking)}
-            />
-            <Button
-              variant="icon"
-              icon={<Trash2 size={18} />}
-              sx={{
-                color: `${theme.palette.error.main}99`,
-                '&:hover': {
-                  color: theme.palette.error.main,
-                  backgroundColor: `${theme.palette.error.main}10`,
-                },
-              }}
-              title="Elimina"
-              onClick={() => onDelete(booking.id)}
-            />
+            {booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED' && (
+              <>
+                <Button
+                  variant="icon"
+                  icon={<MessageCircle size={18} />}
+                  title="WhatsApp"
+                  sx={{
+                    color: `#25D36699`,
+                    '&:hover': {
+                      color: '#25D366',
+                      backgroundColor: '#25D36610',
+                    },
+                  }}
+                  onClick={() => onWhatsApp()}
+                />
+                <Button
+                  variant="icon"
+                  icon={<Edit size={18} />}
+                  title="Modifica"
+                  onClick={() => onEdit(booking)}
+                />
+                <Button
+                  variant="icon"
+                  icon={<Trash2 size={18} />}
+                  sx={{
+                    color: `${theme.palette.error.main}99`,
+                    '&:hover': {
+                      color: theme.palette.error.main,
+                      backgroundColor: `${theme.palette.error.main}10`,
+                    },
+                  }}
+                  title="Elimina"
+                  onClick={() => onDelete(booking.id)}
+                />
+              </>
+            )}
+            {booking.status === 'CANCELLED' && (
+              <Button
+                variant="icon"
+                icon={<RotateCcw size={18} />}
+                title="Ripristina"
+                sx={{
+                  color: `${theme.palette.warning.main}99`,
+                  '&:hover': {
+                    color: theme.palette.warning.main,
+                    backgroundColor: `${theme.palette.warning.main}10`,
+                  },
+                }}
+                onClick={() => onRestore(booking.id)}
+              />
+            )}
           </Stack>
         </PermissionGate>
       </Stack>

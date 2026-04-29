@@ -1,4 +1,3 @@
-import Avatar from '@/components/data-display/Avatar';
 import type { Column } from '@/components/data-display/DataTable';
 import type { Customer } from '@/types/customer';
 import { format } from 'date-fns';
@@ -17,27 +16,24 @@ export function useCustomerColumns(): Column<Customer>[] {
         key: 'cliente',
         label: 'Cliente',
         render: (customer) => (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Avatar firstName={customer.firstName} lastName={customer.lastName} />
-            <Box>
-              <Box sx={{ fontWeight: 600, lineHeight: 1.25, color: theme.palette.text.primary }}>
-                {customer.firstName} {customer.lastName}
-              </Box>
-              {customer.notes && (
-                <Box
-                  sx={{
-                    fontSize: '0.75rem',
-                    color: theme.palette.text.secondary,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '220px',
-                    mt: 0.5,
-                  }}
-                >
-                  {customer.notes}
-                </Box>
-              )}
+          <Box>
+            <Box sx={{ fontWeight: 600, lineHeight: 1.25, color: theme.palette.text.primary }}>
+              {customer.firstName} {customer.lastName}
             </Box>
+            {customer.notes && (
+              <Box
+                sx={{
+                  fontSize: '0.75rem',
+                  color: theme.palette.text.secondary,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '220px',
+                  mt: 0.5,
+                }}
+              >
+                {customer.notes}
+              </Box>
+            )}
           </Box>
         ),
       },

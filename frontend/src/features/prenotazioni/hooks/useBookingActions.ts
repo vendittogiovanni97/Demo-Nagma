@@ -23,6 +23,15 @@ export function useBookingActions({ mutate }: UseBookingActionsOptions) {
     }
   };
 
+  const handleRestore = async (id: number) => {
+    try {
+      await bookingService.update(id, { status: 'CONFIRMED' });
+      await mutate();
+    } catch {
+      // errore silenzioso — il toast viene gestito dal service
+    }
+  };
+
   const handleSuperAdminDelete = async (id: number) => {
     await bookingService.delete(id);
     await mutate();
@@ -65,6 +74,7 @@ export function useBookingActions({ mutate }: UseBookingActionsOptions) {
     showDeletePasswordModal,
     deletePasswordLoading,
     handleComplete,
+    handleRestore,
     handleDelete,
     handlePasswordDelete,
     closePendingDelete,

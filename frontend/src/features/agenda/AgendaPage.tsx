@@ -118,10 +118,6 @@ export default function AgendaPage() {
             eventContent={(arg: EventContentArg) => (
               <CalendarEvent
                 booking={arg.event.extendedProps.booking as Booking}
-                canSendWhatsApp={isAdmin}
-                onEdit={handleEditBooking}
-                onDelete={handleDeleteBooking}
-                onWhatsApp={setWhatsAppBooking}
               />
             )}
             dateClick={handleDateClick}

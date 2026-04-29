@@ -1,25 +1,16 @@
 "use client";
 
-import { Box, IconButton, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { format } from 'date-fns';
-import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
 
 import type { Booking } from '@/types/booking';
 
 interface CalendarEventProps {
   booking: Booking;
-  canSendWhatsApp: boolean;
-  onEdit: (booking: Booking) => void;
-  onDelete: (id: number) => void;
-  onWhatsApp: (booking: Booking) => void;
 }
 
 export default function CalendarEvent({
   booking,
-  canSendWhatsApp,
-  onEdit,
-  onDelete,
-  onWhatsApp,
 }: CalendarEventProps) {
   const theme = useTheme();
   const color = booking.artist?.color ?? theme.palette.primary.main;
@@ -44,7 +35,6 @@ export default function CalendarEvent({
         userSelect: 'none',
         background: `linear-gradient(135deg, ${color}18 0%, ${color}08 100%)`,
         opacity: isCancelled ? 0.5 : 1,
-        '&:hover .event-actions': { opacity: 1 },
       }}
     >
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 20 }}>
@@ -52,68 +42,6 @@ export default function CalendarEvent({
           {startTime}
           {!isShort && ` · ${duration}min`}
         </Typography>
-        <Stack
-          className="event-actions"
-          direction="row"
-          useFlexGap
-          sx={{
-            gap: 0.25,
-            opacity: 0,
-            transition: 'opacity 0.15s ease',
-            zIndex: 10,
-            backgroundColor: 'rgba(10,20,35,0.75)',
-            borderRadius: '6px',
-            p: 0.25,
-          }}
-        >
-          {canSendWhatsApp && booking.customer?.id && (
-            <Tooltip title="WhatsApp">
-              <IconButton
-                size="small"
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); onWhatsApp(booking); }}
-                sx={{
-                  width: 22,
-                  height: 22,
-                  color: theme.palette.success.main,
-                  '&:hover': { backgroundColor: `${theme.palette.success.main}20` },
-                }}
-              >
-                <MessageCircle size={12} />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip title="Modifica">
-            <IconButton
-              size="small"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); onEdit(booking); }}
-              sx={{
-                width: 22,
-                height: 22,
-                color: theme.palette.info.main,
-                '&:hover': { backgroundColor: `${theme.palette.info.main}20` },
-              }}
-            >
-              <Pencil size={12} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Elimina">
-            <IconButton
-              size="small"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); onDelete(booking.id); }}
-              sx={{
-                width: 22,
-                height: 22,
-                color: theme.palette.error.main,
-                '&:hover': { backgroundColor: `${theme.palette.error.main}20` },
-              }}
-            >
-              <Trash2 size={12} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
         {(isCancelled || isRescheduled) && (
           <Box
             sx={{

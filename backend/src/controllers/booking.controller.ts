@@ -41,7 +41,8 @@ export class BookingController {
   });
 
   delete = asyncHandler(async (req: AuthRequest, res: Response) => {
-    await service.deleteBooking(parseId(req.params.id));
+    const userId = req.user?.id;
+    await service.deleteBooking(parseId(req.params.id), userId);
     res.status(204).send();
   });
 

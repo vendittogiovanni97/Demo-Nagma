@@ -6,7 +6,6 @@ import { Box, Chip, Stack, Typography, Badge } from '@mui/material';
 import { Clock, Phone, Timer, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import Avatar from '@/components/data-display/Avatar';
 import type { Column } from '@/components/data-display/DataTable';
 import type { ExportFilter } from '@/components/modals/ExportModal';
 import type { Booking, BookingStatus } from '@/types/booking';
@@ -33,30 +32,24 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       width: '250px',
       render: (booking) => (
         booking.customer ? (
-          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
-            <Avatar
-              firstName={booking.customer.firstName}
-              lastName={booking.customer.lastName}
-            />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {booking.customer.firstName} {booking.customer.lastName}
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {booking.customer.firstName} {booking.customer.lastName}
+            </Typography>
+            {booking.customer.phone && (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  display: 'block',
+                  mt: 0.25,
+                  fontFamily: 'monospace',
+                }}
+              >
+                {booking.customer.phone}
               </Typography>
-              {booking.customer.phone && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: theme.palette.text.secondary,
-                    display: 'block',
-                    mt: 0.25,
-                    fontFamily: 'monospace',
-                  }}
-                >
-                  {booking.customer.phone}
-                </Typography>
-              )}
-            </Box>
-          </Stack>
+            )}
+          </Box>
         ) : (
           <Typography variant="body2" sx={{ color: theme.palette.text.disabled }}>
             —
@@ -447,6 +440,16 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
         { value: 'RESCHEDULED', label: 'Spostato' },
       ],
       filterFn: (b, v) => !v || b.status === v,
+    },
+    {
+      key: 'giorno',
+      label: 'Giorno',
+      type: 'date',
+      filterFn: (b, v) => {
+        if (!v) return true;
+        const bookingDate = format(new Date(b.date), 'yyyy-MM-dd');
+        return bookingDate === v;
+      },
     },
     {
       key: 'mese',

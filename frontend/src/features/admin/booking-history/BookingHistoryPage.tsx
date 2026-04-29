@@ -88,9 +88,11 @@ export default function BookingHistoryPage() {
           )}
           {!isLoading && (data?.data?.length ?? 0) > 0 && (
             <Stack spacing={1.5}>
-              {data!.data.map((entry) => (
-                <BookingHistoryCard key={entry.id} entry={entry} />
-              ))}
+              {data!.data
+                .filter((entry) => entry.action !== 'COMPLETED')
+                .map((entry) => (
+                  <BookingHistoryCard key={entry.id} entry={entry} />
+                ))}
             </Stack>
           )}
         </Box>
@@ -100,7 +102,7 @@ export default function BookingHistoryPage() {
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <DataTable
             columns={columns}
-            data={data?.data ?? []}
+            data={(data?.data ?? []).filter((entry) => entry.action !== 'COMPLETED')}
             isLoading={isLoading}
             emptyMessage="Nessuna modifica trovata per i filtri selezionati."
             keyExtractor={(entry) => entry.id}

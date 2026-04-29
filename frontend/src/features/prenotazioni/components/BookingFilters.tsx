@@ -1,12 +1,12 @@
 "use client";
 
 import SearchInput from '@/components/forms/SearchInput';
+import type { BookingStatus } from '@/types/booking';
 import {
   Box,
-  Checkbox,
-  FormControlLabel,
   IconButton,
   Button as MuiButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -19,11 +19,13 @@ interface BookingFiltersProps {
   search: string;
   startDate: string;
   endDate: string;
-  showCancelled: boolean;
+  statusFilter: BookingStatus | 'ALL';
+  sortOrder: 'asc' | 'desc';
   onSearchChange: (value: string) => void;
   onStartDateChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
-  onShowCancelledChange: (value: boolean) => void;
+  onStatusFilterChange: (value: BookingStatus | 'ALL') => void;
+  onSortOrderChange: (value: 'asc' | 'desc') => void;
   onResetDateRange: () => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
@@ -34,11 +36,13 @@ export default function BookingFilters({
   search,
   startDate,
   endDate,
-  showCancelled,
+  statusFilter,
+  sortOrder,
   onSearchChange,
   onStartDateChange,
   onEndDateChange,
-  onShowCancelledChange,
+  onStatusFilterChange,
+  onSortOrderChange,
   onResetDateRange,
   onPrevMonth,
   onNextMonth,
@@ -154,24 +158,87 @@ export default function BookingFilters({
             Reset
           </MuiButton>
         )}
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={showCancelled}
-              onChange={(e) => onShowCancelledChange(e.target.checked)}
-              size="small"
-            />
-          }
-          label="Annullate"
-          sx={{
-            ml: 0.5,
-            mr: 0,
-            flexShrink: 0,
-            '& .MuiFormControlLabel-label': {
-              fontSize: '0.8125rem',
+        <TextField
+          select
+          label="Stato"
+          value={statusFilter}
+          onChange={(e) => onStatusFilterChange(e.target.value as BookingStatus | 'ALL')}
+          size="small"
+          sx={{ flex: { xs: 1, lg: '0 0 140px' }, minWidth: 0 }}
+          slotProps={{
+            select: {
+              MenuProps: {
+                slotProps: {
+                  paper: {
+                    sx: {
+                      backgroundColor: theme.palette.background.paper,
+                      backgroundImage: 'none',
+                      border: `1px solid rgba(0, 191, 255, 0.2)`,
+                      '& .MuiMenuItem-root': {
+                        fontSize: '0.8125rem',
+                        py: 0.75,
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(0, 191, 255, 0.15)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           }}
-        />
+        >
+          <MenuItem value="ALL">Tutti</MenuItem>
+          <MenuItem value="CONFIRMED">Confermato</MenuItem>
+          <MenuItem value="COMPLETED">Completato</MenuItem>
+          <MenuItem value="RESCHEDULED">Spostato</MenuItem>
+          <MenuItem value="CANCELLED">Annullato</MenuItem>
+        </TextField>
+        <TextField
+          select
+          label="Ordinamento"
+          value={sortOrder}
+          onChange={(e) => onSortOrderChange(e.target.value as 'asc' | 'desc')}
+          size="small"
+          sx={{ flex: { xs: 1, lg: '0 0 140px' }, minWidth: 0 }}
+          slotProps={{
+            select: {
+              MenuProps: {
+                slotProps: {
+                  paper: {
+                    sx: {
+                      backgroundColor: theme.palette.background.paper,
+                      backgroundImage: 'none',
+                      border: `1px solid rgba(0, 191, 255, 0.2)`,
+                      '& .MuiMenuItem-root': {
+                        fontSize: '0.8125rem',
+                        py: 0.75,
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(0, 191, 255, 0.15)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }}
+        >
+          <MenuItem value="desc">Più recente</MenuItem>
+          <MenuItem value="asc">Più vecchio</MenuItem>
+        </TextField>
       </Stack>
     </Box>
   );

@@ -32,12 +32,14 @@ export default function PrenotazioniPage() {
     search,
     startDate,
     endDate,
-    showCancelled,
+    statusFilter,
+    sortOrder,
     debouncedSearch,
     setSearch,
     setStartDate,
     setEndDate,
-    setShowCancelled,
+    setStatusFilter,
+    setSortOrder,
     resetDateRange,
     prevMonth,
     nextMonth,
@@ -50,6 +52,7 @@ export default function PrenotazioniPage() {
     showDeletePasswordModal,
     deletePasswordLoading,
     handleComplete,
+    handleRestore,
     handleDelete,
     handlePasswordDelete,
     closePendingDelete,
@@ -105,11 +108,13 @@ export default function PrenotazioniPage() {
         search={search}
         startDate={startDate}
         endDate={endDate}
-        showCancelled={showCancelled}
+        statusFilter={statusFilter}
+        sortOrder={sortOrder}
         onSearchChange={setSearch}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
-        onShowCancelledChange={setShowCancelled}
+        onStatusFilterChange={setStatusFilter}
+        onSortOrderChange={setSortOrder}
         onResetDateRange={resetDateRange}
         onPrevMonth={prevMonth}
         onNextMonth={nextMonth}
@@ -123,6 +128,7 @@ export default function PrenotazioniPage() {
           hasError={!!error}
           debouncedSearch={debouncedSearch}
           onComplete={handleComplete}
+          onRestore={handleRestore}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

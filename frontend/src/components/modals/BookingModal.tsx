@@ -137,6 +137,25 @@ function bookingFormReducer(state: BookingFormState, action: BookingFormAction):
             customPercentuale = perc.toString();
           }
         }
+
+        // Pre-populate availableArtists with the current artist
+        // Even if booking.artist is not fully loaded, create a placeholder
+        let preLoadedArtists: AvailableArtist[] = [];
+        if (booking.artist) {
+          preLoadedArtists = [{
+            id: booking.artist.id,
+            name: booking.artist.name,
+            color: booking.artist.color,
+          }];
+        } else if (booking.artistId) {
+          // Fallback: create placeholder artist from artistId if full object not available
+          preLoadedArtists = [{
+            id: booking.artistId,
+            name: `Artista #${booking.artistId}`,
+            color: '#00bfff',
+          }];
+        }
+
         return {
           ...state,
           customerId: booking.customerId.toString(),
@@ -151,6 +170,7 @@ function bookingFormReducer(state: BookingFormState, action: BookingFormAction):
           customPercentuale,
           dynamicValues: booking.formData as Record<string, string> || {},
           status: booking.status ?? 'CONFIRMED',
+          availableArtists: preLoadedArtists,
           initialArtistLoaded: true,
         };
       } else if (!booking && isOpen) {
@@ -190,11 +210,26 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         try {
           const isoDate = new Date(`${formState.date}T${formState.time}`).toISOString();
           const data = await bookingService.getAvailableArtists(isoDate);
-          dispatch({ type: 'SET_AVAILABLE_ARTISTS', payload: data });
 
-          if (!booking?.id && formState.artistId && !data.find((a: AvailableArtist) => a.id.toString() === formState.artistId)) {
-            dispatch({ type: 'SET_FIELD', field: 'artistId', payload: '' });
+          // When editing, ensure the current artist is included even if not available at this time
+          // (they might be booked with the current reservation)
+          let artistsToShow = [...data];
+          if (booking?.id && formState.artistId) {
+            const currentArtistId = formState.artistId;
+            const currentArtistExists = artistsToShow.some((a) => a.id.toString() === currentArtistId);
+            if (!currentArtistExists) {
+              // Use full artist data if available, otherwise create placeholder
+              const artistName = booking?.artist?.name || `Artista #${currentArtistId}`;
+              const artistColor = booking?.artist?.color || '#00bfff';
+              artistsToShow.unshift({
+                id: Number(currentArtistId),
+                name: artistName,
+                color: artistColor,
+              });
+            }
           }
+
+          dispatch({ type: 'SET_AVAILABLE_ARTISTS', payload: artistsToShow });
         } catch (err) {
           toast.error(extractErrorMessage(err, 'Errore nel recupero artisti disponibili'));
         } finally {
@@ -208,7 +243,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         dispatch({ type: 'SET_FIELD', field: 'artistId', payload: '' });
       }
     }
-  }, [formState.date, formState.time, isOpen, booking?.id, formState.artistId, formState.initialArtistLoaded]);
+  }, [formState.date, formState.time, isOpen, formState.initialArtistLoaded, booking?.id, booking?.artist, formState.artistId]);
 
   // Initialize template selection
   useEffect(() => {
@@ -235,15 +270,25 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
       label: a.name,
     }));
 
-    if (booking?.id && booking?.artist && formState.artistId && !available.find((a) => a.value === formState.artistId)) {
-      available.unshift({
-        value: booking.artist.id.toString(),
-        label: booking.artist.name,
-      });
+    // When editing a booking, always ensure the current artist is selectable
+    // even if they're not in the available artists list (e.g., already booked)
+    if (booking?.id && formState.artistId) {
+      const currentArtistId = formState.artistId;
+      const artistAlreadyInList = available.find((a) => a.value === currentArtistId);
+
+      if (!artistAlreadyInList) {
+        // Use the full artist name if available, otherwise use placeholder
+        // This fixes the issue where booking.artist might not be loaded on first modal open
+        const artistName = booking?.artist?.name || `Artista #${currentArtistId}`;
+        available.unshift({
+          value: currentArtistId,
+          label: artistName,
+        });
+      }
     }
 
     return available;
-  }, [formState.availableArtists, booking?.id, booking?.artist, formState.artistId]);
+  }, [formState.availableArtists, booking?.id, booking?.artist?.name, formState.artistId]);
 
   const customerOptions = useMemo(() => (customers || []).map((c) => ({
     value: c.id.toString(),
@@ -347,7 +392,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={booking ? 'Modifica Prenotazione' : 'Nuova Prenotazione'} maxWidth="lg">
-      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onSubmit={handleSubmit}>
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }} onSubmit={handleSubmit}>
         {/* Sezione data/ora + partecipanti */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2 }}>
           <BookingDateTimeSection

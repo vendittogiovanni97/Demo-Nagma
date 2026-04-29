@@ -40,7 +40,7 @@ services:
 
       # Server Config
       PORT: 3001
-      NODE_ENV: ${NODE_ENV:-production}
+      NODE_ENV: ${NODE_ENV:-development}
 
       # CORS - Accept requests from frontend container
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -52,7 +52,7 @@ services:
       BOOKING_UPDATE_PASSWORD: ${BOOKING_UPDATE_PASSWORD:-nagmatatto12}
 
       # Admin passwords
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Nagmatattoo1926!}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-superadmin123}
     ports:
       - '3001:3001'

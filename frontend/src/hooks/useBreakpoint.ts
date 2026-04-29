@@ -28,7 +28,7 @@ export function useBreakpoint(): Breakpoint {
     // Define media queries
     const smallQuery = window.matchMedia('(max-width: 640px)');
     const mediumQuery = window.matchMedia('(max-width: 1024px)');
-    const largeQuery = window.matchMedia('(max-width: 1280px)');
+    const largeQuery = window.matchMedia('(min-width: 1025px)');
 
     const updateBreakpoint = () => {
       const isSmall = smallQuery.matches;

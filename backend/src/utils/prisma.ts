@@ -1,41 +1,10 @@
-import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
 import { logger } from './logger';
 
 export const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5432/nagmadb?schema=public';
 
-// FIX B6: Configure connection pool to handle concurrent load
-// Default pool: 2 connections (too low for production)
-// Recommended: 20 for concurrent request handling
-const poolSize = parseInt(process.env.DB_POOL_SIZE || '20', 10);
-const idleTimeoutMs = parseInt(process.env.DB_IDLE_TIMEOUT_MS || '30000', 10);
-const connectionTimeoutMs = parseInt(process.env.DB_CONNECTION_TIMEOUT_MS || '5000', 10);
-
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  max: poolSize, // Max connections in pool
-  idleTimeoutMillis: idleTimeoutMs, // Close idle connections after 30s
-  connectionTimeoutMillis: connectionTimeoutMs, // Timeout waiting for connection
-});
-
-// Monitor pool events
-pool.on('error', (err: any) => {
-  logger.error('Pool error', {
-    error: err.message,
-    code: err.code || 'UNKNOWN',
-    errno: err.errno
-  });
-});
-
-pool.on('connect', () => {
-  logger.debug('Database connection acquired');
-});
-
-const adapter = new PrismaPg(pool);
-
+// Prisma 6: Connection pooling is handled automatically by Prisma
 const prisma = new PrismaClient({
-  adapter,
   errorFormat: 'pretty',
 });
 
@@ -62,12 +31,8 @@ if (process.env.LOG_QUERIES === 'true') {
   });
 }
 
-// Log pool status on startup
-logger.info('[DB] Connection pool initialized', {
-  poolSize,
-  idleTimeoutMs,
-  connectionTimeoutMs,
-});
+// Log database initialization
+logger.info('[DB] Prisma Client initialized');
 
 export default prisma;
 

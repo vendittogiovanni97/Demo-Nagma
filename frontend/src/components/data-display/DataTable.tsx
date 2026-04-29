@@ -2,7 +2,7 @@
 
 import { useTheme as useThemeContext } from '@/context/ThemeContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
-import type { ColDef, ICellRendererParams } from 'ag-grid-community';
+import type { ColDef, ICellRendererParams, RowStyle } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { AgGridReact } from 'ag-grid-react';
@@ -26,7 +26,7 @@ export interface DataTableProps<T> {
   keyExtractor: (item: T) => string | number;
   footer?: ReactNode;
   pageSize?: number;
-  getRowStyle?: (item: T) => React.CSSProperties | undefined;
+  getRowStyle?: (item: T) => RowStyle | undefined;
 }
 
 function parsePxWidth(width?: string): number | undefined {

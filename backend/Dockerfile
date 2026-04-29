@@ -9,6 +9,7 @@ COPY prisma ./prisma
 RUN npm ci
 
 COPY . .
+# Build TypeScript (prisma generate already ran via postinstall in npm ci)
 RUN npm run build
 
 # Stage 2: Production
@@ -33,5 +34,5 @@ USER nodejs
 
 EXPOSE 3001
 
-# Run migrations then start server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/index.js"]
+# Run migrations, seed database, then start server
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/src/index.js"]

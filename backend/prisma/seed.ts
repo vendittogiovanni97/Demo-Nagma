@@ -1,14 +1,16 @@
-import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, StaffType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import 'dotenv/config';
-import { Pool } from 'pg';
 
 // Setup locale — istanza Prisma autonoma per il seed
 const connectionString = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5432/nagmadb?schema=public';
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: connectionString,
+    },
+  },
+});
 
 /**
  * Seed Super Admin (accesso completo)

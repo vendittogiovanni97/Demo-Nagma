@@ -30,6 +30,23 @@ export function createApp() {
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
 
+  // Health check endpoint — esclusivo dalla CORS (usato da Docker healthcheck senza origin header)
+  app.get('/health', async (_req: Request, res: Response) => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      const appVersion = configService.getAppVersionSync();
+      res.json({ status: 'ok', db: 'connected', version: appVersion });
+    } catch (error) {
+      logger.errorWithStack('Health check fallito per errore database', error);
+      res.status(500).json({
+        success: false,
+        message: 'Connessione al database fallita',
+        error: { code: 'DB_CONNECTION_ERROR', statusCode: 500 },
+        requestId: _req.requestId,
+      });
+    }
+  });
+
   const productionWhitelist = ['https://nagma.it', 'https://www.nagma.it'];
 
   const corsOptions = {
@@ -145,22 +162,6 @@ export function createApp() {
     });
 
     swaggerHandler(req, res, next);
-  });
-
-  app.get('/health', async (_req: Request, res: Response) => {
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      const appVersion = configService.getAppVersionSync();
-      res.json({ status: 'ok', db: 'connected', version: appVersion });
-    } catch (error) {
-      logger.errorWithStack('Health check fallito per errore database', error);
-      res.status(500).json({
-        success: false,
-        message: 'Connessione al database fallita',
-        error: { code: 'DB_CONNECTION_ERROR', statusCode: 500 },
-        requestId: _req.requestId,
-      });
-    }
   });
 
   app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {

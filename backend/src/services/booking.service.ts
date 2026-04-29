@@ -56,7 +56,7 @@ export class BookingService {
     limit?: number,
     offset?: number
   ) {
-    const result = await repository.findAll(month, startDate, endDate, limit, offset);
+    const result = await repository.findAllWithPagination(month, startDate, endDate, limit, offset);
     return {
       data: result.data.map(mapBookingDecimals),
       total: result.total,

@@ -3,6 +3,17 @@ import { Request, Response } from 'express';
 import { configService } from '../services/config.service';
 import { logger } from '../utils/logger';
 
+// FIX B5: Helper to get client IP with IPv6 support
+const getClientIP = (req: Request): string => {
+  // Check X-Forwarded-For header (for proxies, Docker, etc.)
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0].trim();
+  }
+  // Fallback to direct request IP
+  return req.ip || req.socket.remoteAddress || 'unknown';
+};
+
 // FIX B5: Simple in-memory store (note: for production with multiple instances, use Redis)
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
@@ -31,10 +42,10 @@ export const loginRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,
-  // FIX B5: Use user ID if authenticated, fallback to IP
+  // FIX B5: Use user ID if authenticated, fallback to IP (with IPv6 support)
   keyGenerator: (req: Request) => {
     if (req.user?.id) return `login:user:${req.user.id}`;
-    return `login:ip:${req.ip}`;
+    return `login:ip:${getClientIP(req)}`;
   },
   handler: (req: Request, res: Response) => {
     logger.warn('Rate limit exceeded for login', {
@@ -60,10 +71,10 @@ export const authRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,
-  // FIX B5: Use user ID if authenticated, fallback to IP
+  // FIX B5: Use user ID if authenticated, fallback to IP (with IPv6 support)
   keyGenerator: (req: Request) => {
     if (req.user?.id) return `auth:user:${req.user.id}`;
-    return `auth:ip:${req.ip}`;
+    return `auth:ip:${getClientIP(req)}`;
   },
   message: {
     success: false,
@@ -81,10 +92,10 @@ export const apiRateLimiter = rateLimit({
   skip: (req: Request) => {
     return req.user?.role === 'SUPER_ADMIN';
   },
-  // FIX B5: Use user ID if authenticated, fallback to IP
+  // FIX B5: Use user ID if authenticated, fallback to IP (with IPv6 support)
   keyGenerator: (req: Request) => {
     if (req.user?.id) return `api:user:${req.user.id}`;
-    return `api:ip:${req.ip}`;
+    return `api:ip:${getClientIP(req)}`;
   },
   handler: (req: Request, res: Response) => {
     logger.warn('Rate limit exceeded for API', {

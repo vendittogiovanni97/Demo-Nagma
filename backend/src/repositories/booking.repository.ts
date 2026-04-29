@@ -37,7 +37,16 @@ export class BookingRepository extends BaseRepository<Booking, Prisma.BookingCre
     return this.prisma.booking.findUnique({ where: { id } });
   }
 
-  async findAll(
+  // Simple findAll for base class compatibility
+  async findAll(): Promise<Booking[]> {
+    return this.prisma.booking.findMany({
+      where: { deletedAt: null },
+      orderBy: { date: 'asc' },
+    });
+  }
+
+  // Extended findAll with pagination and date filtering
+  async findAllWithPagination(
     monthStr?: string,
     startDate?: string,
     endDate?: string,

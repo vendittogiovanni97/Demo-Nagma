@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database Service
   postgres:
@@ -37,7 +35,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-root123}@postgres:5432/${POSTGRES_DB:-nagmadb_}?schema=public
 
       # JWT and Security
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-a3f8c2d7e1b94056f2a8c3d6e0b7f1a4c9d2e5f8b1a3c6d9e2f5a8b4c7d0e3f6}
 
       # Server Config
       PORT: 3001
@@ -48,6 +46,13 @@ services:
 
       # Debug
       DEBUG_HTTP: ${DEBUG_HTTP:-false}
+
+      # Booking password
+      BOOKING_UPDATE_PASSWORD: ${BOOKING_UPDATE_PASSWORD:-nagmatatto12}
+
+      # Admin passwords
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Nagmatattoo1926!}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-superadmin123}
     ports:
       - '3001:3001'
     networks:

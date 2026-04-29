@@ -4,7 +4,12 @@ import type { Booking, BookingStats, BookingHistory, CreateBookingData, Availabl
 
 export const bookingService = {
   getAll: async (month?: string, startDate?: string, endDate?: string, page?: number, limit?: number): Promise<Booking[]> => {
-    return apiClient.get<Booking[]>(ENDPOINTS.BOOKINGS.BASE, { month, startDate, endDate, page, limit });
+    // API returns { data, total, hasMore }, extract data array
+    const response = await apiClient.get<{ data: Booking[]; total: number; hasMore: boolean }>(
+      ENDPOINTS.BOOKINGS.BASE,
+      { month, startDate, endDate, page, limit }
+    );
+    return response.data;
   },
   getStats: async (month?: string): Promise<BookingStats> => {
     return apiClient.get<BookingStats>(ENDPOINTS.BOOKINGS.STATS, { month });

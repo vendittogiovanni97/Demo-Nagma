@@ -12,7 +12,7 @@ import type { FinanceSummary } from '@/types/transaction';
 import { Box, Container, Grid, Skeleton } from '@mui/material';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 
 export default function DashboardPage() {
@@ -39,31 +39,25 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const [financeDate, setFinanceDate] = useState<Date | null>(null);
-  const [bookingDate, setBookingDate] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setFinanceDate(new Date());
-    setBookingDate(new Date());
-  }, []);
+  // Use useMemo to create initial dates on first render only
+  // This prevents unnecessary state updates and double SWR requests
+  const { financeDate, bookingDate } = useMemo(
+    () => ({
+      financeDate: new Date(),
+      bookingDate: new Date(),
+    }),
+    []
+  );
 
   const { data: financeSummary, isLoading: isFinanceLoading } = useSWR<FinanceSummary>(
-    financeDate ? [ENDPOINTS.TRANSACTIONS.SUMMARY, format(financeDate, 'yyyy-MM')] : null,
+    [ENDPOINTS.TRANSACTIONS.SUMMARY, format(financeDate, 'yyyy-MM')],
     ([, monthStr]) => transactionService.getSummary(monthStr as string)
   );
 
-  const bookingMonthStr = bookingDate ? format(bookingDate, 'yyyy-MM') : null;
-  const { data: bookingStats, isLoading: isStatsLoading } = useBookingStats(bookingMonthStr ?? '');
-  const { data: dailyBookings, isLoading: isDailyLoading } = useBookings(bookingMonthStr ?? '');
+  const bookingMonthStr = format(bookingDate, 'yyyy-MM');
+  const { data: bookingStats, isLoading: isStatsLoading } = useBookingStats(bookingMonthStr);
+  const { data: dailyBookings, isLoading: isDailyLoading } = useBookings(bookingMonthStr);
 
-  if (!financeDate || !bookingDate) {
-    return (
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
-        <Skeleton variant="rectangular" height={192} width="100%" />
-        <Skeleton variant="rectangular" height={192} width="100%" />
-      </Box>
-    );
-  }
   const totalIncome = financeSummary?.totalIncome ?? 0;
   const totalExpense = financeSummary?.totalExpense ?? 0;
 
@@ -76,13 +70,13 @@ function DashboardContent() {
             totalExpense={totalExpense}
             isLoading={isFinanceLoading}
             monthDate={financeDate}
-            onMonthChange={setFinanceDate}
+            onMonthChange={() => {}}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <BookingStatsWidget
             monthDate={bookingDate}
-            onMonthChange={setBookingDate}
+            onMonthChange={() => {}}
             total={bookingStats?.total ?? 0}
             cancelled={bookingStats?.cancelled ?? 0}
             completed={bookingStats?.completed ?? 0}

@@ -20,22 +20,44 @@ export class FileSystemManager {
   }
 
   /**
-   * Salva un file nel filesystem
+   * Salva un file nel filesystem con nome casuale (UUID)
+   * FIX #5: Previene path traversal e collision attacks
+   *
    * @param buffer - contenuto del file
-   * @param originalFileName - nome file originale (usato per estrarre estensione)
+   * @param originalFileName - nome file originale (usato SOLO per estrarre estensione)
    * @returns percorso salvo del file
    */
   static async saveFile(buffer: Buffer, originalFileName: string): Promise<{ filePath: string; fileName: string }> {
     try {
       await this.ensureUploadsDir();
 
-      const ext = path.extname(originalFileName);
+      // FIX #5: Extract extension safely (ignora il nome file user-provided)
+      let ext = path.extname(originalFileName).toLowerCase();
+
+      // FIX #5: Validate extension is not dangerous (defense in depth)
+      // Estensioni pericolose che potrebbero causare problemi anche se salvate
+      const DANGEROUS_EXTENSIONS = ['.exe', '.bat', '.cmd', '.dll', '.sh', '.bash', '.ps1', '.com', '.scr'];
+      if (DANGEROUS_EXTENSIONS.includes(ext)) {
+        logger.warn('Tentativo upload file con estensione pericolosa', {
+          originalFileName,
+          extension: ext,
+        });
+        // Forza salvataggio come .bin
+        ext = '.bin';
+      }
+
+      // FIX #5: Usa UUID per nome file (non user-provided name)
+      // Questo previene path traversal: user non può mettere "../../../etc/passwd"
       const fileName = `${uuidv4()}${ext}`;
       const filePath = path.join(UPLOADS_DIR, fileName);
 
       await fs.promises.writeFile(filePath, buffer);
 
-      logger.info('File salvato con successo', { filePath, fileName });
+      logger.info('File salvato con successo (FIX #5: UUID naming)', {
+        filePath,
+        fileName,
+        originalFileName, // logged per audit, non usato in percorso
+      });
 
       return { filePath, fileName };
     } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { DollarSign, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 import MonthPicker from '@/components/ui/MonthPicker';
@@ -38,10 +38,12 @@ export default function FinanceOverviewWidget({
   const theme = useTheme();
   const [showData, setShowData] = useState(true);
 
-  const financeData = [
+  // Memoize financeData to prevent Recharts remount on parent re-render
+  // Dependencies: totalIncome, totalExpense, showData (user toggle), theme
+  const financeData = useMemo(() => [
     { name: 'Entrate', value: showData ? (totalIncome || 0.01) : 0.01, color: theme.palette.primary.main },
     { name: 'Uscite', value: showData ? (totalExpense || 0.01) : 0.01, color: theme.palette.error.main },
-  ];
+  ], [totalIncome, totalExpense, showData, theme.palette.primary.main, theme.palette.error.main]);
 
   const hasMonthControls = Boolean(monthDate && onMonthChange);
 

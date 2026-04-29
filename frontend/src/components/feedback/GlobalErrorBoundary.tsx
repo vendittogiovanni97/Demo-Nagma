@@ -1,10 +1,10 @@
 'use client';
 
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
+import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Box, Typography, Stack, useTheme } from '@mui/material';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const router = useRouter();
@@ -13,7 +13,7 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
     <Box
       sx={{
-        minHeight: '60vh',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

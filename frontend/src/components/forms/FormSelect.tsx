@@ -5,13 +5,13 @@ import { inputRootSx } from '@/theme/inputStyles';
 import type { LucideIcon } from 'lucide-react';
 
 interface SelectOption {
-  value: string;
+  value: string | number;
   label: string;
 }
 
 interface FormSelectProps {
   label: string;
-  value: string;
+  value: string | number;
   onChange: (value: string) => void;
   options: readonly SelectOption[];
   required?: boolean;
@@ -30,13 +30,16 @@ export default function FormSelect({
   disabled,
 }: FormSelectProps) {
   const theme = useTheme();
+  const stringValue = String(value ?? '');
+  const optionValues = options.map((o) => String(o.value));
+  const displayValue = optionValues.includes(stringValue) ? stringValue : '';
 
   return (
     <TextField
       select
       size="small"
       label={label}
-      value={value}
+      value={displayValue}
       onChange={(e) => onChange(e.target.value)}
       required={required}
       disabled={disabled}
@@ -55,7 +58,7 @@ export default function FormSelect({
         </MenuItem>
       )}
       {options.map((opt) => (
-        <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.875rem' }}>
+        <MenuItem key={opt.value} value={String(opt.value)} sx={{ fontSize: '0.875rem' }}>
           {opt.label}
         </MenuItem>
       ))}

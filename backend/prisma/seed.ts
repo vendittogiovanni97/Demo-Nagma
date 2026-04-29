@@ -33,32 +33,81 @@ async function seedSuperAdmin(): Promise<void> {
 /**
  * Seed Admin di default (obbligatorio per accedere)
  */
-async function seedAdmin(): Promise<void> {
+async function seedAdmins(): Promise<void> {
   const adminPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10);
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@nagma.it' },
-    update: {},
-    create: {
-      name: 'Admin Nagma',
-      email: 'admin@nagma.it',
-      password: adminPassword,
-      role: 'ADMIN',
-    },
-  });
+  const admins = [
+    { name: 'Miriam', email: 'miriam@nagma.it' },
+    { name: 'Giuseppe', email: 'giuseppe@nagma.it' },
+  ];
 
-  console.log('✅ Admin creato:', admin.email);
+  for (const admin of admins) {
+    await prisma.user.upsert({
+      where: { email: admin.email },
+      update: {},
+      create: {
+        name: admin.name,
+        email: admin.email,
+        password: adminPassword,
+        role: 'ADMIN',
+      },
+    });
+    console.log('✅ Admin creato:', admin.email);
+  }
 }
 
 /**
- * Seed Template WhatsApp (dati di sistema)
+ * Seed WhatsApp Template (dati di sistema)
  */
 async function seedWhatsAppTemplates(): Promise<void> {
   const templates = [
     {
       name: 'Conferma Appuntamento',
       category: 'Conferma',
-      body: 'Ciao {{nome}}! Ti confermiamo l\'appuntamento per il {{data}} alle {{ora}}. A presto! 🎨',
+      body: 'Ciao {{nome}}! 👋\n\nTi confermiamo il tuo appuntamento per il {{data}} alle {{ora}}.\n\n📍 Ricorda di:\n• Mangiare qualcosa prima\n• Non bere alcolici 24h prima\n• Se hai domande scrivimi!\n\nA presto! 🎨',
+      isActive: true,
+    },
+    {
+      name: 'Promemoria Appuntamento',
+      category: 'Promemoria',
+      body: 'Ciao {{nome}}! ⏰\n\nTi ricordiamo che hai un appuntamento domani alle {{ora}}.\n\nSe non puoi più venire, per favore contattaci il prima possibile così possiamo riprogrammare.\n\nA domani! 🎨',
+      isActive: true,
+    },
+    {
+      name: 'Richiesta Caparra',
+      category: 'Caparra',
+      body: 'Ciao {{nome}}! 💰\n\nPer confermare la prenotazione del {{data}} alle {{ora}}, ti chiediamo di versare una caparra di €30.\n\nPuoi versarla tramite:\n• Bonifico: IT00X0000000000000000000000\n• WhatsApp con satispay\n\nLasciaci la ricevuta una volta versato! 🎨',
+      isActive: true,
+    },
+    {
+      name: 'Conferma Caparra Ricevuta',
+      category: 'Conferma',
+      body: 'Ciao {{nome}}! ✅\n\nAbbiamo ricevuto la caparra di €30 per l\'appuntamento del {{data}} alle {{ora}}.\n\nSei confermato! 🎨\n\nTi ricordiamo le istruzioni prima dell\'appuntamento:\n• Mangiare qualcosa prima\n• Non bere alcolici 24h prima\n• Portare documento',
+      isActive: true,
+    },
+    {
+      name: 'Tattoo Pronto',
+      category: 'Info',
+      body: 'Ciao {{nome}}! 🎨\n\nIl tuo tatuaggio è guarito bene! Per i prossimi 15 giorni:\n\n🧴 Applica crema lenitiva 2-3 volte al giorno\n🚿 Lava con sapone neutro delicatamente\n❌ Non grattare, non exponi al sole\n❌ No piscine, mare, sauna\n\nSe hai dubbi scrivici!',
+      isActive: true,
+    },
+    {
+      name: 'Prenotazione Annullata',
+      category: 'Annullamento',
+      body: 'Ciao {{nome}}! 📝\n\nAbbiamo cancellato la tua prenotazione del {{data}} alle {{ora}}.\n\nSe vuoi riprogrammare, scrivici qui! 🎨',
+      isActive: true,
+    },
+    {
+      name: 'Coupon Sconto',
+      category: 'Marketing',
+      body: 'Ciao {{nome}}! 🎁\n\nTi regaliamo il 10% di sconto sul tuo prossimo tatuaggio!\n\nCodice: TATTOO10\n\nLo sconto è valido per 3 mesi.\n\nPrenota quando vuoi! 🎨',
+      isActive: true,
+    },
+    {
+      name: 'Check Post Trattamento',
+      category: 'Follow-up',
+      body: 'Ciao {{nome}}! 👋\n\nCome va il tatuaggio? È tutto okay?\n\nSe hai dubbi sulla guarigione o necessiti altre informazioni, siamo qui! 🎨',
+      isActive: true,
     },
   ];
 
@@ -71,7 +120,7 @@ async function seedWhatsAppTemplates(): Promise<void> {
     }
   }
 
-  console.log('✅ Template WhatsApp creati');
+  console.log('✅ Template WhatsApp creati:', templates.length);
 }
 
 /**
@@ -281,7 +330,7 @@ async function main(): Promise<void> {
   console.log('🌱 Avvio seed database...\n');
 
   await seedSuperAdmin();
-  await seedAdmin();
+  await seedAdmins();
   await seedConfig();
   await seedWhatsAppTemplates();
   await seedFormTemplates();
@@ -291,7 +340,8 @@ async function main(): Promise<void> {
   console.log('\n🎉 Seed completato con successo!');
   console.log('\n📋 Credenziali accesso:');
   console.log('   Super Admin: superadmin@nagma.it / superadmin123');
-  console.log('   Admin:       admin@nagma.it / admin123');
+  console.log('   Admin:       miriam@nagma.it / admin123');
+  console.log('   Admin:       giuseppe@nagma.it / admin123');
 }
 
 main()

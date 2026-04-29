@@ -5,6 +5,32 @@ import { AttachmentService } from '../services/attachment.service';
 import { AppError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 
+/**
+ * FIX #5 SECURITY: Unvalidated File Upload - RCE Risk Prevention
+ * MIME type whitelist per contenuti sicuri
+ * Aggiungere tipi supportati secondo necessità di business
+ */
+const ALLOWED_MIME_TYPES = new Set([
+  // Images
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  // Documents (safe for preview)
+  'application/pdf',
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'text/plain',
+  'text/csv',
+]);
+
+/**
+ * FIX #5: Max file size = 10MB to prevent DOS attacks
+ * Aggiungere in config se necessario per business logic
+ */
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
 export class AttachmentController {
   /**
    * POST /api/attachments/upload?bookingId=123
@@ -71,11 +97,27 @@ export class AttachmentController {
         const chunks: Buffer[] = [];
 
         file.on('data', (data: Buffer) => {
+          // FIX #5: Size check durante lo streaming per DOS prevention
+          const totalSize = chunks.reduce((sum, buf) => sum + buf.length, 0) + data.length;
+          if (totalSize > MAX_FILE_SIZE_BYTES) {
+            file.destroy();
+            errored = new AppError(`File troppo grande (max ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB)`, 413, 'FILE_TOO_LARGE');
+            return;
+          }
           chunks.push(data);
         });
 
         file.on('end', async () => {
           try {
+            // FIX #5: MIME type validation (whitelist approach)
+            if (!ALLOWED_MIME_TYPES.has(info.mimeType)) {
+              throw new AppError(
+                `Tipo di file non consentito: ${info.mimeType}. File types allowed: ${Array.from(ALLOWED_MIME_TYPES).join(', ')}`,
+                400,
+                'FILE_TYPE_NOT_ALLOWED'
+              );
+            }
+
             const buffer = Buffer.concat(chunks);
 
             const attachment = await AttachmentService.uploadAttachment(
@@ -96,6 +138,7 @@ export class AttachmentController {
             logger.errorWithStack('Errore durante l\'upload del file', error, {
               bookingId,
               filename: info.filename,
+              mimeType: info.mimeType,
             });
             if (!errored) errored = error;
           } finally {

@@ -41,9 +41,7 @@ export default function WhatsAppSendModal({
   const { isAdmin } = useAuth();
   const canSend = isAdmin;
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
-  const [selectedCustomerId, setSelectedCustomerId] = useState(
-    customer?.id?.toString() || booking?.customer?.id?.toString() || ''
-  );
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -53,6 +51,42 @@ export default function WhatsAppSendModal({
   });
   const { data: customersResult } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen && canSend });
   const customers = useMemo(() => customersResult?.data || [], [customersResult]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (customer?.id) {
+      setSelectedCustomerId(customer.id.toString());
+      setRecipientName(`${customer.firstName} ${customer.lastName}`);
+      setRecipientPhone(customer.phone || '');
+    } else if (booking?.customer?.id) {
+      setSelectedCustomerId(booking.customer.id.toString());
+      setRecipientName(`${booking.customer.firstName} ${booking.customer.lastName}`);
+      setRecipientPhone(booking.customer.phone || '');
+    }
+    if (templates?.length) {
+      setSelectedTemplateId(templates[0].id.toString());
+    }
+  }, [isOpen, templates, customer, booking]);
+
+  const templateOptions = useMemo(
+    () =>
+      (templates || [])
+        .filter((template) => template.isActive)
+        .map((template) => ({
+          value: template.id.toString(),
+          label: template.name,
+        })),
+    [templates]
+  );
+
+  const customerOptions = useMemo(
+    () =>
+      customers.map((entry) => ({
+        value: entry.id.toString(),
+        label: `${entry.firstName} ${entry.lastName}`,
+      })),
+    [customers]
+  );
 
   const selectedCustomer = useMemo(
     () =>
@@ -84,32 +118,6 @@ export default function WhatsAppSendModal({
     booking,
     mode: 'modal',
   });
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setSelectedCustomerId(customer?.id?.toString() || booking?.customer?.id?.toString() || '');
-    setRecipientName(
-      customer
-        ? `${customer.firstName} ${customer.lastName}`.trim()
-        : booking?.customer
-          ? `${booking.customer.firstName} ${booking.customer.lastName}`.trim()
-          : ''
-    );
-    setRecipientPhone(customer?.phone || booking?.customer?.phone || '');
-    resetComposer();
-  }, [isOpen, customer, booking, resetComposer]);
-
-  useEffect(() => {
-    if (!templates?.length || selectedTemplateId) return;
-    setSelectedTemplateId(templates[0].id.toString());
-  }, [templates, selectedTemplateId]);
-
-  useEffect(() => {
-    if (!selectedCustomer) return;
-    const fullName = `${selectedCustomer.firstName} ${selectedCustomer.lastName}`.trim();
-    setRecipientName((current) => current || fullName);
-    setRecipientPhone((current) => current || selectedCustomer.phone || '');
-  }, [selectedCustomer]);
 
   const handleSend = async () => {
     if (!selectedTemplate) {
@@ -175,22 +183,14 @@ export default function WhatsAppSendModal({
               value={selectedTemplateId}
               onChange={setSelectedTemplateId}
               placeholder="Seleziona template..."
-              options={(templates || [])
-                .filter((template) => template.isActive)
-                .map((template) => ({
-                  value: template.id.toString(),
-                  label: template.name,
-                }))}
+              options={templateOptions}
             />
             <FormSelect
               label="Cliente"
               value={selectedCustomerId}
               onChange={setSelectedCustomerId}
               placeholder="Seleziona cliente..."
-              options={customers.map((entry) => ({
-                value: entry.id.toString(),
-                label: `${entry.firstName} ${entry.lastName}`,
-              }))}
+              options={customerOptions}
             />
           </Box>
 

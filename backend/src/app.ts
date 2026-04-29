@@ -89,8 +89,23 @@ export function createApp() {
         path: req.originalUrl,
         statusCode: res.statusCode,
         durationMs,
+        userId: req.user?.id,
+        userRole: req.user?.role,
         ...(isDebugHttpEnabled() ? { contentLength: res.getHeader('content-length') } : {}),
       };
+
+      // FIX B7: Alert on very slow requests (5s+)
+      if (durationMs > 5000) {
+        logger.error('⚠️ Very slow request detected (>5s)', baseMeta);
+        // TODO: Send alert to monitoring system (Sentry, DataDog, etc.)
+        return;
+      }
+
+      // FIX B7: Warn on slow requests (1s-5s)
+      if (durationMs > 1000) {
+        logger.warn('⚠️ Slow request detected (>1s)', baseMeta);
+        return;
+      }
 
       if (res.statusCode >= 500) {
         logger.error('Richiesta completata con errore server', baseMeta);

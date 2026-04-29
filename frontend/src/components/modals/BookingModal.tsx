@@ -14,7 +14,7 @@ import { extractErrorMessage } from '@/utils/extract-error';
 import { validateData } from '@/utils/validation';
 import { Box, useTheme } from '@mui/material';
 import { format } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import SubmitButton from '../forms/SubmitButton';
 import Modal from './Modal';
 import PasswordConfirmModal from './PasswordConfirmModal';
@@ -38,105 +38,186 @@ interface AvailableArtist {
   color?: string | null;
 }
 
+interface BookingFormState {
+  // Basic booking data
+  customerId: string;
+  artistId: string;
+  date: string;
+  time: string;
+  duration: string;
+  price: string;
+  deposit: string;
+  percentualeMode: string;
+  customPercentuale: string;
+  notes: string;
+  dynamicValues: Record<string, string>;
+  status: BookingStatus;
+  // UI states
+  loading: boolean;
+  availableArtists: AvailableArtist[];
+  loadingArtists: boolean;
+  initialArtistLoaded: boolean;
+  pendingData: CreateBookingData | null;
+  showPasswordModal: boolean;
+  passwordLoading: boolean;
+  selectedTemplateId: number | null;
+}
+
+type BookingFormAction = 
+  | { type: 'SET_FIELD'; field: keyof Omit<BookingFormState, 'dynamicValues' | 'availableArtists' | 'pendingData'>; payload: string | boolean | number | BookingStatus | null }
+  | { type: 'SET_DYNAMIC_VALUES'; payload: Record<string, string> }
+  | { type: 'UPDATE_DYNAMIC_VALUE'; payload: { name: string; value: string } }
+  | { type: 'SET_AVAILABLE_ARTISTS'; payload: AvailableArtist[] }
+  | { type: 'SET_PENDING_DATA'; payload: CreateBookingData | null }
+  | { type: 'RESET_FORM'; payload?: { initialDate?: string; initialTime?: string } }
+  | { type: 'LOAD_BOOKING'; payload: { booking: Booking; isOpen: boolean } };
+
+const initialFormState: BookingFormState = {
+  customerId: '',
+  artistId: '',
+  date: '',
+  time: '',
+  duration: '120',
+  price: '',
+  deposit: '',
+  percentualeMode: '50',
+  customPercentuale: '',
+  notes: '',
+  dynamicValues: {},
+  status: 'CONFIRMED',
+  loading: false,
+  availableArtists: [],
+  loadingArtists: false,
+  initialArtistLoaded: false,
+  pendingData: null,
+  showPasswordModal: false,
+  passwordLoading: false,
+  selectedTemplateId: null,
+};
+
+function bookingFormReducer(state: BookingFormState, action: BookingFormAction): BookingFormState {
+  switch (action.type) {
+    case 'SET_FIELD': {
+      const { field, payload } = action;
+      return { ...state, [field]: payload };
+    }
+    case 'SET_DYNAMIC_VALUES':
+      return { ...state, dynamicValues: action.payload };
+    case 'UPDATE_DYNAMIC_VALUE':
+      return {
+        ...state,
+        dynamicValues: {
+          ...state.dynamicValues,
+          [action.payload.name]: action.payload.value,
+        },
+      };
+    case 'SET_AVAILABLE_ARTISTS':
+      return { ...state, availableArtists: action.payload };
+    case 'SET_PENDING_DATA':
+      return { ...state, pendingData: action.payload };
+    case 'RESET_FORM':
+      return {
+        ...initialFormState,
+        date: action.payload?.initialDate || '',
+        time: action.payload?.initialTime || '',
+      };
+    case 'LOAD_BOOKING': {
+      const { booking, isOpen } = action.payload;
+      if (booking && isOpen) {
+        const d = new Date(booking.date);
+        const perc = booking.formData?.artistPercentage;
+        let percentualeMode = '50';
+        let customPercentuale = '';
+        if (perc != null) {
+          const found = (PERCENTUALE_OPTIONS_VALUES as readonly string[]).includes(perc.toString());
+          if (found) {
+            percentualeMode = perc.toString();
+          } else {
+            percentualeMode = 'custom';
+            customPercentuale = perc.toString();
+          }
+        }
+        return {
+          ...state,
+          customerId: booking.customerId.toString(),
+          artistId: booking.artistId.toString(),
+          date: format(d, 'yyyy-MM-dd'),
+          time: format(d, 'HH:mm'),
+          duration: booking.duration?.toString() || '120',
+          price: booking.price?.toString() || '',
+          deposit: booking.deposit?.toString() || '',
+          notes: booking.notes || '',
+          percentualeMode,
+          customPercentuale,
+          dynamicValues: booking.formData as Record<string, string> || {},
+          status: booking.status ?? 'CONFIRMED',
+          initialArtistLoaded: true,
+        };
+      } else if (!booking && isOpen) {
+        return { ...initialFormState, initialArtistLoaded: false };
+      }
+      return state;
+    }
+    default:
+      return state;
+  }
+}
+
 export default function BookingModal({ isOpen, onClose, onSuccess, booking, initialDate, initialTime }: Props) {
   const toast = useToast();
   const theme = useTheme();
   const { isSuperAdmin } = useAuth();
-  const [customerId, setCustomerId] = useState('');
-  const [artistId, setArtistId] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [duration, setDuration] = useState('120');
-  const [price, setPrice] = useState('');
-  const [deposit, setDeposit] = useState('');
-  const [percentualeMode, setPercentualeMode] = useState('50');
-  const [customPercentuale, setCustomPercentuale] = useState('');
-  const [notes, setNotes] = useState('');
-  const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<BookingStatus>('CONFIRMED');
-  const [loading, setLoading] = useState(false);
-
-  const [availableArtists, setAvailableArtists] = useState<AvailableArtist[]>([]);
-  const [loadingArtists, setLoadingArtists] = useState(false);
-  const [initialArtistLoaded, setInitialArtistLoaded] = useState(false);
-
-  const [pendingData, setPendingData] = useState<CreateBookingData | null>(null);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [formState, dispatch] = useReducer(bookingFormReducer, initialFormState);
 
   const { data: customerResult } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const { data: templates } = useFormTemplates();
   const customers = customerResult?.data;
 
+  // Load booking or reset form when modal opens/booking changes
   useEffect(() => {
     if (booking && isOpen) {
-      const d = new Date(booking.date);
-      setCustomerId(booking.customerId.toString());
-      setArtistId(booking.artistId.toString());
-      setDate(format(d, 'yyyy-MM-dd'));
-      setTime(format(d, 'HH:mm'));
-      setDuration(booking.duration?.toString() || '120');
-      setPrice(booking.price?.toString() || '');
-      setDeposit(booking.deposit?.toString() || '');
-      setNotes(booking.notes || '');
-
-      const perc = (booking.formData)?.artistPercentage;
-      if (perc != null) {
-        const found = (PERCENTUALE_OPTIONS_VALUES as readonly string[]).includes(perc.toString());
-        if (found) {
-          setPercentualeMode(perc.toString());
-        } else {
-          setPercentualeMode('custom');
-          setCustomPercentuale(perc.toString());
-        }
-      }
-      setDynamicValues(booking.formData as Record<string, string> || {});
-      setStatus(booking.status ?? 'CONFIRMED');
-      setInitialArtistLoaded(true);
+      dispatch({ type: 'LOAD_BOOKING', payload: { booking, isOpen } });
     } else if (!booking && isOpen) {
-      resetForm();
-      if (initialDate) setDate(initialDate);
-      if (initialTime) setTime(initialTime);
-      setInitialArtistLoaded(false);
+      dispatch({ type: 'RESET_FORM', payload: { initialDate, initialTime } });
     }
-  }, [booking, isOpen]);
+  }, [booking, isOpen, initialDate, initialTime]);
 
+  // Fetch available artists when date/time changes
   useEffect(() => {
-    if (date && time && isOpen) {
+    if (formState.date && formState.time && isOpen) {
       const fetchAvailable = async () => {
-        setLoadingArtists(true);
+        dispatch({ type: 'SET_FIELD', field: 'loadingArtists', payload: true });
         try {
-          const isoDate = new Date(`${date}T${time}`).toISOString();
+          const isoDate = new Date(`${formState.date}T${formState.time}`).toISOString();
           const data = await bookingService.getAvailableArtists(isoDate);
-          setAvailableArtists(data);
+          dispatch({ type: 'SET_AVAILABLE_ARTISTS', payload: data });
 
-          if (!booking?.id && artistId && !data.find((a: AvailableArtist) => a.id.toString() === artistId)) {
-            setArtistId('');
+          if (!booking?.id && formState.artistId && !data.find((a: AvailableArtist) => a.id.toString() === formState.artistId)) {
+            dispatch({ type: 'SET_FIELD', field: 'artistId', payload: '' });
           }
         } catch (err) {
           toast.error(extractErrorMessage(err, 'Errore nel recupero artisti disponibili'));
         } finally {
-          setLoadingArtists(false);
+          dispatch({ type: 'SET_FIELD', field: 'loadingArtists', payload: false });
         }
       };
       fetchAvailable();
     } else {
-      setAvailableArtists([]);
-      if (!initialArtistLoaded) {
-        setArtistId('');
+      dispatch({ type: 'SET_AVAILABLE_ARTISTS', payload: [] });
+      if (!formState.initialArtistLoaded) {
+        dispatch({ type: 'SET_FIELD', field: 'artistId', payload: '' });
       }
     }
-  }, [date, time, isOpen]);
+  }, [formState.date, formState.time, isOpen, booking?.id, formState.artistId, formState.initialArtistLoaded]);
 
+  // Initialize template selection
   useEffect(() => {
-    if (templates && templates.length > 0 && selectedTemplateId === null) {
-      setSelectedTemplateId(templates[0].id);
+    if (templates && templates.length > 0 && formState.selectedTemplateId === null) {
+      dispatch({ type: 'SET_FIELD', field: 'selectedTemplateId', payload: templates[0].id });
     }
-  }, [templates]);
+  }, [templates, formState.selectedTemplateId]);
 
-  const activeTemplate = templates?.find((t) => t.id === selectedTemplateId) ?? null;
+  const activeTemplate = templates?.find((t) => t.id === formState.selectedTemplateId) ?? null;
 
   const dynamicFields = useMemo<FieldDef[]>(() => {
     if (!activeTemplate) return [];
@@ -149,12 +230,12 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   }, [activeTemplate]);
 
   const artistOptions = useMemo(() => {
-    const available = availableArtists.map((a) => ({
+    const available = formState.availableArtists.map((a) => ({
       value: a.id.toString(),
       label: a.name,
     }));
 
-    if (booking?.id && booking?.artist && artistId && !available.find((a) => a.value === artistId)) {
+    if (booking?.id && booking?.artist && formState.artistId && !available.find((a) => a.value === formState.artistId)) {
       available.unshift({
         value: booking.artist.id.toString(),
         label: booking.artist.name,
@@ -162,66 +243,51 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
     }
 
     return available;
-  }, [availableArtists, booking?.id, booking?.artist, artistId]);
+  }, [formState.availableArtists, booking?.id, booking?.artist, formState.artistId]);
 
   const customerOptions = useMemo(() => (customers || []).map((c) => ({
     value: c.id.toString(),
     label: `${c.firstName} ${c.lastName}`,
   })), [customers]);
 
-  const percentuale = percentualeMode === 'custom'
-    ? Number(customPercentuale) || 0
-    : Number(percentualeMode) || 0;
+  const percentuale = formState.percentualeMode === 'custom'
+    ? Number(formState.customPercentuale) || 0
+    : Number(formState.percentualeMode) || 0;
 
-  const prezzoNum = Number(price) || 0;
+  const prezzoNum = Number(formState.price) || 0;
   const prezzoArtista = Math.round((prezzoNum * percentuale / 100) * 100) / 100;
   const guadagno = Math.round((prezzoNum - prezzoArtista) * 100) / 100;
 
   const handleDynamicChange = (name: string, value: string) => {
-    setDynamicValues(prev => ({ ...prev, [name]: value }));
-  };
-
-  const resetForm = () => {
-    setCustomerId('');
-    setArtistId('');
-    setDate('');
-    setTime('');
-    setDuration('120');
-    setPrice('');
-    setDeposit('');
-    setPercentualeMode('50');
-    setCustomPercentuale('');
-    setNotes('');
-    setDynamicValues({});
-    setStatus('CONFIRMED');
+    dispatch({ type: 'UPDATE_DYNAMIC_VALUE', payload: { name, value } });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId || !artistId || !date || !time) {
+    if (!formState.customerId || !formState.artistId || !formState.date || !formState.time) {
       toast.error('Campi mancanti');
       return;
     }
 
-    const bookingDate = new Date(`${date}T${time}`).toISOString();
+    const bookingDate = new Date(`${formState.date}T${formState.time}`).toISOString();
 
     const formData: Record<string, unknown> = {};
     formData.artistPercentage = percentuale;
     formData.artistPrice = prezzoArtista;
     formData.studioProfit = guadagno;
     for (const field of dynamicFields) {
-      const val = dynamicValues[field.name];
+      const val = formState.dynamicValues[field.name];
       if (val) formData[field.name] = val;
     }
 
     const data: CreateBookingData = {
-      customerId: Number(customerId),
-      artistId: Number(artistId),
+      customerId: Number(formState.customerId),
+      artistId: Number(formState.artistId),
       date: bookingDate,
-      duration: Number(duration) || undefined,
+      duration: Number(formState.duration) || undefined,
       price: prezzoNum || undefined,
-      deposit: Number(deposit) || undefined,
-      notes: notes.trim() || undefined,
+      deposit: Number(formState.deposit) || undefined,
+      notes: formState.notes.trim() || undefined,
       formData,
     };
 
@@ -235,8 +301,8 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
       if (isSuperAdmin) {
         await executeBookingCreate(data, true);
       } else {
-        setPendingData({ ...data, status } as CreateBookingData);
-        setShowPasswordModal(true);
+        dispatch({ type: 'SET_PENDING_DATA', payload: { ...data, status: formState.status } as CreateBookingData });
+        dispatch({ type: 'SET_FIELD', field: 'showPasswordModal', payload: true });
       }
     } else {
       await executeBookingCreate(data);
@@ -244,7 +310,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   };
 
   const executeBookingCreate = async (data: CreateBookingData, skipPassword = false) => {
-    setLoading(true);
+    dispatch({ type: 'SET_FIELD', field: 'loading', payload: true });
     try {
       if (booking?.id) {
         await bookingService.update(booking.id, data);
@@ -253,29 +319,29 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         await bookingService.create(data);
         toast.success('Prenotazione confermata!');
       }
-      resetForm();
+      dispatch({ type: 'RESET_FORM' });
       await onSuccess?.();
       onClose();
     } catch (error: unknown) {
       toast.error(extractErrorMessage(error, booking?.id ? 'Errore nell\'aggiornamento' : 'Errore nella prenotazione'));
     } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_FIELD', field: 'loading', payload: false });
     }
   };
 
   const handlePasswordConfirm = async (password: string) => {
-    setPasswordLoading(true);
+    dispatch({ type: 'SET_FIELD', field: 'passwordLoading', payload: true });
     try {
       await bookingService.verifyPassword(password);
-      setShowPasswordModal(false);
-      setPendingData(null);
-      if (pendingData) {
-        await executeBookingCreate(pendingData);
+      dispatch({ type: 'SET_FIELD', field: 'showPasswordModal', payload: false });
+      dispatch({ type: 'SET_PENDING_DATA', payload: null });
+      if (formState.pendingData) {
+        await executeBookingCreate(formState.pendingData);
       }
     } catch (error: unknown) {
       throw new Error('Password non corretta');
     } finally {
-      setPasswordLoading(false);
+      dispatch({ type: 'SET_FIELD', field: 'passwordLoading', payload: false });
     }
   };
 
@@ -285,40 +351,40 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         {/* Sezione data/ora + partecipanti */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2 }}>
           <BookingDateTimeSection
-            date={date}
-            time={time}
-            duration={duration}
-            onDateChange={setDate}
-            onTimeChange={setTime}
-            onDurationChange={setDuration}
+            date={formState.date}
+            time={formState.time}
+            duration={formState.duration}
+            onDateChange={(val) => dispatch({ type: 'SET_FIELD', field: 'date', payload: val })}
+            onTimeChange={(val) => dispatch({ type: 'SET_FIELD', field: 'time', payload: val })}
+            onDurationChange={(val) => dispatch({ type: 'SET_FIELD', field: 'duration', payload: val })}
           />
           <BookingParticipantsSection
-            date={date}
-            time={time}
-            customerId={customerId}
-            artistId={artistId}
-            loadingArtists={loadingArtists}
+            date={formState.date}
+            time={formState.time}
+            customerId={formState.customerId}
+            artistId={formState.artistId}
+            loadingArtists={formState.loadingArtists}
             customerOptions={customerOptions}
             artistOptions={artistOptions}
-            noArtistAvailable={availableArtists.length === 0}
-            onCustomerChange={setCustomerId}
-            onArtistChange={setArtistId}
+            noArtistAvailable={formState.availableArtists.length === 0}
+            onCustomerChange={(val) => dispatch({ type: 'SET_FIELD', field: 'customerId', payload: val })}
+            onArtistChange={(val) => dispatch({ type: 'SET_FIELD', field: 'artistId', payload: val })}
           />
         </Box>
 
         <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
 
         <BookingFinancialSection
-          price={price}
-          deposit={deposit}
-          percentualeMode={percentualeMode}
-          customPercentuale={customPercentuale}
+          price={formState.price}
+          deposit={formState.deposit}
+          percentualeMode={formState.percentualeMode}
+          customPercentuale={formState.customPercentuale}
           prezzoArtista={prezzoArtista}
           guadagno={guadagno}
-          onPriceChange={setPrice}
-          onDepositChange={setDeposit}
-          onPercentualeModeChange={setPercentualeMode}
-          onCustomPercentualeChange={setCustomPercentuale}
+          onPriceChange={(val) => dispatch({ type: 'SET_FIELD', field: 'price', payload: val })}
+          onDepositChange={(val) => dispatch({ type: 'SET_FIELD', field: 'deposit', payload: val })}
+          onPercentualeModeChange={(val) => dispatch({ type: 'SET_FIELD', field: 'percentualeMode', payload: val })}
+          onCustomPercentualeChange={(val) => dispatch({ type: 'SET_FIELD', field: 'customPercentuale', payload: val })}
         />
 
         <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.06)' }} />
@@ -344,8 +410,8 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
               <Box
                 component="select"
                 id="template-select"
-                value={selectedTemplateId ?? ''}
-                onChange={(e) => setSelectedTemplateId(Number(e.target.value))}
+                value={formState.selectedTemplateId ?? ''}
+                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'selectedTemplateId', payload: Number(e.target.value) })}
                 sx={{
                   flex: 1,
                   borderRadius: 10,
@@ -381,7 +447,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 
         <BookingDynamicFieldsSection
           fields={dynamicFields}
-          values={dynamicValues}
+          values={formState.dynamicValues}
           onChange={handleDynamicChange}
         />
 
@@ -413,20 +479,20 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   key={opt.value}
                   component="button"
                   type="button"
-                  onClick={() => setStatus(opt.value)}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'status', payload: opt.value })}
                   sx={{
                     px: 1.5,
                     py: 0.625,
                     borderRadius: '9999px',
                     fontSize: '0.75rem',
                     fontWeight: 'bold',
-                    border: `1px solid ${status === opt.value ? `${opt.palette.main}99` : 'rgba(255, 255, 255, 0.1)'}`,
-                    backgroundColor: status === opt.value ? `${opt.palette.main}1a` : 'rgba(255, 255, 255, 0.05)',
-                    color: status === opt.value ? opt.palette.main : theme.palette.text.secondary,
+                    border: `1px solid ${formState.status === opt.value ? `${opt.palette.main}99` : 'rgba(255, 255, 255, 0.1)'}`,
+                    backgroundColor: formState.status === opt.value ? `${opt.palette.main}1a` : 'rgba(255, 255, 255, 0.05)',
+                    color: formState.status === opt.value ? opt.palette.main : theme.palette.text.secondary,
                     transition: 'all 0.2s ease',
                     cursor: 'pointer',
                     '&:hover': {
-                      borderColor: status === opt.value ? `${opt.palette.main}99` : 'rgba(255, 255, 255, 0.25)',
+                      borderColor: formState.status === opt.value ? `${opt.palette.main}99` : 'rgba(255, 255, 255, 0.25)',
                     }
                   }}
                 >
@@ -457,8 +523,8 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           </Box>
           <Box
             component="textarea"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={formState.notes}
+            onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'notes', payload: e.target.value })}
             placeholder="Aggiungi note sull'appuntamento..."
             rows={3}
             sx={{
@@ -488,18 +554,18 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           />
         </Box>
 
-        <SubmitButton loading={loading} label={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'} />
+        <SubmitButton loading={formState.loading} label={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'} />
       </Box>
 
       {!isSuperAdmin && (
         <PasswordConfirmModal
-          isOpen={showPasswordModal}
+          isOpen={formState.showPasswordModal}
           onClose={() => {
-            setShowPasswordModal(false);
-            setPendingData(null);
+            dispatch({ type: 'SET_FIELD', field: 'showPasswordModal', payload: false });
+            dispatch({ type: 'SET_PENDING_DATA', payload: null });
           }}
           onConfirm={handlePasswordConfirm}
-          loading={passwordLoading}
+          loading={formState.passwordLoading}
         />
       )}
     </Modal>

@@ -22,6 +22,9 @@ function envRequired(key: string): string {
 
 export const config = {
   // JWT
+  // FIX #4: JWT_SECRET deve essere 32+ characters. Genera con:
+  // node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  // Ruota ogni 90 giorni per security best practices.
   jwtExpiry: envStr('JWT_EXPIRY', '8h') as StringValue,
 
   // Sicurezza

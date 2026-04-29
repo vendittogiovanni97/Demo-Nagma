@@ -361,10 +361,14 @@ const themeOptions: ThemeOptions = {
     MuiIconButton: {
       styleOverrides: {
         root: {
-          transition: 'all 0.3s ease',
+          transition: 'all 0.2s ease',
+          borderRadius: '8px',
           color: 'inherit',
           '&:hover': {
-            backgroundColor: 'rgba(0, 191, 255, 0.08)',
+            backgroundColor: 'rgba(0, 191, 255, 0.1)',
+          },
+          '&:active': {
+            backgroundColor: 'rgba(0, 191, 255, 0.2)',
           },
           '&.Mui-disabled': {
             color: 'rgba(176, 176, 176, 0.5)',
@@ -373,7 +377,19 @@ const themeOptions: ThemeOptions = {
         colorPrimary: {
           color: '#00bfff',
           '&:hover': {
-            backgroundColor: 'rgba(0, 191, 255, 0.12)',
+            backgroundColor: 'rgba(0, 191, 255, 0.15)',
+          },
+          '&:active': {
+            backgroundColor: 'rgba(0, 191, 255, 0.25)',
+          },
+        },
+        colorError: {
+          color: '#f44336',
+          '&:hover': {
+            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+          },
+          '&:active': {
+            backgroundColor: 'rgba(244, 67, 54, 0.2)',
           },
         },
       },

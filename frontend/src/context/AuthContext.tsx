@@ -5,7 +5,7 @@ import type { AuthUser, LoginCredentials } from '@/types/auth';
 import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
 import { isAdmin, isSuperAdmin } from '@/config/roles';
 import { useRouter } from 'next/navigation';
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -84,18 +84,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  // Memoize role computations to avoid unnecessary recalculations
+  const isAdminMemo = useMemo(() => isAdmin(user?.role), [user?.role]);
+  const isSuperAdminMemo = useMemo(() => isSuperAdmin(user?.role), [user?.role]);
+
+  // Memoize context value to prevent full app re-renders on every render
+  // This is critical for performance: without memoization, a new object is created each render,
+  // triggering subscriber re-renders even if the values haven't changed
+  const contextValue = useMemo(
+    () => ({
+      isAuthenticated,
+      isLoading,
+      user,
+      login,
+      logout,
+      isAdmin: isAdminMemo,
+      isSuperAdmin: isSuperAdminMemo,
+    }),
+    [isAuthenticated, isLoading, user, login, logout, isAdminMemo, isSuperAdminMemo]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        isLoading,
-        user,
-        login,
-        logout,
-        isAdmin: isAdmin(user?.role),
-        isSuperAdmin: isSuperAdmin(user?.role),
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

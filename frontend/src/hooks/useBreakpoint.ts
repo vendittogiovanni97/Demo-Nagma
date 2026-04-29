@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const BREAKPOINTS = {
-  small: 450,
-  medium: 768,
-} as const;
-
-export type ScreenSize = 'small' | 'medium' | 'large';
+export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export interface Breakpoint {
   isSmall: boolean;
@@ -16,58 +11,63 @@ export interface Breakpoint {
   size: ScreenSize;
 }
 
+/**
+ * Hook to detect current screen breakpoint
+ * Consolidated multiple MediaQuery listeners into single useEffect with proper cleanup
+ * This prevents memory leaks from orphaned listeners and reduces redundant queries
+ */
 export function useBreakpoint(): Breakpoint {
   const [breakpoint, setBreakpoint] = useState<Breakpoint>({
-    isSmall: true,
+    isSmall: false,
     isMedium: false,
     isLarge: false,
-    size: 'small',
+    size: 'md',
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Define media queries
+    const smallQuery = window.matchMedia('(max-width: 640px)');
+    const mediumQuery = window.matchMedia('(max-width: 1024px)');
+    const largeQuery = window.matchMedia('(max-width: 1280px)');
 
     const updateBreakpoint = () => {
-      const width = window.innerWidth;
+      const isSmall = smallQuery.matches;
+      const isMedium = mediumQuery.matches;
+      const isLarge = largeQuery.matches;
 
-      let isSmall = true;
-      let isMedium = false;
-      let isLarge = false;
-      let size: ScreenSize = 'small';
-
-      if (width >= BREAKPOINTS.medium) {
-        isSmall = false;
-        isMedium = false;
-        isLarge = true;
-        size = 'large';
-      } else if (width >= BREAKPOINTS.small) {
-        isSmall = false;
-        isMedium = true;
-        isLarge = false;
-        size = 'medium';
+      // Determine screen size
+      let size: ScreenSize;
+      if (isSmall) {
+        size = 'xs';
+      } else if (isMedium && !isSmall) {
+        size = 'sm';
+      } else if (isLarge && !isMedium) {
+        size = 'md';
+      } else {
+        size = 'lg';
       }
 
-      setBreakpoint({ isSmall, isMedium, isLarge, size });
+      setBreakpoint({
+        isSmall,
+        isMedium,
+        isLarge,
+        size,
+      });
     };
 
+    // Set initial state
     updateBreakpoint();
 
-    const mediaQuerySmall = window.matchMedia(`(max-width: ${BREAKPOINTS.small - 1}px)`);
-    const mediaQueryMedium = window.matchMedia(`(min-width: ${BREAKPOINTS.small}px) and (max-width: ${BREAKPOINTS.medium - 1}px)`);
-    const mediaQueryLarge = window.matchMedia(`(min-width: ${BREAKPOINTS.medium}px)`);
+    // Add listeners with cleanup
+    smallQuery.addEventListener('change', updateBreakpoint);
+    mediumQuery.addEventListener('change', updateBreakpoint);
+    largeQuery.addEventListener('change', updateBreakpoint);
 
-    const handleChange = () => {
-      updateBreakpoint();
-    };
-
-    mediaQuerySmall.addEventListener('change', handleChange);
-    mediaQueryMedium.addEventListener('change', handleChange);
-    mediaQueryLarge.addEventListener('change', handleChange);
-
+    // Cleanup all listeners in single effect
     return () => {
-      mediaQuerySmall.removeEventListener('change', handleChange);
-      mediaQueryMedium.removeEventListener('change', handleChange);
-      mediaQueryLarge.removeEventListener('change', handleChange);
+      smallQuery.removeEventListener('change', updateBreakpoint);
+      mediumQuery.removeEventListener('change', updateBreakpoint);
+      largeQuery.removeEventListener('change', updateBreakpoint);
     };
   }, []);
 

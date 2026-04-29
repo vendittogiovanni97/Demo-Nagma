@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useToast } from './useToast';
 import { extractErrorMessage } from '@/utils/extract-error';
 
@@ -27,15 +27,24 @@ export function useDeleteConfirm(): UseDeleteConfirmReturn {
   const toast = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingOptions, setPendingOptions] = useState<DeleteConfirmOptions | null>(null);
+  
+  // Use ref to avoid self-referential dependency in useCallback
+  // This prevents handleConfirm from being recreated when pendingOptions changes
+  const pendingOptionsRef = useRef<DeleteConfirmOptions | null>(null);
 
   const deleteItem = useCallback(async (options: DeleteConfirmOptions): Promise<void> => {
+    pendingOptionsRef.current = options;
     setPendingOptions(options);
   }, []);
 
+  // handleConfirm only depends on stable dependencies (toast)
+  // pendingOptionsRef gives us access to fresh state without dependency
   const handleConfirm = useCallback(async () => {
-    if (!pendingOptions) return;
-    const options = pendingOptions;
+    const options = pendingOptionsRef.current;
+    if (!options) return;
+    
     setPendingOptions(null);
+    pendingOptionsRef.current = null;
 
     setIsDeleting(true);
     try {
@@ -50,10 +59,11 @@ export function useDeleteConfirm(): UseDeleteConfirmReturn {
     } finally {
       setIsDeleting(false);
     }
-  }, [pendingOptions, toast]);
+  }, [toast]);
 
   const handleCancel = useCallback(() => {
     setPendingOptions(null);
+    pendingOptionsRef.current = null;
   }, []);
 
   const confirmDialogProps: ConfirmDialogProps = {

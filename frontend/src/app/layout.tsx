@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_PORTAL_DESCRIPTION ||
     'Gestionale completo per prenotazioni, clienti e agenda del tuo studio tattoo.',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/logo.svg',
+    apple: '/logo.svg',
   },
 };
 

@@ -11,6 +11,34 @@ export interface AuthRequest extends Request {
   };
 }
 
+/**
+ * FIX #4 SECURITY: Hard-Coded JWT Secret Risk Prevention
+ * Valida che JWT_SECRET sia configurato e abbia lunghezza sufficiente (32+ chars).
+ * Deve essere chiamato SOLO UNA VOLTA al boot della app (in app.ts).
+ * Una secret debole/mancante compromette TUTTA l'autenticazione.
+ */
+export function validateJwtSecret(): void {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    const errorMsg =
+      'FATAL: JWT_SECRET non impostata in .env. ' +
+      'Genera con: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"';
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  if (secret.length < 32) {
+    const errorMsg =
+      `FATAL: JWT_SECRET troppo corta (${secret.length} chars, minimo 32 richiesto). ` +
+      'Genera una nuova secret con: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"';
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  logger.info('JWT_SECRET validation passed', { length: secret.length });
+}
+
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
@@ -29,9 +57,23 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 
   const token = authHeader.split(' ')[1];
+  const secret = process.env.JWT_SECRET;
+
+  // FIX #4: Defensive check (should never happen if validateJwtSecret() called at boot)
+  if (!secret || secret.length < 32) {
+    logger.error('JWT_SECRET is invalid or missing', {
+      requestId: req.requestId,
+      secretExists: !!secret,
+      secretLength: secret?.length ?? 0,
+    });
+    return res.status(500).json({
+      message: 'Errore di configurazione server.',
+      requestId: req.requestId,
+    });
+  }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthRequest['user'];
+    const decoded = jwt.verify(token, secret) as AuthRequest['user'];
     req.user = decoded;
     next();
   } catch {

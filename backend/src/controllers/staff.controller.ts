@@ -1,23 +1,23 @@
 import { Request, Response } from 'express';
-import { StaffRepository } from '../repositories/staff.repository';
-import { validate, createStaffSchema } from '../schemas';
+import { createStaffSchema, validate } from '../schemas';
+import { StaffService } from '../services/staff.service';
 import { asyncHandler } from '../utils/async-handler';
 import { parseId } from '../utils/parse-id';
 
-const repo = new StaffRepository();
+const staffService = new StaffService();
 
 export class StaffController {
   getAll = asyncHandler(async (_req: Request, res: Response) => {
-    res.json(await repo.findAll());
+    res.json(await staffService.findAll());
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {
     const data = validate(createStaffSchema, req.body);
-    res.status(201).json(await repo.create(data));
+    res.status(201).json(await staffService.create(data));
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    await repo.delete(parseId(req.params.id));
+    await staffService.delete(parseId(req.params.id));
     res.status(204).send();
   });
 }

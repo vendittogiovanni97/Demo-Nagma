@@ -1,6 +1,6 @@
 "use client";
 
-import PageHeader from '@/components/layout/PageHeader';
+import PageHeader from '@/components/common/PageHeader';
 import BookingModal from '@/components/modals/BookingModal';
 import ExportModal from '@/components/modals/ExportModal';
 import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
@@ -82,10 +82,10 @@ export default function PrenotazioniPage() {
   };
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
       <PageHeader
         title="Prenotazioni"
-        extraActions={
+        actions={
           <ExportModal
             filenameBase={`prenotazioni-${month}`}
             title={`Prenotazioni — ${monthLabel}`}
@@ -101,32 +101,32 @@ export default function PrenotazioniPage() {
         buttonIcon={<Plus size={18} />}
         buttonRequiresAdmin
         onButtonClick={handleOpenNewModal}
+        filters={
+          <BookingFilters
+            monthLabel={monthLabel}
+            search={search}
+            startDate={startDate}
+            endDate={endDate}
+            statusFilter={statusFilter}
+            sortOrder={sortOrder}
+            onSearchChange={setSearch}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onStatusFilterChange={setStatusFilter}
+            onSortOrderChange={setSortOrder}
+            onResetDateRange={resetDateRange}
+            onPrevMonth={prevMonth}
+            onNextMonth={nextMonth}
+          />
+        }
       />
 
-      <BookingFilters
-        monthLabel={monthLabel}
-        search={search}
-        startDate={startDate}
-        endDate={endDate}
-        statusFilter={statusFilter}
-        sortOrder={sortOrder}
-        onSearchChange={setSearch}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        onStatusFilterChange={setStatusFilter}
-        onSortOrderChange={setSortOrder}
-        onResetDateRange={resetDateRange}
-        onPrevMonth={prevMonth}
-        onNextMonth={nextMonth}
-      />
-
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto', pt: 2 }}>
         <BookingDataTable
           columns={bookingColumns}
           data={filteredBookings}
           isLoading={isLoading}
           hasError={!!error}
-          debouncedSearch={debouncedSearch}
           onComplete={handleComplete}
           onRestore={handleRestore}
           onEdit={handleEdit}

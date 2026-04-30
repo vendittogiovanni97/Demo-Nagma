@@ -4,15 +4,15 @@ import { Calendar, RefreshCw, XCircle } from 'lucide-react';
 
 import MonthPicker from '@/components/ui/MonthPicker';
 import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Grid,
-  Skeleton,
-  Stack,
-  Typography,
-  useTheme,
+    Box,
+    Card,
+    CardContent,
+    CardHeader,
+    Grid,
+    Skeleton,
+    Stack,
+    Typography,
+    useTheme,
 } from '@mui/material';
 
 interface BookingStatsWidgetProps {
@@ -49,6 +49,8 @@ export default function BookingStatsWidget({
           boxShadow: theme.shadows[3],
         },
         height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <CardHeader
@@ -73,20 +75,25 @@ export default function BookingStatsWidget({
           </Stack>
         }
         action={<MonthPicker value={monthDate} onChange={onMonthChange} />}
-        sx={{ pb: 1.5, borderBottom: `1px solid ${theme.palette.primary.main}12` }}
+        sx={{ pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${theme.palette.primary.main}12` }}
       />
-      <CardContent>
+      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: { xs: 1.5, sm: 2, md: 2.5 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 2.5 } } }}>
         {isLoading ? (
           <Stack useFlexGap sx={{ gap: 2 }}>
             <Skeleton variant="rectangular" height={200} />
           </Stack>
         ) : (
-          <Stack useFlexGap sx={{ gap: 2, justifyContent: 'center', minHeight: 180 }}>
+          <Stack useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, justifyContent: 'center', flex: 1 }}>
             <Card
               variant="outlined"
               sx={{
                 textAlign: 'center',
-                p: 1.5,
+                p: { xs: 2, md: 3 },
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 bgcolor: `${theme.palette.primary.main}08`,
                 border: `1px solid ${theme.palette.primary.main}20`,
                 transition: theme.transitions.create(['all'], { duration: 300 }),
@@ -104,12 +111,12 @@ export default function BookingStatsWidget({
               </Typography>
             </Card>
 
-            <Grid container spacing={1.5}>
+            <Grid container spacing={{ xs: 1, md: 1.5 }}>
               <Grid size={{ xs: 6, sm: 12, md: 6 }}>
                 <Card
                   variant="outlined"
                   sx={{
-                    p: 1.5,
+                    p: { xs: 2, md: 2.5 },
                     bgcolor: `${theme.palette.primary.main}08`,
                     border: `1px solid ${theme.palette.primary.main}20`,
                     transition: theme.transitions.create(['all'], { duration: 300 }),
@@ -135,7 +142,7 @@ export default function BookingStatsWidget({
                 <Card
                   variant="outlined"
                   sx={{
-                    p: 1.5,
+                    p: { xs: 2, md: 2.5 },
                     bgcolor: `${theme.palette.error.main}08`,
                     border: `1px solid ${theme.palette.error.main}20`,
                     transition: theme.transitions.create(['all'], { duration: 300 }),

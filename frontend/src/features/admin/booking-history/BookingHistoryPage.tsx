@@ -5,12 +5,11 @@ import useSWR from 'swr';
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CircularProgress, Stack, Box, Typography, useTheme as useMuiTheme } from '@mui/material';
 
-import DataTable from '@/components/data-display/DataTable';
-import StatePanel from '@/components/feedback/StatePanel';
-import PageHeader from '@/components/layout/PageHeader';
+import SmartTable from '@/components/common/SmartTable';
+import PageHeader from '@/components/common/PageHeader';
+import SmartFilters from '@/components/common/SmartFilters';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
 import { bookingHistoryService, type BookingAction, type BookingHistoryResponse } from '@/services/booking-history.service';
 import BookingHistoryCard from './components/BookingHistoryCard';
 import { useBookingHistoryColumns } from './hooks/useBookingHistoryColumns';
@@ -18,7 +17,6 @@ import { useBookingHistoryColumns } from './hooks/useBookingHistoryColumns';
 export default function BookingHistoryPage() {
   const { user } = useAuth();
   const theme = useMuiTheme();
-  const { isSmall } = useTheme();
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -37,80 +35,54 @@ export default function BookingHistoryPage() {
     if (data && page < data.totalPages) setPage((p) => p + 1);
   };
 
+  const filteredData = (data?.data ?? []).filter((entry) => entry.action !== 'COMPLETATO');
+
   return (
     <Stack direction="column" useFlexGap sx={{ gap: 3, flex: 1 }}>
       <PageHeader
         title="Storico Prenotazioni"
         subtitle={user ? `Accesso come ${user.name}` : undefined}
-        showDateRange
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        showFilter
-        filterValue={action}
-        filterPlaceholder="Tutte le azioni"
-        filterMinWidth={180}
-        filterOptions={[
-          { label: 'Modificato', value: 'UPDATED' },
-          { label: 'Spostato', value: 'RESCHEDULED' },
-          { label: 'Annullato', value: 'CANCELLED' },
-          { label: 'Completato', value: 'COMPLETED' },
-        ]}
-        onFilterChange={(value) => setAction(value as BookingAction | '')}
-        showApplyButton
-        applyButtonLabel="Filtra"
-        onApply={() => setPage(1)}
+        filters={
+          <SmartFilters
+            dateRange={{
+              start: { value: startDate, onChange: setStartDate },
+              end: { value: endDate, onChange: setEndDate },
+            }}
+            select={{
+              label: "Azione",
+              value: action,
+              onChange: (val) => setAction(val as BookingAction | ''),
+              placeholder: "Tutte le azioni",
+              options: [
+                { label: 'Creato', value: 'CREATO' },
+                { label: 'Confermato', value: 'CONFERMATO' },
+                { label: 'Modificato', value: 'MODIFICATO' },
+                { label: 'Spostato', value: 'SPOSTATO' },
+                { label: 'Completato', value: 'COMPLETATO' },
+                { label: 'Annullato', value: 'ANNULLATO' },
+                { label: 'Cancellato', value: 'CANCELLATO' },
+              ],
+            }}
+            submitAction={{
+              label: "Filtra",
+              onClick: () => setPage(1),
+            }}
+          />
+        }
       />
 
-      {error && (
-        <Stack useFlexGap sx={{ direction: 'column', alignItems: 'center', justifyContent: 'center', gap: 1.5, py: 8 }}>
-          <AlertCircle size={40} style={{ opacity: 0.6, color: theme.palette.error.main }} />
-          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.error.main }}>
-            Errore nel caricamento dei dati
-          </Typography>
-        </Stack>
-      )}
+      <SmartTable
+        columns={columns}
+        data={filteredData}
+        isLoading={isLoading}
+        hasError={!!error}
+        keyExtractor={(entry) => entry.id}
+        emptyTitle="Nessuna modifica"
+        emptyDescription="Nessuna modifica trovata per i filtri selezionati."
+        renderCard={(entry) => <BookingHistoryCard entry={entry} />}
+      />
 
-      {!error && isSmall && (
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-          {isLoading && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 6 }}>
-              <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
-            </Box>
-          )}
-          {!isLoading && (data?.data?.length ?? 0) === 0 && (
-            <StatePanel
-              variant="empty"
-              title="Nessuna modifica"
-              description="Nessuna modifica trovata per i filtri selezionati."
-            />
-          )}
-          {!isLoading && (data?.data?.length ?? 0) > 0 && (
-            <Stack spacing={1.5}>
-              {data!.data
-                .filter((entry) => entry.action !== 'COMPLETED')
-                .map((entry) => (
-                  <BookingHistoryCard key={entry.id} entry={entry} />
-                ))}
-            </Stack>
-          )}
-        </Box>
-      )}
-
-      {!error && !isSmall && (
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <DataTable
-            columns={columns}
-            data={(data?.data ?? []).filter((entry) => entry.action !== 'COMPLETED')}
-            isLoading={isLoading}
-            emptyMessage="Nessuna modifica trovata per i filtri selezionati."
-            keyExtractor={(entry) => entry.id}
-          />
-        </Box>
-      )}
-
-      {!error && data && data.totalPages > 1 && (
+      {data && data.totalPages > 1 && (
         <Box
           sx={{
             display: 'flex',

@@ -4,23 +4,23 @@ import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
+import { config } from './config/env';
+import { getSwaggerSpec } from './config/swagger';
+import { globalErrorHandler } from './middlewares/error.middleware';
+import attachmentRoutes from './routes/attachment.routes';
 import authRoutes from './routes/auth.routes';
-import bookingRoutes from './routes/booking.routes';
 import bookingHistoryRoutes from './routes/booking-history.routes';
+import bookingRoutes from './routes/booking.routes';
+import creamRouter from './routes/cream.routes';
 import customerRoutes from './routes/customer.routes';
 import formTemplateRoutes from './routes/form-template.routes';
+import spesaLiberaRoutes from './routes/spesa-libera.routes';
 import teamRoutes from './routes/team.routes';
 import transactionRoutes from './routes/transaction.routes';
 import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
-import spesaLiberaRoutes from './routes/spesa-libera.routes';
-import creamRouter from './routes/cream.routes';
-import attachmentRoutes from './routes/attachment.routes';
-import { config } from './config/env';
-import { getSwaggerSpec } from './config/swagger';
-import { AppError } from './utils/AppError';
-import { getRequestContext, isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
-import prisma from './utils/prisma';
 import { configService } from './services/config.service';
+import { isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
+import prisma from './utils/prisma';
 
 export function createApp() {
   const app = express();
@@ -79,23 +79,13 @@ export function createApp() {
     res.setHeader('x-request-id', requestId);
 
     const shouldLogBody = isDebugHttpEnabled() && req.method !== 'GET' && req.method !== 'HEAD';
-    logger.info('Richiesta in ingresso', {
+    logger.debug('Richiesta in ingresso', {
       requestId,
       method: req.method,
       path: req.originalUrl,
       ip: req.ip,
       ...(shouldLogBody ? { body: sanitizeForLog(req.body) } : {}),
-      ...(isDebugHttpEnabled()
-        ? {
-            query: sanitizeForLog(req.query),
-            headers: sanitizeForLog({
-              authorization: req.headers.authorization,
-              'content-type': req.headers['content-type'],
-              'user-agent': req.headers['user-agent'],
-              referer: req.headers.referer,
-            }),
-          }
-        : {}),
+      ...(isDebugHttpEnabled() ? { query: sanitizeForLog(req.query) } : {}),
     });
 
     res.on('finish', () => {
@@ -134,7 +124,7 @@ export function createApp() {
         return;
       }
 
-      logger.info('Richiesta completata', baseMeta);
+      logger.debug('Richiesta completata', baseMeta);
     });
 
     next();
@@ -164,43 +154,7 @@ export function createApp() {
     swaggerHandler(req, res, next);
   });
 
-  app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
-    if (err instanceof AppError) {
-      logger.warn('Errore applicativo gestito', {
-        ...getRequestContext(req),
-        code: err.code,
-        statusCode: err.statusCode,
-        details: err.details,
-        message: err.message,
-        ...(isDebugHttpEnabled() ? { body: sanitizeForLog(req.body), query: sanitizeForLog(req.query) } : {}),
-      });
-
-      return res.status(err.statusCode).json({
-        success: false,
-        message: err.message,
-        requestId: req.requestId,
-        error: {
-          code: err.code,
-          statusCode: err.statusCode,
-          details: err.details,
-        },
-      });
-    }
-
-    logger.errorWithStack('Errore interno non gestito', err, {
-      ...getRequestContext(req),
-      ...(isDebugHttpEnabled() ? { body: sanitizeForLog(req.body), query: sanitizeForLog(req.query) } : {}),
-    });
-    return res.status(500).json({
-      success: false,
-      message: 'Errore interno del server',
-      requestId: req.requestId,
-      error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        statusCode: 500,
-      },
-    });
-  });
+  app.use(globalErrorHandler);
 
   return app;
 }

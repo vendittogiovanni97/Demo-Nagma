@@ -1,9 +1,9 @@
 'use client';
 
-import React, { type ReactNode } from 'react';
-import { Chip, type ChipProps, useTheme } from '@mui/material';
+import { Chip, useTheme } from '@mui/material';
+import { type ReactNode } from 'react';
 
-type BadgeVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning' | 'status-confirmed' | 'status-completed' | 'status-cancelled' | 'status-pending' | 'status-rescheduled';
+export type BadgeVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'info' | 'warning' | 'status-created' | 'status-confirmed' | 'status-completed' | 'status-cancelled' | 'status-pending' | 'status-rescheduled' | 'status-updated' | 'status-deleted';
 type BadgeSize = 'xs' | 'sm' | 'md';
 
 interface BadgeProps {
@@ -85,11 +85,17 @@ const Badge = ({
           backgroundColor: 'rgba(255, 152, 0, 0.2)',
           color: '#ff9800',
         };
-      case 'status-confirmed':
+      case 'status-created':
         return {
           backgroundColor: 'rgba(59, 130, 246, 0.2)',
           color: '#3b82f6',
           border: '1px solid rgba(59, 130, 246, 0.3)',
+        };
+      case 'status-confirmed':
+        return {
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          color: '#10b981',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
         };
       case 'status-completed':
         return {
@@ -114,6 +120,18 @@ const Badge = ({
           backgroundColor: 'rgba(139, 92, 246, 0.2)',
           color: '#8b5cf6',
           border: '1px solid rgba(139, 92, 246, 0.3)',
+        };
+      case 'status-updated':
+        return {
+          backgroundColor: 'rgba(217, 119, 6, 0.2)',
+          color: '#d97706',
+          border: '1px solid rgba(217, 119, 6, 0.3)',
+        };
+      case 'status-deleted':
+        return {
+          backgroundColor: 'rgba(156, 163, 175, 0.2)',
+          color: '#9ca3af',
+          border: '1px solid rgba(156, 163, 175, 0.3)',
         };
       default:
         return {};

@@ -9,10 +9,10 @@ import { transactionService } from '@/services/transaction.service';
 import type { CreateTransactionData, TransactionType } from '@/types/transaction';
 import { validateData } from '@/utils/validation';
 import { useState } from 'react';
-import FormInput from '../forms/FormInput';
-import FormSelect from '../forms/FormSelect';
-import SubmitButton from '../forms/SubmitButton';
-import Modal from './Modal';
+import SmartModal from '@/components/common/SmartModal';
+import FormInput from '@/components/forms/FormInput';
+import FormSelect from '@/components/forms/FormSelect';
+import { Box } from '@mui/material';
 
 interface Props {
   isOpen: boolean;
@@ -33,8 +33,7 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
     errorMessage: 'Errore nel salvare la transazione',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     const data: CreateTransactionData = {
       description: desc,
       amount: Number(amount),
@@ -53,7 +52,15 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Nuova Voce Spesa / Entrata">
+    <SmartModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nuova Voce Spesa / Entrata"
+      onSave={handleSave}
+      isSaving={loading}
+      saveLabel="Registra Transazione"
+      maxWidth="sm"
+    >
       {!isAdmin ? (
         <StatePanel
           variant="error"
@@ -61,40 +68,38 @@ export default function TransactionModal({ isOpen, onClose }: Props) {
           description="Solo admin e segreteria possono registrare movimenti finanziari."
         />
       ) : (
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <FormInput
-          label="Descrizione"
-          required
-          value={desc}
-          onChange={setDesc}
-          placeholder="Es. Affitto, Colori, Acconto Cliente..."
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           <FormInput
-            label="Importo (€)"
-            type="number"
+            label="Descrizione"
             required
-            value={amount}
-            onChange={setAmount}
-            placeholder="0.00"
-            step="0.01"
-            min={0}
+            value={desc}
+            onChange={setDesc}
+            placeholder="Es. Affitto, Colori, Acconto Cliente..."
           />
-          <FormSelect
-            label="Tipo"
-            value={type}
-            onChange={(v) => setType(v as TransactionType)}
-            options={[
-              { value: 'EXPENSE', label: 'Spesa (Uscita)' },
-              { value: 'INCOME', label: 'Entrata' },
-            ]}
-          />
-        </div>
 
-        <SubmitButton loading={loading} label="Registra Transazione" loadingLabel="Registrazione in corso..." />
-      </form>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
+            <FormInput
+              label="Importo (€)"
+              type="number"
+              required
+              value={amount}
+              onChange={setAmount}
+              placeholder="0.00"
+              step="0.01"
+              min={0}
+            />
+            <FormSelect
+              label="Tipo"
+              value={type}
+              onChange={(v) => setType(v as TransactionType)}
+              options={[
+                { value: 'EXPENSE', label: 'Spesa (Uscita)' },
+                { value: 'INCOME', label: 'Entrata' },
+              ]}
+            />
+          </Box>
+        </Box>
       )}
-    </Modal>
+    </SmartModal>
   );
 }

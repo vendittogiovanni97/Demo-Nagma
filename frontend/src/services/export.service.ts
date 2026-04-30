@@ -4,7 +4,7 @@ export interface ExportFilters {
   fromDate?: string;
   toDate?: string;
   weekday?: 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
-  status?: 'CONFIRMED' | 'CANCELLED' | 'RESCHEDULED' | 'COMPLETED';
+  status?: 'CREATO' | 'CONFERMATO' | 'COMPLETATO' | 'MODIFICATO' | 'SPOSTATO' | 'ANNULLATO' | 'CANCELLATO';
   artistId?: string;
   customerId?: string;
 }

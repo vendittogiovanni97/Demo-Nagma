@@ -1,7 +1,8 @@
 "use client";
 
+import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Stack, Typography } from '@mui/material';
+import { Stack, Typography, SxProps, Theme } from '@mui/material';
 import Button from '@/components/ui/Button';
 
 interface PaginationControlsProps {
@@ -24,31 +25,42 @@ export default function PaginationControls({
   if (totalPages <= 1) return null;
 
   return (
-    <Stack
-      direction="row"
-      sx={{ alignItems: 'center', justifyContent: 'space-between', p: 2, borderTop: 1, borderColor: 'divider' }}
-    >
-      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+    <Stack direction="row" sx={styles.container}>
+      <Typography variant="body2" sx={styles.text}>
         Pagina {page} di {totalPages} ({total} {label})
       </Typography>
-      <Stack direction="row" sx={{ gap: 1 }}>
+      <Stack direction="row" sx={styles.actions}>
         <Button
-          variant="ghost"
-          size="sm"
+          variant="ghost" size="sm"
           onClick={onPrev}
           disabled={page <= 1}
           icon={<ChevronLeft size={18} />}
-          sx={{ p: 0, minWidth: 'auto' }}
+          sx={styles.navButton}
         />
         <Button
-          variant="ghost"
-          size="sm"
+          variant="ghost" size="sm"
           onClick={onNext}
           disabled={page >= totalPages}
           icon={<ChevronRight size={18} />}
-          sx={{ p: 0, minWidth: 'auto' }}
+          sx={styles.navButton}
         />
       </Stack>
     </Stack>
   );
 }
+
+const styles = {
+  container: {
+    alignItems: 'center', justifyContent: 'space-between',
+    p: 2, borderTop: 1, borderColor: 'divider'
+  } as SxProps<Theme>,
+  text: {
+    color: 'text.secondary'
+  } as SxProps<Theme>,
+  actions: {
+    gap: 1
+  } as SxProps<Theme>,
+  navButton: {
+    p: 0, minWidth: 'auto'
+  } as SxProps<Theme>,
+};

@@ -81,7 +81,7 @@ const options = {
             artistId: { type: 'integer', nullable: true },
             date: { type: 'string', format: 'date-time' },
             duration: { type: 'integer', description: 'Durata in minuti' },
-            status: { type: 'string', enum: ['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED'] },
+            status: { type: 'string', enum: ['CREATO', 'CONFERMATO', 'COMPLETATO', 'MODIFICATO', 'SPOSTATO', 'ANNULLATO', 'CANCELLATO'] },
             type: { type: 'string', description: 'Tipo servizio (Tattoo, Touch-up, Consulenza)' },
             price: { type: 'number' },
             deposit: { type: 'number' },

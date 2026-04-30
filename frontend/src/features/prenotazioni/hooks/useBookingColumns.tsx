@@ -10,11 +10,14 @@ import type { Column } from '@/components/data-display/DataTable';
 import type { ExportFilter } from '@/components/modals/ExportModal';
 import type { Booking, BookingStatus } from '@/types/booking';
 
-const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'primary' | 'success' | 'error' | 'warning' }> = {
-  CONFIRMED: { label: 'Confermato', color: 'primary' },
-  COMPLETED: { label: 'Completato', color: 'success' },
-  CANCELLED: { label: 'Annullato', color: 'error' },
-  RESCHEDULED: { label: 'Spostato', color: 'warning' },
+const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'error' | 'primary' | 'success' | 'warning' | 'info' | 'default' | 'secondary' }> = {
+  CREATO: { label: 'Creato', color: 'info' },
+  CONFERMATO: { label: 'Confermato', color: 'primary' },
+  COMPLETATO: { label: 'Completato', color: 'success' },
+  MODIFICATO: { label: 'Modificato', color: 'warning' },
+  ANNULLATO: { label: 'Annullato', color: 'error' },
+  SPOSTATO: { label: 'Spostato', color: 'warning' },
+  CANCELLATO: { label: 'Cancellato', color: 'default' },
 };
 
 interface UseBookingColumnsOptions {
@@ -221,7 +224,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       align: 'right',
       width: '110px',
       render: (booking) => {
-        if (booking.status === 'COMPLETED') {
+        if (booking.status === 'COMPLETATO') {
           return (
             <Box sx={{ textAlign: 'right', width: '100%' }}>
               <Typography
@@ -249,7 +252,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
           );
         }
 
-        if (booking.status === 'CANCELLED') {
+        if (booking.status === 'ANNULLATO') {
           return (
             <Box sx={{ textAlign: 'right', width: '100%' }}>
               <Typography
@@ -434,10 +437,10 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       type: 'select',
       options: [
         { value: '', label: 'Tutti gli stati' },
-        { value: 'CONFIRMED', label: 'Confermato' },
-        { value: 'COMPLETED', label: 'Completato' },
-        { value: 'CANCELLED', label: 'Annullato' },
-        { value: 'RESCHEDULED', label: 'Spostato' },
+        { value: 'CONFERMATO', label: 'Confermato' },
+        { value: 'COMPLETATO', label: 'Completato' },
+        { value: 'ANNULLATO', label: 'Annullato' },
+        { value: 'SPOSTATO', label: 'Spostato' },
       ],
       filterFn: (b, v) => !v || b.status === v,
     },

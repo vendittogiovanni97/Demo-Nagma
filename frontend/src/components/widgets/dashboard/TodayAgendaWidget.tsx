@@ -14,7 +14,9 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, ExternalLink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { IconButton, Tooltip } from '@mui/material';
 
 interface TodayAgendaWidgetProps {
   bookings?: Booking[];
@@ -28,6 +30,7 @@ export default function TodayAgendaWidget({
   className,
 }: TodayAgendaWidgetProps) {
   const theme = useTheme();
+  const router = useRouter();
 
   const todayBookings = bookings?.filter((booking) => {
     const bookingDate = new Date(booking.date);
@@ -84,17 +87,37 @@ export default function TodayAgendaWidget({
           </Stack>
         }
         action={
-          <Chip
-            label={todayBookings.length}
-            sx={{
-              bgcolor: `${theme.palette.primary.main}15`,
-              color: theme.palette.primary.main,
-              fontWeight: 700,
-              fontSize: '0.75rem',
-            }}
-          />
+          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
+            <Chip
+              label={todayBookings.length}
+              sx={{
+                bgcolor: `${theme.palette.primary.main}15`,
+                color: theme.palette.primary.main,
+                fontWeight: 700,
+                fontSize: '0.75rem',
+              }}
+            />
+            <Tooltip title="Vedi prenotazioni di oggi">
+              <IconButton
+                size="small"
+                onClick={() => {
+                  const today = format(new Date(), 'yyyy-MM-dd');
+                  router.push(`/prenotazioni?startDate=${today}&endDate=${today}`);
+                }}
+                sx={{
+                  color: theme.palette.primary.main,
+                  transition: theme.transitions.create(['all'], { duration: 300 }),
+                  '&:hover': {
+                    bgcolor: `${theme.palette.primary.main}15`,
+                  },
+                }}
+              >
+                <ExternalLink size={16} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
         }
-        sx={{ pb: 1.5, borderBottom: `1px solid ${theme.palette.primary.main}12` }}
+        sx={{ pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${theme.palette.primary.main}12` }}
       />
       <CardContent
         sx={{
@@ -102,8 +125,10 @@ export default function TodayAgendaWidget({
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.25,
-          minHeight: 300,
+          gap: { xs: 1, md: 1.25 },
+          minHeight: { xs: 200, md: 300 },
+          p: { xs: 1.5, sm: 2, md: 2.5 },
+          '&:last-child': { pb: { xs: 1.5, sm: 2, md: 2.5 } },
         }}
       >
         {isLoading ? (

@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { BookingHistoryService } from '../services/booking-history.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
-import { BookingAction } from '@prisma/client';
+import { BookingStatus } from '@prisma/client';
 
 const service = new BookingHistoryService();
 
@@ -14,7 +14,7 @@ export class BookingHistoryController {
     const filters = {
       startDate: req.query.startDate as string | undefined,
       endDate: req.query.endDate as string | undefined,
-      action: req.query.action as BookingAction | undefined,
+      action: req.query.action as BookingStatus | undefined,
       userId: req.query.userId ? Number(req.query.userId) : undefined,
     };
 

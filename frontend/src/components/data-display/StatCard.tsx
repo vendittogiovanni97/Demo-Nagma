@@ -1,7 +1,7 @@
 "use client";
 
-import { Box, useTheme } from '@mui/material';
-import type { SxProps, Theme } from '@mui/material';
+import React from 'react';
+import { Box, useTheme, SxProps, Theme } from '@mui/material';
 import Card from '@/components/ui/Card';
 
 interface StatCardProps {
@@ -21,32 +21,29 @@ export default function StatCard({
   const textColor = color || theme.palette.text.primary;
 
   return (
-    <Card variant="glass" size="md" sx={{ textAlign: 'center', ...sx }}>
-      <Box
-        sx={{
-          fontSize: '1.875rem',
-          fontWeight: 'bold',
-          color: textColor,
-          fontFamily: 'Outfit',
-          transition: 'transform 0.3s ease',
-          '&:hover': {
-            transform: 'scale(1.1)'
-          }
-        }}
-      >
+    <Card variant="glass" size="md" sx={[styles.card, ...(Array.isArray(sx) ? sx : [sx])] as any}>
+      <Box sx={[styles.value, { color: textColor }] as any}>
         {value}
       </Box>
-      <Box
-        sx={{
-          fontSize: '0.625rem',
-          color: theme.palette.text.secondary,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          mt: 0.5
-        }}
-      >
+      <Box sx={styles.label}>
         {label}
       </Box>
     </Card>
   );
 }
+
+const styles = {
+  card: {
+    textAlign: 'center', display: 'flex', flexDirection: 'column',
+    justifyContent: 'center', minHeight: '100px'
+  } as SxProps<Theme>,
+  value: {
+    fontSize: '1.875rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif',
+    transition: 'transform 0.3s ease',
+    '&:hover': { transform: 'scale(1.1)' }
+  } as SxProps<Theme>,
+  label: {
+    fontSize: '0.625rem', color: 'text.secondary', textTransform: 'uppercase',
+    letterSpacing: '0.12em', mt: 0.5, fontWeight: 600
+  } as SxProps<Theme>,
+};

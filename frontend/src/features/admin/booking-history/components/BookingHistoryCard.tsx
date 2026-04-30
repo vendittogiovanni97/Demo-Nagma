@@ -15,11 +15,13 @@ const ACTION_CONFIG: Record<
   BookingAction,
   { label: string; color: string; bg: string }
 > = {
-  CREATED:     { label: 'Creato',     color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.2)' },
-  UPDATED:     { label: 'Modificato', color: '#d97706', bg: 'rgba(217, 119, 6, 0.2)' },
-  RESCHEDULED: { label: 'Spostato',   color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.2)' },
-  CANCELLED:   { label: 'Annullato',  color: '#ef4444', bg: 'rgba(239, 68, 68, 0.2)' },
-  COMPLETED:   { label: 'Completato', color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)' },
+  CREATO:     { label: 'Creato',     color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.2)' },
+  CONFERMATO: { label: 'Confermato', color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)' },
+  MODIFICATO:     { label: 'Modificato', color: '#d97706', bg: 'rgba(217, 119, 6, 0.2)' },
+  SPOSTATO: { label: 'Spostato',   color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.2)' },
+  ANNULLATO:   { label: 'Annullato',  color: '#ef4444', bg: 'rgba(239, 68, 68, 0.2)' },
+  COMPLETATO:   { label: 'Completato', color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)' },
+  CANCELLATO: { label: 'Cancellato', color: '#9ca3af', bg: 'rgba(156, 163, 175, 0.2)' },
 };
 
 function renderDetails(entry: BookingHistoryEntry) {
@@ -42,13 +44,13 @@ function renderDetails(entry: BookingHistoryEntry) {
       </Stack>
     );
   }
-  if (entry.action === 'CREATED') {
+  if (entry.action === 'CREATO') {
     return <Typography sx={{ color: '#3b82f6', fontSize: '0.8125rem' }}>Nuova prenotazione</Typography>;
   }
-  if (entry.action === 'CANCELLED') {
+  if (entry.action === 'ANNULLATO') {
     return <Typography sx={{ color: '#ef4444', fontSize: '0.8125rem' }}>Prenotazione annullata</Typography>;
   }
-  if (entry.action === 'COMPLETED') {
+  if (entry.action === 'COMPLETATO') {
     return <Typography sx={{ color: '#10b981', fontSize: '0.8125rem' }}>Prenotazione completata</Typography>;
   }
   return null;

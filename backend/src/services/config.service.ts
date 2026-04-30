@@ -1,22 +1,13 @@
 import bcryptjs from 'bcryptjs';
-import prisma from '../utils/prisma';
 import { Cache } from '../utils/cache';
 import { logger } from '../utils/logger';
-
-/**
- * ConfigService - Gestisce i parametri di configurazione dalla tabella Config
- * Con caching per performance
- *
- * IMPORTANTE: Deve essere inizializzato all'avvio del server con initializeConfig()
- */
+import prisma from '../utils/prisma';
 
 const CONFIG_CACHE_TTL = 5 * 60 * 1000; // 5 minuti
 const configCache = new Cache<string>(CONFIG_CACHE_TTL);
 
-// In-memory store per valori critici (letti una sola volta al boot)
 const criticalConfig: Record<string, string> = {};
 
-// Prefix for bcrypt-hashed values to distinguish from plain text
 const HASH_PREFIX = '$2b$';
 
 async function hashPassword(password: string, saltRounds: number = 10): Promise<string> {

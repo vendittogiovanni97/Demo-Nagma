@@ -1,43 +1,33 @@
-import prisma from '../utils/prisma';
 import { Prisma, Staff } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
-import { BaseRepository } from './BaseRepository';
-import { paginate } from '../utils/date-utils';
+import { paginate, buildPagination as paginateOpts } from '../utils/date-utils';
+import prisma from '../utils/prisma';
 import { parseId } from '../utils/parse-id';
 
-export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInput, Prisma.StaffUpdateInput> {
-  constructor(prismaClient: PrismaClient = prisma) {
-    super(prismaClient);
-  }
-
+export class StaffService {
   async create(data: Prisma.StaffCreateInput): Promise<Staff> {
-    return this.prisma.staff.create({ data });
+    return prisma.staff.create({ data });
   }
 
   async findById(id: string | number): Promise<Staff | null> {
     const staffId = parseId(String(id));
-    return this.prisma.staff.findUnique({ where: { id: staffId } });
+    return prisma.staff.findUnique({ where: { id: staffId } });
   }
 
   async findAll(): Promise<Staff[]> {
-    return this.prisma.staff.findMany({
+    return prisma.staff.findMany({
       orderBy: { name: 'asc' },
     });
   }
 
   async update(id: string | number, data: Prisma.StaffUpdateInput): Promise<Staff> {
     const staffId = parseId(String(id));
-    return this.prisma.staff.update({ where: { id: staffId }, data });
+    return prisma.staff.update({ where: { id: staffId }, data });
   }
 
   async delete(id: string | number): Promise<void> {
     const staffId = parseId(String(id));
-    await this.prisma.staff.delete({ where: { id: staffId } });
+    await prisma.staff.delete({ where: { id: staffId } });
   }
-
-  // ============================================================================
-  // SPECIALIZED METHODS - Custom business logic
-  // ============================================================================
 
   async findAllPaged({
     search,
@@ -62,23 +52,20 @@ export class StaffRepository extends BaseRepository<Staff, Prisma.StaffCreateInp
       ];
     }
 
-    const [data, total] = await this.prisma.$transaction([
-      this.prisma.staff.findMany({
+    const [data, total] = await prisma.$transaction([
+      prisma.staff.findMany({
         where,
-        ...this.buildPagination(page, limit),
+        ...paginateOpts(page, limit),
         orderBy: { name: 'asc' },
       }),
-      this.prisma.staff.count({ where }),
+      prisma.staff.count({ where }),
     ]);
 
     return paginate(data, total, page, limit);
   }
 
-  /**
-   * Recupera tutto lo staff con i relativi turni (filtrati in app logic nel service)
-   */
   async findAllShifts() {
-    return this.prisma.staff.findMany({
+    return prisma.staff.findMany({
       select: {
         id: true,
         name: true,

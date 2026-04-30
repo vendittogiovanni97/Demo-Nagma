@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import { Download, FileSpreadsheet, FileText, FileDown, AlertCircle, SlidersHorizontal, X } from 'lucide-react';
-import { Alert, Box, MenuItem, Stack, TextField, Typography, useTheme } from '@mui/material';
+import SmartModal from '@/components/common/SmartModal';
 import Button from '@/components/ui/Button';
-import Modal from './Modal';
-import type { ExportColumn } from '@/utils/export';
-import { exportRowsToCsv, exportRowsToPdf, exportRowsToXlsx } from '@/utils/export';
-import type { ExportFilters } from '@/services/export.service';
-import { exportService } from '@/services/export.service';
+import { Alert, Box, Stack, Typography, useTheme } from '@mui/material';
+import { AlertCircle, FileDown, SlidersHorizontal, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
-type ExportFormat = 'xlsx' | 'csv' | 'pdf';
+import { exportService } from '@/services/export.service';
+import { exportRowsToPdf } from '@/utils/export';
+import FormInput from '@/components/forms/FormInput';
+import FormSelect from '@/components/forms/FormSelect';
+
+type ExportFormat = 'pdf';
+
+export interface ExportColumn<T> {
+  label: string;
+  value: (row: T) => string | number | undefined | null;
+}
+
+export interface ExportFilters {
+  [key: string]: string | undefined;
+}
 
 export interface ExportFilter<T> {
   key: string;
@@ -47,7 +57,7 @@ export default function ExportModal<T>({
 }: ExportModalProps<T>) {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const [format, setFormat] = useState<ExportFormat>('xlsx');
+  const [format] = useState<ExportFormat>('pdf');
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,14 +81,7 @@ export default function ExportModal<T>({
   }, [rows, filters, filterValues]);
 
   const hasActiveFilters = filters?.some(f => (filterValues[f.key] ?? '') !== '');
-
   const resetFilters = () => setFilterValues(initialValues);
-
-  const formats: { value: ExportFormat; label: string; icon: typeof FileSpreadsheet; desc: string }[] = [
-    { value: 'xlsx', label: 'Excel (.xlsx)', icon: FileSpreadsheet, desc: 'Foglio di calcolo con formattazione' },
-    { value: 'csv', label: 'CSV (.csv)', icon: Download, desc: 'Testo separato da virgole, universale' },
-    { value: 'pdf', label: 'PDF (.pdf)', icon: FileText, desc: 'Documento pronto per la stampa' },
-  ];
 
   const handleOpen = () => {
     setFilterValues(initialValues);
@@ -114,14 +117,40 @@ export default function ExportModal<T>({
       }
 
       switch (format) {
-        case 'xlsx': exportRowsToXlsx(filenameBase, data, columns); break;
-        case 'csv':  exportRowsToCsv(filenameBase, data, columns);  break;
         case 'pdf':  exportRowsToPdf(filenameBase, title, data, columns, finalFiltersLabel); break;
       }
       handleClose();
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const renderFilterItem = (filter: ExportFilter<T>) => {
+    const val = filterValues[filter.key] ?? '';
+    const onChange = (v: string) => setFilterValues(prev => ({ ...prev, [filter.key]: v }));
+
+    if (filter.type === 'select' && filter.options) {
+      return (
+        <FormSelect
+          key={filter.key}
+          label={filter.label}
+          value={val}
+          onChange={onChange}
+          options={filter.options}
+        />
+      );
+    }
+
+    return (
+      <FormInput
+        key={filter.key}
+        label={filter.label}
+        type={filter.type === 'month' ? 'month' : filter.type === 'date' ? 'date' : 'text'}
+        value={val}
+        onChange={onChange}
+        placeholder={filter.placeholder ?? filter.label}
+      />
+    );
   };
 
   return (
@@ -136,22 +165,30 @@ export default function ExportModal<T>({
         Esporta
       </Button>
 
-      <Modal isOpen={isOpen} onClose={handleClose} title="Esporta Dati">
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
-
+      <SmartModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title="Esporta Dati"
+        onSave={handleExport}
+        isSaving={isExporting}
+        saveLabel="Esporta in PDF"
+        saveDisabled={filteredRows.length === 0}
+        maxWidth="md"
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {error ? (
-            <Alert severity="error" icon={<AlertCircle size={18} />}>
+            <Alert severity="error" icon={<AlertCircle size={18} />} sx={{ borderRadius: 2 }}>
               {error}
             </Alert>
           ) : null}
 
           {filters && filters.length > 0 && (
-            <Stack useFlexGap sx={{ gap: 1.5 }}>
-              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
+            <Stack useFlexGap sx={{ gap: 2 }}>
+              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Stack direction="row" sx={{ gap: 1.5, alignItems: 'center', px: 0.5 }}>
                   <SlidersHorizontal size={14} color={theme.palette.primary.main} />
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Filtri
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                    Opzioni Filtro
                   </Typography>
                 </Stack>
                 {hasActiveFilters && (
@@ -161,189 +198,42 @@ export default function ExportModal<T>({
                     onClick={resetFilters}
                     icon={<X size={12} />}
                   >
-                    Reset
+                    Resetta
                   </Button>
                 )}
               </Stack>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
-                {filters.filter(f => ['cliente', 'artista'].includes(f.key)).map((filter) => {
-                  const val = filterValues[filter.key] ?? '';
-                  const onChange = (v: string) => setFilterValues(prev => ({ ...prev, [filter.key]: v }));
-
-                  return (
-                    <Box key={filter.key} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.primary.main, textTransform: 'uppercase', letterSpacing: '0.08em', px: 0.5 }}>
-                        {filter.label}
-                      </Typography>
-
-                      {filter.type === 'select' && filter.options ? (
-                        <TextField
-                          select
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        >
-                          {filter.options.map(opt => (
-                            <MenuItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      ) : filter.type === 'month' ? (
-                        <TextField
-                          type="month"
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        />
-                      ) : filter.type === 'date' ? (
-                        <TextField
-                          type="date"
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        />
-                      ) : (
-                        <TextField
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          placeholder={filter.placeholder ?? filter.label}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        />
-                      )}
-                    </Box>
-                  );
-                })}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                {filters.filter(f => ['cliente', 'artista'].includes(f.key)).map(renderFilterItem)}
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 1.5 }}>
-                {filters.filter(f => ['stato', 'giorno', 'mese'].includes(f.key)).map((filter) => {
-                  const val = filterValues[filter.key] ?? '';
-                  const onChange = (v: string) => setFilterValues(prev => ({ ...prev, [filter.key]: v }));
-
-                  return (
-                    <Box key={filter.key} sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.primary.main, textTransform: 'uppercase', letterSpacing: '0.08em', px: 0.5 }}>
-                        {filter.label}
-                      </Typography>
-
-                      {filter.type === 'select' && filter.options ? (
-                        <TextField
-                          select
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        >
-                          {filter.options.map(opt => (
-                            <MenuItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      ) : filter.type === 'month' ? (
-                        <TextField
-                          type="month"
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        />
-                      ) : filter.type === 'date' ? (
-                        <TextField
-                          type="date"
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        />
-                      ) : (
-                        <TextField
-                          value={val}
-                          onChange={(e) => onChange(e.target.value)}
-                          placeholder={filter.placeholder ?? filter.label}
-                          size="small"
-                          fullWidth
-                          sx={{ '& .MuiOutlinedInput-root': { backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1.5 } }}
-                        />
-                      )}
-                    </Box>
-                  );
-                })}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+                {filters.filter(f => ['stato', 'giorno', 'mese'].includes(f.key)).map(renderFilterItem)}
               </Box>
 
-              <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: filteredRows.length === 0 ? theme.palette.error.main : theme.palette.primary.main }}>
+              <Stack direction="row" sx={{ gap: 1, alignItems: 'center', p: 2, borderRadius: 2, backgroundColor: 'rgba(0, 191, 255, 0.05)', border: '1px solid rgba(0, 191, 255, 0.1)' }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: filteredRows.length === 0 ? theme.palette.error.main : theme.palette.primary.main }}>
                   {filteredRows.length}
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
+                <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
                   {filteredRows.length === rows.length
                     ? `record da esportare`
-                    : `di ${rows.length} record corrispondono ai filtri`}
+                    : `di ${rows.length} record corrispondono ai filtri attuali`}
                 </Typography>
               </Stack>
             </Stack>
           )}
 
-          <Stack useFlexGap sx={{ gap: 1.5 }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Formato
-            </Typography>
-            <Stack useFlexGap sx={{ gap: 1 }}>
-              {formats.map((f) => {
-                const Icon = f.icon;
-                const isSelected = format === f.value;
-                return (
-                  <Button
-                    key={f.value}
-                    variant={isSelected ? 'primary' : 'glass'}
-                    onClick={() => setFormat(f.value)}
-                    sx={{ justifyContent: 'flex-start' }}
-                    icon={<Icon size={22} />}
-                  >
-                    <Stack sx={{ textAlign: 'left' }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>{f.label}</Typography>
-                      <Typography sx={{ fontSize: '0.75rem', opacity: 0.7 }}>{f.desc}</Typography>
-                    </Stack>
-                  </Button>
-                );
-              })}
-            </Stack>
-          </Stack>
-
           {(!filters || filters.length === 0) && (
-            <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary }}>
-              {rows.length} record da esportare
-              {resolveRows && <Box component="span" sx={{ color: theme.palette.primary.main }}> (tutti i dati verranno scaricati)</Box>}
-            </Typography>
+            <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(0, 191, 255, 0.05)', border: '1px solid rgba(0, 191, 255, 0.1)' }}>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
+                Stai per esportare <Box component="span" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>{rows.length}</Box> record.
+                {resolveRows && <Box component="span" sx={{ display: 'block', mt: 0.5, fontSize: '0.75rem' }}>Verranno scaricati tutti i dati disponibili per questa vista.</Box>}
+              </Typography>
+            </Box>
           )}
-
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={() => void handleExport()}
-            disabled={isExporting || filteredRows.length === 0}
-            isLoading={isExporting}
-            loadingLabel="Esportazione in corso..."
-            icon={isExporting ? undefined : <Download size={20} />}
-          >
-            {!isExporting && `Esporta ${formats.find(f => f.value === format)?.label}`}
-          </Button>
         </Box>
-      </Modal>
+      </SmartModal>
     </>
   );
 }

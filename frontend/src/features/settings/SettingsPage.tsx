@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Box, Stack, useTheme } from '@mui/material';
 
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import PageHeader from '@/components/layout/PageHeader';
+import PageHeader from '@/components/common/PageHeader';
 import { useAuth } from '@/context/AuthContext';
 
 import SettingsProfileTab from './components/SettingsProfileTab';
@@ -14,8 +14,8 @@ import SettingsTeamTab from './components/SettingsTeamTab';
 import { useProfileForm } from './hooks/useProfileForm';
 import { useTeamMemberActions } from './hooks/useTeamMemberActions';
 
-const MemberFormModal = dynamic(() => import('./components/MemberFormModal'), { ssr: false });
-const ResetPasswordModal = dynamic(() => import('./components/ResetPasswordModal'), { ssr: false });
+const MemberFormModal = dynamic(() => import('@/components/modals/MemberFormModal'), { ssr: false });
+const ResetPasswordModal = dynamic(() => import('@/components/modals/ResetPasswordModal'), { ssr: false });
 
 type SettingsTab = 'profile' | 'users';
 

@@ -5,10 +5,10 @@ import { CheckCircle2, Edit, Trash2, MessageCircle, RotateCcw } from 'lucide-rea
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import Badge, { type BadgeVariant } from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import PermissionGate from '@/components/auth/PermissionGate';
-import type { Booking } from '@/types/booking';
+import type { Booking, BookingStatus } from '@/types/booking';
 
 interface BookingCardProps {
   booking: Booking;
@@ -20,25 +20,31 @@ interface BookingCardProps {
 }
 
 // Helper function to get status badge variant
-const getStatusVariant = (status: string) => {
-  const statusMap: Record<string, any> = {
-    CONFIRMED: 'status-confirmed',
-    COMPLETED: 'status-completed',
-    CANCELLED: 'status-cancelled',
-    RESCHEDULED: 'status-rescheduled',
+const getStatusVariant = (status: BookingStatus): BadgeVariant => {
+  const STATUS_CLASSES: Record<BookingStatus, BadgeVariant> = {
+    CREATO: 'status-created',
+    CONFERMATO: 'status-confirmed',
+    COMPLETATO: 'status-completed',
+    MODIFICATO: 'status-updated',
+    ANNULLATO: 'status-cancelled',
+    SPOSTATO: 'status-rescheduled',
+    CANCELLATO: 'status-deleted',
   };
-  return statusMap[status] || 'secondary';
+  return STATUS_CLASSES[status] || 'secondary';
 };
 
 // Helper function to get status label in Italian
-const getStatusLabel = (status: string) => {
-  const statusMap: Record<string, string> = {
-    CONFIRMED: 'Confermato',
-    COMPLETED: 'Completato',
-    CANCELLED: 'Annullato',
-    RESCHEDULED: 'Riprogrammato',
+const getStatusLabel = (status: BookingStatus) => {
+  const STATUS_LABELS: Record<BookingStatus, string> = {
+    CREATO: 'Creato',
+    CONFERMATO: 'Confermato',
+    COMPLETATO: 'Completato',
+    MODIFICATO: 'Modificato',
+    ANNULLATO: 'Annullato',
+    SPOSTATO: 'Spostato',
+    CANCELLATO: 'Cancellato',
   };
-  return statusMap[status] || status;
+  return STATUS_LABELS[status] || status;
 };
 
 export default function BookingCard({
@@ -63,8 +69,8 @@ export default function BookingCard({
   const formattedTime = format(bookingDate, 'HH:mm');
 
   const cardBgColor =
-    booking.status === 'COMPLETED' ? `${theme.palette.success.main}08` :
-    booking.status === 'CANCELLED' ? `${theme.palette.error.main}08` :
+    booking.status === 'COMPLETATO' ? `${theme.palette.success.main}08` :
+    booking.status === 'ANNULLATO' ? `${theme.palette.error.main}08` :
     undefined;
 
   return (
@@ -232,7 +238,7 @@ export default function BookingCard({
         {/* Action Buttons */}
         <PermissionGate requireAdmin>
           <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-            {booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED' && (
+            {booking.status !== 'COMPLETATO' && booking.status !== 'ANNULLATO' && (
               <Button
                 variant="icon"
                 icon={<CheckCircle2 size={18} />}
@@ -247,7 +253,7 @@ export default function BookingCard({
                 onClick={() => onComplete(booking.id)}
               />
             )}
-            {booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED' && (
+            {booking.status !== 'COMPLETATO' && booking.status !== 'ANNULLATO' && (
               <>
                 <Button
                   variant="icon"
@@ -283,7 +289,7 @@ export default function BookingCard({
                 />
               </>
             )}
-            {booking.status === 'CANCELLED' && (
+            {booking.status === 'ANNULLATO' && (
               <Button
                 variant="icon"
                 icon={<RotateCcw size={18} />}

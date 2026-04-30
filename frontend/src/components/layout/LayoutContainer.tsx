@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, type SxProps, type Theme } from '@mui/material';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 interface LayoutContainerProps {
@@ -9,33 +10,20 @@ interface LayoutContainerProps {
   sx?: SxProps<Theme>;
 }
 
-/**
- * LayoutContainer — Componente di contenimento responsivo con MUI
- *
- * Fornisce:
- * - Padding responsivo (xs: 1rem, sm: 1.5rem, md: 2rem, lg: 3rem)
- * - Max-width intelligente (default: lg = 1280px)
- * - Centering automatico
- * - Gestione corretta del navbar fixed
- *
- * @example
- * ```tsx
- * <LayoutContainer maxWidth="lg">
- *   {children}
- * </LayoutContainer>
- * ```
- */
 export default function LayoutContainer({
   children,
   maxWidth = 'lg',
   sx,
 }: LayoutContainerProps) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+
   const maxWidthMap = {
     sm: '640px',
     md: '840px',
-    lg: '1120px',
-    xl: '1280px',
-    '2xl': '1440px',
+    lg: '1280px',
+    xl: '1440px',
+    '2xl': '1600px',
     full: '100%',
   };
 
@@ -43,9 +31,9 @@ export default function LayoutContainer({
     <Box
       component="div"
       sx={{
-        px: { xs: 1.25, sm: 2, md: 2.5, lg: 3 },
-        pt: { xs: 10, sm: 11, md: 12 },
-        pb: { xs: 2, sm: 2.5, md: 3 },
+        px: isAuthPage ? 2 : { xs: 1.25, sm: 2, md: 2.5, lg: 3, xl: 4 },
+        pt: isAuthPage ? 0 : { xs: 10, sm: 11, md: 12 },
+        pb: isAuthPage ? 0 : { xs: 2, sm: 2.5, md: 3 },
         width: '100%',
         maxWidth: maxWidthMap[maxWidth],
         mx: 'auto',

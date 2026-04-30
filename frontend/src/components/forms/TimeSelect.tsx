@@ -1,7 +1,6 @@
 "use client";
 
-import { TextField, useTheme } from '@mui/material';
-import { inputRootSx } from '@/theme/inputStyles';
+import FormInput from '@/components/forms/FormInput';
 
 interface Props {
   label?: string;
@@ -12,29 +11,14 @@ interface Props {
 }
 
 export default function TimeSelect({ label, value, onChange, required, minuteStep = 15 }: Props) {
-  const theme = useTheme();
-
   return (
-    <TextField
-      size="small"
+    <FormInput
       label={label}
       type="time"
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange}
       required={required}
-      fullWidth
-      slotProps={{
-        inputLabel: { shrink: true },
-        input: {
-          inputProps: { step: minuteStep * 60 },
-        },
-      }}
-      sx={{
-        '& .MuiOutlinedInput-root': {
-          ...inputRootSx(theme),
-          '& .MuiInputBase-input': { colorScheme: 'dark' },
-        },
-      }}
+      step={minuteStep * 60}
     />
   );
 }

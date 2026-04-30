@@ -1,9 +1,0 @@
--- AlterTable
-ALTER TABLE "Booking" ALTER COLUMN "price" SET DATA TYPE DECIMAL(10, 2) USING "price"::DECIMAL(10, 2);
-ALTER TABLE "Booking" ALTER COLUMN "deposit" SET DATA TYPE DECIMAL(10, 2) USING "deposit"::DECIMAL(10, 2);
-
--- AlterTable
-ALTER TABLE "Transaction" ALTER COLUMN "amount" SET DATA TYPE DECIMAL(10, 2) USING "amount"::DECIMAL(10, 2);
-
--- AlterTable
-ALTER TABLE "SpesaLibera" ALTER COLUMN "price" SET DATA TYPE DECIMAL(10, 2) USING "price"::DECIMAL(10, 2);

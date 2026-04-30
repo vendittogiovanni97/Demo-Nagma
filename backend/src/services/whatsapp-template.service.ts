@@ -1,6 +1,5 @@
-import type { WhatsAppMessageStatus } from '@prisma/client';
-
-import { WhatsAppTemplateRepository } from '../repositories/whatsapp-template.repository';
+import type { Prisma, WhatsAppMessageStatus } from '@prisma/client';
+import prisma from '../utils/prisma';
 import { AppError } from '../utils/AppError';
 import {
   createWhatsAppTemplateSchema,
@@ -9,8 +8,7 @@ import {
   updateWhatsAppTemplateSchema,
   validate,
 } from '../schemas';
-
-const repo = new WhatsAppTemplateRepository();
+import { buildPagination, paginate } from '../utils/date-utils';
 
 function extractTemplateVariables(templateBody: string) {
   return Array.from(templateBody.matchAll(/{{\s*([\w.-]+)\s*}}/g)).map((match) => match[1]);
@@ -44,7 +42,27 @@ function normalizePhoneNumber(phone: string) {
 
 export class WhatsAppTemplateService {
   async getAll(search?: string, startDate?: string, endDate?: string) {
-    return repo.findAll(search, startDate, endDate);
+    const where: Prisma.WhatsAppTemplateWhereInput = {};
+    
+    if (startDate) {
+      where.createdAt = { gte: new Date(startDate) };
+    }
+    if (endDate) {
+      where.createdAt = { ...where.createdAt as object, lte: new Date(endDate + 'T23:59:59.999') };
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { category: { contains: search, mode: 'insensitive' } },
+        { body: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return prisma.whatsAppTemplate.findMany({
+      where,
+      orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
+    });
   }
 
   async getLogs(query: unknown) {
@@ -59,53 +77,95 @@ export class WhatsAppTemplateService {
       }
     );
 
-    return repo.findLogs({
+    const { search, status, page, limit } = {
       search: filters.search,
       status: filters.status as WhatsAppMessageStatus | undefined,
       page: filters.page,
       limit: filters.limit,
-    });
+    };
+
+    const where: Prisma.WhatsAppMessageLogWhereInput = {
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { recipientName: { contains: search, mode: 'insensitive' } },
+              { recipientPhone: { contains: search, mode: 'insensitive' } },
+              { templateName: { contains: search, mode: 'insensitive' } },
+              { message: { contains: search, mode: 'insensitive' } },
+              { customer: { firstName: { contains: search, mode: 'insensitive' } } },
+              { customer: { lastName: { contains: search, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.whatsAppMessageLog.findMany({
+        where,
+        include: {
+          template: true,
+          customer: true,
+          booking: true,
+          createdBy: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        ...buildPagination(page, limit),
+      }),
+      prisma.whatsAppMessageLog.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async create(body: unknown) {
     const data = validate(createWhatsAppTemplateSchema, body);
 
-    return repo.create({
-      name: data.name,
-      category: data.category || null,
-      body: data.body,
-      isActive: data.isActive ?? true,
+    return prisma.whatsAppTemplate.create({
+      data: {
+        name: data.name,
+        category: data.category || null,
+        body: data.body,
+        isActive: data.isActive ?? true,
+      }
     });
   }
 
   async update(id: number, body: unknown) {
-    const existing = await repo.findById(id);
+    const existing = await prisma.whatsAppTemplate.findUnique({ where: { id } });
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
 
     const data = validate(updateWhatsAppTemplateSchema, body);
-    return repo.update(id, {
-      ...(data.name !== undefined ? { name: data.name } : {}),
-      ...(data.category !== undefined ? { category: data.category || null } : {}),
-      ...(data.body !== undefined ? { body: data.body } : {}),
-      ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+    return prisma.whatsAppTemplate.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.category !== undefined ? { category: data.category || null } : {}),
+        ...(data.body !== undefined ? { body: data.body } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      }
     });
   }
 
   async delete(id: number) {
-    const existing = await repo.findById(id);
+    const existing = await prisma.whatsAppTemplate.findUnique({ where: { id } });
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
-    return repo.delete(id);
+    await prisma.whatsAppTemplate.delete({ where: { id } });
   }
 
   async duplicate(id: number) {
-    const existing = await repo.findById(id);
+    const existing = await prisma.whatsAppTemplate.findUnique({ where: { id } });
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
 
-    return repo.create({
-      name: `${existing.name} (Copia)`,
-      category: existing.category || null,
-      body: existing.body,
-      isActive: existing.isActive,
+    return prisma.whatsAppTemplate.create({
+      data: {
+        name: `${existing.name} (Copia)`,
+        category: existing.category || null,
+        body: existing.body,
+        isActive: existing.isActive,
+      }
     });
   }
 
@@ -115,7 +175,7 @@ export class WhatsAppTemplateService {
     let templateName: string | null = null;
 
     if (data.templateId) {
-      const template = await repo.findById(data.templateId);
+      const template = await prisma.whatsAppTemplate.findUnique({ where: { id: data.templateId } });
       if (!template) {
         throw new AppError('Template WhatsApp non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
       }
@@ -136,17 +196,27 @@ export class WhatsAppTemplateService {
     const recipientPhone = normalizePhoneNumber(data.recipientPhone);
     const whatsappUrl = `https://wa.me/${recipientPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(renderedMessage)}`;
 
-    const log = await repo.createLog({
-      templateId: data.templateId || null,
-      bookingId: data.bookingId || null,
-      customerId: data.customerId || null,
-      createdById: userId,
-      recipientName: data.recipientName || null,
-      recipientPhone,
-      templateName,
-      message: renderedMessage,
-      status: 'MANUAL_SENT',
-      variablesJson: data.variables,
+    const log = await prisma.whatsAppMessageLog.create({
+      data: {
+        templateId: data.templateId || null,
+        bookingId: data.bookingId || null,
+        customerId: data.customerId || null,
+        createdById: userId,
+        recipientName: data.recipientName || null,
+        recipientPhone,
+        templateName,
+        message: renderedMessage,
+        status: 'MANUAL_SENT',
+        variablesJson: data.variables,
+      },
+      include: {
+        template: true,
+        customer: true,
+        booking: true,
+        createdBy: {
+          select: { id: true, name: true, email: true, role: true },
+        },
+      },
     });
 
     return {

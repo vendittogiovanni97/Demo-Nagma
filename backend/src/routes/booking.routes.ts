@@ -38,7 +38,7 @@ const controller = new BookingController();
  *         name: status
  *         schema:
  *           type: string
- *           enum: [CONFIRMED, CANCELLED, RESCHEDULED, COMPLETED]
+ *           enum: [CREATO, CONFERMATO, COMPLETATO, MODIFICATO, SPOSTATO, ANNULLATO, CANCELLATO]
  *         description: Filtra per stato appuntamento
  *       - in: query
  *         name: artistId
@@ -219,7 +219,7 @@ router.get('/:id/history', authMiddleware, controller.getHistory);
  *                 type: integer
  *               status:
  *                 type: string
- *                 enum: [CONFIRMED, CANCELLED, RESCHEDULED, COMPLETED]
+ *                 enum: [CREATO, CONFERMATO, COMPLETATO, MODIFICATO, SPOSTATO, ANNULLATO, CANCELLATO]
  *               type:
  *                 type: string
  *               price:
@@ -253,5 +253,29 @@ router.put('/:id', authMiddleware, controller.update);
  *         description: Appuntamento eliminato
  */
 router.delete('/:id', authMiddleware, requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
+
+/**
+ * @swagger
+ * /api/bookings/{id}/annul:
+ *   put:
+ *     summary: Annulla appuntamento
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Appuntamento annullato
+ *       403:
+ *         description: Accesso negato
+ *       404:
+ *         description: Prenotazione non trovata
+ */
+router.put('/:id/annul', authMiddleware, controller.annul);
 
 export default router;

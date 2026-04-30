@@ -1,18 +1,12 @@
 "use client";
 
-import SearchInput from '@/components/forms/SearchInput';
+import SmartFilters from '@/components/common/SmartFilters';
 import type { BookingStatus } from '@/types/booking';
-import {
-  Box,
-  IconButton,
-  Button as MuiButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
+import Button from '@/components/ui/Button';
+import FormSelect from '@/components/forms/FormSelect';
+import { X } from 'lucide-react';
 
 interface BookingFiltersProps {
   monthLabel: string;
@@ -48,198 +42,69 @@ export default function BookingFilters({
   onNextMonth,
 }: BookingFiltersProps) {
   const theme = useMuiTheme();
+  const { isXLarge } = useTheme();
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', lg: 'row' },
-        alignItems: { xs: 'stretch', lg: 'center' },
-        gap: { xs: 1.25, lg: 1.5 },
-        width: '100%',
-        minWidth: 0,
-        flex: 1,
+    <SmartFilters
+      monthPicker={{
+        label: monthLabel,
+        onPrev: onPrevMonth,
+        onNext: onNextMonth,
+      }}
+      search={{
+        value: search,
+        onChange: onSearchChange,
+        placeholder: "Cerca cliente, artista...",
+      }}
+      dateRange={{
+        start: { value: startDate, onChange: onStartDateChange },
+        end: { value: endDate, onChange: onEndDateChange },
       }}
     >
-      {/* Month navigator — centered su mobile, inline su desktop */}
-      <Stack
-        direction="row"
-        useFlexGap
-        sx={{
-          gap: 0.5,
-          alignItems: 'center',
-          justifyContent: { xs: 'center', lg: 'flex-start' },
-          flexShrink: 0,
-        }}
-      >
-        <IconButton
-          size="small"
-          onClick={onPrevMonth}
-          aria-label="Mese precedente"
-          sx={{ p: 0.75 }}
-        >
-          <ChevronLeft size={16} />
-        </IconButton>
-        <Typography
-          sx={{
-            fontSize: '0.8125rem',
-            fontWeight: 600,
-            color: theme.palette.text.primary,
-            textTransform: 'capitalize',
-            minWidth: 128,
-            textAlign: 'center',
-          }}
-        >
-          {monthLabel}
-        </Typography>
-        <IconButton
-          size="small"
-          onClick={onNextMonth}
-          aria-label="Mese successivo"
-          sx={{ p: 0.75 }}
-        >
-          <ChevronRight size={16} />
-        </IconButton>
-      </Stack>
+      {/* Status */}
+      <FormSelect
+        label="Stato"
+        value={statusFilter}
+        onChange={(val) => onStatusFilterChange(val as BookingStatus | 'ALL')}
+        options={[
+          { value: 'ALL', label: 'Tutti' },
+          { value: 'CREATO', label: 'Creato' },
+          { value: 'CONFERMATO', label: 'Confermato' },
+          { value: 'MODIFICATO', label: 'Modificato' },
+          { value: 'SPOSTATO', label: 'Spostato' },
+          { value: 'COMPLETATO', label: 'Completato' },
+          { value: 'ANNULLATO', label: 'Annullato' },
+          { value: 'CANCELLATO', label: 'Cancellato' },
+        ]}
+        hideLabel
+        sx={{ flex: isXLarge ? '0 1 180px' : '0 1 150px', minWidth: 100 }}
+      />
 
-      {/* Search — full width su mobile, max 280 su desktop */}
-      <Box
-        sx={{
-          flex: { xs: '1 1 auto', lg: '1 1 200px' },
-          minWidth: 0,
-          width: { xs: '100%', lg: 'auto' },
-          maxWidth: { xs: '100%', lg: 280 },
-        }}
-      >
-        <SearchInput
-          value={search}
-          onChange={onSearchChange}
-          placeholder="Cerca cliente, artista..."
-          sx={{ width: '100%' }}
-        />
-      </Box>
+      {/* Sort */}
+      <FormSelect
+        label="Ordinamento"
+        value={sortOrder}
+        onChange={(val) => onSortOrderChange(val as 'asc' | 'desc')}
+        options={[
+          { value: 'desc', label: 'Più recente' },
+          { value: 'asc', label: 'Meno recente' },
+        ]}
+        hideLabel
+        sx={{ flex: isXLarge ? '0 1 180px' : '0 1 150px', minWidth: 100 }}
+      />
 
-      {/* Date range + Annullate checkbox */}
-      <Stack
-        direction="row"
-        useFlexGap
-        sx={{
-          gap: 0.75,
-          alignItems: 'center',
-          width: { xs: '100%', lg: 'auto' },
-          flexShrink: 0,
-        }}
-      >
-        <TextField
-          label="Dal"
-          type="date"
-          value={startDate}
-          onChange={(e) => onStartDateChange(e.target.value)}
-          size="small"
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ flex: { xs: 1, lg: '0 0 140px' }, minWidth: 0 }}
-        />
-        <TextField
-          label="Al"
-          type="date"
-          value={endDate}
-          onChange={(e) => onEndDateChange(e.target.value)}
-          size="small"
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ flex: { xs: 1, lg: '0 0 140px' }, minWidth: 0 }}
-        />
-        {(startDate || endDate) && (
-          <MuiButton
-            variant="text"
-            size="small"
-            onClick={onResetDateRange}
-            sx={{ flexShrink: 0, fontSize: '0.75rem' }}
-          >
-            Reset
-          </MuiButton>
-        )}
-        <TextField
-          select
-          label="Stato"
-          value={statusFilter}
-          onChange={(e) => onStatusFilterChange(e.target.value as BookingStatus | 'ALL')}
-          size="small"
-          sx={{ flex: { xs: 1, lg: '0 0 140px' }, minWidth: 0 }}
-          slotProps={{
-            select: {
-              MenuProps: {
-                slotProps: {
-                  paper: {
-                    sx: {
-                      backgroundColor: theme.palette.background.paper,
-                      backgroundImage: 'none',
-                      border: `1px solid rgba(0, 191, 255, 0.2)`,
-                      '& .MuiMenuItem-root': {
-                        fontSize: '0.8125rem',
-                        py: 0.75,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 191, 255, 0.1)',
-                        },
-                        '&.Mui-selected': {
-                          backgroundColor: 'rgba(0, 191, 255, 0.15)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 191, 255, 0.2)',
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          }}
+      {/* Reset button if dates are filtered */}
+      {(startDate || endDate) && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onResetDateRange}
+          icon={<X size={14} />}
+          sx={{ fontSize: '0.75rem', px: 1 }}
         >
-          <MenuItem value="ALL">Tutti</MenuItem>
-          <MenuItem value="CONFIRMED">Confermato</MenuItem>
-          <MenuItem value="COMPLETED">Completato</MenuItem>
-          <MenuItem value="RESCHEDULED">Spostato</MenuItem>
-          <MenuItem value="CANCELLED">Annullato</MenuItem>
-        </TextField>
-        <TextField
-          select
-          label="Ordinamento"
-          value={sortOrder}
-          onChange={(e) => onSortOrderChange(e.target.value as 'asc' | 'desc')}
-          size="small"
-          sx={{ flex: { xs: 1, lg: '0 0 140px' }, minWidth: 0 }}
-          slotProps={{
-            select: {
-              MenuProps: {
-                slotProps: {
-                  paper: {
-                    sx: {
-                      backgroundColor: theme.palette.background.paper,
-                      backgroundImage: 'none',
-                      border: `1px solid rgba(0, 191, 255, 0.2)`,
-                      '& .MuiMenuItem-root': {
-                        fontSize: '0.8125rem',
-                        py: 0.75,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0, 191, 255, 0.1)',
-                        },
-                        '&.Mui-selected': {
-                          backgroundColor: 'rgba(0, 191, 255, 0.15)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 191, 255, 0.2)',
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          }}
-        >
-          <MenuItem value="desc">Più recente</MenuItem>
-          <MenuItem value="asc">Più vecchio</MenuItem>
-        </TextField>
-      </Stack>
-    </Box>
+          Reset
+        </Button>
+      )}
+    </SmartFilters>
   );
 }

@@ -40,8 +40,8 @@ export const ENDPOINTS = {
     BY_ID: (id: number) => `/api/whatsapp-templates/${id}`,
   },
   STAFF: {
-    BASE: '/api/staff',
-    BY_ID: (id: number) => `/api/staff/${id}`,
+    BASE: '/api/team/members',
+    BY_ID: (id: number) => `/api/team/members/${id}`,
   },
   SPESE_LIBERE: {
     BASE: '/api/spese-libere',

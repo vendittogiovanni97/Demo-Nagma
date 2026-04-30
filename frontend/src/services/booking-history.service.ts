@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/endpoints';
 
-export type BookingAction = 'CREATED' | 'UPDATED' | 'RESCHEDULED' | 'CANCELLED' | 'COMPLETED';
+export type BookingAction = 'CREATO' | 'CONFERMATO' | 'COMPLETATO' | 'MODIFICATO' | 'SPOSTATO' | 'ANNULLATO' | 'CANCELLATO';
 
 export interface BookingHistoryEntry {
   id: number;

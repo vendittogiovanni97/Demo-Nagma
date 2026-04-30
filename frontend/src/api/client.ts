@@ -99,17 +99,22 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry
 
   if (response.status === 401) {
     const isRefreshEndpoint = endpoint === ENDPOINTS.AUTH.REFRESH;
+    const isAuthEndpoint = endpoint === ENDPOINTS.AUTH.LOGIN || endpoint === ENDPOINTS.AUTH.REGISTER;
 
-    if (!isRetry && !isRefreshEndpoint) {
-      const newToken = await attemptTokenRefresh();
+    // Se stiamo provando a fare login/register, non dobbiamo provare il refresh né sloggare.
+    // L'errore verrà gestito dal blocco successivo come normale eccezione.
+    if (!isAuthEndpoint) {
+      if (!isRetry && !isRefreshEndpoint) {
+        const newToken = await attemptTokenRefresh();
 
-      if (newToken) {
-        return apiFetch<T>(endpoint, options, true);
+        if (newToken) {
+          return apiFetch<T>(endpoint, options, true);
+        }
       }
-    }
 
-    logout();
-    throw new Error('Sessione scaduta');
+      logout();
+      throw new Error('Sessione scaduta');
+    }
   }
 
   if (!response.ok) {

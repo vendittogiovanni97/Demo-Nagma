@@ -15,30 +15,40 @@ type ActionConfig = Record<
 >;
 
 const ACTION_CONFIG: ActionConfig = {
-  CREATED: {
-    label: 'Creato',
+  CREATO: {
+    label: 'Creata',
     color: 'info',
     sx: { backgroundColor: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' },
   },
-  UPDATED: {
-    label: 'Modificato',
+  CONFERMATO: {
+    label: 'Confermata',
+    color: 'success',
+    sx: { backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#10b981' },
+  },
+  MODIFICATO: {
+    label: 'Modificata',
     color: 'warning',
     sx: { backgroundColor: 'rgba(217, 119, 6, 0.2)', color: '#d97706' },
   },
-  RESCHEDULED: {
-    label: 'Spostato',
+  SPOSTATO: {
+    label: 'Spostata',
     color: 'secondary',
     sx: { backgroundColor: 'rgba(139, 92, 246, 0.2)', color: '#8b5cf6' },
   },
-  CANCELLED: {
-    label: 'Annullato',
+  ANNULLATO: {
+    label: 'Annullata',
     color: 'error',
     sx: { backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' },
   },
-  COMPLETED: {
-    label: 'Completato',
+  COMPLETATO: {
+    label: 'Completata',
     color: 'success',
     sx: { backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#10b981' },
+  },
+  CANCELLATO: {
+    label: 'Eliminata',
+    color: 'error',
+    sx: { backgroundColor: 'rgba(156, 163, 175, 0.2)', color: '#9ca3af' },
   },
 };
 
@@ -152,9 +162,9 @@ export function useBookingHistoryColumns(): Column<BookingHistoryEntry>[] {
             </Stack>
           );
         }
-        if (actionType === 'CREATED') return <Typography sx={{ color: '#3b82f6', fontSize: '0.875rem' }}>Nuova prenotazione</Typography>;
-        if (actionType === 'CANCELLED') return <Typography sx={{ color: '#ef4444', fontSize: '0.875rem' }}>Prenotazione annullata</Typography>;
-        if (actionType === 'COMPLETED') return <Typography sx={{ color: '#10b981', fontSize: '0.875rem' }}>Prenotazione completata</Typography>;
+        if (actionType === 'CREATO') return <Typography sx={{ color: '#3b82f6', fontSize: '0.875rem' }}>Nuova prenotazione</Typography>;
+        if (actionType === 'ANNULLATO') return <Typography sx={{ color: '#ef4444', fontSize: '0.875rem' }}>Prenotazione annullata</Typography>;
+        if (actionType === 'COMPLETATO') return <Typography sx={{ color: '#10b981', fontSize: '0.875rem' }}>Prenotazione completata</Typography>;
         return <Typography sx={{ fontSize: '0.875rem' }}>—</Typography>;
       },
     },

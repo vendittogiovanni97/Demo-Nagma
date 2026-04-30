@@ -1,21 +1,21 @@
 "use client";
 
 import StatePanel from '@/components/feedback/StatePanel';
-import PageHeader from '@/components/layout/PageHeader';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import PageHeader from '@/components/common/PageHeader';
 import ExportModal from '@/components/modals/ExportModal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
 import { useCustomers } from '@/hooks/domain/useCustomers';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import { customerService } from '@/services/customer.service';
 import type { Customer } from '@/types/customer';
+import { Box } from '@mui/material';
 import { UserPlus } from 'lucide-react';
 import { useState } from 'react';
-import { Box } from '@mui/material';
-import CustomerFilters from './components/CustomerFilters';
 import CustomerDataTable from './components/CustomerDataTable';
-import CustomerModal from './components/CustomerModal';
+import CustomerFilters from './components/CustomerFilters';
+import CustomerModal from '@/components/modals/CustomerModal';
 import { useCustomerColumns, useCustomerExportColumns } from './hooks/useCustomerColumns';
 import { useCustomersFilter } from './hooks/useCustomersFilter';
 
@@ -68,10 +68,10 @@ export default function ClientiPage() {
   };
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
       <PageHeader
-        title="Anagrafica Clienti"
-        customFilters={
+        title="Clienti"
+        filters={
           <CustomerFilters
             search={search}
             startDate={startDate}
@@ -82,7 +82,7 @@ export default function ClientiPage() {
             onResetDates={resetDates}
           />
         }
-        extraActions={
+        actions={
           <ExportModal
             filenameBase="clienti"
             title="Anagrafica Clienti"
@@ -115,21 +115,23 @@ export default function ClientiPage() {
         />
       )}
 
-      {!error && (
-        <CustomerDataTable
-          customers={customers}
-          columns={customerColumns}
-          isLoading={isLoading}
-          debouncedSearch={debouncedSearch}
-          page={page}
-          totalPages={totalPages}
-          total={result?.total ?? 0}
-          onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-          onNextPage={() => setPage((p) => Math.min(totalPages, p + 1))}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto', pt: 2 }}>
+        {!error && (
+          <CustomerDataTable
+            customers={customers}
+            columns={customerColumns}
+            isLoading={isLoading}
+            debouncedSearch={debouncedSearch}
+            page={page}
+            totalPages={totalPages}
+            total={result?.total ?? 0}
+            onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+            onNextPage={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
+      </Box>
 
       <CustomerModal
         isOpen={isModalOpen}

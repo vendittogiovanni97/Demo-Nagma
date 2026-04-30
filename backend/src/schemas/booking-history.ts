@@ -5,7 +5,7 @@ export const bookingHistoryQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  action: z.enum(['CREATED', 'UPDATED', 'RESCHEDULED', 'CANCELLED', 'COMPLETED']).optional(),
+  action: z.enum(['CREATO', 'CONFERMATO', 'COMPLETATO', 'MODIFICATO', 'SPOSTATO', 'ANNULLATO', 'CANCELLATO']).optional(),
   userId: z.coerce.number().optional(),
 });
 

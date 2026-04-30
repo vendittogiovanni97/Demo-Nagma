@@ -10,7 +10,7 @@ export type ShiftData = {
   staffId: number;
 };
 
-export class ShiftRepository {
+export class ShiftService {
   async create(data: {
     date: Date;
     startTime: string;

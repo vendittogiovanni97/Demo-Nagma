@@ -7,9 +7,6 @@ import { configService } from '../services/config.service';
 import { AppError } from '../utils/AppError';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { asyncHandler } from '../utils/async-handler';
-import { UserRepository } from '../repositories/user.repository';
-
-const userRepo = new UserRepository();
 
 export class AuthController {
   login = asyncHandler(async (req: Request, res: Response) => {
@@ -54,7 +51,7 @@ export class AuthController {
       throw new AppError('Utente non autenticato', 401, 'UNAUTHENTICATED');
     }
 
-    const user = await userRepo.findById(req.user.id);
+    const user = await prisma.user.findFirst({ where: { id: req.user.id, deletedAt: null } });
     if (!user) {
       throw new AppError('Utente non trovato', 401);
     }
@@ -85,7 +82,7 @@ export class AuthController {
       throw new AppError('Utente non autenticato', 401, 'UNAUTHENTICATED');
     }
 
-    const user = await userRepo.findById(req.user.id);
+    const user = await prisma.user.findFirst({ where: { id: req.user.id, deletedAt: null } });
     if (!user) {
       throw new AppError('Utente non trovato', 401, 'USER_NOT_FOUND');
     }

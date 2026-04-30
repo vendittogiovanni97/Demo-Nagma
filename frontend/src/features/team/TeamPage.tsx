@@ -1,10 +1,10 @@
 "use client";
 
+import PageHeader from '@/components/common/PageHeader';
 import StatePanel from '@/components/feedback/StatePanel';
-import PageHeader from '@/components/layout/PageHeader';
 import WeekNavigator from '@/components/layout/WeekNavigator';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import ExportModal from '@/components/modals/ExportModal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useTeamMembers, useTeamShifts } from '@/hooks/domain/useTeam';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
@@ -14,8 +14,8 @@ import { Box, Paper, useTheme } from '@mui/material';
 import { addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import ShiftModal from './components/ShiftModal';
-import StaffModal from './components/StaffModal';
+import ShiftModal from '@/components/modals/ShiftModal';
+import StaffModal from '@/components/modals/StaffModal';
 import TeamShiftsGrid from './components/TeamShiftsGrid';
 import { useShiftActions } from './hooks/useShiftActions';
 
@@ -31,7 +31,6 @@ export default function TeamPage() {
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [shiftModalData, setShiftModalData] = useState<{ staffId?: number; dayOfWeek?: number }>({});
 
-  const canManageMembers = isAdmin;
   const canManageShiftData = isAdmin;
 
   const {
@@ -107,7 +106,7 @@ export default function TeamPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
       <PageHeader
         title="Team & Turni"
-        customFilters={
+        filters={
           <WeekNavigator
             weekStart={week}
             onPrev={handlePrevWeek}
@@ -116,7 +115,7 @@ export default function TeamPage() {
             variant="header"
           />
         }
-        extraActions={
+        actions={
           <ExportModal
             filenameBase="turni"
             title="Turni Settimanali"

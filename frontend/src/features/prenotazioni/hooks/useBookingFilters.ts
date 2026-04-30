@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { useSearchParams } from 'next/navigation';
 import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import type { Booking, BookingStatus } from '@/types/booking';
@@ -12,10 +13,14 @@ function monthKey(date: Date) {
 }
 
 export function useBookingFilters() {
+  const searchParams = useSearchParams();
+  const urlStartDate = searchParams.get('startDate') ?? '';
+  const urlEndDate = searchParams.get('endDate') ?? '';
+
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [search, setSearch] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(urlStartDate);
+  const [endDate, setEndDate] = useState(urlEndDate);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'ALL'>('ALL');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // 'desc' = più recente per primo
 

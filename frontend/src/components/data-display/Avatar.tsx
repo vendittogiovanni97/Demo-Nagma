@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { memo } from 'react';
-import { Avatar as MuiAvatar, useTheme, type SxProps, type Theme } from '@mui/material';
+import React, { memo } from 'react';
+import { Avatar as MuiAvatar, useTheme, SxProps, Theme } from '@mui/material';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 
@@ -32,7 +32,7 @@ function Avatar({
 
   const getInitials = (): string => {
     if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`;
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     }
     if (name) {
       return name.charAt(0).toUpperCase();
@@ -44,26 +44,29 @@ function Avatar({
 
   return (
     <MuiAvatar
-      sx={{
-        width: avatarSize,
-        height: avatarSize,
-        fontWeight: 600,
-        flexShrink: 0,
-        transition: 'transform 0.2s ease-in-out',
-        cursor: 'pointer',
-        '&:hover': {
-          transform: 'scale(1.1)',
+      sx={[
+        styles.avatar,
+        {
+          width: avatarSize,
+          height: avatarSize,
+          fontSize: size === 'sm' ? '0.75rem' : size === 'lg' ? '1.125rem' : '0.875rem',
+          backgroundColor: color || 'rgba(0, 191, 255, 0.1)',
+          color: color ? '#fff' : 'primary.main',
         },
-        backgroundColor: color || `linear-gradient(135deg, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.main}11 100%)`,
-        color: color ? '#fff' : theme.palette.primary.main,
-        fontSize: size === 'sm' ? '0.75rem' : size === 'lg' ? '1.125rem' : '0.875rem',
-        ...sx,
-      }}
+        ...(Array.isArray(sx) ? sx : [sx])
+      ] as any}
       src={undefined}
     >
       {getInitials()}
     </MuiAvatar>
   );
 }
+
+const styles = {
+  avatar: {
+    fontWeight: 600, flexShrink: 0, transition: 'all 0.2s ease-in-out', cursor: 'pointer',
+    '&:hover': { transform: 'scale(1.1)', boxShadow: '0 0 12px rgba(0, 191, 255, 0.2)' },
+  } as SxProps<Theme>,
+};
 
 export default memo(Avatar);

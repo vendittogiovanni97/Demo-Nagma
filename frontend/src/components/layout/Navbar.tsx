@@ -52,22 +52,22 @@ export default function Navbar() {
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
-  const { isSmall, isMedium, isLarge } = useTheme();
+  const { isSmall, isMedium, isLarge, isXLarge } = useTheme();
   const muiTheme = useMuiTheme() as unknown as Theme;
 
   // Memoize responsive sizing to avoid 57+ calculations per render
   // Dependencies: breakpoint changes (isSmall, isMedium, isLarge)
   const navConfig = useMemo(
     () => ({
-      iconSize: isSmall ? 11 : isMedium ? 12 : 13,
-      navTextSize: isSmall ? '0.4375rem' : isMedium ? '0.5rem' : '0.5rem',
-      logoSize: isSmall ? 11 : isMedium ? 12 : 13,
-      logoBox: isSmall ? 18 : 22,
-      plusBtn: isSmall ? 22 : 24,
-      avatarBtn: isSmall ? 24 : 26,
-      dividerH: 16,
+      iconSize: isSmall ? 14 : isMedium ? 15 : isLarge ? 16 : 18,
+      navTextSize: isSmall ? '0.5625rem' : isMedium ? '0.625rem' : isLarge ? '0.6875rem' : '0.75rem',
+      logoSize: isSmall ? 14 : isMedium ? 15 : isLarge ? 16 : 18,
+      logoBox: isSmall ? 24 : isMedium ? 28 : isLarge ? 30 : 32,
+      plusBtn: isSmall ? 28 : isMedium ? 30 : isLarge ? 32 : 34,
+      avatarBtn: isSmall ? 28 : isMedium ? 32 : isLarge ? 34 : 36,
+      dividerH: isSmall ? 20 : 24,
     }),
-    [isSmall, isMedium, isLarge]
+    [isSmall, isMedium, isLarge, isXLarge]
   );
 
   // Memoize nav item handlers to prevent recreation on every render
@@ -117,27 +117,33 @@ export default function Navbar() {
         position="fixed"
         suppressHydrationWarning
         sx={{
-          top: 6,
+          top: { xs: 0, sm: 6 },
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 'fit-content',
-          maxWidth: 'calc(100% - 24px)',
+          width: { xs: '100%', sm: 'fit-content' },
+          maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
           right: 'auto',
-          backgroundColor: 'rgba(10, 26, 38, 0.86)',
+          backgroundColor: 'rgba(10, 26, 38, 0.9)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(0, 191, 255, 0.12)',
-          borderRadius: '100px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 191, 255, 0.1)',
+          border: { xs: 'none', sm: '1px solid rgba(0, 191, 255, 0.12)' },
+          borderRadius: { xs: 0, sm: '100px' },
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+          borderBottom: { xs: '1px solid rgba(0, 191, 255, 0.12)', sm: '1px solid rgba(0, 191, 255, 0.12)' },
         }}
       >
         <Toolbar
           sx={{
-            py: 0.375,
-            px: { xs: 0.75, sm: 1.25 },
-            gap: 0.75,
+            py: { xs: 0.5, sm: 0.375 },
+            px: { xs: 1, sm: 1.5 },
+            gap: { xs: 0.5, sm: 1 },
             minHeight: 'unset',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
+            overflowX: 'auto',
+            '&::-webkit-scrollbar': { display: 'none' },
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
           }}
         >
           {/* Logo */}
@@ -152,13 +158,14 @@ export default function Navbar() {
             pathname={pathname}
             navConfig={navConfig}
             muiTheme={muiTheme}
+            isXLarge={isXLarge}
           />
 
           {/* Separatore */}
           <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
 
-          {/* Bottone + (visible on large screens) */}
-          {isLarge && (
+          {/* Bottone + (visible on extra-large screens only) */}
+          {isXLarge && (
             <>
               <IconButton
                 onClick={() => setIsBookingOpen(true)}
@@ -198,6 +205,7 @@ export default function Navbar() {
             muiTheme={muiTheme}
             isAdmin={isAdmin}
             isSuperAdmin={isSuperAdmin}
+            isLarge={isXLarge}
             onMenuOpen={handleUserMenuOpen}
             onMenuClose={handleUserMenuClose}
             onLogout={logout}
@@ -261,12 +269,14 @@ function UnauthenticatedNavbar({ navConfig }: { navConfig: NavConfigType }) {
 // Purpose: Extract logo rendering (reused in authenticated + unauthenticated)
 // ─────────────────────────────────────────────────────────────────────────────
 function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
+  const logoBoxSize = navConfig.logoBox + 26;
+  const logoImgSize = navConfig.logoSize + 30;
   return (
-    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, paddingRight: 4, textDecoration: 'none' }}>
+    <Link href="/" style={{ display: 'flex', alignItems: 'center', paddingRight: 4, textDecoration: 'none' }}>
       <Box
         sx={{
-          width: navConfig.logoBox,
-          height: navConfig.logoBox,
+          width: logoBoxSize,
+          height: logoBoxSize,
           borderRadius: '50%',
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           border: '1px solid rgba(0, 191, 255, 0.12)',
@@ -279,23 +289,12 @@ function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
         <Image
           src={branding.portalLogo}
           alt={branding.portalName}
-          width={navConfig.logoSize}
-          height={navConfig.logoSize}
-          style={{ width: navConfig.logoSize, height: navConfig.logoSize, objectFit: 'contain' }}
+          width={logoImgSize}
+          height={logoImgSize}
+          priority
+          style={{ width: logoImgSize, height: logoImgSize, objectFit: 'contain' }}
         />
       </Box>
-      <Typography
-        sx={{
-          display: { xs: 'none', md: 'block' },
-          fontSize: '0.6875rem',
-          fontFamily: 'Outfit',
-          fontWeight: 600,
-          letterSpacing: '0',
-          color: '#ffffff',
-        }}
-      >
-        {branding.portalShortName}
-      </Typography>
     </Link>
   );
 }
@@ -315,9 +314,10 @@ interface NavbarItemsProps {
   pathname: string;
   navConfig: NavConfigType;
   muiTheme: Theme;
+  isXLarge: boolean;
 }
 
-function NavbarItems({ items, pathname, navConfig, muiTheme }: NavbarItemsProps) {
+function NavbarItems({ items, pathname, navConfig, muiTheme, isXLarge }: NavbarItemsProps) {
   // Memoize hover handler to prevent recreation per nav item
   const handleNavItemHover = useCallback((e: React.MouseEvent<HTMLAnchorElement>, isActive: boolean) => {
     if (!isActive) {
@@ -348,7 +348,7 @@ function NavbarItems({ items, pathname, navConfig, muiTheme }: NavbarItemsProps)
               alignItems: 'center',
               justifyContent: 'center',
               gap: 2,
-              padding: navConfig.iconSize <= 11 ? 6 : 10,
+              padding: isXLarge ? 10 : 7,
               transition: 'all 0.3s ease',
               color: isActive ? muiTheme.palette.primary.main : muiTheme.palette.text.secondary,
               transform: isActive ? 'translateY(-1px)' : 'none',
@@ -390,6 +390,7 @@ interface NavbarUserMenuProps {
   muiTheme: Theme;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isLarge: boolean;
   onMenuOpen: (e: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
   onLogout: () => void;
@@ -403,6 +404,7 @@ function NavbarUserMenu({
   muiTheme,
   isAdmin,
   isSuperAdmin,
+  isLarge,
   onMenuOpen,
   onMenuClose,
   onLogout,
@@ -462,37 +464,35 @@ function NavbarUserMenu({
         slotProps={{
           paper: {
             sx: {
-              width: 200,
-              borderRadius: 2,
+              width: isLarge ? 240 : 200,
+              borderRadius: 3,
               border: '1px solid rgba(0, 191, 255, 0.2)',
-              backgroundColor: 'rgba(10, 26, 38, 0.95)',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 191, 255, 0.1)',
+              backgroundColor: 'rgba(10, 26, 38, 0.98)',
+              backdropFilter: 'blur(30px)',
+              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 191, 255, 0.15)',
+              mt: 1,
             },
           },
         }}
       >
         {/* User profile header */}
-        <Box sx={{ px: 1.5, py: 1, mb: 1, borderBottom: '1px solid rgba(0, 191, 255, 0.12)' }}>
+        <Box sx={{ px: isLarge ? 2.5 : 2, py: isLarge ? 2 : 1.5, mb: 1, borderBottom: '1px solid rgba(0, 191, 255, 0.12)' }}>
           <Typography
             sx={{
-              fontSize: '0.6875rem',
-              fontWeight: 600,
+              fontSize: isLarge ? '0.9rem' : '0.75rem',
+              fontWeight: 800,
               color: '#ffffff',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              lineHeight: 1.2,
+              mb: 0.25,
             }}
           >
             {user?.name || 'Utente'}
           </Typography>
           <Typography
             sx={{
-              fontSize: '0.5625rem',
+              fontSize: isLarge ? '0.75rem' : '0.625rem',
               color: muiTheme.palette.text.secondary,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              mb: 1,
             }}
           >
             {user?.email}
@@ -500,12 +500,16 @@ function NavbarUserMenu({
           {user?.role && (
             <Typography
               sx={{
-                mt: 0.25,
-                fontSize: '0.5rem',
-                fontWeight: 700,
+                display: 'inline-block',
+                fontSize: isLarge ? '0.6rem' : '0.5rem',
+                fontWeight: 800,
                 color: muiTheme.palette.primary.main,
                 textTransform: 'uppercase',
-                letterSpacing: '0.08em',
+                letterSpacing: '0.12em',
+                px: 1,
+                py: 0.25,
+                borderRadius: 1,
+                bgcolor: 'rgba(0, 191, 255, 0.1)',
               }}
             >
               {user.role}
@@ -525,20 +529,23 @@ function NavbarUserMenu({
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.25,
-                px: 1.25,
-                py: 0.625,
-                borderRadius: 1,
-                fontSize: '0.6875rem',
+                gap: isLarge ? 1.5 : 1.25,
+                px: isLarge ? 2 : 1.25,
+                py: isLarge ? 1 : 0.625,
+                borderRadius: 1.5,
+                mx: 0.5,
+                fontSize: isLarge ? '0.8125rem' : '0.6875rem',
+                fontWeight: 500,
                 color: muiTheme.palette.text.secondary,
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.05)',
                   color: muiTheme.palette.primary.main,
+                  transform: 'translateX(4px)',
                 },
               }}
             >
-              <Icon size={13} />
+              <Icon size={isLarge ? 16 : 13} />
               <span>{label}</span>
             </MenuItem>
           ))}
@@ -549,20 +556,25 @@ function NavbarUserMenu({
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 1.25,
-            px: 1.25,
-            py: 0.625,
-            borderRadius: 1,
-            fontSize: '0.6875rem',
-            color: muiTheme.palette.text.secondary,
+            gap: isLarge ? 1.5 : 1.25,
+            px: isLarge ? 2 : 1.25,
+            py: isLarge ? 1 : 0.625,
+            borderRadius: 1.5,
+            mx: 0.5,
+            mt: 0.5,
+            fontSize: isLarge ? '0.8125rem' : '0.6875rem',
+            fontWeight: 600,
+            color: muiTheme.palette.error.main,
             transition: 'all 0.2s ease',
+            opacity: 0.8,
             '&:hover': {
               backgroundColor: 'rgba(244, 67, 54, 0.1)',
-              color: muiTheme.palette.error.main,
+              opacity: 1,
+              transform: 'translateX(4px)',
             },
           }}
         >
-          <LogOut size={13} />
+          <LogOut size={isLarge ? 16 : 13} />
           <span>Logout</span>
         </MenuItem>
       </Menu>

@@ -5,14 +5,13 @@ import BookingStatsWidget from '@/components/widgets/dashboard/BookingStatsWidge
 import FinanceOverviewWidget from '@/components/widgets/dashboard/FinanceOverviewWidget';
 import TodayAgendaWidget from '@/components/widgets/dashboard/TodayAgendaWidget';
 import { useAuth } from '@/context/AuthContext';
-import { useBookings } from '@/hooks/domain/useBookings';
-import { useBookingStats } from '@/hooks/domain/useBookings';
+import { useBookings, useBookingStats } from '@/hooks/domain/useBookings';
 import { transactionService } from '@/services/transaction.service';
 import type { FinanceSummary } from '@/types/transaction';
 import { Box, Container, Grid, Skeleton } from '@mui/material';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
 export default function DashboardPage() {
@@ -39,15 +38,8 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  // Use useMemo to create initial dates on first render only
-  // This prevents unnecessary state updates and double SWR requests
-  const { financeDate, bookingDate } = useMemo(
-    () => ({
-      financeDate: new Date(),
-      bookingDate: new Date(),
-    }),
-    []
-  );
+  const [financeDate, setFinanceDate] = useState(() => new Date());
+  const [bookingDate, setBookingDate] = useState(() => new Date());
 
   const { data: financeSummary, isLoading: isFinanceLoading } = useSWR<FinanceSummary>(
     [ENDPOINTS.TRANSACTIONS.SUMMARY, format(financeDate, 'yyyy-MM')],
@@ -70,13 +62,13 @@ function DashboardContent() {
             totalExpense={totalExpense}
             isLoading={isFinanceLoading}
             monthDate={financeDate}
-            onMonthChange={() => {}}
+            onMonthChange={setFinanceDate}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <BookingStatsWidget
             monthDate={bookingDate}
-            onMonthChange={() => {}}
+            onMonthChange={setBookingDate}
             total={bookingStats?.total ?? 0}
             cancelled={bookingStats?.cancelled ?? 0}
             completed={bookingStats?.completed ?? 0}

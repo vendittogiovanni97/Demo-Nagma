@@ -1,8 +1,8 @@
 "use client";
 
-import SearchInput from '@/components/forms/SearchInput';
+import SmartFilters from '@/components/common/SmartFilters';
 import Button from '@/components/ui/Button';
-import { Box, Grid, TextField, Typography, useTheme as useMuiTheme } from '@mui/material';
+import { X } from 'lucide-react';
 
 interface Props {
   search: string;
@@ -23,43 +23,30 @@ export default function CustomerFilters({
   onEndDateChange,
   onResetDates,
 }: Props) {
-  const theme = useMuiTheme();
-
   return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12, lg: 5 }}>
-        <SearchInput
-          value={search}
-          onChange={onSearchChange}
-          placeholder="Cerca per nome, cognome o telefono..."
-        />
-      </Grid>
-      <Grid size={{ xs: 12, lg: 7 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TextField
-            type="date"
-            value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
-            size="small"
-            sx={{ width: { xs: '100%', lg: 180 } }}
-          />
-          <Typography sx={{ display: { xs: 'none', lg: 'block' }, color: theme.palette.text.secondary, fontSize: '0.8125rem' }}>
-            —
-          </Typography>
-          <TextField
-            type="date"
-            value={endDate}
-            onChange={(e) => onEndDateChange(e.target.value)}
-            size="small"
-            sx={{ width: { xs: '100%', lg: 180 } }}
-          />
-        </Box>
-      </Grid>
-      <Grid size={{ xs: 12, lg: 3 }} sx={{ display: (startDate || endDate) ? 'flex' : 'none', alignItems: 'center' }}>
-        <Button variant="ghost" size="sm" onClick={onResetDates}>
+    <SmartFilters
+      alignWithMonthPicker
+      search={{
+        value: search,
+        onChange: onSearchChange,
+        placeholder: "Cerca cliente...",
+      }}
+      dateRange={{
+        start: { value: startDate, onChange: onStartDateChange },
+        end: { value: endDate, onChange: onEndDateChange },
+      }}
+    >
+      {(startDate || endDate) && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onResetDates}
+          icon={<X size={14} />}
+          sx={{ fontSize: '0.75rem', px: 1 }}
+        >
           Reset
         </Button>
-      </Grid>
-    </Grid>
+      )}
+    </SmartFilters>
   );
 }

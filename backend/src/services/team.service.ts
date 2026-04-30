@@ -1,16 +1,17 @@
+import type { Shift } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import type { Prisma, Shift } from '@prisma/client';
+import prisma from '../utils/prisma';
 import { configService } from './config.service';
-import { UserRepository } from '../repositories/user.repository';
-import { StaffRepository } from '../repositories/staff.repository';
-import { ShiftRepository } from '../repositories/shift.repository';
+
+import { ShiftService } from './shift.service';
+import { StaffService } from './staff.service';
+import { createShiftSchema, createStaffSchema, resetPasswordSchema, updateShiftSchema, updateStaffSchema, validate } from '../schemas';
 import { AppError } from '../utils/AppError';
-import { validate, createStaffSchema, createShiftSchema, updateShiftSchema, updateStaffSchema, resetPasswordSchema } from '../schemas';
 import { parseUTCDate } from '../utils/date-utils';
 
-const userRepo = new UserRepository();
-const staffRepo = new StaffRepository();
-const shiftRepo = new ShiftRepository();
+
+const staffService = new StaffService();
+const shiftService = new ShiftService();
 
 const SHIFT_LABEL_MAP: Record<string, { startTime: string; endTime: string; isOff: boolean }> = {
   'Mattina':            { startTime: '09:00', endTime: '13:00', isOff: false },
@@ -36,17 +37,17 @@ function buildShiftDate(weekStart: string, dayOfWeek: number) {
 }
 
 export class TeamService {
-  private shiftRepository: ShiftRepository;
+  private shiftService: ShiftService;
 
   constructor() {
-    this.shiftRepository = shiftRepo;
+    this.shiftService = shiftService;
   }
 
   /**
    * Restituisce la lista dello staff (ex-users nel team grid)
    */
   async getAllUsers(search?: string, type?: string, page = 1, limit = 20) {
-    return staffRepo.findAllPaged({
+    return staffService.findAllPaged({
       search,
       type,
       page,
@@ -56,11 +57,11 @@ export class TeamService {
 
   async createUser(body: unknown) {
     const data = validate(createStaffSchema, body);
-    return staffRepo.create(data);
+    return staffService.create(data);
   }
 
   async deleteUser(id: number) {
-    return staffRepo.delete(id);
+    return staffService.delete(id);
   }
 
   async getShifts(weekStart?: string) {
@@ -69,13 +70,13 @@ export class TeamService {
     const endDate = new Date(startDate);
     endDate.setUTCDate(startDate.getUTCDate() + 6);
 
-    return shiftRepo.findByDateRange(startDate, endDate);
+    return shiftService.findByDateRange(startDate, endDate);
   }
 
   async createShift(body: unknown) {
     const data = validate(createShiftSchema, body);
     const resolved = resolveShiftLabel(data.label, data);
-    const staff = await staffRepo.findById(data.staffId);
+    const staff = await staffService.findById(data.staffId);
     if (!staff) throw new AppError('Staff non trovato', 404);
     const date = buildShiftDate(data.weekStart, data.dayOfWeek);
 
@@ -83,7 +84,7 @@ export class TeamService {
       throw new AppError('startTime ed endTime sono obbligatori se il turno non è di riposo', 400);
     }
 
-    return shiftRepo.create({
+    return shiftService.create({
       staffId: data.staffId,
       date,
       startTime: resolved.startTime ?? '00:00',
@@ -95,7 +96,7 @@ export class TeamService {
 
   async updateShift(id: string, body: unknown) {
     const data = validate(updateShiftSchema, body);
-    const existing = await shiftRepo.findById(id);
+    const existing = await shiftService.findById(id);
     if (!existing) throw new AppError('Turno non trovato', 404);
 
     const resolved = resolveShiftLabel(data.label, data as any);
@@ -103,7 +104,7 @@ export class TeamService {
       ? buildShiftDate(data.weekStart, data.dayOfWeek)
       : existing.date;
 
-    return shiftRepo.update(id, {
+    return shiftService.update(id, {
       ...(data.weekStart !== undefined && data.dayOfWeek !== undefined ? { date: nextDate } : {}),
       ...(data.startTime !== undefined ? { startTime: data.startTime } : {}),
       ...(data.endTime !== undefined ? { endTime: data.endTime } : {}),
@@ -115,14 +116,14 @@ export class TeamService {
   }
 
   async deleteShift(id: string) {
-    return shiftRepo.delete(id);
+    return shiftService.delete(id);
   }
 
   /**
    * Restituisce tutti i turni dal repository
    */
   async findAllShifts(): Promise<Shift[]> {
-    return this.shiftRepository.findAll();
+    return this.shiftService.findAll();
   }
 
   /**
@@ -133,7 +134,7 @@ export class TeamService {
     if (Number.isNaN(parsedStaffId)) {
       throw new AppError('staffId non valido', 400);
     }
-    return this.shiftRepository.findByStaffId(parsedStaffId);
+    return this.shiftService.findByStaffId(parsedStaffId);
   }
 
   /**
@@ -147,7 +148,7 @@ export class TeamService {
     breakDuration?: number;
     notes?: string;
   }): Promise<Shift> {
-    const conflict = await this.shiftRepository.isTimeConflict(
+    const conflict = await this.shiftService.isTimeConflict(
       data.staffId,
       data.date,
       data.startTime,
@@ -156,33 +157,37 @@ export class TeamService {
     if (conflict) {
       throw new AppError('Conflitto orario rilevato per questo staff nel giorno specificato', 409);
     }
-    return this.shiftRepository.create(data);
+    return this.shiftService.create(data);
   }
 
   /**
    * Elimina un turno
    */
   async deleteShiftById(id: string): Promise<void> {
-    return this.shiftRepository.delete(id);
+    return this.shiftService.delete(id);
   }
 
   async findMemberById(id: number) {
-    return staffRepo.findById(id);
+    return staffService.findById(id);
   }
 
   async updateUser(id: number, body: unknown) {
     const data = validate(updateStaffSchema, body);
-    return staffRepo.update(id, data);
+    return staffService.update(id, data);
   }
 
   async resetPassword(id: number, body: unknown) {
     const data = validate(resetPasswordSchema, body);
 
     // Nota: La gestione password rimane solo per gli utenti di sistema (Admin)
-    const user = await userRepo.findById(id);
+    const user = await prisma.user.findFirst({ where: { id, deletedAt: null } });
     if (!user) throw new AppError('Utente non trovato.', 404);
 
     const hashedPassword = await bcrypt.hash(data.newPassword, configService.getBcryptSaltRoundsSync());
-    return userRepo.updatePassword(id, hashedPassword);
+    return prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+      omit: { password: true }
+    });
   }
 }

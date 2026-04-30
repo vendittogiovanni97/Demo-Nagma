@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, TextField, useTheme } from '@mui/material';
+import { Box, TextField, useTheme, Typography } from '@mui/material';
 import type { LucideIcon } from 'lucide-react';
 import { inputRootSx } from '@/theme/inputStyles';
 
@@ -13,6 +13,7 @@ interface FormTextareaProps {
   icon?: LucideIcon;
   rows?: number;
   disabled?: boolean;
+  error?: string;
 }
 
 export default function FormTextarea({
@@ -24,6 +25,7 @@ export default function FormTextarea({
   icon: Icon,
   rows = 3,
   disabled,
+  error,
 }: FormTextareaProps) {
   const theme = useTheme();
 
@@ -32,12 +34,15 @@ export default function FormTextarea({
       <Box
         component="label"
         sx={{
-          fontSize: '0.875rem',
-          color: theme.palette.text.secondary,
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: theme.palette.primary.main,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          px: 0.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
-          px: 0.5
+          gap: 1
         }}
       >
         {Icon && <Icon size={14} />}
@@ -52,18 +57,27 @@ export default function FormTextarea({
         placeholder={placeholder}
         required={required}
         disabled={disabled}
+        error={!!error}
         variant="outlined"
         sx={{
           '& .MuiOutlinedInput-root': {
             ...inputRootSx(theme),
-            borderRadius: '12px',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 1.5,
+            fontSize: '0.9375rem',
           },
           '& .MuiOutlinedInput-input': {
             color: theme.palette.text.primary,
             resize: 'none',
           },
+          '& .Mui-error fieldset': { borderColor: theme.palette.error.main },
         }}
       />
+      {error && (
+        <Typography sx={{ color: theme.palette.error.main, fontSize: '0.75rem', px: 0.5 }}>
+          {error}
+        </Typography>
+      )}
     </Box>
   );
 }

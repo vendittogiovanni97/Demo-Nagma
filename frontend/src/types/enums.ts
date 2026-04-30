@@ -6,10 +6,10 @@ export enum Role {
 }
 
 export enum BookingStatus {
-  CONFIRMED = 'CONFIRMED',
-  CANCELLED = 'CANCELLED',
-  RESCHEDULED = 'RESCHEDULED',
-  COMPLETED = 'COMPLETED',
+  CONFIRMED = 'CONFERMATO',
+  CANCELLED = 'ANNULLATO',
+  RESCHEDULED = 'SPOSTATO',
+  COMPLETED = 'COMPLETATO',
 }
 
 export enum TransactionType {

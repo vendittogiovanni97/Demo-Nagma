@@ -1,31 +1,19 @@
-import { Prisma, Booking, Role } from '@prisma/client';
-import prisma from '../utils/prisma';
+import { Booking, Prisma, Role } from '@prisma/client';
 import { config } from '../config/env';
-import { configService } from './config.service';
-import { BookingRepository } from '../repositories/booking.repository';
+import { buildPagination, getMonthRange, paginate } from '../utils/date-utils';
 import { validate, createBookingSchema, updateBookingSchema } from '../schemas';
 import { AppError } from '../utils/AppError';
 import { buildWhereClause, filterByWeekday, type ExportFilters } from '../utils/export-filters';
 import { mapBookingDecimals } from '../utils/decimal-mapper';
 import { logger } from '../utils/logger';
+import prisma from '../utils/prisma';
+import { configService } from './config.service';
 
-const repository = new BookingRepository();
-
-/**
- * FIX #3 SECURITY: IDOR Vulnerability Prevention
- * Verifica se un utente ha accesso a una booking tramite il customer.
- * Solo SUPER_ADMIN bypassa questo controllo.
- * Clients non devono potere modificare bookings di altri customers.
- */
 async function checkUserCanAccessBooking(userId: number, bookingId: number, userRole: Role): Promise<void> {
   // SUPER_ADMIN ha accesso globale
   if (userRole === 'SUPER_ADMIN') {
     return;
   }
-
-  // Per altri ruoli: verifica che la booking appartenga a un customer accessibile
-  // In Nagma, assumiamo che un utente non-SUPER_ADMIN acceda solo alle sue bookings
-  // Nota: Se c'è un mapping users->customers, aggiungi qui la logica di verifica
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     select: { customerId: true },
@@ -56,21 +44,97 @@ export class BookingService {
     limit?: number,
     offset?: number
   ) {
-    const result = await repository.findAllWithPagination(month, startDate, endDate, limit, offset);
+    const where: Prisma.BookingWhereInput = {
+      deletedAt: null,
+      customer: { is: { deletedAt: null } },
+    };
+    if (month) {
+      where.date = getMonthRange(month);
+    } else {
+      if (startDate) {
+        where.date = { gte: new Date(startDate) };
+      }
+      if (endDate) {
+        where.date = { ...where.date as object, lte: new Date(endDate + 'T23:59:59.999') };
+      }
+    }
+
+    const [data, total] = await prisma.$transaction([
+      prisma.booking.findMany({
+        where,
+        orderBy: { date: 'asc' },
+        include: { customer: true, artist: true },
+        ...(limit && { take: limit }),
+        ...(offset && { skip: offset }),
+      }),
+      prisma.booking.count({ where }),
+    ]);
+
+    const paginatedOffset = offset ?? 0;
+    const hasMore = limit ? paginatedOffset + data.length < total : false;
+
     return {
-      data: result.data.map(mapBookingDecimals),
-      total: result.total,
-      hasMore: result.hasMore,
+      data: data.map(mapBookingDecimals),
+      total,
+      hasMore,
     };
   }
 
   async getBookingsPaged(month: string | undefined, page: number, limit: number, startDate?: string, endDate?: string) {
-    const result = await repository.findAllPaged({ monthStr: month, page, limit, startDate, endDate });
+    const where: Prisma.BookingWhereInput = {
+      deletedAt: null,
+      customer: { is: { deletedAt: null } },
+    };
+    if (month) {
+      where.date = getMonthRange(month);
+    } else {
+      if (startDate) {
+        where.date = { gte: new Date(startDate) };
+      }
+      if (endDate) {
+        where.date = { ...where.date as object, lte: new Date(endDate + 'T23:59:59.999') };
+      }
+    }
+
+    const [data, total] = await prisma.$transaction([
+      prisma.booking.findMany({
+        where,
+        ...buildPagination(page, limit),
+        orderBy: { date: 'desc' },
+        include: { customer: true, artist: true },
+      }),
+      prisma.booking.count({ where }),
+    ]);
+
+    const result = paginate(data, total, page, limit);
     return { ...result, data: result.data.map(mapBookingDecimals) };
   }
 
   async getStats(month?: string) {
-    return repository.getStats(month);
+    const where: Prisma.BookingWhereInput = { deletedAt: null };
+    if (month) {
+      where.date = getMonthRange(month);
+    }
+
+    const grouped = await prisma.booking.groupBy({
+      by: ['status'],
+      where,
+      _count: { _all: true },
+    });
+
+    const counts = grouped.reduce<Record<string, number>>((acc, row) => {
+      acc[row.status] = row._count._all;
+      return acc;
+    }, {});
+
+    return {
+      total: Object.values(counts).reduce((sum, v) => sum + v, 0),
+      confirmed: counts.CONFIRMED ?? 0,
+      cancelled: counts.CANCELLED ?? 0,
+      rescheduled: counts.RESCHEDULED ?? 0,
+      completed: counts.UPDATED ?? 0,
+      month: month,
+    };
   }
 
   async createBooking(body: unknown, changedById?: number) {
@@ -97,7 +161,7 @@ export class BookingService {
       await tx.bookingHistory.create({
         data: {
           bookingId: booking.id,
-          action: 'CREATED',
+          action: 'CREATO',
           newDate: booking.date,
           changedById,
         },
@@ -121,7 +185,7 @@ export class BookingService {
 
     const data = validate(updateBookingSchema, body);
 
-    const oldBooking = await repository.findById(id);
+    const oldBooking = await prisma.booking.findUnique({ where: { id } });
     if (!oldBooking || oldBooking.deletedAt) {
       throw new AppError('Prenotazione non trovata', 404, 'NOT_FOUND');
     }
@@ -132,7 +196,7 @@ export class BookingService {
     const newStatus = data.status ?? oldBooking.status;
 
     const newArtistId = data.artistId ?? oldBooking.artistId;
-    if (newStatus !== 'CANCELLED' && (data.date || data.duration || data.artistId) && newArtistId) {
+    if (newStatus !== 'ANNULLATO' && newStatus !== 'CANCELLATO' && (data.date || data.duration || data.artistId) && newArtistId) {
       await this.assertNoConflict(newArtistId, newDate, newDuration, id);
     }
 
@@ -148,10 +212,10 @@ export class BookingService {
       });
 
       const action =
-        data.status === 'CANCELLED' ? 'CANCELLED'
-        : data.status === 'COMPLETED' ? 'COMPLETED'
-        : data.date ? 'RESCHEDULED'
-        : 'UPDATED';
+        data.status === 'ANNULLATO' || data.status === 'CANCELLATO' ? 'ANNULLATO'
+        : data.status === 'COMPLETATO' ? 'COMPLETATO'
+        : data.date || data.duration || data.artistId ? 'SPOSTATO'
+        : 'MODIFICATO';
 
       await tx.bookingHistory.create({
         data: {
@@ -164,7 +228,7 @@ export class BookingService {
       });
 
       // Se la prenotazione è completata e ha un prezzo, genera automaticamente una transazione di incasso
-      if (data.status === 'COMPLETED' && oldBooking.status !== 'COMPLETED' && booking.price) {
+      if (data.status === 'COMPLETATO' && oldBooking.status !== 'COMPLETATO' && booking.price) {
         const bookingForIncome: BookingForIncome = {
           id: booking.id,
           price: booking.price,
@@ -193,13 +257,42 @@ export class BookingService {
     return prisma.$transaction(async (tx) => {
       const updated = await tx.booking.update({
         where: { id },
-        data: { status: 'CANCELLED', price: 0 },
+        data: { status: 'CANCELLATO', price: 0 },
       });
 
       await tx.bookingHistory.create({
         data: {
           bookingId: id,
-          action: 'CANCELLED',
+          action: 'CANCELLATO',
+          oldDate: booking.date,
+          changedById,
+        },
+      });
+
+      if (booking.price) {
+        await tx.transaction.deleteMany({
+          where: { description: { contains: `#${id}` } },
+        });
+      }
+
+      return updated;
+    });
+  }
+
+  async annulBooking(id: number, changedById?: number) {
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) throw new AppError('Prenotazione non trovata', 404);
+
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id },
+        data: { status: 'ANNULLATO', price: 0 },
+      });
+
+      await tx.bookingHistory.create({
+        data: {
+          bookingId: id,
+          action: 'ANNULLATO',
           oldDate: booking.date,
           changedById,
         },
@@ -294,7 +387,20 @@ export class BookingService {
     duration: number,
     excludeId?: number
   ) {
-    const conflict = await repository.findOverlapping(artistId, start, duration, excludeId);
+    const end = new Date(start.getTime() + duration * 60_000);
+
+    const conflicts = await prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+      SELECT id FROM "Booking"
+      WHERE "artistId" = ${artistId}
+        AND "deletedAt" IS NULL
+        AND "status" <> 'CANCELLED'
+        AND "date" < ${end}
+        AND ("date" + ("duration" || ' minutes')::interval) > ${start}
+        ${excludeId ? Prisma.sql`AND id <> ${excludeId}` : Prisma.empty}
+      LIMIT 1
+    `);
+
+    const conflict = conflicts[0] ?? null;
     if (conflict) {
       throw new AppError(
         'Esiste già una prenotazione per questo artista nella fascia oraria selezionata',
@@ -355,7 +461,11 @@ export class BookingService {
 
   async getBookingsForExport(filters: ExportFilters) {
     const where = buildWhereClause(filters);
-    let bookings = await repository.findWithFilters(where);
+    let bookings = await prisma.booking.findMany({
+      where,
+      orderBy: { date: 'asc' },
+      include: { customer: true, artist: true },
+    });
 
     // Applica il filtro per weekday in memoria (se necessario)
     if (filters.weekday) {

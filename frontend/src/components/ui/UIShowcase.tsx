@@ -5,7 +5,7 @@ import { Box, Container, Typography } from "@mui/material";
 import Button from "./Button";
 import Input from "./Input";
 import Card from "./Card";
-import Modal from "@/components/modals/Modal";
+import SmartModal from "@/components/common/SmartModal";
 import Toast from "./Toast/Toast";
 import Form, { FormField } from "./Form/Form";
 
@@ -37,13 +37,13 @@ export default function UIShowcase() {
 
   return (
     <Container maxWidth="lg" sx={{ paddingY: 4 }}>
-      <Typography variant="h1" sx={{ marginBottom: 4, color: "#00BFFF" }}>
+      <Typography variant="h1" sx={{ marginBottom: 4, color: "#00BFFF", fontFamily: 'Outfit, sans-serif' }}>
         UI Components Showcase
       </Typography>
 
       {/* Buttons Section */}
       <Box sx={{ marginBottom: 6 }}>
-        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff" }}>
+        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff", fontFamily: 'Outfit, sans-serif' }}>
           Buttons
         </Typography>
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
@@ -59,8 +59,17 @@ export default function UIShowcase() {
           <Button variant="secondary" size="md">
             Secondary
           </Button>
+          <Button variant="glass" size="md">
+            Glass
+          </Button>
           <Button variant="ghost" size="md">
             Ghost
+          </Button>
+          <Button variant="danger" size="md">
+            Danger
+          </Button>
+          <Button variant="success" size="md">
+            Success
           </Button>
           <Button variant="primary" size="md" disabled>
             Disabled
@@ -68,15 +77,12 @@ export default function UIShowcase() {
           <Button variant="primary" size="md" isLoading>
             Loading
           </Button>
-          <Button variant="primary" size="md" fullWidth>
-            Full Width
-          </Button>
         </Box>
       </Box>
 
       {/* Inputs Section */}
       <Box sx={{ marginBottom: 6 }}>
-        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff" }}>
+        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff", fontFamily: 'Outfit, sans-serif' }}>
           Inputs
         </Typography>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 400 }}>
@@ -114,7 +120,7 @@ export default function UIShowcase() {
 
       {/* Cards Section */}
       <Box sx={{ marginBottom: 6 }}>
-        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff" }}>
+        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff", fontFamily: 'Outfit, sans-serif' }}>
           Cards
         </Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 2 }}>
@@ -157,32 +163,30 @@ export default function UIShowcase() {
 
       {/* Modal Section */}
       <Box sx={{ marginBottom: 6 }}>
-        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff" }}>
-          Modal/Dialog
+        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff", fontFamily: 'Outfit, sans-serif' }}>
+          Smart Modal
         </Typography>
         <Button variant="primary" onClick={handleOpenModal}>
-          Open Modal
+          Open Smart Modal
         </Button>
 
-        <Modal isOpen={modalOpen} onClose={handleCloseModal} title="Dialog Example">
+        <SmartModal 
+          isOpen={modalOpen} 
+          onClose={handleCloseModal} 
+          title="Smart Modal Example"
+          onSave={async () => handleCloseModal()}
+          saveLabel="Confirm"
+        >
           <Typography variant="body2" sx={{ color: "#d1d1d1", lineHeight: 1.8 }}>
-            This is the modal content. You can add any content here. Click the
-            close button or click outside to dismiss.
+            This is the smart modal content. It uses the unified SmartModal system
+            with built-in glassmorphism and standard actions.
           </Typography>
-          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-            <Button variant="secondary" size="sm" onClick={handleCloseModal}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="sm" onClick={handleCloseModal}>
-              Confirm
-            </Button>
-          </Box>
-        </Modal>
+        </SmartModal>
       </Box>
 
       {/* Toast Section */}
       <Box sx={{ marginBottom: 6 }}>
-        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff" }}>
+        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff", fontFamily: 'Outfit, sans-serif' }}>
           Toast Notifications
         </Typography>
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
@@ -214,7 +218,7 @@ export default function UIShowcase() {
 
       {/* Form Section */}
       <Box sx={{ marginBottom: 6 }}>
-        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff" }}>
+        <Typography variant="h4" sx={{ marginBottom: 2, color: "#ffffff", fontFamily: 'Outfit, sans-serif' }}>
           Form Components
         </Typography>
         <Box sx={{ maxWidth: 400 }}>

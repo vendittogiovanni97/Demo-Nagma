@@ -1,6 +1,7 @@
 "use client";
 
-import PageHeader from '@/components/layout/PageHeader';
+import PageHeader from '@/components/common/PageHeader';
+import SmartFilters from '@/components/common/SmartFilters';
 import { useAuth } from '@/context/AuthContext';
 import { useFormTemplates } from '@/hooks/domain/useFormTemplates';
 import { Plus } from 'lucide-react';
@@ -57,15 +58,14 @@ export default function FormTemplatesPage() {
     >
       <PageHeader
         title="Workspace Template"
-        showDateRange
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        onResetDates={() => {
-          setStartDate('');
-          setEndDate('');
-        }}
+        filters={
+          <SmartFilters
+            dateRange={{
+              start: { value: startDate, onChange: setStartDate },
+              end: { value: endDate, onChange: setEndDate },
+            }}
+          />
+        }
         showButton
         buttonLabel="Nuovo Template"
         buttonIcon={<Plus />}

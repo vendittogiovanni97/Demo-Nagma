@@ -17,7 +17,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <GlobalErrorBoundary>
             <Navbar />
-            <LayoutContainer maxWidth="2xl">
+            <LayoutContainer maxWidth="full">
               {children}
             </LayoutContainer>
           </GlobalErrorBoundary>

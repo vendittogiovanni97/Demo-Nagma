@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const roleSchema = z.enum(['SUPER_ADMIN', 'ADMIN']);
-export const bookingStatusSchema = z.enum(['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED']);
+export const bookingStatusSchema = z.enum(['CREATO', 'CONFERMATO', 'COMPLETATO', 'MODIFICATO', 'SPOSTATO', 'ANNULLATO', 'CANCELLATO']);
 export const transactionTypeSchema = z.enum(['INCOME', 'EXPENSE']);
 export const whatsappMessageStatusSchema = z.enum(['MANUAL_SENT', 'FAILED']);
 

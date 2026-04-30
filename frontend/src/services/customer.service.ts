@@ -19,13 +19,13 @@ export const customerService = {
   getSummary: async (id: number): Promise<CustomerSummary> => {
     return apiClient.get<CustomerSummary>(ENDPOINTS.CUSTOMERS.SUMMARY(id));
   },
-  create: async (data: CreateCustomerData) => {
-    return apiClient.post(ENDPOINTS.CUSTOMERS.BASE, data);
+  create: async (data: CreateCustomerData): Promise<Customer> => {
+    return apiClient.post<Customer>(ENDPOINTS.CUSTOMERS.BASE, data);
   },
-  update: async (id: number, data: Partial<CreateCustomerData>) => {
-    return apiClient.put(ENDPOINTS.CUSTOMERS.BY_ID(id), data);
+  update: async (id: number, data: Partial<CreateCustomerData>): Promise<Customer> => {
+    return apiClient.put<Customer>(ENDPOINTS.CUSTOMERS.BY_ID(id), data);
   },
-  delete: async (id: number) => {
+  delete: async (id: number): Promise<void> => {
     return apiClient.delete(ENDPOINTS.CUSTOMERS.BY_ID(id));
   },
 };

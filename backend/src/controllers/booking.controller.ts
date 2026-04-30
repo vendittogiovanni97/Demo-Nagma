@@ -52,6 +52,12 @@ export class BookingController {
     res.status(204).send();
   });
 
+  annul = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const userId = req.user?.id;
+    await service.annulBooking(parseId(req.params.id), userId);
+    res.status(204).send();
+  });
+
   getAvailable = asyncHandler(async (req: AuthRequest, res: Response) => {
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Data obbligatoria' });

@@ -5,7 +5,7 @@ import type { AuthUser, LoginCredentials } from '@/types/auth';
 import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
 import { isAdmin, isSuperAdmin } from '@/config/roles';
 import { useRouter } from 'next/navigation';
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = useCallback(async (credentials: LoginCredentials) => {
     try {
       const response = await authService.login(credentials);
       setToken(response.token);
@@ -74,15 +74,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       throw error;
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     clearSession();
     setCurrentUser(null);
     setIsAuthenticated(false);
     setIsLoading(false);
     router.push('/login');
-  };
+  }, [router]);
 
   // Memoize role computations to avoid unnecessary recalculations
   const isAdminMemo = useMemo(() => isAdmin(user?.role), [user?.role]);

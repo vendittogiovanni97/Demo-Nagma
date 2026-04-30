@@ -1,6 +1,6 @@
 "use client";
 
-import { MenuItem, TextField, useTheme } from '@mui/material';
+import { MenuItem, TextField, useTheme, Box, Typography } from '@mui/material';
 import { inputRootSx } from '@/theme/inputStyles';
 import type { LucideIcon } from 'lucide-react';
 
@@ -10,7 +10,7 @@ interface SelectOption {
 }
 
 interface FormSelectProps {
-  label: string;
+  label?: string;
   value: string | number;
   onChange: (value: string) => void;
   options: readonly SelectOption[];
@@ -18,6 +18,10 @@ interface FormSelectProps {
   icon?: LucideIcon;
   placeholder?: string;
   disabled?: boolean;
+  error?: string;
+  hideLabel?: boolean;
+  size?: 'small' | 'medium';
+  sx?: any;
 }
 
 export default function FormSelect({
@@ -26,8 +30,13 @@ export default function FormSelect({
   onChange,
   options,
   required,
+  icon: Icon,
   placeholder,
   disabled,
+  error,
+  hideLabel = false,
+  size = 'small',
+  sx,
 }: FormSelectProps) {
   const theme = useTheme();
   const stringValue = String(value ?? '');
@@ -35,33 +44,69 @@ export default function FormSelect({
   const displayValue = optionValues.includes(stringValue) ? stringValue : '';
 
   return (
-    <TextField
-      select
-      size="small"
-      label={label}
-      value={displayValue}
-      onChange={(e) => onChange(e.target.value)}
-      required={required}
-      disabled={disabled}
-      fullWidth
-      slotProps={{
-        inputLabel: { shrink: true },
-      }}
-      sx={{
-        '& .MuiOutlinedInput-root': inputRootSx(theme),
-        '& .MuiSelect-icon': { color: theme.palette.text.secondary },
-      }}
-    >
-      {placeholder && (
-        <MenuItem value="" disabled>
-          {placeholder}
-        </MenuItem>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ...sx }}>
+      {label && !hideLabel && (
+        <Box
+          component="label"
+          sx={{
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: theme.palette.primary.main,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            px: 0.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          {Icon && <Icon size={14} />}
+          {label}
+        </Box>
       )}
-      {options.map((opt) => (
-        <MenuItem key={opt.value} value={String(opt.value)} sx={{ fontSize: '0.875rem' }}>
-          {opt.label}
-        </MenuItem>
-      ))}
-    </TextField>
+      <TextField
+        select
+        size={size}
+        label={hideLabel ? label : undefined}
+        value={displayValue}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        disabled={disabled}
+        error={!!error}
+        fullWidth
+        slotProps={{
+          input: {
+            placeholder: placeholder,
+          },
+          inputLabel: { shrink: true },
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            ...inputRootSx(theme),
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 1.5,
+            fontSize: '0.9375rem',
+          },
+          '& .MuiSelect-icon': { color: theme.palette.text.secondary },
+          '& .Mui-error fieldset': { borderColor: theme.palette.error.main },
+        }}
+      >
+        {placeholder && (
+          <MenuItem value="" disabled>
+            {placeholder}
+          </MenuItem>
+        )}
+        {options.map((opt) => (
+          <MenuItem key={opt.value} value={String(opt.value)} sx={{ fontSize: '0.875rem' }}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </TextField>
+      {error && (
+        <Typography sx={{ color: theme.palette.error.main, fontSize: '0.75rem', px: 0.5 }}>
+          {error}
+        </Typography>
+      )}
+    </Box>
   );
 }

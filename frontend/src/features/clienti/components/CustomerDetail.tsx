@@ -41,7 +41,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
-import CustomerModal from './CustomerModal';
+import CustomerModal from '@/components/modals/CustomerModal';
 
 interface Props {
   id: number;
@@ -75,10 +75,10 @@ export default function CustomerDetail({ id }: Props) {
   const whatsappLogs = customer?.whatsappLogs || [];
 
   const upcomingBookings = bookings.filter(
-    (b) => b.status !== 'CANCELLED' && new Date(b.date) >= new Date()
+    (b) => b.status !== 'ANNULLATO' && new Date(b.date) >= new Date()
   );
   const pastBookings = bookings.filter(
-    (b) => b.status === 'COMPLETED' || new Date(b.date) < new Date()
+    (b) => b.status === 'COMPLETATO' || new Date(b.date) < new Date()
   );
 
   const handleDelete = async () => {

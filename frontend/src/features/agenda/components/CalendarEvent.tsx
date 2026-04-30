@@ -17,8 +17,8 @@ export default function CalendarEvent({
   const duration = booking.duration ?? 60;
   const isShort = duration <= 45;
   const startTime = format(new Date(booking.date), 'HH:mm');
-  const isCancelled = booking.status === 'CANCELLED';
-  const isRescheduled = booking.status === 'RESCHEDULED';
+  const isCancelled = booking.status === 'ANNULLATO';
+  const isRescheduled = booking.status === 'SPOSTATO';
 
   return (
     <Box

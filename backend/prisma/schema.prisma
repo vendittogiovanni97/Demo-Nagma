@@ -31,14 +31,6 @@ enum Role {
   ARTIST
 }
 
-enum BookingAction {
-  CREATED
-  UPDATED
-  RESCHEDULED
-  CANCELLED
-  COMPLETED
-}
-
 enum StaffType {
   COLLABORATORE
   APPRENDISTA
@@ -103,7 +95,7 @@ model Booking {
   artistId        Int?
   date            DateTime
   duration        Int             @default(120)  // durata in minuti
-  status          BookingStatus   @default(CONFIRMED)
+  status          BookingStatus   @default(CREATO)
   price           Decimal?        @db.Decimal(10, 2)
   deposit         Decimal?        @db.Decimal(10, 2)
   notes           String?
@@ -149,17 +141,20 @@ model CreamSale {
 }
 
 enum BookingStatus {
-  CONFIRMED
-  CANCELLED
-  RESCHEDULED
-  COMPLETED
+  CREATO
+  CONFERMATO
+  COMPLETATO
+  MODIFICATO
+  SPOSTATO
+  ANNULLATO
+  CANCELLATO
 }
 
 model BookingHistory {
   id          Int            @id @default(autoincrement())
   booking     Booking        @relation(fields: [bookingId], references: [id])
   bookingId   Int
-  action      BookingAction
+  action      BookingStatus
   oldDate     DateTime?
   newDate     DateTime?
   changedById Int?

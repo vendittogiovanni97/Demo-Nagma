@@ -57,3 +57,7 @@ export function paginate<T>(data: T[], total: number, page: number, limit: numbe
     totalPages: Math.max(1, Math.ceil(total / limit)),
   };
 }
+
+export function buildPagination(page: number, limit: number) {
+  return { skip: (page - 1) * limit, take: limit };
+}

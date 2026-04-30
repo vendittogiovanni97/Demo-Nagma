@@ -1,8 +1,8 @@
 import { AppError } from '../utils/AppError';
 import { FileSystemManager } from '../utils/filesystem';
 import { PreviewManager } from '../utils/preview';
-import { AttachmentRepository } from '../repositories/attachment.repository';
 import { Attachment } from '@prisma/client';
+import prisma from '../utils/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 
@@ -22,7 +22,7 @@ export class AttachmentService {
   ): Promise<Attachment> {
     try {
       // Verifica che il booking esista
-      const bookingExists = await AttachmentRepository.bookingExists(bookingId);
+      const bookingExists = !!(await prisma.booking.findUnique({ where: { id: bookingId }, select: { id: true } }));
       if (!bookingExists) {
         throw new AppError('Booking non trovato', 404, 'BOOKING_NOT_FOUND');
       }
@@ -35,13 +35,15 @@ export class AttachmentService {
       await PreviewManager.generatePreview(filePath, mimeType, attachmentId);
 
       // Salva nel database
-      const attachment = await AttachmentRepository.create({
-        id: attachmentId,
-        bookingId,
-        fileName,
-        fileSize: buffer.length,
-        mimeType,
-        filePath,
+      const attachment = await prisma.attachment.create({
+        data: {
+          id: attachmentId,
+          bookingId,
+          fileName,
+          fileSize: buffer.length,
+          mimeType,
+          filePath,
+        }
       });
 
       logger.info('Attachment caricato con successo', {
@@ -71,7 +73,7 @@ export class AttachmentService {
    */
   static async getAttachment(attachmentId: string): Promise<Attachment | null> {
     try {
-      return await AttachmentRepository.findById(attachmentId);
+      return await prisma.attachment.findUnique({ where: { id: attachmentId } });
     } catch (error) {
       logger.errorWithStack('Errore recupero attachment', error, { attachmentId });
       throw new AppError('Errore durante il recupero dell\'allegato', 500, 'GET_FAILED');
@@ -98,12 +100,15 @@ export class AttachmentService {
    */
   static async getAttachmentsByBookingId(bookingId: number): Promise<Attachment[]> {
     try {
-      const bookingExists = await AttachmentRepository.bookingExists(bookingId);
+      const bookingExists = !!(await prisma.booking.findUnique({ where: { id: bookingId }, select: { id: true } }));
       if (!bookingExists) {
         throw new AppError('Booking non trovato', 404, 'BOOKING_NOT_FOUND');
       }
 
-      return await AttachmentRepository.findByBookingId(bookingId);
+      return await prisma.attachment.findMany({
+        where: { bookingId },
+        orderBy: { createdAt: 'desc' },
+      });
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -131,7 +136,7 @@ export class AttachmentService {
    */
   static async deleteAttachment(attachmentId: string): Promise<void> {
     try {
-      const attachment = await AttachmentRepository.findById(attachmentId);
+      const attachment = await prisma.attachment.findUnique({ where: { id: attachmentId } });
       if (!attachment) {
         throw new AppError('Allegato non trovato', 404, 'ATTACHMENT_NOT_FOUND');
       }
@@ -140,7 +145,7 @@ export class AttachmentService {
       await FileSystemManager.deleteFile(attachment.filePath);
 
       // Elimina dal database
-      await AttachmentRepository.delete(attachmentId);
+      await prisma.attachment.delete({ where: { id: attachmentId } }).catch(() => null);
 
       logger.info('Attachment eliminato con successo', { attachmentId });
     } catch (error) {

@@ -48,7 +48,6 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       method: req.method,
       path: req.originalUrl,
       ip: req.ip,
-      ...(isDebugHttpEnabled() ? { headers: sanitizeForLog(req.headers) } : {}),
     });
     return res.status(401).json({
       message: 'Accesso negato. Token mancante.',
@@ -82,7 +81,6 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       method: req.method,
       path: req.originalUrl,
       ip: req.ip,
-      ...(isDebugHttpEnabled() ? { headers: sanitizeForLog(req.headers) } : {}),
     });
     return res.status(401).json({
       message: 'Token non valido o scaduto.',

@@ -1,75 +1,42 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export interface Breakpoint {
-  isSmall: boolean;
-  isMedium: boolean;
-  isLarge: boolean;
+  isSmall: boolean;  // sm e sotto
+  isMedium: boolean; // md
+  isLarge: boolean;  // lg (Laptop/Mac)
+  isXLarge: boolean; // xl (Monitor grandi)
   size: ScreenSize;
 }
 
 /**
- * Hook to detect current screen breakpoint
- * Consolidated multiple MediaQuery listeners into single useEffect with proper cleanup
- * This prevents memory leaks from orphaned listeners and reduces redundant queries
+ * Hook per rilevare il breakpoint corrente usando il sistema nativo di MUI
  */
 export function useBreakpoint(): Breakpoint {
-  const [breakpoint, setBreakpoint] = useState<Breakpoint>({
-    isSmall: false,
-    isMedium: false,
-    isLarge: false,
-    size: 'md',
-  });
+  const theme = useTheme();
 
-  useEffect(() => {
-    // Define media queries
-    const smallQuery = window.matchMedia('(max-width: 640px)');
-    const mediumQuery = window.matchMedia('(max-width: 1024px)');
-    const largeQuery = window.matchMedia('(min-width: 1025px)');
+  const isXs = useMediaQuery(theme.breakpoints.only('xs'));
+  const isSm = useMediaQuery(theme.breakpoints.only('sm'));
+  const isMd = useMediaQuery(theme.breakpoints.only('md'));
+  const isLg = useMediaQuery(theme.breakpoints.only('lg'));
+  const isXl = useMediaQuery(theme.breakpoints.up('xl'));
 
-    const updateBreakpoint = () => {
-      const isSmall = smallQuery.matches;
-      const isMedium = mediumQuery.matches;
-      const isLarge = largeQuery.matches;
+  // Calcolo della taglia testuale
+  let size: ScreenSize = 'xs';
+  if (isSm) size = 'sm';
+  if (isMd) size = 'md';
+  if (isLg) size = 'lg';
+  if (isXl) size = 'xl';
 
-      // Determine screen size
-      let size: ScreenSize;
-      if (isSmall) {
-        size = 'xs';
-      } else if (isMedium && !isSmall) {
-        size = 'sm';
-      } else if (isLarge && !isMedium) {
-        size = 'md';
-      } else {
-        size = 'lg';
-      }
-
-      setBreakpoint({
-        isSmall,
-        isMedium,
-        isLarge,
-        size,
-      });
-    };
-
-    // Set initial state
-    updateBreakpoint();
-
-    // Add listeners with cleanup
-    smallQuery.addEventListener('change', updateBreakpoint);
-    mediumQuery.addEventListener('change', updateBreakpoint);
-    largeQuery.addEventListener('change', updateBreakpoint);
-
-    // Cleanup all listeners in single effect
-    return () => {
-      smallQuery.removeEventListener('change', updateBreakpoint);
-      mediumQuery.removeEventListener('change', updateBreakpoint);
-      largeQuery.removeEventListener('change', updateBreakpoint);
-    };
-  }, []);
-
-  return breakpoint;
+  return {
+    isSmall: isXs || isSm,
+    isMedium: isMd,
+    isLarge: isLg,
+    isXLarge: isXl,
+    size,
+  };
 }

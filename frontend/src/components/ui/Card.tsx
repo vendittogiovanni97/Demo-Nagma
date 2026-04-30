@@ -1,7 +1,7 @@
 'use client';
 
-import { forwardRef, type ReactNode } from 'react';
 import { Card as MuiCard, type CardProps as MuiCardProps, useTheme } from '@mui/material';
+import { forwardRef, type ReactNode } from 'react';
 
 type CardVariant = 'glass' | 'primary' | 'elevated' | 'minimal';
 type CardSize = 'sm' | 'md' | 'lg';
@@ -70,24 +70,26 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <MuiCard
         ref={ref}
         onClick={interactive ? onClick : undefined}
-        sx={{
-          p: padding,
-          borderRadius: '12px',
-          transition: 'all 0.2s ease-in-out',
-          cursor: interactive ? 'pointer' : 'default',
-          '&:hover': interactive
-            ? {
-                transform: 'scale(1.02)',
-              }
-            : {},
-          '&:active': interactive
-            ? {
-                transform: 'scale(0.98)',
-              }
-            : {},
-          ...getVariantSx(),
-          ...sx,
-        }}
+        sx={[
+          {
+            p: padding,
+            borderRadius: '12px',
+            transition: 'all 0.2s ease-in-out',
+            cursor: interactive ? 'pointer' : 'default',
+            '&:hover': interactive
+              ? {
+                  transform: 'scale(1.02)',
+                }
+              : {},
+            '&:active': interactive
+              ? {
+                  transform: 'scale(0.98)',
+                }
+              : {},
+          },
+          getVariantSx(),
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}
         role={interactive ? 'button' : undefined}
         tabIndex={interactive ? 0 : undefined}
         {...props}

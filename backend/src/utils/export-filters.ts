@@ -14,14 +14,14 @@ export const weekdayFilterSchema = z.object({
 });
 
 export const statusFilterSchema = z.object({
-  status: z.enum(['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED']).optional(),
+  status: z.enum(['CREATO', 'CONFERMATO', 'COMPLETATO', 'MODIFICATO', 'SPOSTATO', 'ANNULLATO', 'CANCELLATO']).optional(),
 });
 
 export const exportFiltersSchema = z.object({
   fromDate: z.string().optional(),
   toDate: z.string().optional(),
   weekday: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']).optional(),
-  status: z.enum(['CONFIRMED', 'CANCELLED', 'RESCHEDULED', 'COMPLETED']).optional(),
+  status: z.enum(['CREATO', 'CONFERMATO', 'COMPLETATO', 'MODIFICATO', 'SPOSTATO', 'ANNULLATO', 'CANCELLATO']).optional(),
   artistId: z.string().optional(),
   customerId: z.string().optional(),
 });

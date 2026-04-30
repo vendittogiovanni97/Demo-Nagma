@@ -1,16 +1,18 @@
 'use client';
 
 import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import Input from '@/components/ui/Input';
 
 interface FormInputProps {
-  label: string;
+  label?: string;
   value: string | number;
   onChange: (value: string) => void;
-  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'time' | 'search' | 'tel' | 'url';
+  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'time' | 'search' | 'tel' | 'url' | 'month';
   placeholder?: string;
   required?: boolean;
   icon?: LucideIcon;
+  endAdornment?: ReactNode;
   min?: string | number;
   max?: string | number;
   step?: string | number;
@@ -20,11 +22,13 @@ interface FormInputProps {
   variant?: 'default' | 'danger' | 'success';
   className?: string;
   pattern?: string;
+  autoComplete?: string;
+  hideLabel?: boolean;
+  sx?: any;
 }
 
 /**
  * FormInput - Wrapper compatibile del nuovo Input component da @/components/ui/Input
- * Mantiene la backward compatibility con i componenti legacy che usano FormInput
  */
 export default function FormInput({
   label,
@@ -34,6 +38,7 @@ export default function FormInput({
   placeholder,
   required,
   icon,
+  endAdornment,
   min,
   max,
   step,
@@ -43,16 +48,20 @@ export default function FormInput({
   variant = 'default',
   className,
   pattern,
+  autoComplete,
+  hideLabel = false,
+  sx,
 }: FormInputProps) {
   return (
     <Input
       label={label}
       value={value}
       onChange={onChange}
-      type={type as 'text' | 'email' | 'password' | 'number' | 'date' | 'time' | 'search' | 'tel' | 'url'}
+      type={type}
       placeholder={placeholder}
       required={required}
       icon={icon}
+      endAdornment={endAdornment}
       min={min}
       max={max}
       step={step}
@@ -62,6 +71,9 @@ export default function FormInput({
       variant={variant}
       className={className}
       pattern={pattern}
+      autoComplete={autoComplete}
+      hideLabel={hideLabel}
+      sx={sx}
     />
   );
 }

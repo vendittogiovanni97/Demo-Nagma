@@ -16,7 +16,7 @@ export function useBookingActions({ mutate }: UseBookingActionsOptions) {
 
   const handleComplete = async (id: number) => {
     try {
-      await bookingService.update(id, { status: 'COMPLETED' });
+      await bookingService.update(id, { status: 'COMPLETATO' });
       await mutate();
     } catch {
       // errore silenzioso — il toast viene gestito dal service
@@ -25,7 +25,7 @@ export function useBookingActions({ mutate }: UseBookingActionsOptions) {
 
   const handleRestore = async (id: number) => {
     try {
-      await bookingService.update(id, { status: 'CONFIRMED' });
+      await bookingService.update(id, { status: 'CONFERMATO' });
       await mutate();
     } catch {
       // errore silenzioso — il toast viene gestito dal service

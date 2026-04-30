@@ -8,8 +8,8 @@ import Typography from '@mui/material/Typography';
 import { MessageCircle, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import PageHeader from '@/components/common/PageHeader';
 import StatePanel from '@/components/feedback/StatePanel';
-import PageHeader from '@/components/layout/PageHeader';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
@@ -21,7 +21,7 @@ import TemplateList from './components/TemplateList';
 import { useTemplateFilters } from './hooks/useTemplateFilters';
 
 const WhatsAppTemplateModal = dynamic(
-  () => import('./components/WhatsAppTemplateModal'),
+  () => import('@/components/modals/WhatsAppTemplateModal'),
   { ssr: false }
 );
 
@@ -30,7 +30,7 @@ export default function WhatsAppPage() {
   const { isAdmin } = useAuth();
   const canManageTemplates = isAdmin;
 
-  const { templateSearch, startDate, endDate, setTemplateSearch, setStartDate, setEndDate, resetDates } =
+  const { templateSearch, startDate, endDate } =
     useTemplateFilters();
 
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);

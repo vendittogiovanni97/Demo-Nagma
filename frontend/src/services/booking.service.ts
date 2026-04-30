@@ -26,9 +26,7 @@ export const bookingService = {
   delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.BOOKINGS.BY_ID(id));
   },
-  getAvailableArtists: async (date: string): Promise<AvailableArtist[]> => {
-    return apiClient.get<AvailableArtist[]>(`${ENDPOINTS.BOOKINGS.BASE}/available-artists`, { date });
-  },
+
   verifyPassword: async (password: string): Promise<void> => {
     return apiClient.post(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });
   },

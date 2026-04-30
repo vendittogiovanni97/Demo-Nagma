@@ -7,11 +7,12 @@ import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 import DataTable from '@/components/data-display/DataTable';
-import PageHeader from '@/components/layout/PageHeader';
+import PageHeader from '@/components/common/PageHeader';
+import SmartFilters from '@/components/common/SmartFilters';
 import { useToast } from '@/hooks/useToast';
 import { creamService, type CreamSale } from '@/services/cream.service';
 import { teamService } from '@/services/team.service';
-import SaleModal from './components/SaleModal';
+import SaleModal from '@/components/modals/SaleModal';
 import { useCreamColumns } from './hooks/useCreamColumns';
 
 interface StaffMember {
@@ -96,24 +97,28 @@ export default function CreamsPage() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title="Vendite Crema Tattoo"
-        showDateRange
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        onResetDates={hasFilters ? handleReset : undefined}
-        showFilter
-        filterValue={artistFilter}
-        filterPlaceholder="Tutti gli artisti"
-        filterMinWidth={160}
-        filterOptions={(teamMembers ?? []).map((member) => ({
-          label: `${member.name} (${member.type === 'APPRENDISTA' ? 'Appr.' : 'Coll.'})`,
-          value: member.id,
-        }))}
-        onFilterChange={(value) => setArtistFilter(value === '' ? '' : Number(value))}
-        showApplyButton
-        applyButtonLabel="Filtra"
-        onApply={() => setPage(1)}
+        filters={
+          <SmartFilters
+            dateRange={{
+              start: { value: startDate, onChange: setStartDate },
+              end: { value: endDate, onChange: setEndDate },
+            }}
+            select={{
+              label: "Artista",
+              value: artistFilter.toString(),
+              onChange: (value) => setArtistFilter(value === '' ? '' : Number(value)),
+              placeholder: "Tutti gli artisti",
+              options: (teamMembers ?? []).map((member) => ({
+                label: `${member.name} (${member.type === 'APPRENDISTA' ? 'Appr.' : 'Coll.'})`,
+                value: member.id.toString(),
+              })),
+            }}
+            submitAction={{
+              label: "Filtra",
+              onClick: () => setPage(1),
+            }}
+          />
+        }
         showButton
         buttonLabel="Nuova Vendita"
         buttonIcon={<Plus size={18} />}

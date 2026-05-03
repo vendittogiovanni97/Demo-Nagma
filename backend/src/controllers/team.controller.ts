@@ -12,6 +12,10 @@ export class TeamController {
     const { search, page, limit } = parsePageQuery(req.query);
     res.json(await service.getAllUsers(search, req.query.type as string | undefined, page, limit));
   });
+  
+  getUsersForSelect = asyncHandler(async (_req: Request, res: Response) => {
+    res.json(await service.findAllForSelect());
+  });
 
   createUser = asyncHandler(async (req: Request, res: Response) => {
     res.status(201).json(await service.createUser(req.body));

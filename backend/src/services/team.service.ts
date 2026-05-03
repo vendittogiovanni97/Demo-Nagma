@@ -171,6 +171,10 @@ export class TeamService {
     return staffService.findById(id);
   }
 
+  async findAllForSelect() {
+    return staffService.findAll();
+  }
+
   async updateUser(id: number, body: unknown) {
     const data = validate(updateStaffSchema, body);
     return staffService.update(id, data);

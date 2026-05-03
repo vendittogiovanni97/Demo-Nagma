@@ -41,6 +41,7 @@ export const ENDPOINTS = {
   },
   STAFF: {
     BASE: '/api/team/members',
+    LIST: '/api/team/members/list',
     BY_ID: (id: number) => `/api/team/members/${id}`,
   },
   SPESE_LIBERE: {

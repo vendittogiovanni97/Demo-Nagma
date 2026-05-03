@@ -202,7 +202,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         if (formState.artists.length > 0 && formState.initialArtistLoaded) return;
         dispatch({ type: 'SET_FIELD', field: 'loadingArtists', payload: true });
         try {
-          const data = await staffService.getAll();
+          const data = await staffService.getAllForSelect();
           if (!mounted) return;
           dispatch({ type: 'SET_ARTISTS', payload: data.map(m => ({ id: m.id, name: m.name, color: m.color || '#00bfff' })) });
           dispatch({ type: 'SET_FIELD', field: 'initialArtistLoaded', payload: true });

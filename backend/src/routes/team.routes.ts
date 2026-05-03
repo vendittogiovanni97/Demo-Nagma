@@ -44,6 +44,7 @@ router.use(authMiddleware);
  *       200:
  *         description: Lista componenti del team
  */
+router.get('/members/list', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getUsersForSelect);
 router.get('/members', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getUsers);
 
 /**

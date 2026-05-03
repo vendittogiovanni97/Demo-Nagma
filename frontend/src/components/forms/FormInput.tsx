@@ -1,7 +1,9 @@
-'use client';
+"use client";
 
+import { memo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Box, SxProps, Theme } from '@mui/material';
 import Input from '@/components/ui/Input';
 
 interface FormInputProps {
@@ -24,13 +26,13 @@ interface FormInputProps {
   pattern?: string;
   autoComplete?: string;
   hideLabel?: boolean;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 /**
  * FormInput - Wrapper compatibile del nuovo Input component da @/components/ui/Input
  */
-export default function FormInput({
+function FormInput({
   label,
   value,
   onChange,
@@ -77,3 +79,5 @@ export default function FormInput({
     />
   );
 }
+
+export default memo(FormInput);

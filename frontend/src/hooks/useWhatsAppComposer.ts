@@ -2,15 +2,15 @@
 
 import { useMemo, useState } from 'react';
 
-import type { Booking } from '@/types/booking';
-import type { Customer } from '@/types/customer';
-import type { WhatsAppTemplate } from '@/types/whatsapp';
+import type { Booking } from '@/modules/booking/model/booking.types';
+import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
+import type { WhatsAppTemplate } from '@/modules/whatsapp/model/whatsapp.types';
 import {
   extractTemplateVariables,
   getBookingVariableValue,
   getSuggestedVariableValue,
   renderTemplatePreview,
-} from '@/utils/whatsapp';
+} from '@/shared/utils/whatsapp';
 
 interface UseWhatsAppComposerOptions {
   selectedTemplate: WhatsAppTemplate | null;

@@ -1,4 +1,4 @@
-import type { RecommendedWhatsAppTemplate } from '@/types/whatsapp';
+import type { RecommendedWhatsAppTemplate } from '@/modules/whatsapp/model/whatsapp.types';
 
 export const RECOMMENDED_WHATSAPP_TEMPLATES: RecommendedWhatsAppTemplate[] = [
   {

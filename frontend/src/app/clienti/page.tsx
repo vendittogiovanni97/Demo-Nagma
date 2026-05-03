@@ -1,2 +1,5 @@
-import ClientiPage from '@/features/clienti/ClientiPage';
-export default ClientiPage;
+import CustomerListPage from '@/modules/customer/pages/CustomerListPage';
+
+export default function Page() {
+  return <CustomerListPage />;
+}

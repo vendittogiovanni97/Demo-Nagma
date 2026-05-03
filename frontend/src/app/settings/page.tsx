@@ -1,2 +1,5 @@
-import SettingsPage from '@/features/settings/SettingsPage';
-export default SettingsPage;
+import SettingsPage from '@/modules/settings/pages/SettingsPage';
+
+export default function Page() {
+  return <SettingsPage />;
+}

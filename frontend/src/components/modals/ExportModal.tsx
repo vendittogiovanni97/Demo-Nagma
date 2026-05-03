@@ -6,8 +6,8 @@ import { Alert, Box, Stack, Typography, useTheme } from '@mui/material';
 import { AlertCircle, FileDown, SlidersHorizontal, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import { exportService } from '@/services/export.service';
-import { exportRowsToPdf } from '@/utils/export';
+import { exportService } from '@/shared/api/export.api';
+import { exportRowsToPdf } from '@/shared/utils/export';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 
@@ -106,7 +106,7 @@ export default function ExportModal<T>({
         try {
           const filterParams = getFilterParams();
           const response = await exportService.getBookingsForExport(filterParams);
-          data = response.data;
+          data = response.data as unknown as T[];
           finalFiltersLabel = response.filtersLabel;
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Errore nel recupero dei dati filtrati');

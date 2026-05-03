@@ -4,12 +4,11 @@
  */
 
 import { useToast } from '@/hooks/useToast';
-import type { Attachment } from '@/types/attachment';
-import { getToken } from '@/utils/auth';
-import { extractErrorMessage } from '@/utils/extract-error';
+import type { Attachment } from '@/modules/booking/model/attachment.types';
+import { getToken } from '@/shared/utils/auth';
+import { extractErrorMessage } from '@/shared/utils/extract-error';
 import axios from 'axios';
-import { useCallback, useState } from 'react';
-import useSWR from 'swr';
+import { useCallback, useState, useEffect } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -32,23 +31,30 @@ interface UseAttachmentsOptions {
  */
 export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOptions) {
   const toast = useToast();
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  // Fetch lista attachment per booking — assoluto verso il backend, con JWT.
-  const { data: attachments = [], isLoading, mutate } = useSWR<Attachment[]>(
-    enabled && bookingId ? `${API_BASE}/attachments/booking/${bookingId}` : null,
-    async (url) => {
-      const response = await axios.get(url, { headers: authHeaders() });
-      return response.data.data || [];
-    },
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // 1 min
+  const fetchAttachments = useCallback(async () => {
+    if (!enabled || !bookingId) return;
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE}/attachments/booking/${bookingId}`, { 
+        headers: authHeaders() 
+      });
+      setAttachments(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching attachments:', error);
+    } finally {
+      setIsLoading(false);
     }
-  );
+  }, [bookingId, enabled]);
+
+  useEffect(() => {
+    fetchAttachments();
+  }, [fetchAttachments]);
 
   /**
    * Upload file verso API
@@ -84,7 +90,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
         );
 
         toast.success(`${file.name} caricato con successo`);
-        await mutate(); // Refresh list
+        await fetchAttachments(); // Refresh list
         return response.data.data;
       } catch (error) {
         const message = extractErrorMessage(error, 'Errore durante il caricamento');
@@ -95,7 +101,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
         setUploadProgress(0);
       }
     },
-    [bookingId, toast, mutate]
+    [bookingId, toast, fetchAttachments]
   );
 
   /**
@@ -111,7 +117,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
           headers: authHeaders(),
         });
         toast.success('File eliminato');
-        await mutate(); // Refresh list
+        await fetchAttachments(); // Refresh list
         return true;
       } catch (error) {
         const message = extractErrorMessage(error, 'Errore durante l\'eliminazione');
@@ -121,7 +127,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
         setDeleting(null);
       }
     },
-    [toast, mutate]
+    [toast, fetchAttachments]
   );
 
   /**
@@ -156,8 +162,8 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
    * Refresh lista attachment manualmente
    */
   const refreshList = useCallback(() => {
-    return mutate();
-  }, [mutate]);
+    return fetchAttachments();
+  }, [fetchAttachments]);
 
   return {
     attachments,

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
-import { extractErrorMessage } from '@/utils/extract-error';
+import { extractErrorMessage } from '@/shared/utils/extract-error';
 
 interface UseFormModalOptions<T> {
   onSubmit: (data: T) => Promise<void>;

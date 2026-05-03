@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-import type { ExportColumn } from '@/utils/export';
-import { exportRowsToCsv, exportRowsToPdf, exportRowsToXlsx } from '@/utils/export';
+import type { ExportColumn } from '@/shared/utils/export';
+import { exportRowsToCsv, exportRowsToPdf, exportRowsToXlsx } from '@/shared/utils/export';
 
 interface ExportButtonsProps<T> {
   filenameBase: string;

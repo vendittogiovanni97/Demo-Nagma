@@ -1,0 +1,113 @@
+"use client";
+
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useAuth } from '@/context/AuthContext';
+import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { Box, Button, Typography } from '@mui/material';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { customerApi } from '../api/customer.api';
+import CustomerDataTable from '../components/CustomerDataTable';
+import CustomerFilters from '../components/CustomerFilters';
+import CustomerModal from '../components/modals/CustomerModal';
+import { useCustomers } from '../hooks/useCustomer';
+import { useCustomerColumns } from '../hooks/useCustomerColumns';
+import { useCustomersFilter } from '../hooks/useCustomersFilter';
+import type { CustomerModel as Customer } from '../model/customer.model';
+
+export default function CustomerListPage() {
+  const { isAdmin } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
+  const filterState = useCustomersFilter();
+  const columns = useCustomerColumns();
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
+
+  const { data, isLoading, mutate } = useCustomers({
+    search: filterState.debouncedSearch,
+    startDate: filterState.startDate,
+    endDate: filterState.endDate,
+    page: filterState.page,
+    limit: 20,
+  });
+
+  const handleModalSuccess = () => {
+    setIsModalOpen(false);
+    setEditingCustomer(null);
+    mutate();
+  };
+
+  const handleEdit = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    deleteItem({
+      confirmMessage: 'Sei sicuro di voler eliminare questo cliente?',
+      action: () => customerApi.delete(id),
+      successMessage: 'Cliente eliminato',
+      errorMessage: "Errore durante l'eliminazione del cliente",
+      onSuccess: mutate,
+    });
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          Clienti
+        </Typography>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Plus size={20} />}
+            onClick={() => setIsModalOpen(true)}
+            sx={{ borderRadius: 2 }}
+          >
+            Nuovo Cliente
+          </Button>
+        )}
+      </Box>
+
+      <CustomerFilters
+        search={filterState.search}
+        startDate={filterState.startDate}
+        endDate={filterState.endDate}
+        onSearchChange={filterState.setSearch}
+        onStartDateChange={filterState.setStartDate}
+        onEndDateChange={filterState.setEndDate}
+        onResetDates={filterState.resetDates}
+      />
+
+      <Box sx={{ flex: 1, minHeight: 0 }}>
+        <CustomerDataTable
+          customers={data?.data || []}
+          columns={columns}
+          isLoading={isLoading}
+          debouncedSearch={filterState.debouncedSearch}
+          page={filterState.page}
+          totalPages={data?.totalPages || 0}
+          total={data?.total || 0}
+          onPrevPage={() => filterState.setPage((p) => Math.max(1, p - 1))}
+          onNextPage={() => filterState.setPage((p) => p + 1)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </Box>
+
+      <CustomerModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCustomer(null);
+        }}
+        onSuccess={handleModalSuccess}
+        customer={editingCustomer}
+      />
+      <ConfirmDialog {...confirmDialogProps} />
+    </Box>
+  );
+}

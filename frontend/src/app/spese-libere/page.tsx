@@ -1,2 +1,5 @@
-import SpesePage from '@/features/spese/SpesePage';
-export default SpesePage;
+import SpesePage from '@/modules/spese/pages/SpesePage';
+
+export default function Page() {
+  return <SpesePage />;
+}

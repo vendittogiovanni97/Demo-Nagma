@@ -4,6 +4,7 @@ import DataTable, { type Column } from '@/components/data-display/DataTable';
 import StatePanel from '@/components/feedback/StatePanel';
 import { useTheme as useThemeContext } from '@/context/ThemeContext';
 import { Box, CircularProgress, Stack, useTheme as useMuiTheme } from '@mui/material';
+import type { RowStyle } from 'ag-grid-community';
 import { ReactNode } from 'react';
 
 interface SmartTableProps<T> {
@@ -17,7 +18,7 @@ interface SmartTableProps<T> {
   /** Actions for each row (desktop) */
   actions?: (item: T) => ReactNode;
   /** Row styling logic */
-  getRowStyle?: (item: T) => any;
+  getRowStyle?: (item: T) => RowStyle | undefined;
   /** Custom empty state */
   emptyTitle?: string;
   emptyDescription?: string;

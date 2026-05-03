@@ -11,8 +11,7 @@ interface ButtonProps extends Omit<MuiButtonProps, 'variant' | 'size'> {
   size?: ButtonSize;
   isLoading?: boolean;
   loadingLabel?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any;
+  icon?: ReactNode | React.ElementType;
   fullWidth?: boolean;
 }
 

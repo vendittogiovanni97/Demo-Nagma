@@ -1,2 +1,5 @@
-import TeamPage from '@/features/team/TeamPage';
-export default TeamPage;
+import TeamPage from '@/modules/team/pages/TeamPage';
+
+export default function Page() {
+  return <TeamPage />;
+}

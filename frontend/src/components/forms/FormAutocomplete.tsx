@@ -21,7 +21,7 @@ interface FormAutocompleteProps {
   error?: string;
   hideLabel?: boolean;
   size?: 'small' | 'medium';
-  sx?: any;
+  sx?: SxProps<Theme>;
   loading?: boolean;
 }
 

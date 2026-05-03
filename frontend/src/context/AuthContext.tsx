@@ -1,8 +1,8 @@
 "use client";
 
-import { authService } from '@/services/auth.service';
-import type { AuthUser, LoginCredentials } from '@/types/auth';
-import { clearSession, getToken, getUser, setToken, setUser } from '@/utils/auth';
+import { authService } from '@/modules/auth/api/auth.api';
+import type { AuthUser, LoginCredentials } from '@/modules/auth/model/auth.types';
+import { clearSession, getToken, getUser, setToken, setUser } from '@/shared/utils/auth';
 import { isAdmin, isSuperAdmin } from '@/config/roles';
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback } from 'react';

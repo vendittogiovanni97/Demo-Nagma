@@ -1,2 +1,5 @@
-import WhatsAppPage from '@/features/whatsapp/WhatsAppPage';
-export default WhatsAppPage;
+import WhatsAppPage from '@/modules/whatsapp/pages/WhatsAppPage';
+
+export default function Page() {
+  return <WhatsAppPage />;
+}

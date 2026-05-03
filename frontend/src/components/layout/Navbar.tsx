@@ -3,6 +3,7 @@
 import { branding } from "@/config/branding";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import BookingModal from "@/modules/booking/components/modals/BookingModal";
 import {
   AppBar,
   Box,
@@ -34,7 +35,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import BookingModal from "../modals/BookingModal";
 
 function getInitials(name?: string, email?: string) {
   if (name) {
@@ -378,12 +378,9 @@ function NavbarItems({ items, pathname, navConfig, muiTheme, isXLarge }: NavbarI
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT: NavbarUserMenu
-// Purpose: Avatar button + User menu dropdown
-// ─────────────────────────────────────────────────────────────────────────────
+
 interface NavbarUserMenuProps {
-  user: any;
+  user: { name?: string; email?: string; role?: string } | null;
   initials: string;
   userMenuAnchor: HTMLElement | null;
   navConfig: NavConfigType;

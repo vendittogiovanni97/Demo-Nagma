@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import { useToast } from './useToast';
-import { extractErrorMessage } from '@/utils/extract-error';
+import { extractErrorMessage } from '@/shared/utils/extract-error';
 
 interface DeleteConfirmOptions {
   confirmMessage: string;

@@ -1,6 +1,7 @@
 "use client";
 
-import { MenuItem, TextField, useTheme, Box, Typography } from '@mui/material';
+import { memo } from 'react';
+import { MenuItem, TextField, useTheme, Box, Typography, SxProps, Theme } from '@mui/material';
 import { inputRootSx } from '@/theme/inputStyles';
 import type { LucideIcon } from 'lucide-react';
 
@@ -21,10 +22,10 @@ interface FormSelectProps {
   error?: string;
   hideLabel?: boolean;
   size?: 'small' | 'medium';
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
-export default function FormSelect({
+function FormSelect({
   label,
   value,
   onChange,
@@ -110,3 +111,5 @@ export default function FormSelect({
     </Box>
   );
 }
+
+export default memo(FormSelect);

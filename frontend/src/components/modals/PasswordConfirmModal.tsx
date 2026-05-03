@@ -28,8 +28,8 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
       await onConfirm(password);
       setPassword('');
       onClose();
-    } catch (err: any) {
-      setError(err?.message || 'Password non corretta');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Password non corretta');
     }
   };
 

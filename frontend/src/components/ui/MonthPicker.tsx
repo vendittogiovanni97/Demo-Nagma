@@ -4,6 +4,8 @@ import {
   Stack,
   Typography,
   useTheme,
+  SxProps,
+  Theme,
 } from '@mui/material';
 import { addMonths, format, subMonths } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -13,7 +15,7 @@ import Button from '@/components/ui/Button';
 interface MonthPickerProps {
   value: Date;
   onChange: (date: Date) => void;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 export default function MonthPicker({ value, onChange, sx }: MonthPickerProps) {

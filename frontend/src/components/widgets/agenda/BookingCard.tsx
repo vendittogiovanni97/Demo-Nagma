@@ -1,6 +1,6 @@
 "use client";
 
-import type { Booking } from '@/types/booking';
+import type { Booking } from '@/modules/booking/model/booking.types';
 import {
   Box,
   IconButton,

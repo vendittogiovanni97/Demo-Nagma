@@ -1,6 +1,6 @@
 'use client';
 
-import { InputAdornment, TextField, useTheme, IconButton, Box } from '@mui/material';
+import { InputAdornment, TextField, useTheme, IconButton, Box, SxProps, Theme } from '@mui/material';
 import { Eye, EyeOff, type LucideIcon } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { inputRootSx } from '@/theme/inputStyles';
@@ -27,7 +27,7 @@ interface InputProps {
   pattern?: string;
   autoComplete?: string;
   hideLabel?: boolean;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 export default function Input({

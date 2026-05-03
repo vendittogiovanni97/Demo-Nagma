@@ -81,7 +81,7 @@ export default function DataTable<T extends object>({
           params.data ? <div style={alignStyle}>{col.render!(params.data)}</div> : null;
       } else {
         def.cellStyle = col.align && col.align !== 'left' ? { textAlign: col.align } : undefined;
-        def.valueGetter = (params) => params.data ? String((params.data as any)[col.key] ?? '') : '';
+        def.valueGetter = (params) => params.data ? String((params.data as Record<string, unknown>)[col.key] ?? '') : '';
       }
       return def;
     });

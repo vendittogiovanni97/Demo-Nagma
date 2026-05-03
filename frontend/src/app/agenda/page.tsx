@@ -1,2 +1,5 @@
-import AgendaPage from '@/features/agenda/AgendaPage';
-export default AgendaPage;
+import AgendaPage from '@/modules/agenda/pages/AgendaPage';
+
+export default function Page() {
+  return <AgendaPage />;
+}

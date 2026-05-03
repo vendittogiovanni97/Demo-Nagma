@@ -1,10 +1,5 @@
-import { Suspense } from 'react';
-import PrenotazioniPage from '@/features/prenotazioni/PrenotazioniPage';
+import PrenotazioniPage from '@/modules/booking/pages/PrenotazioniPage';
 
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <PrenotazioniPage />
-    </Suspense>
-  );
+  return <PrenotazioniPage />;
 }

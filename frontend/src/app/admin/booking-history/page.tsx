@@ -1,2 +1,5 @@
-import BookingHistoryPage from '@/features/admin/booking-history/BookingHistoryPage';
-export default BookingHistoryPage;
+import BookingHistoryPage from '@/modules/booking-history/pages/BookingHistoryPage';
+
+export default function Page() {
+  return <BookingHistoryPage />;
+}

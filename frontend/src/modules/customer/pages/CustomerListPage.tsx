@@ -1,9 +1,10 @@
 "use client";
 
+import PageHeader from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
-import { Box, Button, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { customerApi } from '../api/customer.api';
@@ -54,32 +55,25 @@ export default function CustomerListPage() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Clienti
-        </Typography>
-        {isAdmin && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Plus size={20} />}
-            onClick={() => setIsModalOpen(true)}
-            sx={{ borderRadius: 2 }}
-          >
-            Nuovo Cliente
-          </Button>
-        )}
-      </Box>
-
-      <CustomerFilters
-        search={filterState.search}
-        startDate={filterState.startDate}
-        endDate={filterState.endDate}
-        onSearchChange={filterState.setSearch}
-        onStartDateChange={filterState.setStartDate}
-        onEndDateChange={filterState.setEndDate}
-        onResetDates={filterState.resetDates}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1.5, pt: 1 }}>
+      <PageHeader
+        title="Clienti"
+        showButton
+        buttonLabel="Nuovo Cliente"
+        buttonIcon={<Plus size={18} />}
+        buttonRequiresAdmin
+        onButtonClick={() => setIsModalOpen(true)}
+        filters={
+          <CustomerFilters
+            search={filterState.search}
+            startDate={filterState.startDate}
+            endDate={filterState.endDate}
+            onSearchChange={filterState.setSearch}
+            onStartDateChange={filterState.setStartDate}
+            onEndDateChange={filterState.setEndDate}
+            onResetDates={filterState.resetDates}
+          />
+        }
       />
 
       <Box sx={{ flex: 1, minHeight: 0 }}>

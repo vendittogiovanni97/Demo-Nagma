@@ -1,4 +1,4 @@
-export type StaffType = 'ARTIST' | 'ADMIN' | 'RECEPTION';
+export type StaffType = 'COLLABORATORE' | 'APPRENDISTA';
 
 export interface StaffProps {
   id?: number;

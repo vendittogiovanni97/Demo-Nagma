@@ -31,8 +31,8 @@ export default function LayoutContainer({
     <Box
       component="div"
       sx={{
-        px: isAuthPage ? 2 : { xs: 1.25, sm: 2, md: 2.5, lg: 3, xl: 4 },
-        pt: isAuthPage ? 0 : { xs: 10, sm: 11, md: 12 },
+        px: isAuthPage ? 2 : { xs: 1.25, sm: 2, md: 2.5, lg: 3, xl: 2 },
+        pt: isAuthPage ? 0 : { xs: 10, sm: 11, md: 9 },
         pb: isAuthPage ? 0 : { xs: 2, sm: 2.5, md: 3 },
         width: '100%',
         maxWidth: maxWidthMap[maxWidth],

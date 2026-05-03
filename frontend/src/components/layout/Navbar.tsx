@@ -50,13 +50,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
   const { isSmall, isMedium, isLarge, isXLarge } = useTheme();
   const muiTheme = useMuiTheme() as unknown as Theme;
 
   // Memoize responsive sizing to avoid 57+ calculations per render
-  // Dependencies: breakpoint changes (isSmall, isMedium, isLarge)
   const navConfig = useMemo(
     () => ({
       iconSize: isSmall ? 14 : isMedium ? 15 : isLarge ? 16 : 18,
@@ -70,7 +68,7 @@ export default function Navbar() {
     [isSmall, isMedium, isLarge, isXLarge]
   );
 
-  // Memoize nav item handlers to prevent recreation on every render
+  // Memoize nav item handlers
   const handleUserMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setUserMenuAnchor(event.currentTarget);
   }, []);
@@ -79,27 +77,12 @@ export default function Navbar() {
     setUserMenuAnchor(null);
   }, []);
 
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setAuthChecked(true);
+    setMounted(true);
   }, []);
 
-  if (!authChecked) {
-    return (
-      <Box
-        component="nav"
-        sx={{ height: 44 }}
-        suppressHydrationWarning
-      />
-    );
-  }
-
-  // Render unauthenticated navbar (minimal config)
-  if (!isAuthenticated) {
-    if (pathname === '/login') return null;
-    return (
-      <UnauthenticatedNavbar navConfig={navConfig} />
-    );
-  }
+  const initials = getInitials(user?.name, user?.email);
 
   const navItems = [
     { name: "Home",         href: "/",            icon: LayoutGrid   },
@@ -109,112 +92,107 @@ export default function Navbar() {
     { name: "Team",         href: "/team",         icon: UsersRound   },
   ];
 
-  const initials = getInitials(user?.name, user?.email);
+  // Return a consistent placeholder during hydration to avoid mismatches with Emotion/MUI styles
+  if (!mounted) {
+    return <div style={{ height: 44 }} />;
+  }
 
   return (
-    <>
-      <AppBar
-        position="fixed"
-        suppressHydrationWarning
-        sx={{
-          top: { xs: 0, sm: 6 },
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: { xs: '100%', sm: 'fit-content' },
-          maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
-          right: 'auto',
-          backgroundColor: 'rgba(10, 26, 38, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: { xs: 'none', sm: '1px solid rgba(0, 191, 255, 0.12)' },
-          borderRadius: { xs: 0, sm: '100px' },
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-          borderBottom: { xs: '1px solid rgba(0, 191, 255, 0.12)', sm: '1px solid rgba(0, 191, 255, 0.12)' },
-        }}
-      >
-        <Toolbar
-          sx={{
-            py: { xs: 0.5, sm: 0.375 },
-            px: { xs: 1, sm: 1.5 },
-            gap: { xs: 0.5, sm: 1 },
-            minHeight: 'unset',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflowX: 'auto',
-            '&::-webkit-scrollbar': { display: 'none' },
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none',
-          }}
-        >
-          {/* Logo */}
-          <NavbarLogo navConfig={navConfig} />
-
-          {/* Separatore */}
-          <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
-
-          {/* Nav items */}
-          <NavbarItems
-            items={navItems}
-            pathname={pathname}
-            navConfig={navConfig}
-            muiTheme={muiTheme}
-            isXLarge={isXLarge}
-          />
-
-          {/* Separatore */}
-          <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
-
-          {/* Bottone + (visible on extra-large screens only) */}
-          {isXLarge && (
-            <>
-              <IconButton
-                onClick={() => setIsBookingOpen(true)}
-                aria-label="Nuova prenotazione"
-                title="Nuova prenotazione"
-                sx={{
-                  width: navConfig.plusBtn,
-                  height: navConfig.plusBtn,
-                  padding: 0,
-                  borderRadius: '50%',
-                  backgroundColor: muiTheme.palette.primary.main,
-                  color: muiTheme.palette.background.default,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: muiTheme.palette.primary.light,
-                    transform: 'translateY(-1px)',
-                  },
-                }}
-              >
-                <Plus size={navConfig.iconSize} />
-              </IconButton>
-
-              {/* Separatore */}
-              <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)', mx: 0.25 }} />
-            </>
-          )}
-
-          {/* Avatar + User Menu */}
-          <NavbarUserMenu
-            user={user}
-            initials={initials}
-            userMenuAnchor={userMenuAnchor}
-            navConfig={navConfig}
-            muiTheme={muiTheme}
-            isAdmin={isAdmin}
-            isSuperAdmin={isSuperAdmin}
-            isLarge={isXLarge}
-            onMenuOpen={handleUserMenuOpen}
-            onMenuClose={handleUserMenuClose}
-            onLogout={logout}
-          />
-        </Toolbar>
-      </AppBar>
-
-      <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
-    </>
+    <nav style={{ height: 44 }}>
+      {/* Render unauthenticated navbar (minimal config) */}
+      {!isAuthenticated ? (
+        pathname !== '/login' ? <UnauthenticatedNavbar navConfig={navConfig} /> : null
+      ) : (
+        <>
+          <AppBar
+            position="fixed"
+            sx={{
+              top: { xs: 0, sm: 6 },
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: { xs: '100%', sm: 'fit-content' },
+              maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
+              right: 'auto',
+              backgroundColor: 'rgba(10, 26, 38, 0.9)',
+              backdropFilter: 'blur(20px)',
+              border: { xs: 'none', sm: '1px solid rgba(0, 191, 255, 0.12)' },
+              borderRadius: { xs: 0, sm: '100px' },
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              borderBottom: { xs: '1px solid rgba(0, 191, 255, 0.12)', sm: '1px solid rgba(0, 191, 255, 0.12)' },
+            }}
+          >
+            <Toolbar
+              sx={{
+                py: { xs: 0.5, sm: 0.375 },
+                px: { xs: 1, sm: 1.5 },
+                gap: { xs: 0.5, sm: 1 },
+                minHeight: 'unset',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': { display: 'none' },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+              }}
+            >
+              <NavbarLogo navConfig={navConfig} />
+              <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
+              <NavbarItems
+                items={navItems}
+                pathname={pathname}
+                navConfig={navConfig}
+                muiTheme={muiTheme}
+                isXLarge={isXLarge}
+              />
+              <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
+              {isXLarge && (
+                <>
+                  <IconButton
+                    onClick={() => setIsBookingOpen(true)}
+                    aria-label="Nuova prenotazione"
+                    title="Nuova prenotazione"
+                    sx={{
+                      width: navConfig.plusBtn,
+                      height: navConfig.plusBtn,
+                      padding: 0,
+                      borderRadius: '50%',
+                      backgroundColor: muiTheme.palette.primary.main,
+                      color: muiTheme.palette.background.default,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: muiTheme.palette.primary.light,
+                        transform: 'translateY(-1px)',
+                      },
+                    }}
+                  >
+                    <Plus size={navConfig.iconSize} />
+                  </IconButton>
+                  <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)', mx: 0.25 }} />
+                </>
+              )}
+              <NavbarUserMenu
+                user={user}
+                initials={initials}
+                userMenuAnchor={userMenuAnchor}
+                navConfig={navConfig}
+                muiTheme={muiTheme}
+                isAdmin={isAdmin}
+                isSuperAdmin={isSuperAdmin}
+                isLarge={isXLarge}
+                onMenuOpen={handleUserMenuOpen}
+                onMenuClose={handleUserMenuClose}
+                onLogout={logout}
+              />
+            </Toolbar>
+          </AppBar>
+          <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+        </>
+      )}
+    </nav>
   );
 }
 

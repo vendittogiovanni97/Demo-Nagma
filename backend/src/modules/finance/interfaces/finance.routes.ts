@@ -16,9 +16,9 @@ router.get('/transactions/artist-performance', transactionController.getArtistPe
 router.post('/transactions', adminOnly, transactionController.create);
 router.delete('/transactions/:id', adminOnly, transactionController.delete);
 
-// Spesa Libera
-router.get('/spesa-libera', spesaLiberaController.getAll);
-router.post('/spesa-libera', adminOnly, spesaLiberaController.create);
-router.delete('/spesa-libera/:id', adminOnly, spesaLiberaController.delete);
+// Spese Libere
+router.get('/spese-libere', spesaLiberaController.getAll);
+router.post('/spese-libere', adminOnly, spesaLiberaController.create);
+router.delete('/spese-libere/:id', adminOnly, spesaLiberaController.delete);
 
 export default router;

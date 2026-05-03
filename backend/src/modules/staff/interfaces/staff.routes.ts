@@ -8,13 +8,13 @@ const controller = container.staffController;
 router.use(authMiddleware);
 
 // Staff members
-router.get('/', controller.getMembers);
+router.get('/members', controller.getMembers);
 router.get('/members/list', controller.getMembersForSelect);
 router.get('/members/:id', controller.getMemberById);
-router.post('/', adminOnly, controller.createMember);
-router.put('/:id', adminOnly, controller.updateMember);
-router.delete('/:id', adminOnly, controller.deleteMember);
-router.post('/:id/reset-password', adminOnly, controller.resetPassword);
+router.post('/members', adminOnly, controller.createMember);
+router.put('/members/:id', adminOnly, controller.updateMember);
+router.delete('/members/:id', adminOnly, controller.deleteMember);
+router.post('/members/:id/reset-password', adminOnly, controller.resetPassword);
 
 // Shifts
 router.get('/shifts', controller.getAllShifts);

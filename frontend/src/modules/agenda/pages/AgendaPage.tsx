@@ -55,6 +55,27 @@ export default function AgendaPage() {
 
   const { events } = useCalendarEvents(bookings);
 
+  const renderEventContent = useCallback((arg: EventContentArg) => (
+    <CalendarEvent
+      booking={arg.event.extendedProps.booking as Booking}
+    />
+  ), []);
+
+  const renderDayCellContent = useCallback((arg: DayCellContentArg) => ({
+    html: `<span class="fc-daygrid-day-number" tabindex="0" role="gridcell" aria-label="${format(arg.date, 'EEEE d MMMM', { locale: it })}">${arg.dayNumberText}</span>`,
+  }), []);
+
+  const handleDatesSet = useCallback((arg: DatesSetArg) => {
+    const visibleStart = format(arg.start, 'yyyy-MM');
+    const visibleEnd = format(subDays(arg.end, 1), 'yyyy-MM');
+    if (visibleEnd !== visibleStart) {
+      const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
+      setCurrentMonth(format(mid, 'yyyy-MM'));
+    } else {
+      setCurrentMonth(visibleStart);
+    }
+  }, [setCurrentMonth]);
+
   return (
     <Box
       sx={{
@@ -116,11 +137,7 @@ export default function AgendaPage() {
             }}
             buttonText={{ today: 'Oggi', week: 'Settimana', day: 'Giorno' }}
             events={events}
-            eventContent={useCallback((arg: EventContentArg) => (
-              <CalendarEvent
-                booking={arg.event.extendedProps.booking as Booking}
-              />
-            ), [])}
+            eventContent={renderEventContent}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
             height="100%"
@@ -130,19 +147,8 @@ export default function AgendaPage() {
             dayMaxEvents={3}
             weekText="Settimana"
             dayHeaderFormat={{ weekday: 'short', day: '2-digit', month: '2-digit' }}
-            dayCellContent={useCallback((arg: DayCellContentArg) => ({
-              html: `<span class="fc-daygrid-day-number" tabindex="0" role="gridcell" aria-label="${format(arg.date, 'EEEE d MMMM', { locale: it })}">${arg.dayNumberText}</span>`,
-            }), [])}
-            datesSet={useCallback((arg: DatesSetArg) => {
-              const visibleStart = format(arg.start, 'yyyy-MM');
-              const visibleEnd = format(subDays(arg.end, 1), 'yyyy-MM');
-              if (visibleEnd !== visibleStart) {
-                const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
-                setCurrentMonth(format(mid, 'yyyy-MM'));
-              } else {
-                setCurrentMonth(visibleStart);
-              }
-            }, [setCurrentMonth])}
+            dayCellContent={renderDayCellContent}
+            datesSet={handleDatesSet}
           />
         )}
       </Box>

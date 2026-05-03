@@ -139,7 +139,14 @@ function bookingFormReducer(state: BookingFormState, action: BookingFormAction):
     case 'SET_ARTISTS': return { ...state, artists: action.payload };
     case 'SET_PENDING_DATA': return { ...state, pendingData: action.payload };
     case 'RESET_FORM':
-      return { ...initialFormState, date: action.payload?.initialDate || '', time: action.payload?.initialTime || '' };
+      return { 
+        ...initialFormState, 
+        artists: state.artists,
+        loadingArtists: state.loadingArtists,
+        initialArtistLoaded: state.initialArtistLoaded,
+        date: action.payload?.initialDate || '', 
+        time: action.payload?.initialTime || '' 
+      };
     case 'LOAD_BOOKING': {
       const { booking, isOpen } = action.payload;
       if (booking && isOpen) {
@@ -302,7 +309,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         saveLabel={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'}
       >
         <Box sx={styles.container}>
-          <Grid container spacing={6}>
+          <Grid container spacing={2.5}>
             {/* PARTECIPANTI */}
             <Grid size={{ xs: 12, lg: 7 }}>
               <Box sx={styles.sectionHeader}>
@@ -345,16 +352,16 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   <Box sx={styles.newCustomerFields(formState.isNewCustomer)}>
                     <Grid container spacing={3}>
                       <Grid size={6}>
-                        <FormInput label="Nome *" value={formState.newCustomerFirstName} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerFirstName',payload:v})} disabled={!formState.isNewCustomer} size="sm" />
+                        <FormInput label="Nome *" value={formState.newCustomerFirstName} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerFirstName',payload:v})} disabled={!formState.isNewCustomer} size="sm" placeholder="Nome cliente" />
                       </Grid>
                       <Grid size={6}>
-                        <FormInput label="Cognome *" value={formState.newCustomerLastName} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerLastName',payload:v})} disabled={!formState.isNewCustomer} size="sm" />
+                        <FormInput label="Cognome *" value={formState.newCustomerLastName} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerLastName',payload:v})} disabled={!formState.isNewCustomer} size="sm" placeholder="Cognome cliente" />
                       </Grid>
                       <Grid size={6}>
-                        <FormInput label="Telefono *" value={formState.newCustomerPhone} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerPhone',payload:v})} disabled={!formState.isNewCustomer} size="sm" />
+                        <FormInput label="Telefono *" value={formState.newCustomerPhone} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerPhone',payload:v})} disabled={!formState.isNewCustomer} size="sm" placeholder="Es: 340 123 4567" />
                       </Grid>
                       <Grid size={6}>
-                        <FormInput label="Email" value={formState.newCustomerEmail} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerEmail',payload:v})} disabled={!formState.isNewCustomer} size="sm" type="email" />
+                        <FormInput label="Email" value={formState.newCustomerEmail} onChange={(v)=>dispatch({type:'SET_FIELD',field:'newCustomerEmail',payload:v})} disabled={!formState.isNewCustomer} size="sm" type="email" placeholder="Es: nome@email.com" />
                       </Grid>
                     </Grid>
                   </Box>
@@ -386,8 +393,8 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
               <Grid container spacing={4} sx={{ alignItems: 'stretch' }}>
                 <Grid size={{ xs: 12, lg: 6 }}>
                   <Grid container spacing={3}>
-                    <Grid size={4}><FormInput label="Prezzo (€)" type="number" value={formState.price} onChange={(v)=>dispatch({type:'SET_FIELD',field:'price',payload:v})} size="sm" /></Grid>
-                    <Grid size={4}><FormInput label="Acconto (€)" type="number" value={formState.deposit} onChange={(v)=>dispatch({type:'SET_FIELD',field:'deposit',payload:v})} size="sm" /></Grid>
+                    <Grid size={4}><FormInput label="Prezzo (€)" type="number" value={formState.price} onChange={(v)=>dispatch({type:'SET_FIELD',field:'price',payload:v})} size="sm" placeholder="Es: 150" /></Grid>
+                    <Grid size={4}><FormInput label="Acconto (€)" type="number" value={formState.deposit} onChange={(v)=>dispatch({type:'SET_FIELD',field:'deposit',payload:v})} size="sm" placeholder="Es: 50" /></Grid>
                     <Grid size={4}><FormSelect label="% Artista" value={formState.percentualeMode} onChange={(v)=>dispatch({type:'SET_FIELD',field:'percentualeMode',payload:v})} options={PERCENTUALE_OPTIONS} /></Grid>
                     {formState.percentualeMode === 'CUSTOM' && (
                       <Grid size={12}><FormInput label="Custom %" type="number" value={formState.customPercentuale} onChange={(v)=>dispatch({type:'SET_FIELD',field:'customPercentuale',payload:v})} size="sm" /></Grid>
@@ -423,9 +430,23 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                 {dynamicFields.map(f => (
                   <Grid key={f.name} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                     {f.type === 'select' ? (
-                      <FormSelect label={f.label} value={formState.dynamicValues[f.name] || ''} onChange={(v)=>dispatch({type:'UPDATE_DYNAMIC_VALUE',payload:{name:f.name, value:v}})} options={(f.options || []).map(o=>({value:o, label:o}))} size="small" />
+                      <FormSelect 
+                        label={f.label} 
+                        value={formState.dynamicValues[f.name] || ''} 
+                        onChange={(v)=>dispatch({type:'UPDATE_DYNAMIC_VALUE',payload:{name:f.name, value:v}})} 
+                        options={(f.options || []).map(o=>({value:o, label:o}))} 
+                        size="small" 
+                        placeholder="Seleziona..."
+                      />
                     ) : (
-                      <FormInput label={f.label} value={formState.dynamicValues[f.name] || ''} onChange={(v)=>dispatch({type:'UPDATE_DYNAMIC_VALUE',payload:{name:f.name, value:v}})} type={f.type === 'number'?'number':'text'} size="sm" />
+                      <FormInput 
+                        label={f.label} 
+                        value={formState.dynamicValues[f.name] || ''} 
+                        onChange={(v)=>dispatch({type:'UPDATE_DYNAMIC_VALUE',payload:{name:f.name, value:v}})} 
+                        type={f.type === 'number'?'number':'text'} 
+                        size="sm" 
+                        placeholder={`Es: ${f.label.toLowerCase()}...`}
+                      />
                     )}
                   </Grid>
                 ))}
@@ -434,28 +455,32 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 
             {/* STATUS & NOTES */}
             <Grid size={12} container spacing={4}>
-              <Grid size={{ xs: 12, lg: 4 }}>
-                {booking?.id && (
-                  <>
-                    <Typography sx={styles.label}>Stato</Typography>
-                    <Box sx={styles.statusGroup}>
-                      {([
-                        { v: 'CONFERMATO', l: 'Confermato', c: theme.palette.primary.main },
-                        { v: 'COMPLETATO', l: 'Completato', c: theme.palette.success.main },
-                        { v: 'SPOSTATO', l: 'Spostato', c: theme.palette.warning.main },
-                        { v: 'ANNULLATO', l: 'Annullato', c: theme.palette.error.main },
-                      ]).map((opt) => (
-                        <Box key={opt.v} component="button" onClick={()=>dispatch({type:'SET_FIELD',field:'status',payload:opt.v})} sx={styles.statusButton(formState.status === opt.v, opt.c)}>
-                          {opt.l}
-                        </Box>
-                      ))}
-                    </Box>
-                  </>
-                )}
-              </Grid>
-              <Grid size={{ xs: 12, lg: 8 }}>
+              {booking?.id && (
+                <Grid size={{ xs: 12, lg: 4 }}>
+                  <Typography sx={styles.label}>Stato</Typography>
+                  <Box sx={styles.statusGroup}>
+                    {([
+                      { v: 'CONFERMATO', l: 'Confermato', c: theme.palette.primary.main },
+                      { v: 'COMPLETATO', l: 'Completato', c: theme.palette.success.main },
+                      { v: 'SPOSTATO', l: 'Spostato', c: theme.palette.warning.main },
+                      { v: 'ANNULLATO', l: 'Annullato', c: theme.palette.error.main },
+                    ]).map((opt) => (
+                      <Box key={opt.v} component="button" onClick={()=>dispatch({type:'SET_FIELD',field:'status',payload:opt.v})} sx={styles.statusButton(formState.status === opt.v, opt.c)}>
+                        {opt.l}
+                      </Box>
+                    ))}
+                  </Box>
+                </Grid>
+              )}
+              <Grid size={{ xs: 12, lg: booking?.id ? 8 : 12 }}>
                 <Typography sx={styles.label}>Note Interne</Typography>
-                <Box component="textarea" value={formState.notes} onChange={(e)=>dispatch({type:'SET_FIELD',field:'notes',payload:e.target.value})} placeholder="Note appuntamento..." sx={styles.textarea} />
+                <Box 
+                  component="textarea" 
+                  value={formState.notes} 
+                  onChange={(e)=>dispatch({type:'SET_FIELD',field:'notes',payload:e.target.value})} 
+                  placeholder="Inserisci note aggiuntive sull'appuntamento..." 
+                  sx={styles.textarea} 
+                />
               </Grid>
             </Grid>
           </Grid>
@@ -480,10 +505,10 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 }
 
 const styles = {
-  container: { p: 1, display: 'flex', flexDirection: 'column', gap: 2 },
+  container: { p: 1, display: 'flex', flexDirection: 'column', gap: 1 },
   sectionHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 },
-  label: { fontSize: '0.625rem', fontWeight: 800, color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.12em', mb: 1.5 },
-  separator: { height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.05)', my: 2 },
+  label: { fontSize: '0.625rem', fontWeight: 800, color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.12em', mb: 1 },
+  separator: { height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.05)', my: 0.5 },
   formControlLabel: { m: 0, flexDirection: 'row-reverse', gap: 1.5 },
   switch: {
     '& .MuiSwitch-switchBase.Mui-checked': { color: 'primary.main' },
@@ -497,12 +522,12 @@ const styles = {
     filter: isActive ? 'none' : 'grayscale(100%) brightness(0.8)',
   }),
   resultsRow: { display: 'flex', gap: 3, height: '100%' },
-  resultBoxArtist: { flex: 1, p: 3, borderRadius: '16px', bgcolor: 'rgba(255, 152, 0, 0.05)', border: '1px solid rgba(255, 152, 0, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
+  resultBoxArtist: { flex: 1, p: 2, borderRadius: '16px', bgcolor: 'rgba(255, 152, 0, 0.05)', border: '1px solid rgba(255, 152, 0, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
   resultLabelArtist: { fontSize: '0.6875rem', color: '#ff9800', textTransform: 'uppercase', fontWeight: 800, mb: 0.5 },
-  resultValueArtist: { fontSize: '1.75rem', fontWeight: 900, color: '#ff9800' },
-  resultBoxStudio: { flex: 1, p: 3, borderRadius: '16px', bgcolor: 'rgba(76, 175, 80, 0.05)', border: '1px solid rgba(76, 175, 80, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
+  resultValueArtist: { fontSize: '1.4rem', fontWeight: 900, color: '#ff9800' },
+  resultBoxStudio: { flex: 1, p: 2, borderRadius: '16px', bgcolor: 'rgba(76, 175, 80, 0.05)', border: '1px solid rgba(76, 175, 80, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
   resultLabelStudio: { fontSize: '0.6875rem', color: '#4caf50', textTransform: 'uppercase', fontWeight: 800, mb: 0.5 },
-  resultValueStudio: { fontSize: '1.75rem', fontWeight: 900, color: '#4caf50' },
+  resultValueStudio: { fontSize: '1.4rem', fontWeight: 900, color: '#4caf50' },
   statusGroup: { display: 'flex', gap: 1, flexWrap: 'wrap' },
   statusButton: (isActive: boolean, color: string) => ({
     px: 2, py: 0.75, borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800,

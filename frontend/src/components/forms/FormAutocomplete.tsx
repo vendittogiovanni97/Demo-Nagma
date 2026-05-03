@@ -73,11 +73,14 @@ export default function FormAutocomplete({
           />
         )}
         sx={{ width: '100%' }}
-        renderOption={(props, option) => (
-          <Box component="li" {...props} sx={styles.option}>
-            {option.label}
-          </Box>
-        )}
+        renderOption={(props, option) => {
+          const { key, ...optionProps } = props;
+          return (
+            <Box key={key} component="li" {...optionProps} sx={styles.option}>
+              {option.label}
+            </Box>
+          );
+        }}
       />
       {error && (
         <Typography sx={styles.errorText}>

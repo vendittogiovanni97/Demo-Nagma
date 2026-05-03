@@ -7,6 +7,7 @@ const controller = container.creamController;
 
 router.use(authMiddleware);
 
+router.get('/', controller.getActive);
 router.get('/active', controller.getActive);
 router.post('/', adminOnly, controller.create);
 router.get('/:id/sales', controller.getSales);

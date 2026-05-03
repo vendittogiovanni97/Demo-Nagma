@@ -76,6 +76,9 @@ function FormSelect({
         error={!!error}
         fullWidth
         slotProps={{
+          select: {
+            displayEmpty: true,
+          },
           input: {
             placeholder: placeholder,
           },
@@ -88,12 +91,15 @@ function FormSelect({
             borderRadius: 1.5,
             fontSize: '0.9375rem',
           },
+          '& .MuiSelect-select.MuiSelect-select': {
+            color: displayValue === '' ? 'rgba(255, 255, 255, 0.4)' : 'inherit',
+          },
           '& .MuiSelect-icon': { color: theme.palette.text.secondary },
           '& .Mui-error fieldset': { borderColor: theme.palette.error.main },
         }}
       >
         {placeholder && (
-          <MenuItem value="" disabled>
+          <MenuItem value="" disabled sx={{ opacity: 0.6, fontSize: '0.875rem' }}>
             {placeholder}
           </MenuItem>
         )}

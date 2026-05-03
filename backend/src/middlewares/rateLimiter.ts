@@ -1,7 +1,7 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
-import { configService } from '../services/config.service';
-import { logger } from '../utils/logger';
+import { configService } from '../container';
+import { logger } from '../shared/utils/logger';
 
 // FIX B5: Helper to get client IP with IPv6 support
 const getClientIP = (req: Request): string => {

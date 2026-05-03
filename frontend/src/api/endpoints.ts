@@ -19,7 +19,7 @@ export const ENDPOINTS = {
     HISTORY: (id: number) => `/api/bookings/${id}/history`,
   },
   ADMIN: {
-    BOOKING_HISTORY: '/api/admin/booking-history',
+    BOOKING_HISTORY: '/api/bookings/history',
   },
   TRANSACTIONS: {
     BASE: '/api/transactions',

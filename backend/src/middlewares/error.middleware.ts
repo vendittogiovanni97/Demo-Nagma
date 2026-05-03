@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/AppError';
-import { logger, getRequestContext, isDebugHttpEnabled, sanitizeForLog } from '../utils/logger';
+import { AppError } from '../shared/errors/AppError';
+import { logger, getRequestContext, isDebugHttpEnabled, sanitizeForLog } from '../shared/utils/logger';
 
 export function globalErrorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   if (err instanceof AppError) {

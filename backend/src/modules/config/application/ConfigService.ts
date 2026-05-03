@@ -1,0 +1,123 @@
+import { IConfigRepository } from '../contracts/IConfigRepository';
+import { Config } from '../domain/Config';
+import { Cache } from '../../../shared/utils/cache';
+
+export class ConfigService {
+  private cache = new Cache<string>(5 * 60 * 1000);
+  private criticalConfig: Record<string, string> = {};
+
+  constructor(private configRepository: IConfigRepository) {}
+
+  async initializeConfig(seed: boolean = false): Promise<void> {
+    const all = await this.configRepository.findAll();
+    for (const cfg of all) {
+      const data = cfg.toJSON();
+      this.criticalConfig[data.paramsKey] = data.value;
+      this.cache.set(data.paramsKey, data.value);
+    }
+    if (seed) await this.seedInitialConfig();
+  }
+
+  private async seedInitialConfig(): Promise<void> {
+    const count = await this.configRepository.count();
+    if (count > 0) return;
+
+    const defaults = [
+      { paramsKey: 'FILES_PATH', value: '/uploads/attachments/' },
+      { paramsKey: 'DEBUG_HTTP', value: 'false' },
+      { paramsKey: 'LOG_LEVEL', value: 'INFO' },
+      { paramsKey: 'JWT_EXPIRY', value: '8h' },
+      { paramsKey: 'BCRYPT_SALT_ROUNDS', value: '10' },
+      { paramsKey: 'LOGIN_RATE_LIMIT_WINDOW_MINUTES', value: '15' },
+      { paramsKey: 'LOGIN_RATE_LIMIT_MAX_ATTEMPTS', value: '5' },
+      { paramsKey: 'SESSION_TIMEOUT_MINUTES', value: '30' },
+      { paramsKey: 'MAX_PAGE_LIMIT', value: '100' },
+      { paramsKey: 'APP_VERSION', value: '1.0.0' },
+      { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
+    ];
+
+    for (const d of defaults) {
+      await this.configRepository.save(new Config(d));
+    }
+  }
+
+  async getValue(key: string, defaultValue?: string): Promise<string> {
+    if (this.criticalConfig[key]) return this.criticalConfig[key];
+    const cached = this.cache.get(key);
+    if (cached) return cached;
+
+    const cfg = await this.configRepository.findByKey(key);
+    const val = cfg?.value || defaultValue || '';
+    this.cache.set(key, val);
+    return val;
+  }
+
+  async setValue(key: string, value: string): Promise<void> {
+    await this.configRepository.save(new Config({ paramsKey: key, value }));
+    this.cache.delete(key);
+    // Update critical config if it was already there
+    if (this.criticalConfig[key] !== undefined) {
+      this.criticalConfig[key] = value;
+    }
+  }
+
+  async getAll(): Promise<Config[]> {
+    return this.configRepository.findAll();
+  }
+
+  getValueSync(key: string, defaultValue?: string): string {
+    return this.criticalConfig[key] || defaultValue || '';
+  }
+
+  // Specific Getters
+  async getJwtExpiry(): Promise<string> { return this.getValue('JWT_EXPIRY', '8h'); }
+  getJwtExpirySync(): string { return this.getValueSync('JWT_EXPIRY', '8h'); }
+  
+  async getBcryptSaltRounds(): Promise<number> { 
+    return parseInt(await this.getValue('BCRYPT_SALT_ROUNDS', '10'), 10); 
+  }
+  getBcryptSaltRoundsSync(): number { 
+    return parseInt(this.getValueSync('BCRYPT_SALT_ROUNDS', '10'), 10); 
+  }
+
+  async getLoginRateLimitWindowMinutes(): Promise<number> {
+    return parseInt(await this.getValue('LOGIN_RATE_LIMIT_WINDOW_MINUTES', '15'), 10);
+  }
+  getLoginRateLimitWindowMinutesSync(): number {
+    return parseInt(this.getValueSync('LOGIN_RATE_LIMIT_WINDOW_MINUTES', '15'), 10);
+  }
+
+  async getLoginRateLimitMaxAttempts(): Promise<number> {
+    return parseInt(await this.getValue('LOGIN_RATE_LIMIT_MAX_ATTEMPTS', '5'), 10);
+  }
+  getLoginRateLimitMaxAttemptsSync(): number {
+    return parseInt(this.getValueSync('LOGIN_RATE_LIMIT_MAX_ATTEMPTS', '5'), 10);
+  }
+
+  async getMaxPageLimit(): Promise<number> {
+    return parseInt(await this.getValue('MAX_PAGE_LIMIT', '100'), 10);
+  }
+  getMaxPageLimitSync(): number {
+    return parseInt(this.getValueSync('MAX_PAGE_LIMIT', '100'), 10);
+  }
+
+  async getAppVersion(): Promise<string> { return this.getValue('APP_VERSION', '1.0.0'); }
+  getAppVersionSync(): string { return this.getValueSync('APP_VERSION', '1.0.0'); }
+
+  async getBookingUpdatePassword(): Promise<string> { return this.getValue('BOOKING_UPDATE_PASSWORD', ''); }
+
+  async verifyBookingUpdatePassword(plainPassword: string): Promise<boolean> {
+    const stored = await this.getBookingUpdatePassword();
+    if (!stored) return false;
+    
+    const bcryptjs = require('bcryptjs');
+    if (!stored.startsWith('$2b$')) {
+      // Auto-migration
+      const salt = await this.getBcryptSaltRounds();
+      const hashed = await bcryptjs.hash(stored, salt);
+      await this.setValue('BOOKING_UPDATE_PASSWORD', hashed);
+      return await bcryptjs.compare(plainPassword, hashed);
+    }
+    return await bcryptjs.compare(plainPassword, stored);
+  }
+}

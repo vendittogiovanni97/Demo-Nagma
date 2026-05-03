@@ -2,11 +2,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import type { Server } from 'http';
-import prisma from './utils/prisma';
+import prisma from './shared/utils/prisma';
 import { createApp } from './app';
 import { config } from './config/env';
-import { isDebugHttpEnabled, logger } from './utils/logger';
-import { configService } from './services/config.service';
+import { isDebugHttpEnabled, logger } from './shared/utils/logger';
+import { configService } from './container';
 
 const RESTART_DELAY_MS = config.restartDelayMs;
 const port = Number(process.env.PORT || 3001);

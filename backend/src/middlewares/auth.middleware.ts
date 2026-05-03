@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
-import { isDebugHttpEnabled, logger, sanitizeForLog } from '../utils/logger';
+import { isDebugHttpEnabled, logger, sanitizeForLog } from '../shared/utils/logger';
 
 export interface AuthRequest extends Request {
   user?: {

@@ -7,20 +7,18 @@ import swaggerUi from 'swagger-ui-express';
 import { config } from './config/env';
 import { getSwaggerSpec } from './config/swagger';
 import { globalErrorHandler } from './middlewares/error.middleware';
-import attachmentRoutes from './routes/attachment.routes';
-import authRoutes from './routes/auth.routes';
-import bookingHistoryRoutes from './routes/booking-history.routes';
-import bookingRoutes from './routes/booking.routes';
-import creamRouter from './routes/cream.routes';
-import customerRoutes from './routes/customer.routes';
-import formTemplateRoutes from './routes/form-template.routes';
-import spesaLiberaRoutes from './routes/spesa-libera.routes';
-import teamRoutes from './routes/team.routes';
-import transactionRoutes from './routes/transaction.routes';
-import whatsappTemplateRoutes from './routes/whatsapp-template.routes';
-import { configService } from './services/config.service';
-import { isDebugHttpEnabled, logger, sanitizeForLog } from './utils/logger';
-import prisma from './utils/prisma';
+import authRoutes from './modules/auth/interfaces/auth.routes';
+import attachmentRoutes from './modules/attachment/interfaces/attachment.routes';
+import bookingRoutes from './modules/booking/interfaces/booking.routes';
+import creamRoutes from './modules/cream/interfaces/cream.routes';
+import customerRoutes from './modules/customer/interfaces/customer.routes';
+import formTemplateRoutes from './modules/form-template/interfaces/form-template.routes';
+import teamRoutes from './modules/staff/interfaces/staff.routes';
+import whatsappTemplateRoutes from './modules/whatsapp/interfaces/whatsapp.routes';
+import financeRoutes from './modules/finance/interfaces/finance.routes';
+import { configService } from './container';
+import { isDebugHttpEnabled, logger, sanitizeForLog } from './shared/utils/logger';
+import prisma from './shared/utils/prisma';
 
 export function createApp() {
   const app = express();
@@ -132,14 +130,12 @@ export function createApp() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/customers', customerRoutes);
-  app.use('/api/transactions', transactionRoutes);
+  app.use('/api', financeRoutes);
   app.use('/api/bookings', bookingRoutes);
-  app.use('/api/admin/booking-history', bookingHistoryRoutes);
   app.use('/api/team', teamRoutes);
   app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
-  app.use('/api/spese-libere', spesaLiberaRoutes);
-  app.use('/api/cream', creamRouter);
+  app.use('/api/cream', creamRoutes);
   app.use('/api/attachments', attachmentRoutes);
 
   // Build the Swagger spec only when /api-docs is actually requested.

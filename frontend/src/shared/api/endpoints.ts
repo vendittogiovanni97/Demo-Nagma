@@ -22,11 +22,12 @@ export const ENDPOINTS = {
     BOOKING_HISTORY: '/api/bookings/history',
   },
   TRANSACTIONS: {
-    BASE: '/api/transactions',
-    SUMMARY: '/api/transactions/summary',
-    TRENDS: '/api/transactions/trends',
-    PERFORMANCE: '/api/transactions/performance',
-    BY_ID: (id: string | number) => `/api/transactions/${id}`,
+    BASE: '/api/finance/transactions',
+    SUMMARY: '/api/finance/transactions/summary',
+    TRENDS: '/api/finance/transactions/trends',
+    PERFORMANCE: '/api/finance/transactions/performance',
+    HISTORY: '/api/finance/transactions/history',
+    BY_ID: (id: string | number) => `/api/finance/transactions/${id}`,
   },
   FORM_TEMPLATES: {
     BASE: '/api/form-templates',
@@ -45,8 +46,8 @@ export const ENDPOINTS = {
     BY_ID: (id: string | number) => `/api/team/members/${id}`,
   },
   SPESE_LIBERE: {
-    BASE: '/api/spese-libere',
-    BY_ID: (id: string | number) => `/api/spese-libere/${id}`,
+    BASE: '/api/finance/spese-libere',
+    BY_ID: (id: string | number) => `/api/finance/spese-libere/${id}`,
   },
   TEAM: {
     MEMBERS: '/api/team/members',

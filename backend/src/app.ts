@@ -130,7 +130,7 @@ export function createApp() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/customers', customerRoutes);
-  app.use('/api', financeRoutes);
+  app.use('/api/finance', financeRoutes);
   app.use('/api/bookings', bookingRoutes);
   app.use('/api/team', teamRoutes);
   app.use('/api/form-templates', formTemplateRoutes);

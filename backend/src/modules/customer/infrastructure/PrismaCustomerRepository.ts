@@ -109,6 +109,24 @@ export class PrismaCustomerRepository implements ICustomerRepository {
     });
   }
 
+  async findByPhone(phone: string): Promise<Customer | null> {
+    const raw = await this.prisma.customer.findFirst({
+      where: { phone, deletedAt: null },
+    });
+    return raw ? this.mapToDomain(raw) : null;
+  }
+
+  async findByName(firstName: string, lastName: string): Promise<Customer | null> {
+    const raw = await this.prisma.customer.findFirst({
+      where: { 
+        firstName: { equals: firstName, mode: 'insensitive' },
+        lastName: { equals: lastName, mode: 'insensitive' },
+        deletedAt: null 
+      },
+    });
+    return raw ? this.mapToDomain(raw) : null;
+  }
+
   async getSummary(id: number): Promise<any> {
     const customer = await this.findById(id);
     if (!customer) return null;

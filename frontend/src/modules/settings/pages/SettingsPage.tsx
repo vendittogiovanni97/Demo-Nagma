@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
 import { Box, Stack, useTheme } from '@mui/material';
+import { Settings } from 'lucide-react';
 
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import PageHeader from '@/components/common/PageHeader';
@@ -88,13 +89,14 @@ export default function SettingsPage() {
       <PageHeader
         title="Impostazioni"
         subtitle="Configura profilo e team"
+        icon={<Settings size={24} />}
       />
 
       {/* Contenuto centrato */}
       <Box
         sx={{
           width: '100%',
-          maxWidth: 880,
+          maxWidth: 1040,
           mx: 'auto',
           display: 'flex',
           flexDirection: 'column',

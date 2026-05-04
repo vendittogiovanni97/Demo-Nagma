@@ -1,5 +1,7 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
+
 import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
 import LayoutContainer from '@/components/layout/LayoutContainer';
 
@@ -15,6 +17,9 @@ const Navbar = dynamic(() => import('@/components/layout/Navbar'), { ssr: false 
 const ClientCssBaseline = dynamic(() => import('@mui/material/CssBaseline'), { ssr: false });
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+
   return (
     <ThemeProvider theme={theme}>
       <ClientCssBaseline />
@@ -22,10 +27,14 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <GlobalErrorBoundary>
             <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <LayoutContainer maxWidth="full">
-                {children}
-              </LayoutContainer>
+              {!isAuthPage && <Navbar />}
+              {isAuthPage ? (
+                children
+              ) : (
+                <LayoutContainer maxWidth="full">
+                  {children}
+                </LayoutContainer>
+              )}
             </div>
           </GlobalErrorBoundary>
         </AuthProvider>

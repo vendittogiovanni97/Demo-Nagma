@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api/client';
+import { ENDPOINTS } from '@/shared/api/endpoints';
 import { PaginatedResponse } from '@/shared/types/pagination';
 
 export interface Transaction {
@@ -8,6 +9,8 @@ export interface Transaction {
   description: string;
   amount: number;
   date: string;
+  sourceId?: number;
+  sourceType?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,24 +29,24 @@ export interface TransactionHistory {
 
 export const financeApi = {
   getAll: (params: any) =>
-    apiClient.get<PaginatedResponse<Transaction>>('/finance/transactions', params),
+    apiClient.get<PaginatedResponse<Transaction>>(ENDPOINTS.TRANSACTIONS.BASE, params),
 
   getSummary: (month?: string) =>
-    apiClient.get<{ totalIncome: number; totalExpense: number; balance: number }>('/finance/transactions/summary', { month }),
+    apiClient.get<{ totalIncome: number; totalExpense: number; balance: number }>(ENDPOINTS.TRANSACTIONS.SUMMARY, { month }),
 
   getTrends: (months: number = 6) =>
-    apiClient.get<Array<{ month: string; income: number; expense: number }>>('/finance/transactions/trends', { months }),
+    apiClient.get<Array<{ month: string; income: number; expense: number }>>(ENDPOINTS.TRANSACTIONS.TRENDS, { months }),
 
   getHistory: (params: any) =>
-    apiClient.get<PaginatedResponse<TransactionHistory>>('/finance/transactions/history', params),
+    apiClient.get<PaginatedResponse<TransactionHistory>>(ENDPOINTS.TRANSACTIONS.HISTORY, params),
 
   create: (data: any) =>
-    apiClient.post<Transaction>('/finance/transactions', data),
+    apiClient.post<Transaction>(ENDPOINTS.TRANSACTIONS.BASE, data),
 
   update: (id: number, data: any) =>
-    apiClient.patch<Transaction>(`/finance/transactions/${id}`, data),
+    apiClient.patch<Transaction>(ENDPOINTS.TRANSACTIONS.BY_ID(id), data),
 
   delete: (id: number) =>
-    apiClient.delete(`/finance/transactions/${id}`),
+    apiClient.delete(ENDPOINTS.TRANSACTIONS.BY_ID(id)),
 };
 

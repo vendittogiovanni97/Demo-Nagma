@@ -22,6 +22,8 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       description: raw.description,
       amount: Number(raw.amount),
       date: raw.date,
+      sourceId: raw.sourceId,
+      sourceType: raw.sourceType,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,
@@ -97,6 +99,8 @@ export class PrismaTransactionRepository implements ITransactionRepository {
         description: data.description ?? '',
         amount: data.amount,
         date: data.date,
+        sourceId: data.sourceId,
+        sourceType: data.sourceType,
       },
     });
     return this.mapToDomain(created);
@@ -113,6 +117,13 @@ export class PrismaTransactionRepository implements ITransactionRepository {
   async delete(id: number): Promise<void> {
     await this.prisma.transaction.update({
       where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async deleteBySource(sourceId: number, sourceType: string): Promise<void> {
+    await this.prisma.transaction.updateMany({
+      where: { sourceId, sourceType, deletedAt: null },
       data: { deletedAt: new Date() },
     });
   }

@@ -17,7 +17,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
-import type { Booking } from '@/modules/booking/model/booking.types';
+import type { BookingModel } from '@/modules/booking/model/booking.model';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 
 import CalendarEvent from '../components/CalendarEvent';
@@ -40,9 +40,7 @@ export default function AgendaPage() {
     initialTime,
     showDeletePasswordModal,
     deletePasswordLoading,
-    handleDeleteBooking,
     handlePasswordDelete,
-    handleEditBooking,
     handleDateClick,
     handleEventClick,
     setIsModalOpen,
@@ -57,7 +55,7 @@ export default function AgendaPage() {
 
   const renderEventContent = useCallback((arg: EventContentArg) => (
     <CalendarEvent
-      booking={arg.event.extendedProps.booking as Booking}
+      booking={arg.event.extendedProps.booking as BookingModel}
     />
   ), []);
 

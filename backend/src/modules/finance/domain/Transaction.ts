@@ -9,6 +9,8 @@ export interface TransactionProps {
   description?: string | null;
   amount: Decimal | number;
   date: Date;
+  sourceId?: number | null;
+  sourceType?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
@@ -23,6 +25,11 @@ export class Transaction {
   get description() { return this.props.description; }
   get amount() { return this.props.amount; }
   get date() { return this.props.date; }
+  get sourceId() { return this.props.sourceId; }
+  get sourceType() { return this.props.sourceType; }
+  get createdAt() { return this.props.createdAt; }
+  get updatedAt() { return this.props.updatedAt; }
+  get deletedAt() { return this.props.deletedAt; }
 
   toJSON() {
     return {

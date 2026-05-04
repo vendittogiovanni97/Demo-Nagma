@@ -26,6 +26,7 @@ export interface ITransactionRepository {
   create(transaction: Transaction): Promise<Transaction>;
   update(id: number, data: Partial<Transaction>): Promise<Transaction>;
   delete(id: number): Promise<void>;
+  deleteBySource(sourceId: number, sourceType: string): Promise<void>;
   
   // History/Audit
   addHistory(history: TransactionHistory): Promise<void>;

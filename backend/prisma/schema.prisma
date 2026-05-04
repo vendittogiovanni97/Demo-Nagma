@@ -151,11 +151,14 @@ model Transaction {
   attachmentUrl String?
   deletedAt     DateTime?
   createdAt     DateTime             @default(now())
+  sourceId      Int?
+  sourceType    String?              // BOOKING, SPESA_LIBERA, ARTIST_PAYMENT
   history       TransactionHistory[]
 
   @@index([date, type])
   @@index([deletedAt])
   @@index([category])
+  @@index([sourceId, sourceType])
 }
 
 model TransactionHistory {

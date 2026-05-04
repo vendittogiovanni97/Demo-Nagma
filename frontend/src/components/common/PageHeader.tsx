@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  icon?: ReactNode;
   /** Primary action button (e.g. "Nuova Prenotazione") */
   buttonLabel?: string;
   buttonIcon?: ReactNode;
@@ -32,6 +33,7 @@ interface PageHeaderProps {
 export default function PageHeader({
   title,
   subtitle,
+  icon,
   buttonLabel,
   buttonIcon,
   onButtonClick,
@@ -90,20 +92,27 @@ export default function PageHeader({
     >
       {/* LEFT: TITLE BLOCK */}
       <Box sx={{ minWidth: 0, flexShrink: 0 }}>
-        <Typography
-          component="h1"
-          variant="h4"
-          sx={{
-            fontSize: { xs: '1.4rem', sm: '1.5rem', md: isXLarge ? '1.8rem' : '1.4rem' },
-            fontWeight: 800,
-            color: muiTheme.palette.primary.main, // Back to light blue (celeste)
-            fontFamily: 'Outfit, sans-serif',
-            lineHeight: 1.1,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          {title}
-        </Typography>
+        <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
+          {icon && (
+            <Box sx={{ color: muiTheme.palette.primary.main, display: 'flex', alignItems: 'center' }}>
+              {icon}
+            </Box>
+          )}
+          <Typography
+            component="h1"
+            variant="h4"
+            sx={{
+              fontSize: { xs: '1.4rem', sm: '1.5rem', md: isXLarge ? '1.8rem' : '1.4rem' },
+              fontWeight: 800,
+              color: muiTheme.palette.primary.main, // Back to light blue (celeste)
+              fontFamily: 'Outfit, sans-serif',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {title}
+          </Typography>
+        </Stack>
         {subtitle && (
           <Typography
             variant="body2"

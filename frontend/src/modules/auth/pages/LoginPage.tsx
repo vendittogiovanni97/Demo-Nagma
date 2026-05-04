@@ -41,7 +41,7 @@ export default function LoginPage() {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%', overflow: 'hidden', position: 'relative' }}>
       {/* Left side: Image */}
       <Box
         sx={{

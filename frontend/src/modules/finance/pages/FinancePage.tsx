@@ -2,23 +2,20 @@
 
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Container,
   Grid,
   Stack,
-  Tab,
-  Tabs,
   Typography,
   useTheme
 } from '@mui/material';
+import Button from '@/components/ui/Button';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
   DollarSign,
   Download,
-  History,
   Plus,
   TrendingDown,
   TrendingUp
@@ -34,19 +31,14 @@ import { formatPrice } from '@/shared/utils/format';
 import { financeApi, Transaction } from '../api/finance.api';
 import FinanceDataTable from '../components/FinanceDataTable';
 import FinanceFilters from '../components/FinanceFilters';
-import HistoryTable from '../components/HistoryTable';
-import { useFinance, useFinanceHistory } from '../hooks/useFinance';
+import { useFinance } from '../hooks/useFinance';
 
 
 export default function FinancePage() {
-  const theme = useTheme();
-  const [tab, setTab] = useState(0);
   const {
     transactions,
     summary,
     isLoading,
-    page,
-    setPage,
     month,
     setMonth,
     search,
@@ -57,7 +49,6 @@ export default function FinancePage() {
   } = useFinance();
 
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
-  const [isExportOpen, setIsExportOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -87,40 +78,43 @@ export default function FinancePage() {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ pt: 1, pb: 4 }}>
       <PageHeader
-        title="Amministrazione Finanziaria"
-        subtitle="Monitoraggio entrate, uscite e audit log globale"
+        title="Storico Movimenti"
+        subtitle="Cronologia completa di entrate e uscite dello studio"
+        icon={<DollarSign size={24} />}
         actions={
           <Stack sx={{ flexDirection: 'row', gap: 2 }} component="div">
             <ExportModal
-              isOpen={isExportOpen}
-              onClose={() => setIsExportOpen(false)}
-              title={`Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`}
               filenameBase={`finanza_${format(month, 'yyyy_MM')}`}
+              title={`Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`}
               rows={transactions}
               columns={exportColumns}
-              resolveRows={async () => transactions} // For now just current page, could be improved to fetch all month
+              resolveRows={async () => {
+                const res = await financeApi.getAll({ 
+                  month: format(month, 'yyyy-MM'), 
+                  type: type === 'ALL' ? undefined : type,
+                  search,
+                  limit: 1000 // Prendi tutto per l'export
+                });
+                return res.data;
+              }}
             />
             <Button
-              variant="contained"
-              startIcon={<Plus size={18} />}
+              variant="primary"
+              icon={<Plus size={18} />}
               onClick={() => {
                 setSelectedTransaction(null);
                 setIsModalOpen(true);
               }}
-              sx={{ borderRadius: 2 }}
             >
-
               Nuovo Movimento
             </Button>
           </Stack>
         }
       />
 
-
-      <Grid container spacing={3} sx={{ mb: 4, mt: 2 }}>
-
+      <Grid container spacing={3} sx={{ mb: 4, mt: 1 }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Entrate Totali"
@@ -150,35 +144,23 @@ export default function FinancePage() {
         </Grid>
       </Grid>
 
+      <Stack sx={{ gap: 3 }}>
+        <FinanceFilters
+          month={month}
+          onMonthChange={setMonth}
+          search={search}
+          onSearchChange={setSearch}
+          type={type}
+          onTypeChange={setType}
+        />
+        <FinanceDataTable
+          data={transactions}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </Stack>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          <Tab label="Transazioni" icon={<DollarSign size={18} />} iconPosition="start" />
-          <Tab label="Audit Log" icon={<History size={18} />} iconPosition="start" />
-        </Tabs>
-      </Box>
-      {tab === 0 ? (
-        <Stack sx={{ gap: 3 }}>
-          <FinanceFilters
-            month={month}
-            onMonthChange={setMonth}
-            search={search}
-            onSearchChange={setSearch}
-            type={type}
-            onTypeChange={setType}
-          />
-          <FinanceDataTable
-            data={transactions}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </Stack>
-      ) : (
-        <FinanceHistoryView />
-      )}
-
-      {/* Reusing TransactionModal - may need props adjustment */}
       <TransactionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -234,27 +216,6 @@ function SummaryCard({ title, amount, icon, color, isLoading }: {
   );
 }
 
-function FinanceHistoryView() {
-  const { history, isLoading, page, setPage } = useFinanceHistory();
 
-  return (
-    <Stack sx={{ gap: 3 }}>
-      <Card sx={{ borderRadius: 3 }}>
-        <CardContent>
-          <Stack sx={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2
-          }} component="div">
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Log delle attività finanziarie</Typography>
-            <Typography variant="caption" color="text.secondary">Tutte le operazioni sono registrate in modo immutabile</Typography>
-          </Stack>
-          <HistoryTable data={history} isLoading={isLoading} />
-        </CardContent>
-      </Card>
-    </Stack>
-  );
-}
 
 

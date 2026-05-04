@@ -71,6 +71,8 @@ export class UpdateBooking {
         description: `Incasso prenotazione #${booking.id}`,
         amount: fullPrice,
         date: bookingDate,
+        sourceId: booking.id,
+        sourceType: 'BOOKING',
       },
     });
 
@@ -83,6 +85,8 @@ export class UpdateBooking {
           description: `Compenso artista — prenotazione #${booking.id}`,
           amount: artistPrice,
           date: bookingDate,
+          sourceId: booking.id,
+          sourceType: 'BOOKING_COMMISSION',
         },
       });
     }

@@ -72,6 +72,31 @@ export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: 
       label: 'Descrizione',
     },
     {
+      key: 'sourceType',
+      label: 'Fonte',
+      width: '120px',
+      render: (t) => {
+        if (!t.sourceType) return <Typography variant="caption" color="text.secondary">—</Typography>;
+        const labels: Record<string, string> = {
+          'SPESA_LIBERA': 'Spesa Libera',
+          'BOOKING': 'Tatuaggio',
+          'BOOKING_COMMISSION': 'Commissione',
+          'ARTIST_PAYMENT': 'Pagamento'
+        };
+        return (
+          <Typography variant="caption" sx={{ 
+            fontWeight: 700, 
+            textTransform: 'uppercase',
+            color: 'text.secondary',
+            bgcolor: 'rgba(255,255,255,0.03)',
+            px: 1, py: 0.5, borderRadius: 1
+          }}>
+            {labels[t.sourceType] || t.sourceType}
+          </Typography>
+        );
+      }
+    },
+    {
       key: 'amount',
       label: 'Importo',
       align: 'right',

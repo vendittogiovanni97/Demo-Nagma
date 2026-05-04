@@ -29,6 +29,8 @@ export class PrismaBookingRepository implements IBookingRepository {
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,
+      customer: raw.customer || null,
+      artist: raw.artist || null,
     });
   }
 
@@ -58,6 +60,7 @@ export class PrismaBookingRepository implements IBookingRepository {
         notes: data.notes,
         formData: data.formData as any,
       },
+      include: { customer: true, artist: true },
     });
     return this.mapToDomain(created);
   }
@@ -65,6 +68,7 @@ export class PrismaBookingRepository implements IBookingRepository {
   async findById(id: number): Promise<Booking | null> {
     const raw = await this.prisma.booking.findUnique({
       where: { id },
+      include: { customer: true, artist: true },
     });
     return raw ? this.mapToDomain(raw) : null;
   }
@@ -137,6 +141,7 @@ export class PrismaBookingRepository implements IBookingRepository {
     const updated = await this.prisma.booking.update({
       where: { id },
       data: data as any,
+      include: { customer: true, artist: true },
     });
     return this.mapToDomain(updated);
   }

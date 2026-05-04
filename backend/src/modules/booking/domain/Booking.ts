@@ -14,6 +14,8 @@ export interface BookingProps {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
+  customer?: any;
+  artist?: any;
 }
 
 export class Booking {
@@ -32,6 +34,8 @@ export class Booking {
   get createdAt() { return this.props.createdAt; }
   get updatedAt() { return this.props.updatedAt; }
   get deletedAt() { return this.props.deletedAt; }
+  get customer() { return this.props.customer; }
+  get artist() { return this.props.artist; }
 
   toJSON() {
     return { ...this.props };

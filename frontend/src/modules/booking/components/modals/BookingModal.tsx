@@ -177,8 +177,8 @@ function bookingFormReducer(state: BookingFormState, action: BookingFormAction):
           customPercentuale,
           dynamicValues: booking.formData as Record<string, string> || {},
           status: booking.status ?? 'CONFERMATO',
-          artists: preLoadedArtists,
-          initialArtistLoaded: true,
+          artists: state.artists.length > 0 ? state.artists : preLoadedArtists,
+          initialArtistLoaded: state.artists.length > 0 || state.initialArtistLoaded,
         };
       }
       return state;
@@ -199,16 +199,19 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
 
   useEffect(() => {
     if (isOpen) {
-      if (booking && !formState.initialArtistLoaded) dispatch({ type: 'LOAD_BOOKING', payload: { booking, isOpen } });
-      else if (!booking && formState.date === '' && formState.time === '') dispatch({ type: 'RESET_FORM', payload: { initialDate, initialTime } });
+      if (booking) {
+        dispatch({ type: 'LOAD_BOOKING', payload: { booking, isOpen } });
+      } else {
+        dispatch({ type: 'RESET_FORM', payload: { initialDate, initialTime } });
+      }
     }
-  }, [booking, isOpen, initialDate, initialTime, formState.initialArtistLoaded]);
+  }, [booking?.id, isOpen, initialDate, initialTime]);
 
   useEffect(() => {
     let mounted = true;
     if (isOpen) {
       const fetchAllArtists = async () => {
-        if (formState.artists.length > 0 && formState.initialArtistLoaded) return;
+        if (formState.artists.length > 1) return;
         dispatch({ type: 'SET_FIELD', field: 'loadingArtists', payload: true });
         try {
           const data = await staffService.getAllForSelect();
@@ -466,25 +469,33 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
             </Grid>
 
             {/* STATUS & NOTES */}
-            <Grid size={12} container spacing={4}>
+            <Grid size={12} container spacing={3}>
               {booking?.id && (
-                <Grid size={{ xs: 12, lg: 4 }}>
-                  <Typography sx={styles.label}>Stato</Typography>
+                <Grid size={12}>
+                  <Typography sx={styles.label}>Stato Prenotazione</Typography>
                   <Box sx={styles.statusGroup}>
                     {([
+                      { v: 'CREATO', l: 'Creato', c: '#9e9e9e' },
                       { v: 'CONFERMATO', l: 'Confermato', c: theme.palette.primary.main },
-                      { v: 'COMPLETATO', l: 'Completato', c: theme.palette.success.main },
+                      { v: 'MODIFICATO', l: 'Modificato', c: '#ce93d8' },
                       { v: 'SPOSTATO', l: 'Spostato', c: theme.palette.warning.main },
                       { v: 'ANNULLATO', l: 'Annullato', c: theme.palette.error.main },
+                      { v: 'COMPLETATO', l: 'Completato', c: theme.palette.success.main },
                     ]).map((opt) => (
-                      <Box key={opt.v} component="button" onClick={()=>dispatch({type:'SET_FIELD',field:'status',payload:opt.v})} sx={styles.statusButton(formState.status === opt.v, opt.c)}>
+                      <Box 
+                        key={opt.v} 
+                        component="button" 
+                        type="button"
+                        onClick={()=>dispatch({type:'SET_FIELD',field:'status',payload:opt.v})} 
+                        sx={styles.statusButton(formState.status === opt.v, opt.c)}
+                      >
                         {opt.l}
                       </Box>
                     ))}
                   </Box>
                 </Grid>
               )}
-              <Grid size={{ xs: 12, lg: booking?.id ? 8 : 12 }}>
+              <Grid size={12}>
                 <Typography sx={styles.label}>Note Interne</Typography>
                 <Box 
                   component="textarea" 
@@ -602,10 +613,23 @@ const styles = {
   resultValueStudio: { fontSize: '1.4rem', fontWeight: 900, color: '#4caf50' },
   statusGroup: { display: 'flex', gap: 1, flexWrap: 'wrap' },
   statusButton: (isActive: boolean, color: string) => ({
-    px: 2, py: 0.75, borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800,
-    border: `1px solid ${isActive ? `${color}cc` : 'rgba(255, 255, 255, 0.08)'}`,
-    backgroundColor: isActive ? `${color}20` : 'rgba(255, 255, 255, 0.02)',
-    color: isActive ? color : 'text.secondary', transition: 'all 0.2s ease', cursor: 'pointer', textTransform: 'uppercase'
+    px: 2.5, py: 1.25, borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900,
+    border: '2px solid',
+    borderColor: isActive ? color : 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isActive ? `${color}40` : 'rgba(255, 255, 255, 0.02)',
+    color: isActive ? '#ffffff' : 'text.secondary',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    boxShadow: isActive ? `0 0 25px ${color}60, inset 0 0 10px ${color}30` : 'none',
+    transform: isActive ? 'translateY(-2px)' : 'none',
+    textShadow: isActive ? `0 0 8px ${color}` : 'none',
+    '&:hover': {
+      backgroundColor: isActive ? `${color}50` : 'rgba(255, 255, 255, 0.05)',
+      borderColor: isActive ? color : 'rgba(255, 255, 255, 0.1)',
+      transform: 'translateY(-2px)',
+    }
   }),
   textarea: {
     width: '100%', borderRadius: '12px', border: '1px solid rgba(0, 191, 255, 0.1)',

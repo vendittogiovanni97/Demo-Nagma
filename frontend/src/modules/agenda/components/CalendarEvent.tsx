@@ -4,17 +4,17 @@ import { memo } from 'react';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { format } from 'date-fns';
 
-import type { Booking } from '@/modules/booking/model/booking.types';
+import type { BookingModel } from '@/modules/booking/model/booking.model';
 
 interface CalendarEventProps {
-  booking: Booking;
+  booking: BookingModel;
 }
 
 function CalendarEvent({
   booking,
 }: CalendarEventProps) {
   const theme = useTheme();
-  const color = booking.artist?.color ?? theme.palette.primary.main;
+  const color = booking.artistColor || theme.palette.primary.main;
   const duration = booking.duration ?? 60;
   const isShort = duration <= 45;
   const startTime = format(new Date(booking.date), 'HH:mm');
@@ -77,10 +77,10 @@ function CalendarEvent({
           textAlign: 'center',
         }}
       >
-        {booking.customer?.firstName} {booking.customer?.lastName}
+        {booking.customerName}
       </Typography>
 
-      {!isShort && booking.artist && (
+      {!isShort && booking.artistName && (
         <Box
           sx={{
             display: 'inline-flex',
@@ -108,7 +108,7 @@ function CalendarEvent({
               lineHeight: 1,
             }}
           >
-            {booking.artist.name}
+            {booking.artistName}
           </Typography>
         </Box>
       )}

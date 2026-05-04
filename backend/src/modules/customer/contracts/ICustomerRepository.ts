@@ -17,5 +17,7 @@ export interface ICustomerRepository {
   update(id: number, data: Partial<Customer>): Promise<Customer>;
   delete(id: number): Promise<void>;
   softDelete(id: number): Promise<void>;
+  findByPhone(phone: string): Promise<Customer | null>;
+  findByName(firstName: string, lastName: string): Promise<Customer | null>;
   getSummary(id: number): Promise<any>; // Using any for now, can be refined later
 }

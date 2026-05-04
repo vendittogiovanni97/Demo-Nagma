@@ -10,11 +10,14 @@ router.use(authMiddleware);
 
 // Transactions
 router.get('/transactions', transactionController.getAll);
+router.get('/transactions/history', adminOnly, transactionController.getHistory);
 router.get('/transactions/summary', transactionController.getSummary);
 router.get('/transactions/trends', transactionController.getTrends);
 router.get('/transactions/artist-performance', transactionController.getArtistPerformance);
 router.post('/transactions', adminOnly, transactionController.create);
+router.patch('/transactions/:id', adminOnly, transactionController.update);
 router.delete('/transactions/:id', adminOnly, transactionController.delete);
+
 
 // Spese Libere
 router.get('/spese-libere', spesaLiberaController.getAll);

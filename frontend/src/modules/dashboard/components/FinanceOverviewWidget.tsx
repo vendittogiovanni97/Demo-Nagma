@@ -1,8 +1,10 @@
 "use client";
 
-import { DollarSign, Eye, EyeOff, TrendingDown, TrendingUp } from 'lucide-react';
+import { DollarSign, Eye, EyeOff, Maximize2, TrendingDown, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+
 
 import MonthPicker from '@/components/ui/MonthPicker';
 import { formatPrice } from '@/shared/utils/format';
@@ -92,6 +94,22 @@ export default function FinanceOverviewWidget({
             )}
             <IconButton
               size="small"
+              component={Link}
+              href="/admin/finance"
+              title="Vedi dettaglio finanza"
+              sx={{
+                color: theme.palette.primary.main,
+                transition: theme.transitions.create(['all'], { duration: 300 }),
+                '&:hover': {
+                  bgcolor: `${theme.palette.primary.main}15`,
+                },
+              }}
+            >
+              <Maximize2 size={16} />
+            </IconButton>
+            <IconButton
+              size="small"
+
               onClick={() => setShowData(!showData)}
               title={showData ? 'Nascondi dati' : 'Mostra dati'}
               sx={{

@@ -19,6 +19,7 @@ import {
 import {
   Calendar,
   CalendarDays,
+  DollarSign,
   FileText,
   History,
   LayoutGrid,
@@ -31,6 +32,7 @@ import {
   Users,
   UsersRound,
 } from "lucide-react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -392,7 +394,9 @@ function NavbarUserMenu({
   const menuItems = useMemo(
     () => [
       { href: '/settings', icon: Settings, label: 'Impostazioni', show: true },
+      { href: '/admin/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
+
       { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', show: isAdmin },
       { href: '/admin/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/admin/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },

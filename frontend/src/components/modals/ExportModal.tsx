@@ -41,6 +41,8 @@ interface ExportModalProps<T> {
   resolveRows?: () => Promise<T[]>;
   useBackendFilters?: boolean;
   getFilterParams?: () => ExportFilters;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export default function ExportModal<T>({
@@ -53,12 +55,17 @@ export default function ExportModal<T>({
   resolveRows,
   useBackendFilters = false,
   getFilterParams,
+  isOpen: externalOpen,
+  onClose: externalClose,
 }: ExportModalProps<T>) {
   const theme = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [format, setFormat] = useState<ExportFormat>('pdf');
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+
 
   const initialValues = useMemo(() => {
     const init: Record<string, string> = {};
@@ -85,14 +92,16 @@ export default function ExportModal<T>({
   const handleOpen = () => {
     setFilterValues(initialValues);
     setError(null);
-    setIsOpen(true);
+    if (externalOpen === undefined) setInternalOpen(true);
   };
 
   const handleClose = () => {
-    setIsOpen(false);
     setError(null);
     setFilterValues(initialValues);
+    if (externalClose) externalClose();
+    else setInternalOpen(false);
   };
+
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -163,15 +172,17 @@ export default function ExportModal<T>({
 
   return (
     <>
-      <Button
-        variant="glass"
-        size="md"
-        disabled={rows.length === 0}
-        onClick={handleOpen}
-        icon={<FileDown size={18} />}
-      >
-        Esporta
-      </Button>
+      {externalOpen === undefined && (
+        <Button
+          variant="glass"
+          size="md"
+          disabled={rows.length === 0}
+          onClick={handleOpen}
+          icon={<FileDown size={18} />}
+        >
+          Esporta
+        </Button>
+      )}
 
       <SmartModal
         isOpen={isOpen}

@@ -1,0 +1,49 @@
+import { apiClient } from '@/shared/api/client';
+import { PaginatedResponse } from '@/shared/types/pagination';
+
+export interface Transaction {
+  id: number;
+  type: 'INCOME' | 'EXPENSE';
+  category: string;
+  description: string;
+  amount: number;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionHistory {
+  id: number;
+  transactionId: number;
+  action: string;
+  oldData: any;
+  newData: any;
+  changedById: number;
+  changedAt: string;
+  changedBy?: { id: number; name: string };
+  transaction?: { id: number; description: string; type: string };
+}
+
+export const financeApi = {
+  getAll: (params: any) =>
+    apiClient.get<PaginatedResponse<Transaction>>('/finance/transactions', params),
+
+  getSummary: (month?: string) =>
+    apiClient.get<{ totalIncome: number; totalExpense: number; balance: number }>('/finance/transactions/summary', { month }),
+
+  getTrends: (months: number = 6) =>
+    apiClient.get<Array<{ month: string; income: number; expense: number }>>('/finance/transactions/trends', { months }),
+
+  getHistory: (params: any) =>
+    apiClient.get<PaginatedResponse<TransactionHistory>>('/finance/transactions/history', params),
+
+  create: (data: any) =>
+    apiClient.post<Transaction>('/finance/transactions', data),
+
+  update: (id: number, data: any) =>
+    apiClient.patch<Transaction>(`/finance/transactions/${id}`, data),
+
+  delete: (id: number) =>
+    apiClient.delete(`/finance/transactions/${id}`),
+};
+

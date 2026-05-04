@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma, TransactionType as PrismaTransactionType } from '@prisma/client';
-import { ITransactionRepository, TransactionFilters } from '../contracts/ITransactionRepository';
+import { ITransactionRepository, TransactionFilters, TransactionHistoryFilters } from '../contracts/ITransactionRepository';
 import { Transaction, TransactionType } from '../domain/Transaction';
+import { TransactionHistory } from '../domain/TransactionHistory';
 import { IPaginatedResponse } from '../../../shared/kernel/interfaces';
 import { paginate, buildPagination } from '../../../shared/kernel/pagination';
 import { getMonthRange } from '../../../shared/utils/date-utils';
@@ -9,8 +10,8 @@ import prismaClient, { softDelete } from '../../../shared/utils/prisma';
 export class PrismaTransactionRepository implements ITransactionRepository {
   private prisma: PrismaClient;
 
-  constructor() {
-    this.prisma = prismaClient;
+  constructor(tx?: any) {
+    this.prisma = tx || prismaClient;
   }
 
   private mapToDomain(raw: any): Transaction {
@@ -19,7 +20,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       type: raw.type as TransactionType,
       category: raw.category,
       description: raw.description,
-      amount: raw.amount,
+      amount: Number(raw.amount),
       date: raw.date,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
@@ -27,8 +28,34 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     });
   }
 
+  private mapHistoryToDomain(raw: any): TransactionHistory {
+    const history = new TransactionHistory({
+      id: raw.id,
+      transactionId: raw.transactionId,
+      action: raw.action,
+      oldData: raw.oldData,
+      newData: raw.newData,
+      changedById: raw.changedById,
+      changedAt: raw.changedAt,
+    });
+
+    if (raw.changedBy) history.changedBy = raw.changedBy;
+    if (raw.transaction) history.transaction = raw.transaction;
+
+    return history;
+  }
+
+
+
+  async findById(id: number): Promise<Transaction | null> {
+    const raw = await this.prisma.transaction.findUnique({
+      where: { id },
+    });
+    return raw ? this.mapToDomain(raw) : null;
+  }
+
   async findAllPaged(filters: TransactionFilters): Promise<IPaginatedResponse<Transaction>> {
-    const { type, month, search, page = 1, limit = 20 } = filters;
+    const { type, month, startDate, endDate, search, page = 1, limit = 20 } = filters;
     const where: Prisma.TransactionWhereInput = { deletedAt: null };
 
     if (type) where.type = type as PrismaTransactionType;
@@ -38,7 +65,16 @@ export class PrismaTransactionRepository implements ITransactionRepository {
         { category: { contains: search, mode: 'insensitive' } },
       ];
     }
-    if (month) where.date = getMonthRange(month);
+    
+    if (month) {
+      where.date = getMonthRange(month);
+    } else {
+      if (startDate || endDate) {
+        where.date = {};
+        if (startDate) where.date.gte = new Date(startDate);
+        if (endDate) where.date.lte = new Date(endDate + 'T23:59:59');
+      }
+    }
 
     const [raws, total] = await this.prisma.$transaction([
       this.prisma.transaction.findMany({
@@ -66,8 +102,62 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     return this.mapToDomain(created);
   }
 
+  async update(id: number, data: Partial<Transaction>): Promise<Transaction> {
+    const updated = await this.prisma.transaction.update({
+      where: { id },
+      data: data as any,
+    });
+    return this.mapToDomain(updated);
+  }
+
   async delete(id: number): Promise<void> {
-    await softDelete(this.prisma.transaction, id);
+    await this.prisma.transaction.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async addHistory(history: TransactionHistory): Promise<void> {
+    const data = history.toJSON();
+    await this.prisma.transactionHistory.create({
+      data: {
+        transactionId: data.transactionId,
+        action: data.action,
+        oldData: data.oldData as any,
+        newData: data.newData as any,
+        changedById: data.changedById,
+      },
+    });
+  }
+
+  async findAllHistoryPaged(page: number, limit: number, filters: TransactionHistoryFilters): Promise<IPaginatedResponse<TransactionHistory>> {
+    const { transactionId, changedById, startDate, endDate, action } = filters;
+    const where: Prisma.TransactionHistoryWhereInput = {};
+
+    if (transactionId) where.transactionId = transactionId;
+    if (changedById) where.changedById = changedById;
+    if (action) where.action = action;
+
+    if (startDate || endDate) {
+      where.changedAt = {};
+      if (startDate) where.changedAt.gte = new Date(startDate);
+      if (endDate) where.changedAt.lte = new Date(endDate + 'T23:59:59');
+    }
+
+    const [raws, total] = await this.prisma.$transaction([
+      this.prisma.transactionHistory.findMany({
+        where,
+        ...buildPagination(page, limit),
+        orderBy: { changedAt: 'desc' },
+        include: {
+          changedBy: { select: { id: true, name: true } },
+          transaction: { select: { id: true, description: true, type: true } }
+        }
+      }),
+      this.prisma.transactionHistory.count({ where }),
+    ]);
+
+    return paginate(raws.map(this.mapHistoryToDomain), total, page, limit);
   }
 
   async getSummary(month?: string): Promise<{ totalIncome: number; totalExpense: number }> {
@@ -130,7 +220,7 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       LEFT JOIN "Booking" b
         ON b."artistId" = s.id
         AND b."deletedAt" IS NULL
-        AND b.status = 'COMPLETED'
+        AND b.status = 'COMPLETATO'
         ${month ? Prisma.sql`AND DATE_TRUNC('month', b.date) = DATE_TRUNC('month', ${month + '-01'}::date)` : Prisma.empty}
       GROUP BY s.id, s.name, s.color
       ORDER BY revenue DESC NULLS LAST
@@ -144,4 +234,12 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       revenue: r.revenue ? Number(r.revenue) : 0,
     }));
   }
+
+  async executeInTransaction<T>(work: (repo: ITransactionRepository, tx: any) => Promise<T>): Promise<T> {
+    return this.prisma.$transaction(async (tx) => {
+      const transactionalRepo = new PrismaTransactionRepository(tx);
+      return work(transactionalRepo, tx);
+    });
+  }
 }
+

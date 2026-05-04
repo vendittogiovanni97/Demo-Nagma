@@ -48,7 +48,9 @@ import { PrismaTransactionRepository } from '../modules/finance/infrastructure/P
 import { PrismaSpesaLiberaRepository } from '../modules/finance/infrastructure/PrismaSpesaLiberaRepository';
 import { ListTransactions } from '../modules/finance/application/ListTransactions';
 import { CreateTransaction } from '../modules/finance/application/CreateTransaction';
+import { UpdateTransaction } from '../modules/finance/application/UpdateTransaction';
 import { DeleteTransaction } from '../modules/finance/application/DeleteTransaction';
+import { ListTransactionHistory } from '../modules/finance/application/ListTransactionHistory';
 import { ListSpeseLibere } from '../modules/finance/application/ListSpeseLibere';
 import { CreateSpesaLibera } from '../modules/finance/application/CreateSpesaLibera';
 import { DeleteSpesaLibera } from '../modules/finance/application/DeleteSpesaLibera';
@@ -156,7 +158,9 @@ const resetStaffPassword = new ResetStaffPassword(userRepository);
 // Use Cases - Finance
 const listTransactions = new ListTransactions(transactionRepository);
 const createTransaction = new CreateTransaction(transactionRepository);
+const updateTransaction = new UpdateTransaction(transactionRepository);
 const deleteTransaction = new DeleteTransaction(transactionRepository);
+const listTransactionHistory = new ListTransactionHistory(transactionRepository);
 const listSpeseLibere = new ListSpeseLibere(spesaLiberaRepository);
 const createSpesaLibera = new CreateSpesaLibera(spesaLiberaRepository);
 const deleteSpesaLibera = new DeleteSpesaLibera(spesaLiberaRepository);
@@ -243,7 +247,9 @@ const staffController = new StaffController(
 const transactionController = new TransactionController(
   listTransactions,
   createTransaction,
+  updateTransaction,
   deleteTransaction,
+  listTransactionHistory,
   getFinanceSummary,
   getTrends,
   getArtistPerformance

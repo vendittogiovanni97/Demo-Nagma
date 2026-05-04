@@ -42,8 +42,11 @@ export function parsePageQuery(query: Record<string, unknown>) {
     limit: query.limit ? Number(query.limit) : 20,
     search: (query.search as string | undefined)?.trim(),
     month: query.month as string | undefined,
+    startDate: query.startDate as string | undefined,
+    endDate: query.endDate as string | undefined,
   };
 }
+
 
 /**
  * Crea un oggetto di risposta paginata standardizzato.

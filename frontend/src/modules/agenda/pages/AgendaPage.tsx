@@ -1,24 +1,24 @@
 "use client";
 
-import type { EventContentArg, DatesSetArg, DayCellContentArg } from '@fullcalendar/core';
+import type { DatesSetArg, DayCellContentArg, EventContentArg } from '@fullcalendar/core';
 import itLocale from '@fullcalendar/core/locales/it';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { Box } from '@mui/material';
-import { useCallback } from 'react';
 import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Clock } from 'lucide-react';
+import { useCallback } from 'react';
 
 import StatePanel from '@/components/feedback/StatePanel';
-import BookingModal from '@/modules/booking/components/modals/BookingModal';
 import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
-import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import BookingModal from '@/modules/booking/components/modals/BookingModal';
 import type { Booking } from '@/modules/booking/model/booking.types';
+import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 
 import CalendarEvent from '../components/CalendarEvent';
 import { useAgendaBookings } from '../hooks/useAgendaBookings';

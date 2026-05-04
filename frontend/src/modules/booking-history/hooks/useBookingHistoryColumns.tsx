@@ -59,11 +59,11 @@ export function useBookingHistoryColumns(): Column<BookingHistoryEntry>[] {
     {
       key: 'changedAt',
       label: 'Data',
-      width: '150px',
+      width: '180px',
       render: (entry) => (
         <Stack direction="row" useFlexGap sx={{ fontSize: '0.875rem', alignItems: 'center', gap: 0.75 }}>
           <CalendarDays size={14} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
-          {format(new Date(entry.changedAt), 'dd MMM yyyy', { locale: it })}
+          {format(new Date(entry.changedAt), 'dd MMM yyyy HH:mm', { locale: it })}
         </Stack>
       ),
     },

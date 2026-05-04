@@ -27,6 +27,7 @@ export interface DataTableProps<T> {
   footer?: ReactNode;
   pageSize?: number;
   getRowStyle?: (item: T) => RowStyle | undefined;
+  onRowClick?: (item: T) => void;
 }
 
 const PAGINATION_HEIGHT = 48;
@@ -51,6 +52,7 @@ export default function DataTable<T extends object>({
   footer,
   pageSize = 10,
   getRowStyle,
+  onRowClick,
 }: DataTableProps<T>) {
   const { isSmall, isMedium } = useThemeContext();
   const theme = useTheme();
@@ -109,6 +111,7 @@ export default function DataTable<T extends object>({
           getRowId={(p) => String(keyExtractor(p.data!))}
           getRowStyle={(p) => getRowStyle && p.data ? getRowStyle(p.data) : undefined}
           loading={isLoading}
+          onRowClicked={(p) => onRowClick && p.data && onRowClick(p.data)}
           overlayNoRowsTemplate={`<span class="nagma-grid-empty">${emptyMessage}</span>`}
           rowHeight={ROW_HEIGHT}
           headerHeight={HEADER_HEIGHT}

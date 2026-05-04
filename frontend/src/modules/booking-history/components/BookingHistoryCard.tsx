@@ -9,6 +9,7 @@ import type { BookingAction, BookingHistoryEntry } from '@/modules/booking-histo
 
 interface BookingHistoryCardProps {
   entry: BookingHistoryEntry;
+  onClick?: () => void;
 }
 
 const ACTION_CONFIG: Record<
@@ -56,7 +57,7 @@ function renderDetails(entry: BookingHistoryEntry) {
   return null;
 }
 
-export default function BookingHistoryCard({ entry }: BookingHistoryCardProps) {
+export default function BookingHistoryCard({ entry, onClick }: BookingHistoryCardProps) {
   const theme = useTheme();
   const cfg = ACTION_CONFIG[entry.action];
   const customer = entry.booking?.customer;
@@ -65,6 +66,7 @@ export default function BookingHistoryCard({ entry }: BookingHistoryCardProps) {
 
   return (
     <Box
+      onClick={onClick}
       sx={{
         p: 2,
         borderRadius: 2,
@@ -74,6 +76,13 @@ export default function BookingHistoryCard({ entry }: BookingHistoryCardProps) {
         display: 'flex',
         flexDirection: 'column',
         gap: 1.25,
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': onClick ? {
+          backgroundColor: 'rgba(26, 35, 50, 0.8)',
+          borderColor: theme.palette.primary.main,
+          transform: 'translateY(-2px)',
+        } : {},
       }}
     >
       {/* Header: data + action chip */}
@@ -85,7 +94,7 @@ export default function BookingHistoryCard({ entry }: BookingHistoryCardProps) {
         <Stack direction="row" useFlexGap sx={{ alignItems: 'center', gap: 0.75, minWidth: 0 }}>
           <CalendarDays size={14} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
           <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.primary, fontWeight: 500 }}>
-            {format(new Date(entry.changedAt), 'dd MMM yyyy', { locale: it })}
+            {format(new Date(entry.changedAt), 'dd MMM yyyy HH:mm', { locale: it })}
           </Typography>
         </Stack>
         <Chip

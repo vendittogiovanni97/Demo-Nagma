@@ -9,7 +9,9 @@ import {
   useTheme
 } from '@mui/material';
 import { format } from 'date-fns';
-import { useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
+import { Check, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Components
 import SmartModal from '@/components/common/SmartModal';
@@ -289,16 +291,26 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
     }
   };
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const executeBookingAction = async (data: CreateBookingData & { status?: BookingStatus }) => {
     dispatch({ type: 'SET_FIELD', field: 'loading', payload: true });
     try {
       if (booking?.id) await bookingService.update(booking.id, data);
       else await bookingService.create(data);
-      toast.success(booking ? 'Aggiornata!' : 'Confermata!');
+      
+      setShowSuccess(true);
       await onSuccess?.();
-      onClose();
-    } catch (err) { toast.error(extractErrorMessage(err, 'Errore')); }
-    finally { dispatch({ type: 'SET_FIELD', field: 'loading', payload: false }); }
+      
+      // Delay closing to show animation
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+      }, 1500);
+    } catch (err) { 
+      toast.error(extractErrorMessage(err, 'Errore')); 
+      dispatch({ type: 'SET_FIELD', field: 'loading', payload: false });
+    }
   };
 
   return (
@@ -499,6 +511,66 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
             loading={formState.passwordLoading}
           />
         )}
+        {/* Success Animation Overlay */}
+        <AnimatePresence>
+          {showSuccess && (
+            <Box
+              component={motion.div}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                bgcolor: 'rgba(10, 15, 25, 0.85)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 9999,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'inherit',
+              }}
+            >
+              <Box
+                component={motion.div}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+                sx={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: '50%',
+                  bgcolor: 'success.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)',
+                  mb: 3,
+                }}
+              >
+                <Check size={60} color="white" />
+              </Box>
+              <Typography
+                component={motion.p}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                sx={{
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  color: 'white',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {booking ? 'Modifica Salvata!' : 'Prenotazione Confermata!'}
+              </Typography>
+            </Box>
+          )}
+        </AnimatePresence>
       </SmartModal>
     </>
   );

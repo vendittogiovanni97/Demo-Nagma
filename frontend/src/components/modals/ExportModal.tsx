@@ -7,11 +7,10 @@ import { AlertCircle, FileDown, SlidersHorizontal, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { exportService } from '@/shared/api/export.api';
-import { exportRowsToPdf } from '@/shared/utils/export';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
 
-type ExportFormat = 'pdf';
+type ExportFormat = 'pdf' | 'csv';
 
 export interface ExportColumn<T> {
   label: string;
@@ -57,7 +56,7 @@ export default function ExportModal<T>({
 }: ExportModalProps<T>) {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const [format] = useState<ExportFormat>('pdf');
+  const [format, setFormat] = useState<ExportFormat>('pdf');
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,7 +116,16 @@ export default function ExportModal<T>({
       }
 
       switch (format) {
-        case 'pdf':  exportRowsToPdf(filenameBase, title, data, columns, finalFiltersLabel); break;
+        case 'pdf':  
+          import('@/shared/utils/export').then(mod => {
+            mod.exportRowsToPdf(filenameBase, title, data, columns, finalFiltersLabel);
+          });
+          break;
+        case 'csv':
+          import('@/shared/utils/export').then(mod => {
+            mod.exportRowsToCsv(filenameBase, data, columns);
+          });
+          break;
       }
       handleClose();
     } finally {
@@ -171,11 +179,26 @@ export default function ExportModal<T>({
         title="Esporta Dati"
         onSave={handleExport}
         isSaving={isExporting}
-        saveLabel="Esporta in PDF"
+        saveLabel={format === 'pdf' ? 'Esporta in PDF' : 'Scarica CSV'}
         saveDisabled={filteredRows.length === 0}
         maxWidth="md"
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {/* Format Selection */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.12em', px: 0.5 }}>
+              Formato Esportazione
+            </Typography>
+            <FormSelect
+              value={format}
+              onChange={(v) => setFormat(v as ExportFormat)}
+              options={[
+                { value: 'pdf', label: 'Documento PDF (per stampa/lettura)' },
+                { value: 'csv', label: 'File CSV (per Excel/Commercialista)' },
+              ]}
+            />
+          </Box>
+
           {error ? (
             <Alert severity="error" icon={<AlertCircle size={18} />} sx={{ borderRadius: 2 }}>
               {error}

@@ -1,4 +1,6 @@
 import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
 
 type ExportColumn<T> = {
   label: string;
@@ -69,36 +71,20 @@ export function exportRowsToPdf<T>(
   if (!printWindow) return;
 
   const { head, body } = buildHtmlTable(rows, columns);
+  const timestamp = format(new Date(), 'dd/MM/yyyy HH:mm', { locale: it });
 
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>${title}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 32px; color: #111; }
-          h1 { margin-bottom: 8px; }
-          p { color: #555; margin-top: 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-          th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 12px; }
-          th { background: #f3f4f6; text-transform: uppercase; letter-spacing: 0.04em; }
-          tr:nth-child(even) { background: #fafafa; }
-        </style>
-      </head>
-      <body>
-        <h1>${title}</h1>
-        <p>${filters || 'Esportazione dati filtrati'}</p>
-        <table>
-          <thead><tr>${head}</tr></thead>
-          <tbody>${body}</tbody>
-        </table>
-      </body>
-    </html>
-  `);
+  import('./export-template').then(mod => {
+    printWindow.document.write(mod.getPdfTemplate({ title, head, body, filters, timestamp }));
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Wait for fonts to load before printing
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.onafterprint = () => printWindow.close();
+    }, 500);
+  });
 
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
-  printWindow.onafterprint = () => printWindow.close();
   void filenameBase;
 }
 

@@ -27,6 +27,7 @@ interface SmartTableProps<T> {
   errorDescription?: string;
   /** Pagination */
   pageSize?: number;
+  onRowClick?: (item: T) => void;
 }
 
 export default function SmartTable<T extends object>({
@@ -43,6 +44,7 @@ export default function SmartTable<T extends object>({
   errorTitle = 'Errore di caricamento',
   errorDescription = 'Si è verificato un problema durante il recupero dei dati.',
   pageSize = 10,
+  onRowClick,
 }: SmartTableProps<T>) {
   const { isSmall, isMedium } = useThemeContext();
   const theme = useMuiTheme();
@@ -114,6 +116,7 @@ export default function SmartTable<T extends object>({
         actions={actions}
         keyExtractor={keyExtractor}
         getRowStyle={getRowStyle}
+        onRowClick={onRowClick}
         pageSize={pageSize}
         emptyMessage={emptyTitle}
       />

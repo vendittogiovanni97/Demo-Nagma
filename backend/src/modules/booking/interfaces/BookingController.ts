@@ -77,6 +77,8 @@ export class BookingController {
       endDate: req.query.endDate as string | undefined,
       action: req.query.action as any,
       userId: req.query.userId ? Number(req.query.userId) : undefined,
+      artistId: req.query.artistId ? Number(req.query.artistId) : undefined,
+      search: req.query.search as string | undefined,
     };
 
     const result = await this.listBookingHistory.execute(page, limit, filters);

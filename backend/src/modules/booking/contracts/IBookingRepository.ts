@@ -15,6 +15,8 @@ export interface BookingHistoryFilters {
   endDate?: string;
   action?: BookingStatus;
   userId?: number;
+  artistId?: number;
+  search?: string;
 }
 
 export interface IBookingRepository {

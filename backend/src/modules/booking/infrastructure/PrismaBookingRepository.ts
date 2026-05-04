@@ -170,7 +170,7 @@ export class PrismaBookingRepository implements IBookingRepository {
   }
 
   async findAllHistoryPaged(page: number, limit: number, filters: BookingHistoryFilters): Promise<IPaginatedResponse<BookingHistory>> {
-    const { startDate, endDate, action, userId } = filters;
+    const { startDate, endDate, action, userId, artistId, search } = filters;
     const where: Prisma.BookingHistoryWhereInput = {};
 
     if (startDate || endDate) {
@@ -181,6 +181,21 @@ export class PrismaBookingRepository implements IBookingRepository {
 
     if (action) where.action = action as any;
     if (userId) where.changedById = userId;
+
+    if (artistId || search) {
+      where.booking = {
+        ...(artistId ? { artistId } : {}),
+        ...(search ? {
+          customer: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search } },
+            ]
+          }
+        } : {})
+      };
+    }
 
     const [raws, total] = await this.prisma.$transaction([
       this.prisma.bookingHistory.findMany({
@@ -233,7 +248,6 @@ export class PrismaBookingRepository implements IBookingRepository {
     const busyRows = await this.prisma.$queryRaw<Array<{ artistId: number }>>(Prisma.sql`
       SELECT DISTINCT "artistId" FROM "Booking"
       WHERE "deletedAt" IS NULL
-        AND "status" <> 'CANCELLED'
         AND "status" <> 'CANCELLATO'
         AND "artistId" IS NOT NULL
         AND "date" < ${end}
@@ -255,7 +269,6 @@ export class PrismaBookingRepository implements IBookingRepository {
       SELECT id FROM "Booking"
       WHERE "artistId" = ${artistId}
         AND "deletedAt" IS NULL
-        AND "status" <> 'CANCELLED'
         AND "status" <> 'CANCELLATO'
         AND "date" < ${end}
         AND ("date" + ("duration" || ' minutes')::interval) > ${start}

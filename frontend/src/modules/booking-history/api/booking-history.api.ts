@@ -42,6 +42,8 @@ export interface BookingHistoryFilters {
   endDate?: string;
   action?: BookingAction;
   userId?: number;
+  artistId?: number;
+  search?: string;
 }
 
 export interface BookingHistoryResponse {

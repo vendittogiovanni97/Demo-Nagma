@@ -2,7 +2,7 @@
 
 import { SHIFT_LABELS } from '@/config/staff-config';
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '../api/staff.api';
+import { staffApi } from '../api/staff.api';
 import type { Shift } from '../model/staff.types';
 import { useState } from 'react';
 
@@ -26,7 +26,7 @@ export function useShiftActions({ week, canManageShiftData, mutateShifts }: UseS
 
     setUpdatingShiftId(shift.id);
     try {
-      await teamApi.updateShift(shift.id, {
+      await staffApi.updateShift(shift.id, {
         label: nextLabel,
         isOff: nextLabel === 'Riposo',
       });
@@ -44,7 +44,7 @@ export function useShiftActions({ week, canManageShiftData, mutateShifts }: UseS
     const key = `${staffId}-${dayOfWeek}`;
     setIsAddingShift(key);
     try {
-      await teamApi.createShift({
+      await staffApi.createShift({
         staffId,
         weekStart: week,
         dayOfWeek,
@@ -71,7 +71,7 @@ export function useShiftActions({ week, canManageShiftData, mutateShifts }: UseS
   ) => {
     await deleteItem({
       confirmMessage: 'Eliminare questo turno?',
-      action: () => teamApi.deleteShift(id),
+      action: () => staffApi.deleteShift(id),
       successMessage: 'Turno eliminato',
       errorMessage: 'Errore durante l\'eliminazione',
       onSuccess: mutateShifts,

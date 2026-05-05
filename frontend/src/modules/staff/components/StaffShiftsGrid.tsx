@@ -6,9 +6,9 @@ import type { Shift, Staff } from '../model/staff.types';
 import { Box, Typography, useTheme } from '@mui/material';
 import { addDays, format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-import TeamMemberRow from './TeamMemberRow';
+import StaffMemberRow from './StaffMemberRow';
 
-interface TeamShiftsGridProps {
+interface StaffShiftsGridProps {
   members: Staff[];
   shifts: Shift[];
   weekStart: string;
@@ -23,7 +23,7 @@ interface TeamShiftsGridProps {
   onOpenAddShift: (staffId: number, dayOfWeek: number) => void;
 }
 
-export default function TeamShiftsGrid({
+export default function StaffShiftsGrid({
   members,
   shifts,
   weekStart,
@@ -36,7 +36,7 @@ export default function TeamShiftsGrid({
   onCycleShift,
   onQuickAddShift,
   onOpenAddShift,
-}: TeamShiftsGridProps) {
+}: StaffShiftsGridProps) {
   const theme = useTheme();
   const weekDates = DAYS_OF_WEEK.map((_, i) => addDays(parseISO(weekStart), i));
 
@@ -120,7 +120,7 @@ export default function TeamShiftsGrid({
 
         {!isLoading &&
           members.map(member => (
-            <TeamMemberRow
+            <StaffMemberRow
               key={member.id}
               member={member}
               shifts={shifts}

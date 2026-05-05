@@ -1,5 +1,5 @@
-import TeamPage from '@/modules/staff/pages/TeamPage';
+import StaffPage from '@/modules/staff/pages/StaffPage';
 
 export default function Page() {
-  return <TeamPage />;
+  return <StaffPage />;
 }

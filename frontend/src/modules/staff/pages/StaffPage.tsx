@@ -6,9 +6,9 @@ import WeekNavigator from '@/components/layout/WeekNavigator';
 import ExportModal from '@/components/modals/ExportModal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
-import { useTeamMembers, useTeamShifts } from '../hooks/useTeam';
+import { useStaffMembers, useStaffShifts } from '../hooks/useStaff';
 import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
-import { teamApi } from '../api/staff.api';
+import { staffApi } from '../api/staff.api';
 import type { Shift, Staff } from '../model/staff.types';
 import { Box, Paper, useTheme } from '@mui/material';
 import { addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
@@ -16,10 +16,10 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import ShiftModal from '../components/modals/ShiftModal';
 import StaffModal from '../components/modals/StaffModal';
-import TeamShiftsGrid from '../components/TeamShiftsGrid';
+import StaffShiftsGrid from '../components/StaffShiftsGrid';
 import { useShiftActions } from '../hooks/useShiftActions';
 
-export default function TeamPage() {
+export default function StaffPage() {
   const theme = useTheme();
   const { isAdmin } = useAuth();
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
@@ -38,14 +38,14 @@ export default function TeamPage() {
     isLoading: loadingMembers,
     mutate: mutateMembers,
     error: membersError,
-  } = useTeamMembers({ page: 1, limit: 100 });
+  } = useStaffMembers({ page: 1, limit: 100 });
 
   const {
     data: shifts,
     isLoading: loadingShifts,
     mutate: mutateShifts,
     error: shiftsError,
-  } = useTeamShifts(week);
+  } = useStaffShifts(week);
 
   const membersList = (membersResult?.data || []).sort((a, b) => {
     if (a.type === 'COLLABORATORE' && b.type !== 'COLLABORATORE') return -1;
@@ -71,7 +71,7 @@ export default function TeamPage() {
   const handleDeleteMember = async (id: number, name: string) => {
     await deleteItem({
       confirmMessage: `Rimuovere "${name}" dal team?`,
-      action: () => teamApi.deleteMember(id),
+      action: () => staffApi.delete(id),
       successMessage: `${name} rimosso dal team`,
       errorMessage: 'Errore durante l\'eliminazione',
       onSuccess: mutateMembers,
@@ -157,7 +157,7 @@ export default function TeamPage() {
           border: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <TeamShiftsGrid
+        <StaffShiftsGrid
           members={membersList}
           shifts={shifts || []}
           weekStart={week}

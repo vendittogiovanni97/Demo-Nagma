@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Box } from '@mui/material';
 
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '@/modules/staff/api/staff.api';
+import { staffApi } from '@/modules/staff/api/staff.api';
 import { extractErrorMessage } from '@/shared/utils/extract-error';
 import SmartModal from '@/components/common/SmartModal';
 import FormInput from '@/components/forms/FormInput';
@@ -38,7 +38,7 @@ export default function ResetPasswordModal({
 
     setLoading(true);
     try {
-      await teamApi.resetMemberPassword(memberId, newPassword);
+      await staffApi.resetMemberPassword(memberId, newPassword);
       toast.success(`Password di ${userName} resettata`);
       setNewPassword('');
       setConfirmPassword('');

@@ -3,9 +3,9 @@
 import StatePanel from '@/components/feedback/StatePanel';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
-import { useTeamMembers } from '@/modules/staff/hooks/useTeam';
+import { useStaffMembers } from '@/modules/staff/hooks/useStaff';
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '@/modules/staff/api/staff.api';
+import { staffApi } from '@/modules/staff/api/staff.api';
 import type { CreateShiftData } from '@/modules/staff/model/staff.types';
 import { extractErrorMessage } from '@/shared/utils/extract-error';
 import { useState } from 'react';
@@ -48,7 +48,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
   const [label, setLabel] = useState('Mattina');
   const [loading, setLoading] = useState(false);
 
-  const { data: membersResult } = useTeamMembers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
+  const { data: membersResult } = useStaffMembers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const members = membersResult?.data;
 
   // React to prop changes
@@ -74,7 +74,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
         label,
         isOff: label === 'Riposo',
       };
-      await teamApi.createShift(data);
+      await staffApi.createShift(data);
       toast.success('Turno pianificato');
       setStaffId('');
       setDayOfWeek('0');

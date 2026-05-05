@@ -10,7 +10,7 @@ import PageHeader from '@/components/common/PageHeader';
 import SmartFilters from '@/components/common/SmartFilters';
 import { useToast } from '@/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
-import { teamApi } from '@/modules/staff/api/staff.api';
+import { staffApi } from '@/modules/staff/api/staff.api';
 import SaleModal from '../components/modals/SaleModal';
 import { useCreamColumns } from '../hooks/useCreamColumns';
 
@@ -77,7 +77,7 @@ export default function CreamsPage() {
 
   const fetchTeam = useCallback(async () => {
     try {
-      const res = await teamApi.getMembers({ limit: 100 });
+      const res = await staffApi.getMembers({ limit: 100 });
       setTeamMembers(res.data as unknown as StaffMember[]);
     } catch (err) {
       console.error('Error fetching team:', err);

@@ -10,7 +10,7 @@ import { Edit, Trash2, MoreVertical } from 'lucide-react';
 import { useState } from 'react';
 import ShiftCell from './ShiftCell';
 
-interface TeamMemberRowProps {
+interface StaffMemberRowProps {
   member: Staff;
   shifts: Shift[];
   weekStart: string;
@@ -24,7 +24,7 @@ interface TeamMemberRowProps {
   onOpenAddShift: (staffId: number, dayOfWeek: number) => void;
 }
 
-export default function TeamMemberRow({
+export default function StaffMemberRow({
   member,
   shifts,
   weekStart,
@@ -36,7 +36,7 @@ export default function TeamMemberRow({
   onCycleShift,
   onQuickAddShift,
   onOpenAddShift,
-}: TeamMemberRowProps) {
+}: StaffMemberRowProps) {
   const theme = useTheme();
   const memberColor = member.color || '#3b82f6';
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

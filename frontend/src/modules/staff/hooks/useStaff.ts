@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import { teamApi } from '../api/staff.api';
+import { staffApi } from '../api/staff.api';
 import type { Shift, Staff } from '../model/staff.types';
 import type { PaginatedResponse } from '@/shared/types/pagination';
 
@@ -17,7 +17,7 @@ interface HookOptions {
   enabled?: boolean;
 }
 
-export function useTeamMembers({
+export function useStaffMembers({
   search,
   type,
   page = 1,
@@ -32,7 +32,7 @@ export function useTeamMembers({
     if (!enabled) return;
     setIsLoading(true);
     try {
-      const res = await teamApi.getMembers({ search, type, page, limit });
+      const res = await staffApi.getMembers({ search, type, page, limit });
       setData(res);
       setError(null);
     } catch (err) {
@@ -49,7 +49,7 @@ export function useTeamMembers({
   return { data, isLoading, error, mutate: fetchData };
 }
 
-export function useTeamShifts(weekStart?: string, options?: HookOptions) {
+export function useStaffShifts(weekStart?: string, options?: HookOptions) {
   const enabled = options?.enabled ?? true;
   const [data, setData] = useState<Shift[] | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +59,7 @@ export function useTeamShifts(weekStart?: string, options?: HookOptions) {
     if (!enabled || !weekStart) return;
     setIsLoading(true);
     try {
-      const res = await teamApi.getShifts(weekStart);
+      const res = await staffApi.getShifts(weekStart);
       setData(res);
       setError(null);
     } catch (err) {

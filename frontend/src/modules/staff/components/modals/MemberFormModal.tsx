@@ -5,8 +5,8 @@ import { Box, Typography, useTheme } from '@mui/material';
 
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '@/modules/team/api/team.api';
-import type { Staff } from '@/modules/team/model/team.types';
+import { teamApi } from '@/modules/staff/api/staff.api';
+import type { Staff } from '@/modules/staff/model/staff.types';
 import { extractErrorMessage } from '@/shared/utils/extract-error';
 import StatePanel from '@/components/feedback/StatePanel';
 import Avatar from '@/components/data-display/Avatar';

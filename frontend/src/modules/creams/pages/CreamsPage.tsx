@@ -10,7 +10,7 @@ import PageHeader from '@/components/common/PageHeader';
 import SmartFilters from '@/components/common/SmartFilters';
 import { useToast } from '@/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
-import { teamApi } from '@/modules/team/api/team.api';
+import { teamApi } from '@/modules/staff/api/staff.api';
 import SaleModal from '../components/modals/SaleModal';
 import { useCreamColumns } from '../hooks/useCreamColumns';
 

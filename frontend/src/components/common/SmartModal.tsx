@@ -1,20 +1,20 @@
 "use client";
 
-import React, { ReactNode } from 'react';
+import Button from '@/components/ui/Button';
 import {
   Box,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
-  useTheme,
-  CircularProgress,
   SxProps,
   Theme,
+  useTheme,
 } from '@mui/material';
 import { X } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { ReactNode } from 'react';
 
 interface SmartModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ interface SmartModalProps {
   isSaving?: boolean;
   showFooter?: boolean;
   extraActions?: ReactNode;
+  headerAction?: ReactNode;
 }
 
 export default function SmartModal({
@@ -42,6 +43,7 @@ export default function SmartModal({
   isSaving = false,
   showFooter = true,
   extraActions,
+  headerAction,
 }: SmartModalProps) {
   const theme = useTheme();
 
@@ -58,7 +60,10 @@ export default function SmartModal({
       }}
     >
       <DialogTitle sx={styles.titleWrapper}>
-        <Box sx={styles.titleText}>{title}</Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Box sx={styles.titleText}>{title}</Box>
+          {headerAction}
+        </Box>
         <IconButton
           onClick={onClose}
           disabled={isSaving}

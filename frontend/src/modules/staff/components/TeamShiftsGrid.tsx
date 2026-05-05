@@ -1,8 +1,8 @@
 "use client";
 
 import StatePanel from '@/components/feedback/StatePanel';
-import { DAYS_OF_WEEK } from '@/config/team-config';
-import type { Shift, Staff } from '../model/team.types';
+import { DAYS_OF_WEEK } from '@/config/staff-config';
+import type { Shift, Staff } from '../model/staff.types';
 import { Box, Typography, useTheme } from '@mui/material';
 import { addDays, format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';

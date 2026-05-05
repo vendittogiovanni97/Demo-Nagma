@@ -1,4 +1,4 @@
-import type { Role } from '@/modules/team/model/team.types';
+import type { Role } from '@/modules/staff/model/staff.types';
 
 export const ROLE_LABELS: Record<Role, string> = {
   SUPER_ADMIN: 'Super Admin',

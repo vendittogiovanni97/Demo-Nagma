@@ -1,7 +1,7 @@
 "use client";
 
 import Button from '@/components/ui/Button';
-import type { Shift } from '../model/team.types';
+import type { Shift } from '../model/staff.types';
 import { Box, Typography, useTheme } from '@mui/material';
 import { Loader2, Plus } from 'lucide-react';
 

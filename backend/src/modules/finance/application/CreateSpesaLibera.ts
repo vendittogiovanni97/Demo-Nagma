@@ -3,6 +3,7 @@ import { ITransactionRepository } from '../contracts/ITransactionRepository';
 import { CreateSpesaLiberaDTO } from '../contracts/FinanceDTOs';
 import { SpesaLibera } from '../domain/SpesaLibera';
 import { Transaction } from '../domain/Transaction';
+import { financeCache } from './FinanceCache';
 
 export class CreateSpesaLibera {
   constructor(
@@ -11,6 +12,8 @@ export class CreateSpesaLibera {
   ) {}
 
   async execute(data: CreateSpesaLiberaDTO): Promise<SpesaLibera> {
+    financeCache.invalidate();
+    
     const spesa = new SpesaLibera({
       name: data.name,
       price: data.price,

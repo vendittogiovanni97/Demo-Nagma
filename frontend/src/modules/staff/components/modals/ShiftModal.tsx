@@ -3,10 +3,10 @@
 import StatePanel from '@/components/feedback/StatePanel';
 import { EXPORT_FETCH_LIMIT } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
-import { useTeamMembers } from '@/modules/team/hooks/useTeam';
+import { useTeamMembers } from '@/modules/staff/hooks/useTeam';
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '@/modules/team/api/team.api';
-import type { CreateShiftData } from '@/modules/team/model/team.types';
+import { teamApi } from '@/modules/staff/api/staff.api';
+import type { CreateShiftData } from '@/modules/staff/model/staff.types';
 import { extractErrorMessage } from '@/shared/utils/extract-error';
 import { useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';

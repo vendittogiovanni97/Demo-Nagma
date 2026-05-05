@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Box } from '@mui/material';
 
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '@/modules/team/api/team.api';
+import { teamApi } from '@/modules/staff/api/staff.api';
 import { extractErrorMessage } from '@/shared/utils/extract-error';
 import SmartModal from '@/components/common/SmartModal';
 import FormInput from '@/components/forms/FormInput';

@@ -1,4 +1,4 @@
-import type { Role } from '@/modules/team/model/team.types';
+import type { Role } from '@/modules/staff/model/staff.types';
 
 export interface LoginCredentials {
   email: string;

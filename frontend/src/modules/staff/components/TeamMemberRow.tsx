@@ -3,8 +3,8 @@
 import PermissionGate from '@/components/auth/PermissionGate';
 import Avatar from '@/components/data-display/Avatar';
 import Badge from '@/components/ui/Badge';
-import { DAYS_OF_WEEK } from '@/config/team-config';
-import type { Shift, Staff } from '../model/team.types';
+import { DAYS_OF_WEEK } from '@/config/staff-config';
+import type { Shift, Staff } from '../model/staff.types';
 import { Box, Typography, useTheme, IconButton, Menu, MenuItem } from '@mui/material';
 import { Edit, Trash2, MoreVertical } from 'lucide-react';
 import { useState } from 'react';

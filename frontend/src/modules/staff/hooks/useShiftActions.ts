@@ -1,9 +1,9 @@
 "use client";
 
-import { SHIFT_LABELS } from '@/config/team-config';
+import { SHIFT_LABELS } from '@/config/staff-config';
 import { useToast } from '@/hooks/useToast';
-import { teamApi } from '../api/team.api';
-import type { Shift } from '../model/team.types';
+import { teamApi } from '../api/staff.api';
+import type { Shift } from '../model/staff.types';
 import { useState } from 'react';
 
 interface UseShiftActionsParams {

@@ -3,8 +3,8 @@
 import StatePanel from '@/components/feedback/StatePanel';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
-import { createStaffSchema } from '@/modules/team/model/staff.schema';
-import { staffApi } from '@/modules/team/api/staff.api';
+import { createStaffSchema } from '@/modules/staff/model/staff.schema';
+import { staffApi } from '@/modules/staff/api/staff.api';
 import { extractErrorMessage } from '@/shared/utils/extract-error';
 import { validateData } from '@/shared/utils/validation';
 import { useState } from 'react';

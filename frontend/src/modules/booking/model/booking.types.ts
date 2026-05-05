@@ -18,6 +18,7 @@ export interface Booking {
     firstName: string;
     lastName: string;
     phone?: string;
+    email?: string;
   };
   artist?: {
     id: number;

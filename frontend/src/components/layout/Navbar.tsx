@@ -1,6 +1,7 @@
 "use client";
 
 import { branding } from "@/config/branding";
+import { navItems } from "@/config/nav-links";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import BookingModal from "@/modules/booking/components/modals/BookingModal";
@@ -17,20 +18,14 @@ import {
   type Theme,
 } from "@mui/material";
 import {
-  Calendar,
-  CalendarDays,
   DollarSign,
   FileText,
   History,
-  LayoutGrid,
   LogOut,
   MessageSquare,
   Package,
   Plus,
-  Receipt,
-  Settings,
-  Users,
-  UsersRound,
+  Receipt
 } from "lucide-react";
 
 import Image from "next/image";
@@ -86,15 +81,6 @@ export default function Navbar() {
 
   const initials = getInitials(user?.name, user?.email);
 
-  const navItems = [
-    { name: "Home",         href: "/",            icon: LayoutGrid   },
-    { name: "Agenda",       href: "/agenda",       icon: Calendar     },
-    { name: "Prenotazioni", href: "/prenotazioni", icon: CalendarDays },
-    { name: "Clienti",      href: "/clienti",      icon: Users        },
-    { name: "Team",         href: "/team",         icon: UsersRound   },
-  ];
-
-  // Return a consistent placeholder during hydration to avoid mismatches with Emotion/MUI styles
   if (!mounted) {
     return <div style={{ height: 44 }} />;
   }
@@ -393,7 +379,6 @@ function NavbarUserMenu({
 
   const menuItems = useMemo(
     () => [
-      { href: '/settings', icon: Settings, label: 'Impostazioni', show: true },
       { href: '/admin/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
 

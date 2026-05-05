@@ -41,19 +41,19 @@ export const ENDPOINTS = {
     BY_ID: (id: string | number) => `/api/whatsapp-templates/${id}`,
   },
   STAFF: {
-    BASE: '/api/team/members',
-    LIST: '/api/team/members/list',
-    BY_ID: (id: string | number) => `/api/team/members/${id}`,
+    BASE: '/api/staff/members',
+    LIST: '/api/staff/members/list',
+    BY_ID: (id: string | number) => `/api/staff/members/${id}`,
   },
   SPESE_LIBERE: {
     BASE: '/api/finance/spese-libere',
     BY_ID: (id: string | number) => `/api/finance/spese-libere/${id}`,
   },
   TEAM: {
-    MEMBERS: '/api/team/members',
-    MEMBER_BY_ID: (id: string | number) => `/api/team/members/${id}`,
-    SHIFTS: '/api/team/shifts',
-    SHIFT_BY_ID: (id: string | number) => `/api/team/shifts/${id}`,
+    MEMBERS: '/api/staff/members',
+    MEMBER_BY_ID: (id: string | number) => `/api/staff/members/${id}`,
+    SHIFTS: '/api/staff/shifts',
+    SHIFT_BY_ID: (id: string | number) => `/api/staff/shifts/${id}`,
   },
   CREAM: {
     BASE: '/api/cream',

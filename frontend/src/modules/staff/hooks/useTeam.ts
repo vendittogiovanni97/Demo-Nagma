@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import { teamApi } from '../api/team.api';
-import type { Shift, Staff } from '../model/team.types';
+import { teamApi } from '../api/staff.api';
+import type { Shift, Staff } from '../model/staff.types';
 import type { PaginatedResponse } from '@/shared/types/pagination';
 
 interface MemberHookOptions {

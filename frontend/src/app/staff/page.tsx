@@ -1,4 +1,4 @@
-import TeamPage from '@/modules/team/pages/TeamPage';
+import TeamPage from '@/modules/staff/pages/TeamPage';
 
 export default function Page() {
   return <TeamPage />;

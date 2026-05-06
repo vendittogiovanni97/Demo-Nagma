@@ -4,6 +4,6 @@ export class DeleteStaff {
   constructor(private staffRepository: IStaffRepository) {}
 
   async execute(id: number): Promise<void> {
-    return this.staffRepository.delete(id);
+    return this.staffRepository.softDelete(id);
   }
 }

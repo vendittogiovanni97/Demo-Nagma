@@ -19,11 +19,12 @@ export class AnnulBooking {
         },
       });
 
-      if (oldBooking.price) {
-        await tx.transaction.deleteMany({
-          where: { description: { contains: `#${id}` } },
-        });
-      }
+      await tx.transaction.deleteMany({
+        where: {
+          sourceId: id,
+          sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
+        },
+      });
     });
   }
 }

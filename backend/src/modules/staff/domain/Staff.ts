@@ -5,6 +5,7 @@ export interface StaffProps {
   name: string;
   type: StaffType;
   color?: string | null;
+  deletedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -16,6 +17,7 @@ export class Staff {
   get name() { return this.props.name; }
   get type() { return this.props.type; }
   get color() { return this.props.color; }
+  get deletedAt() { return this.props.deletedAt; }
 
   toJSON() {
     return { ...this.props };

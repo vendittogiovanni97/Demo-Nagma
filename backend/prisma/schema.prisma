@@ -30,6 +30,7 @@ model Staff {
   name       String
   type       StaffType
   color      String
+  deletedAt  DateTime?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   bookings   Booking[]
@@ -38,6 +39,7 @@ model Staff {
 
   @@index([type])
   @@index([createdAt])
+  @@index([deletedAt])
 }
 
 model Shift {

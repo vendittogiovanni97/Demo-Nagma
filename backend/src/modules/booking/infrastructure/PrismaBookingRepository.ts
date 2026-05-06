@@ -262,6 +262,7 @@ export class PrismaBookingRepository implements IBookingRepository {
     const busyIds = new Set(busyRows.map(r => r.artistId));
 
     const allStaff = await this.prisma.staff.findMany({
+      where: { deletedAt: null },
       select: { id: true, name: true, color: true },
       orderBy: { name: 'asc' },
     });

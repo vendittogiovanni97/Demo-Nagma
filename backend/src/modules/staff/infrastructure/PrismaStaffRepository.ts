@@ -18,20 +18,22 @@ export class PrismaStaffRepository implements IStaffRepository {
       name: raw.name,
       type: raw.type as any,
       color: raw.color,
+      deletedAt: raw.deletedAt,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
   }
 
   async findById(id: number): Promise<Staff | null> {
-    const raw = await this.prisma.staff.findUnique({
-      where: { id },
+    const raw = await this.prisma.staff.findFirst({
+      where: { id, deletedAt: null },
     });
     return raw ? this.mapToDomain(raw) : null;
   }
 
   async findAll(): Promise<Staff[]> {
     const raws = await this.prisma.staff.findMany({
+      where: { deletedAt: null },
       orderBy: { name: 'asc' },
     });
     return raws.map(this.mapToDomain);
@@ -39,7 +41,7 @@ export class PrismaStaffRepository implements IStaffRepository {
 
   async findAllPaged(filters: StaffFilters): Promise<IPaginatedResponse<Staff>> {
     const { search, type, page = 1, limit = 20 } = filters;
-    const where: Prisma.StaffWhereInput = {};
+    const where: Prisma.StaffWhereInput = { deletedAt: null };
 
     if (type) {
       where.type = type as any;
@@ -85,5 +87,12 @@ export class PrismaStaffRepository implements IStaffRepository {
 
   async delete(id: number): Promise<void> {
     await this.prisma.staff.delete({ where: { id } });
+  }
+
+  async softDelete(id: number): Promise<void> {
+    await this.prisma.staff.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

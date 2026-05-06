@@ -15,4 +15,5 @@ export interface IStaffRepository {
   create(staff: Staff): Promise<Staff>;
   update(id: number, data: Partial<Staff>): Promise<Staff>;
   delete(id: number): Promise<void>;
+  softDelete(id: number): Promise<void>;
 }

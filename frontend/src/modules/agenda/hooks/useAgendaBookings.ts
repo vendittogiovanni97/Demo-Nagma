@@ -109,6 +109,9 @@ export function useAgendaBookings(): AgendaBookingsResult {
 
   const handleEventClick = useCallback((arg: EventClickArg) => {
     const booking = arg.event.extendedProps.booking as BookingModel;
+    if (booking.status === 'COMPLETATO') {
+      return;
+    }
     handleEditBooking(booking);
   }, [handleEditBooking]);
 

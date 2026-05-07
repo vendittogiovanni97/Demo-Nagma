@@ -6,17 +6,17 @@ import swaggerUi from 'swagger-ui-express';
 
 import { config } from './config/env';
 import { getSwaggerSpec } from './config/swagger';
+import { configService } from './container';
 import { globalErrorHandler } from './middlewares/error.middleware';
-import authRoutes from './modules/auth/interfaces/auth.routes';
 import attachmentRoutes from './modules/attachment/interfaces/attachment.routes';
+import authRoutes from './modules/auth/interfaces/auth.routes';
 import bookingRoutes from './modules/booking/interfaces/booking.routes';
 import creamRoutes from './modules/cream/interfaces/cream.routes';
 import customerRoutes from './modules/customer/interfaces/customer.routes';
-import formTemplateRoutes from './modules/form-template/interfaces/form-template.routes';
-import teamRoutes from './modules/staff/interfaces/staff.routes';
-import whatsappTemplateRoutes from './modules/whatsapp/interfaces/whatsapp.routes';
 import financeRoutes from './modules/finance/interfaces/finance.routes';
-import { configService } from './container';
+import formTemplateRoutes from './modules/form-template/interfaces/form-template.routes';
+import staffRoutes from './modules/staff/interfaces/staff.routes';
+import whatsappTemplateRoutes from './modules/whatsapp/interfaces/whatsapp.routes';
 import { isDebugHttpEnabled, logger, sanitizeForLog } from './shared/utils/logger';
 import prisma from './shared/utils/prisma';
 
@@ -99,14 +99,12 @@ export function createApp() {
         ...(isDebugHttpEnabled() ? { contentLength: res.getHeader('content-length') } : {}),
       };
 
-      // FIX B7: Alert on very slow requests (5s+)
       if (durationMs > 5000) {
         logger.error('⚠️ Very slow request detected (>5s)', baseMeta);
         // TODO: Send alert to monitoring system (Sentry, DataDog, etc.)
         return;
       }
 
-      // FIX B7: Warn on slow requests (1s-5s)
       if (durationMs > 1000) {
         logger.warn('⚠️ Slow request detected (>1s)', baseMeta);
         return;
@@ -132,7 +130,7 @@ export function createApp() {
   app.use('/api/customers', customerRoutes);
   app.use('/api/finance', financeRoutes);
   app.use('/api/bookings', bookingRoutes);
-  app.use('/api/team', teamRoutes);
+  app.use('/api/staff', staffRoutes);
   app.use('/api/form-templates', formTemplateRoutes);
   app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
   app.use('/api/cream', creamRoutes);

@@ -2,7 +2,7 @@
 
 import { InputAdornment, TextField, useTheme, IconButton, Box, SxProps, Theme } from '@mui/material';
 import { Eye, EyeOff, type LucideIcon } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode, type MouseEvent } from 'react';
 import { inputRootSx } from '@/theme/inputStyles';
 
 type InputType = 'text' | 'email' | 'password' | 'number' | 'date' | 'time' | 'search' | 'tel' | 'url' | 'month';
@@ -123,7 +123,33 @@ export default function Input({
               </InputAdornment>
             ) : undefined,
             endAdornment: renderEndAdornment(),
-            inputProps: { min, max, step, pattern },
+            inputProps: {
+              min,
+              max,
+              step,
+              pattern,
+              style: {
+                cursor: (type === 'date' || type === 'time') ? 'pointer' : 'inherit',
+              },
+              onClick: (e: MouseEvent<HTMLInputElement>) => {
+                if (type === 'date' || type === 'time') {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {
+                    console.warn('showPicker not supported:', err);
+                  }
+                }
+              },
+              onDoubleClick: (e: MouseEvent<HTMLInputElement>) => {
+                if (type === 'date' || type === 'time') {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {
+                    console.warn('showPicker not supported:', err);
+                  }
+                }
+              },
+            },
           },
           inputLabel: { shrink: true },
         }}

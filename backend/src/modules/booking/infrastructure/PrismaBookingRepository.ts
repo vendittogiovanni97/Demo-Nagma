@@ -43,6 +43,8 @@ export class PrismaBookingRepository implements IBookingRepository {
       newDate: raw.newDate,
       changedById: raw.changedById,
       changedAt: raw.changedAt,
+      booking: raw.booking || null,
+      changedBy: raw.changedBy || null,
     });
   }
 
@@ -209,10 +211,13 @@ export class PrismaBookingRepository implements IBookingRepository {
         orderBy: { changedAt: 'desc' },
         include: {
           booking: {
-            select: { id: true, customer: { select: { firstName: true, lastName: true } } }
+            include: {
+              customer: true,
+              artist: true,
+            }
           },
           changedBy: {
-            select: { id: true, name: true }
+            select: { id: true, name: true, email: true }
           }
         }
       }),

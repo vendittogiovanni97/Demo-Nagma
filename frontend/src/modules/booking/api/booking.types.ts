@@ -24,6 +24,13 @@ export interface BookingDTO {
     name: string;
     color?: string;
   };
+  attachments?: Array<{
+    id: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    createdAt: string;
+  }>;
 }
 
 export interface BookingStatsDTO {

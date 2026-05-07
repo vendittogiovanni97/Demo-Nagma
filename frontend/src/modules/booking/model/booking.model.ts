@@ -18,6 +18,25 @@ export interface BookingModel {
   formData: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+  customer?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+  };
+  artist?: {
+    id: number;
+    name: string;
+    color?: string;
+  };
+  attachments?: Array<{
+    id: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    createdAt: string;
+  }>;
 }
 
 export interface BookingSummaryModel {

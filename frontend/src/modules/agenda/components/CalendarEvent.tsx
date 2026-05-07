@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { format } from 'date-fns';
+import { Check } from 'lucide-react';
 
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 
@@ -20,30 +21,62 @@ function CalendarEvent({
   const startTime = format(new Date(booking.date), 'HH:mm');
   const isCancelled = booking.status === 'ANNULLATO';
   const isRescheduled = booking.status === 'SPOSTATO';
+  const isCompleted = booking.status === 'COMPLETATO';
 
   return (
     <Box
       sx={{
         height: '100%',
         overflow: 'hidden',
-        px: 0.75,
-        py: 0.5,
+        px: 1.2,
+        py: 0.8,
         display: 'flex',
         flexDirection: 'column',
-        gap: 0.25,
+        gap: 0.5,
         position: 'relative',
-        cursor: 'pointer',
+        cursor: isCompleted ? 'default' : 'pointer',
         userSelect: 'none',
-        background: `linear-gradient(135deg, ${color}18 0%, ${color}08 100%)`,
-        opacity: isCancelled ? 0.5 : 1,
+        borderRadius: '6px',
+        borderLeft: `4px solid ${color}`,
+        border: `1px solid ${color}20`,
+        background: isCompleted
+          ? `linear-gradient(135deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.2) 100%), linear-gradient(135deg, ${color}14 0%, ${color}04 100%)`
+          : `linear-gradient(135deg, ${color}1C 0%, ${color}08 100%)`,
+        backdropFilter: 'blur(12px)',
+        boxShadow: isCompleted ? 'none' : `0 2px 8px -2px ${color}15`,
+        opacity: isCompleted ? 0.72 : isCancelled ? 0.5 : 1,
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': isCompleted ? {} : {
+          transform: 'translateY(-1.5px)',
+          background: `linear-gradient(135deg, ${color}2E 0%, ${color}12 100%)`,
+          boxShadow: `0 4px 16px -1px ${color}30`,
+          borderColor: `${color}40`,
+        },
       }}
     >
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 20 }}>
-        <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: `${color}cc`, lineHeight: 1, letterSpacing: '0.04em' }}>
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 18 }}>
+        <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, color: `${color}E2`, lineHeight: 1, letterSpacing: '0.04em', fontFamily: 'monospace' }}>
           {startTime}
-          {!isShort && ` · ${duration}min`}
+          {!isShort && ` · ${duration}m`}
         </Typography>
-        {(isCancelled || isRescheduled) && (
+        {isCompleted ? (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(16, 185, 129, 0.25)',
+              border: '1px solid #10b981',
+              color: '#10b981',
+              flexShrink: 0,
+            }}
+          >
+            <Check size={8} strokeWidth={3} />
+          </Box>
+        ) : (isCancelled || isRescheduled) ? (
           <Box
             sx={{
               px: 0.5,
@@ -62,19 +95,20 @@ function CalendarEvent({
           >
             {isCancelled ? 'Ann.' : 'Risc.'}
           </Box>
-        )}
+        ) : null}
       </Stack>
 
       <Typography
         sx={{
           fontWeight: 700,
-          color: '#fff',
+          color: '#ffffff',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
-          lineHeight: 1.2,
-          fontSize: isShort ? '0.75rem' : '0.8rem',
-          textAlign: 'center',
+          lineHeight: 1.25,
+          fontSize: isShort ? '0.75rem' : '0.8125rem',
+          textAlign: 'left',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
         }}
       >
         {booking.customerName}
@@ -87,19 +121,20 @@ function CalendarEvent({
             alignItems: 'center',
             gap: 0.4,
             px: 0.6,
-            py: 0.15,
+            py: 0.2,
             borderRadius: '4px',
-            backgroundColor: `${color}25`,
-            border: `1px solid ${color}40`,
-            alignSelf: 'center',
+            backgroundColor: `${color}1E`,
+            border: `1px solid ${color}35`,
+            alignSelf: 'flex-start',
             maxWidth: '100%',
             overflow: 'hidden',
+            mt: 0.25,
           }}
         >
-          <Box sx={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
+          <Box sx={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
           <Typography
             sx={{
-              fontSize: '0.65rem',
+              fontSize: '0.625rem',
               fontWeight: 700,
               color,
               overflow: 'hidden',

@@ -1,7 +1,7 @@
 "use client";
 
-import { Box, Button, Checkbox, FormControlLabel, FormGroup, Typography } from '@mui/material';
 import type { Staff } from '@/modules/staff/model/staff.types';
+import { Box, Checkbox, FormControlLabel, FormGroup, Typography } from '@mui/material';
 
 interface AgendaSidebarProps {
   onAddEventClick: () => void;
@@ -23,37 +23,15 @@ export default function AgendaSidebar({
   return (
     <Box
       sx={{
-        width: 280,
-        minWidth: 280,
-        p: 3,
+        width: 180,
+        minWidth: 180,
+        p: 2,
         borderRight: '1px solid var(--color-surface-border)',
         display: { xs: 'none', md: 'flex' },
         flexDirection: 'column',
         overflowY: 'auto',
       }}
     >
-      <Button
-        variant="contained"
-        fullWidth
-        sx={{
-          mb: 4,
-          backgroundColor: '#9155FD',
-          color: 'white',
-          fontWeight: 600,
-          borderRadius: '8px',
-          padding: '10px',
-          textTransform: 'uppercase',
-          boxShadow: '0 4px 14px 0 rgba(145, 85, 253, 0.39)',
-          '&:hover': {
-            backgroundColor: '#804bdf',
-            boxShadow: '0 6px 20px 0 rgba(145, 85, 253, 0.39)',
-          },
-        }}
-        onClick={onAddEventClick}
-      >
-        Add Event
-      </Button>
-
       <Typography
         variant="caption"
         sx={{

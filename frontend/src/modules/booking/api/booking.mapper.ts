@@ -25,6 +25,9 @@ export const bookingMapper = {
       formData: dto.formData || {},
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
+      customer: dto.customer,
+      artist: dto.artist,
+      attachments: dto.attachments,
     };
   }
 };

@@ -6,6 +6,8 @@ export interface BookingHistoryProps {
   newDate?: Date | null;
   changedById?: number | null;
   changedAt?: Date;
+  booking?: any;
+  changedBy?: any;
 }
 
 export class BookingHistory {
@@ -18,6 +20,8 @@ export class BookingHistory {
   get newDate() { return this.props.newDate; }
   get changedById() { return this.props.changedById; }
   get changedAt() { return this.props.changedAt; }
+  get booking() { return this.props.booking; }
+  get changedBy() { return this.props.changedBy; }
 
   toJSON() {
     return { ...this.props };

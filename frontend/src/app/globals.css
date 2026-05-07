@@ -517,25 +517,27 @@ input:-webkit-autofill:focus {
 
 .fc-materio-wrapper .fc-timegrid-event,
 .fc-materio-wrapper .fc-daygrid-event {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
   border-radius: 6px !important;
-  border-left: 3px solid var(--fc-event-border-color) !important;
-  border-top: none !important;
-  border-right: none !important;
-  border-bottom: none !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
-  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  width: 100% !important;
+  display: block !important;
 }
 
 .fc-materio-wrapper .fc-timegrid-event:hover,
 .fc-materio-wrapper .fc-daygrid-event:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-  filter: brightness(1.08);
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .fc-materio-wrapper .fc-event-main {
   padding: 0 !important;
   overflow: hidden;
+  width: 100% !important;
+  display: block !important;
 }
 
 .fc-materio-wrapper .fc-now-indicator-line {

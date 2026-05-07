@@ -49,7 +49,6 @@ export interface BookingFormState {
   price: string;
   deposit: string;
   percentualeMode: string;
-  customPercentuale: string;
   notes: string;
   dynamicValues: Record<string, string>;
   status: BookingStatus;
@@ -87,12 +86,17 @@ const DURATION_OPTIONS = Array.from({ length: 32 }, (_, i) => {
 });
 
 const PERCENTUALE_OPTIONS = [
+  { value: '0', label: '0%' },
+  { value: '10', label: '10%' },
+  { value: '20', label: '20%' },
+  { value: '30', label: '30%' },
+  { value: '40', label: '40%' },
   { value: '50', label: '50%' },
   { value: '60', label: '60%' },
   { value: '70', label: '70%' },
   { value: '80', label: '80%' },
+  { value: '90', label: '90%' },
   { value: '100', label: '100%' },
-  { value: 'CUSTOM', label: 'Custom' },
 ];
 
 interface Props {
@@ -113,7 +117,6 @@ const initialFormState: BookingFormState = {
   price: '',
   deposit: '',
   percentualeMode: '50',
-  customPercentuale: '',
   notes: '',
   dynamicValues: {},
   status: 'CONFERMATO',
@@ -174,7 +177,6 @@ function bookingFormReducer(state: BookingFormState, action: BookingFormAction):
           deposit: booking.deposit?.toString() || '',
           notes: booking.notes || '',
           percentualeMode,
-          customPercentuale,
           dynamicValues: booking.formData as Record<string, string> || {},
           status: booking.status ?? 'CONFERMATO',
           artists: state.artists.length > 0 ? state.artists : preLoadedArtists,
@@ -253,7 +255,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
     value: c.id.toString(), label: `${c.firstName} ${c.lastName}`
   })), [customers]);
 
-  const percentuale = formState.percentualeMode === 'CUSTOM' ? Number(formState.customPercentuale) || 0 : Number(formState.percentualeMode) || 0;
+  const percentuale = Number(formState.percentualeMode) || 0;
   const prezzoNum = Number(formState.price) || 0;
   const prezzoArtista = Math.round((prezzoNum * percentuale / 100) * 100) / 100;
   const guadagno = Math.round((prezzoNum - prezzoArtista) * 100) / 100;
@@ -451,9 +453,6 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                     <Typography sx={styles.resultValueStudio}>€{guadagno.toFixed(2)}</Typography>
                   </Box>
                 </Grid>
-                {formState.percentualeMode === 'CUSTOM' && (
-                  <Grid size={12}><FormInput label="Custom %" type="number" value={formState.customPercentuale} onChange={(v)=>dispatch({type:'SET_FIELD',field:'customPercentuale',payload:v})} size="sm" /></Grid>
-                )}
               </Grid>
             </Grid>
 

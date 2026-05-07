@@ -77,8 +77,13 @@ export default function AgendaPage() {
   };
 
   const handleSelectAll = () => {
-    setSelectAll(true);
-    setSelectedStaffIds([]);
+    if (selectAll) {
+      setSelectAll(false);
+      setSelectedStaffIds([]);
+    } else {
+      setSelectAll(true);
+      setSelectedStaffIds([]);
+    }
   };
 
   const filteredBookings = useMemo(() => {
@@ -134,10 +139,11 @@ export default function AgendaPage() {
           borderRadius: 2,
           overflow: 'hidden',
           height: {
-            xs: 'calc(100vh - 100px)',
-            sm: 'calc(100vh - 112px)',
-            md: 'calc(100vh - 124px)',
+            xs: 'calc(100vh - 40px)',
+            sm: 'calc(100vh - 45px)',
+            md: 'calc(100vh - 45px)',
           },
+          minHeight: { md: 1080 },
         }}
       >
         <AgendaSidebar

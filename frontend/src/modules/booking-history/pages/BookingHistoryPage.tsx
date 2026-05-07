@@ -1,19 +1,17 @@
 'use client';
 
-import { Box, Stack, Typography, useTheme as useMuiTheme } from '@mui/material';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Stack } from '@mui/material';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 
 import PageHeader from '@/components/common/PageHeader';
-import SmartFilters from '@/components/common/SmartFilters';
 import SmartTable from '@/components/common/SmartTable';
-import Button from '@/components/ui/Button';
+import PaginationControls from '@/components/feedback/PaginationControls';
 import { useAuth } from '@/context/AuthContext';
 import { bookingHistoryService, type BookingAction, type BookingHistoryResponse, type BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
 import BookingHistoryCard from '../components/BookingHistoryCard';
+import BookingHistoryFilters from '../components/BookingHistoryFilters';
 import { useBookingHistoryColumns } from '../hooks/useBookingHistoryColumns';
 import { staffApi } from '@/modules/staff/api/staff.api';
-import FormSelect from '@/components/forms/FormSelect';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
 import type { Staff } from '@/modules/staff/model/staff.types';
 import ExportModal from '@/components/modals/ExportModal';
@@ -22,7 +20,6 @@ import { it } from 'date-fns/locale';
 
 export default function BookingHistoryPage() {
   const { user } = useAuth();
-  const theme = useMuiTheme();
   const [page, setPage] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -76,7 +73,6 @@ export default function BookingHistoryPage() {
 
   const handleRowClick = (entry: BookingHistoryEntry) => {
     if (entry.booking) {
-      // Cast the minimal booking from history to the full Booking type for the modal
       setSelectedBooking({
         ...entry.booking,
         status: entry.booking.status as BookingAction
@@ -106,7 +102,7 @@ export default function BookingHistoryPage() {
       action: action || undefined,
       artistId: artistId ? Number(artistId) : undefined,
       search: search.trim() || undefined,
-      limit: 1000 // High limit for export
+      limit: 1000 
     });
     return res.data;
   };
@@ -126,43 +122,19 @@ export default function BookingHistoryPage() {
           />
         }
         filters={
-          <SmartFilters
-            search={{
-              value: search,
-              onChange: (v) => { setSearch(v); setPage(1); },
-              placeholder: "Cerca cliente o telefono..."
-            }}
-            dateRange={{
-              start: { value: startDate, onChange: (v) => { setStartDate(v); setPage(1); } },
-              end: { value: endDate, onChange: (v) => { setEndDate(v); setPage(1); } },
-            }}
-            select={{
-              label: "Azione",
-              value: action,
-              onChange: (val) => { setAction(val as BookingAction | ''); setPage(1); },
-              placeholder: "Tutte le azioni",
-              options: [
-                { label: 'Creato', value: 'CREATO' },
-                { label: 'Confermato', value: 'CONFERMATO' },
-                { label: 'Modificato', value: 'MODIFICATO' },
-                { label: 'Spostato', value: 'SPOSTATO' },
-                { label: 'Completato', value: 'COMPLETATO' },
-                { label: 'Annullato', value: 'ANNULLATO' },
-                { label: 'Cancellato', value: 'CANCELLATO' },
-              ],
-            }}
-          >
-            <Box sx={{ width: { xs: '100%', sm: 160 } }}>
-              <FormSelect
-                value={artistId}
-                onChange={(v) => { setArtistId(v); setPage(1); }}
-                options={artistOptions}
-                placeholder="Tutti gli artisti"
-                hideLabel
-                sx={{ '& .MuiInputBase-root': { height: 36 } }}
-              />
-            </Box>
-          </SmartFilters>
+          <BookingHistoryFilters
+            search={search}
+            onSearchChange={(v) => { setSearch(v); setPage(1); }}
+            startDate={startDate}
+            onStartDateChange={(v) => { setStartDate(v); setPage(1); }}
+            endDate={endDate}
+            onEndDateChange={(v) => { setEndDate(v); setPage(1); }}
+            action={action}
+            onActionChange={(val) => { setAction(val); setPage(1); }}
+            artistId={artistId}
+            onArtistIdChange={(v) => { setArtistId(v); setPage(1); }}
+            artistOptions={artistOptions}
+          />
         }
       />
 
@@ -179,41 +151,14 @@ export default function BookingHistoryPage() {
         getRowStyle={() => ({ cursor: 'pointer' })}
       />
 
-      {data && data.totalPages > 1 && (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: 2,
-            py: 2,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlePrevPage}
-            disabled={page <= 1}
-            icon={<ChevronLeft size={16} />}
-          >
-            Precedente
-          </Button>
-          <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
-            Pagina {page} di {data.totalPages}
-          </Typography>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={page >= data.totalPages}
-            icon={<ChevronRight size={16} />}
-          >
-            Successiva
-          </Button>
-        </Box>
-      )}
+      <PaginationControls
+        page={page}
+        totalPages={data?.totalPages || 0}
+        total={data?.total || 0}
+        onPrev={handlePrevPage}
+        onNext={handleNextPage}
+        label="modifiche"
+      />
 
       <BookingModal
         isOpen={!!selectedBooking}

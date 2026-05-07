@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic';
 
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { MessageCircle, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -26,7 +25,6 @@ const WhatsAppTemplateModal = dynamic(
 );
 
 export default function WhatsAppPage() {
-  const theme = useTheme();
   const { isAdmin } = useAuth();
   const canManageTemplates = isAdmin;
 
@@ -119,54 +117,22 @@ export default function WhatsAppPage() {
         {templatesLoading ? (
           <StatePanel variant="loading" fullPage title="Caricamento template..." />
         ) : filteredTemplates.length === 0 ? (
-          <Box
-            sx={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              py: 6,
-            }}
-          >
-            <Box
-              sx={{
-                width: '5rem',
-                height: '5rem',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(0,191,255,0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2,
-              }}
-            >
-              <MessageCircle size={32} style={{ color: theme.palette.primary.main }} />
-            </Box>
-            <Typography sx={{ fontSize: '1.125rem', fontWeight: 700, color: 'white' }}>
-              Nessun template trovato
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '0.875rem',
-                color: 'text.secondary',
-                mt: 1,
-                textAlign: 'center',
-                maxWidth: '26rem',
-              }}
-            >
-              {"Crea il tuo primo template WhatsApp per inviare messaggi rapidi ai clienti direttamente dall'agenda."}
-            </Typography>
-            <Button
-              variant="primary"
-              icon={<Plus size={16} />}
-              onClick={() => setIsTemplateModalOpen(true)}
-              sx={{ mt: 3 }}
-            >
-              Crea Template
-            </Button>
-          </Box>
+          <StatePanel
+            variant="empty"
+            title="Nessun template trovato"
+            description="Crea il tuo primo template WhatsApp per inviare messaggi rapidi ai clienti direttamente dall'agenda."
+            icon={MessageCircle}
+            action={
+              <Button
+                variant="primary"
+                icon={<Plus size={16} />}
+                onClick={() => setIsTemplateModalOpen(true)}
+                sx={{ mt: 1 }}
+              >
+                Crea Template
+              </Button>
+            }
+          />
         ) : (
           <TemplateList
             templates={filteredTemplates}

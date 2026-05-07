@@ -398,3 +398,178 @@ input:-webkit-autofill:focus {
   font-size: 14px;
   letter-spacing: 0.02em;
 }
+
+/* Materio Calendar Design */
+.fc-materio-wrapper .fc {
+  --fc-border-color: rgba(255, 255, 255, 0.08);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-neutral-text-color: var(--color-text-primary);
+  --fc-today-bg-color: rgba(145, 85, 253, 0.06);
+  --fc-now-indicator-color: #ff5252;
+  --fc-button-bg-color: transparent;
+  --fc-button-border-color: rgba(255, 255, 255, 0.12);
+  --fc-button-hover-bg-color: rgba(255, 255, 255, 0.05);
+  --fc-button-hover-border-color: rgba(255, 255, 255, 0.2);
+  --fc-button-active-bg-color: rgba(145, 85, 253, 0.16);
+  --fc-button-active-border-color: rgba(145, 85, 253, 0.5);
+  --fc-button-text-color: var(--color-text-primary);
+  font-family: var(--font-inter);
+  height: 100%;
+}
+
+.fc-materio-wrapper .fc-toolbar-title {
+  font-family: var(--font-outfit) !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary) !important;
+}
+
+.fc-materio-wrapper .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 1.5rem !important;
+  padding: 4px 0 !important;
+}
+
+.fc-materio-wrapper .fc-button {
+  padding: 0.45rem 1.1rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  text-transform: capitalize !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+}
+
+.fc-materio-wrapper .fc-button:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.fc-materio-wrapper .fc-button-group .fc-button {
+  border-radius: 0 !important;
+}
+.fc-materio-wrapper .fc-button-group .fc-button:first-child {
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+}
+.fc-materio-wrapper .fc-button-group .fc-button:last-child {
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+}
+
+.fc-materio-wrapper .fc-button-primary:not(:disabled).fc-button-active,
+.fc-materio-wrapper .fc-button-primary:not(:disabled):active {
+  background-color: rgba(145, 85, 253, 0.16) !important;
+  color: #9155FD !important;
+  border-color: rgba(145, 85, 253, 0.4) !important;
+  font-weight: 600 !important;
+}
+
+.fc-materio-wrapper .fc-theme-standard td, 
+.fc-materio-wrapper .fc-theme-standard th {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.fc-materio-wrapper .fc-col-header-cell {
+  padding: 0.75rem 0 !important;
+  background-color: rgba(255, 255, 255, 0.01) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.fc-materio-wrapper .fc-col-header-cell-cushion {
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  color: var(--color-text-secondary) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none !important;
+}
+
+.fc-materio-wrapper .fc-day-today .fc-col-header-cell-cushion {
+  color: #9155FD !important;
+}
+
+.fc-materio-wrapper .fc-daygrid-day-number {
+  font-size: 0.85rem;
+  padding: 8px !important;
+  color: var(--color-text-secondary);
+  text-decoration: none !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-slot {
+  border-color: rgba(255, 255, 255, 0.04) !important;
+  height: 3rem !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-slot-minor {
+  border-top-style: dashed !important;
+  border-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-slot-label-cushion {
+  font-size: 0.75rem !important;
+  color: var(--color-text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-axis {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-event,
+.fc-materio-wrapper .fc-daygrid-event {
+  border-radius: 6px !important;
+  border-left: 3px solid var(--fc-event-border-color) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-event:hover,
+.fc-materio-wrapper .fc-daygrid-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  filter: brightness(1.08);
+}
+
+.fc-materio-wrapper .fc-event-main {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.fc-materio-wrapper .fc-now-indicator-line {
+  border-color: #ff5252 !important;
+  border-top-width: 2px !important;
+}
+
+.fc-materio-wrapper .fc-now-indicator-arrow {
+  border-top-color: #ff5252 !important;
+  border-bottom-color: #ff5252 !important;
+}
+
+.fc-materio-wrapper .fc-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(145, 85, 253, 0.25) transparent;
+}
+
+.fc-materio-wrapper .fc-scroller::-webkit-scrollbar {
+  width: 5px;
+}
+
+.fc-materio-wrapper .fc-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fc-materio-wrapper .fc-scroller::-webkit-scrollbar-thumb {
+  background: rgba(145, 85, 253, 0.25);
+  border-radius: 3px;
+}
+
+.fc-materio-wrapper .fc-day-today {
+  background: rgba(145, 85, 253, 0.04) !important;
+}
+
+.fc-materio-wrapper .fc-timegrid-col.fc-day-today {
+  background: rgba(145, 85, 253, 0.04) !important;
+}

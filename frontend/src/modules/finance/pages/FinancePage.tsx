@@ -34,6 +34,8 @@ import FinanceFilters from '../components/FinanceFilters';
 import { useFinance } from '../hooks/useFinance';
 
 
+import SummaryCard from '../components/SummaryCard';
+
 export default function FinancePage() {
   const {
     transactions,
@@ -170,49 +172,6 @@ export default function FinancePage() {
 
       <ConfirmDialog {...confirmDialogProps} />
     </Container>
-  );
-}
-
-function SummaryCard({ title, amount, icon, color, isLoading }: {
-  title: string;
-  amount: number;
-  icon: React.ReactNode;
-  color: string;
-  isLoading: boolean;
-}) {
-
-  const theme = useTheme();
-  return (
-    <Card sx={{
-      borderRadius: 3,
-      border: `1px solid ${color}20`,
-      background: `linear-gradient(135deg, ${color}08 0%, transparent 100%)`
-    }}>
-      <CardContent>
-        <Stack sx={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {title}
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: amount < 0 ? theme.palette.error.main : 'text.primary' }}>
-              {isLoading ? '...' : formatPrice(amount)}
-            </Typography>
-          </Box>
-          <Box sx={{
-            p: 1.5,
-            borderRadius: 2,
-            bgcolor: `${color}15`,
-            color: color
-          }}>
-            {icon}
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
   );
 }
 

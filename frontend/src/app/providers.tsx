@@ -18,7 +18,7 @@ const ClientCssBaseline = dynamic(() => import('@mui/material/CssBaseline'), { s
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isStandalonePage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/consenso');
 
   return (
     <ThemeProvider theme={theme}>
@@ -27,8 +27,8 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <GlobalErrorBoundary>
             <div className="flex flex-col min-h-screen">
-              {!isAuthPage && <Navbar />}
-              {isAuthPage ? (
+              {!isStandalonePage && <Navbar />}
+              {isStandalonePage ? (
                 children
               ) : (
                 <LayoutContainer maxWidth="full">

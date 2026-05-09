@@ -13,6 +13,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
+// Consensus Integration
+import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
+import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
+import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
+
 // Components
 import SmartModal from '@/components/common/SmartModal';
 import FormAutocomplete from '@/components/forms/FormAutocomplete';
@@ -195,6 +200,10 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   const { isSuperAdmin } = useAuth();
   const [formState, dispatch] = useReducer(bookingFormReducer, initialFormState);
 
+  // Consensus States
+  const { showConsensi } = useConsentConfig();
+  const [consentOpen, setConsentOpen] = useState(false);
+
   const { data: customerResult, isLoading: customersLoading, mutate: mutateCustomers } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT });
   const { data: templates } = useFormTemplates();
   const customers = customerResult?.data;
@@ -357,6 +366,32 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   <Grid size={{ xs: 12, sm: 3 }}>
                     <FormInput label="Email" value={booking.customer?.email || '—'} disabled size="sm" onChange={() => {}} />
                   </Grid>
+
+                  {/* Informed Consent Status Row (Conditional Feature Flag check) */}
+                  {showConsensi && (
+                    <Grid size={12}>
+                      <Box sx={{
+                        mt: 1.5,
+                        p: 2,
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'white', fontSize: '0.8rem' }}>
+                            Consenso Informato Digitale
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem' }}>
+                            Modulo sanitario e firma grafica per l'inizio del tatuaggio
+                          </Typography>
+                        </Box>
+                        <ConsentStatusBadge booking={booking} onClick={() => setConsentOpen(true)} />
+                      </Box>
+                    </Grid>
+                  )}
                 </Grid>
               </Grid>
             )}
@@ -603,6 +638,15 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
           )}
         </AnimatePresence>
       </SmartModal>
+
+      {/* Consent Details Modal Trigger */}
+      {showConsensi && booking && (
+        <ConsentModal
+          open={consentOpen}
+          onClose={() => setConsentOpen(false)}
+          booking={booking}
+        />
+      )}
     </>
   );
 }

@@ -8,15 +8,7 @@ import { config } from './config/env';
 import { getSwaggerSpec } from './config/swagger';
 import { configService } from './container';
 import { globalErrorHandler } from './middlewares/error.middleware';
-import attachmentRoutes from './modules/attachment/interfaces/attachment.routes';
-import authRoutes from './modules/auth/interfaces/auth.routes';
-import bookingRoutes from './modules/booking/interfaces/booking.routes';
-import creamRoutes from './modules/cream/interfaces/cream.routes';
-import customerRoutes from './modules/customer/interfaces/customer.routes';
-import financeRoutes from './modules/finance/interfaces/finance.routes';
-import formTemplateRoutes from './modules/form-template/interfaces/form-template.routes';
-import staffRoutes from './modules/staff/interfaces/staff.routes';
-import whatsappTemplateRoutes from './modules/whatsapp/interfaces/whatsapp.routes';
+import apiRoutes from './routes';
 import { isDebugHttpEnabled, logger, sanitizeForLog } from './shared/utils/logger';
 import prisma from './shared/utils/prisma';
 
@@ -126,15 +118,7 @@ export function createApp() {
     next();
   });
 
-  app.use('/api/auth', authRoutes);
-  app.use('/api/customers', customerRoutes);
-  app.use('/api/finance', financeRoutes);
-  app.use('/api/bookings', bookingRoutes);
-  app.use('/api/staff', staffRoutes);
-  app.use('/api/form-templates', formTemplateRoutes);
-  app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
-  app.use('/api/cream', creamRoutes);
-  app.use('/api/attachments', attachmentRoutes);
+  app.use('/api', apiRoutes);
 
   // Build the Swagger spec only when /api-docs is actually requested.
   app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {

@@ -60,4 +60,9 @@ export const ENDPOINTS = {
     SALES: '/api/cream/sales',
     SUMMARY: '/api/cream/summary',
   },
+  NEW_FEATURE: {
+    CONFIG: '/api/newfeature/config',
+    BOOKING_PUBLIC: (id: string | number) => `/api/newfeature/booking/${id}`,
+    SUBMIT_CONSENT: (id: string | number) => `/api/newfeature/booking/${id}/consent`,
+  },
 };

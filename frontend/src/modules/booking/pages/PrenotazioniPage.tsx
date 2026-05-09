@@ -19,12 +19,18 @@ import { useBookingActions } from '../hooks/useBookingActions';
 import { useBookingColumns } from '../hooks/useBookingColumns';
 import { useBookingFilters } from '../hooks/useBookingFilters';
 
+// Consensus Integration
+import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
+import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
+
 function PrenotazioniPageContent() {
   const { isSuperAdmin } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [attachmentsBooking, setAttachmentsBooking] = useState<Booking | null>(null);
+  const [consentBooking, setConsentBooking] = useState<Booking | null>(null);
   const { confirmDialogProps } = useDeleteConfirm();
+  const { showConsensi } = useConsentConfig();
 
   const {
     month,
@@ -70,6 +76,7 @@ function PrenotazioniPageContent() {
 
   const { bookingColumns, exportColumns, exportFilters } = useBookingColumns({
     onAttachmentClick: handleAttachmentClick,
+    onConsentClick: setConsentBooking,
   });
 
   const filteredBookings = useMemo(
@@ -148,6 +155,15 @@ function PrenotazioniPageContent() {
         onMutate={mutate}
       />
       <ConfirmDialog {...confirmDialogProps} />
+
+      {/* Consent Details Modal Trigger */}
+      {showConsensi && (
+        <ConsentModal
+          open={consentBooking !== null}
+          onClose={() => setConsentBooking(null)}
+          booking={consentBooking}
+        />
+      )}
       {!isSuperAdmin && (
         <PasswordConfirmModal
           isOpen={showDeletePasswordModal}

@@ -10,6 +10,10 @@ import type { Column } from '@/components/data-display/DataTable';
 import type { ExportFilter } from '@/components/modals/ExportModal';
 import type { Booking, BookingStatus } from '@/modules/booking/model/booking.types';
 
+// Consensus Integration
+import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
+import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
+
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'error' | 'primary' | 'success' | 'warning' | 'info' | 'default' | 'secondary' }> = {
   CREATO: { label: 'Creato', color: 'info' },
   CONFERMATO: { label: 'Confermato', color: 'primary' },
@@ -22,13 +26,15 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'error' | 'pr
 
 interface UseBookingColumnsOptions {
   onAttachmentClick?: (booking: Booking) => void;
+  onConsentClick?: (booking: Booking) => void;
 }
 
 export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
   const theme = useTheme();
-  const { onAttachmentClick } = options;
+  const { onAttachmentClick, onConsentClick } = options;
+  const { showConsensi } = useConsentConfig();
 
-  const bookingColumns: Column<Booking>[] = useMemo(() => [
+  const staticColumns: Column<Booking>[] = [
     {
       key: 'cliente',
       label: 'Cliente',
@@ -397,7 +403,41 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
         );
       },
     },
-  ], [theme, onAttachmentClick]);
+  ];
+
+  const bookingColumns = useMemo(() => {
+    const cols = [...staticColumns];
+    if (showConsensi) {
+      const statusIdx = cols.findIndex(c => c.key === 'stato');
+      if (statusIdx !== -1) {
+        cols.splice(statusIdx, 0, {
+          key: 'consenso',
+          label: 'Consenso',
+          width: '140px',
+          render: (booking) => (
+            <ConsentStatusBadge booking={booking} onClick={(e) => {
+              e.stopPropagation();
+              onConsentClick?.(booking);
+            }} />
+          ),
+        });
+      } else {
+        cols.push({
+          key: 'consenso',
+          label: 'Consenso',
+          width: '140px',
+          render: (booking) => (
+            <ConsentStatusBadge booking={booking} onClick={(e) => {
+              e.stopPropagation();
+              onConsentClick?.(booking);
+            }} />
+          ),
+        });
+      }
+    }
+    return cols;
+  }, [theme, onAttachmentClick, onConsentClick, showConsensi]);
+
 
   const exportColumns = useMemo(() => [
     { label: 'Cliente', value: (b: Booking) => b.customer ? `${b.customer.firstName} ${b.customer.lastName}` : '-' },

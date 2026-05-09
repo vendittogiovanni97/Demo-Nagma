@@ -34,6 +34,7 @@ export class ConfigService {
       { paramsKey: 'MAX_PAGE_LIMIT', value: '100' },
       { paramsKey: 'APP_VERSION', value: '1.0.0' },
       { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
+      { paramsKey: 'showConsensi', value: 'true' },
     ];
 
     for (const d of defaults) {
@@ -119,5 +120,15 @@ export class ConfigService {
       return await bcryptjs.compare(plainPassword, hashed);
     }
     return await bcryptjs.compare(plainPassword, stored);
+  }
+
+  async getShowConsensi(): Promise<boolean> {
+    const val = await this.getValue('showConsensi', 'true');
+    return val === 'true';
+  }
+
+  getShowConsensiSync(): boolean {
+    const val = this.getValueSync('showConsensi', 'true');
+    return val === 'true';
   }
 }

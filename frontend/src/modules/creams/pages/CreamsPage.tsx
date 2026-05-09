@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { usePaginationFilters } from '@/hooks/usePaginationFilters';
 import { Box } from '@mui/material';
+import { Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import DataTable from '@/components/data-display/DataTable';
 import PageHeader from '@/components/common/PageHeader';
+import DataTable from '@/components/data-display/DataTable';
 import { useToast } from '@/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
 import { staffApi } from '@/modules/staff/api/staff.api';
-import SaleModal from '../components/modals/SaleModal';
-import CreamInfoBanner from '../components/CreamInfoBanner';
 import CreamFilters from '../components/CreamFilters';
+import CreamInfoBanner from '../components/CreamInfoBanner';
+import SaleModal from '../components/modals/SaleModal';
 import { useCreamColumns } from '../hooks/useCreamColumns';
 
 interface StaffMember {
@@ -29,9 +30,14 @@ interface CreamInfo {
 
 export default function CreamsPage() {
   const toast = useToast();
-  const [page, setPage] = useState(1);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const {
+    page,
+    setPage,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+  } = usePaginationFilters();
   const [artistFilter, setArtistFilter] = useState<number | ''>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 

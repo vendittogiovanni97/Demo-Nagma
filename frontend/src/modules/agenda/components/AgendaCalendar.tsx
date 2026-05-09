@@ -20,6 +20,7 @@ interface AgendaCalendarProps {
   handleDateClick: (arg: any) => void;
   handleEventClick: (arg: any) => void;
   handleDatesSet: (arg: DatesSetArg) => void;
+  handleMoreLinkClick: (arg: any) => void;
 }
 
 export default function AgendaCalendar({
@@ -31,6 +32,7 @@ export default function AgendaCalendar({
   handleDateClick,
   handleEventClick,
   handleDatesSet,
+  handleMoreLinkClick,
 }: AgendaCalendarProps) {
   return (
     <Box
@@ -83,7 +85,8 @@ export default function AgendaCalendar({
           allDaySlot={false}
           nowIndicator
           eventMinHeight={18}
-          dayMaxEvents={3}
+          dayMaxEvents={2}
+          moreLinkClick={handleMoreLinkClick}
           weekText="Settimana"
           dayHeaderFormat={{ weekday: 'short', day: '2-digit', month: '2-digit' }}
           dayCellContent={renderDayCellContent}

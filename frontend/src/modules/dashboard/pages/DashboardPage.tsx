@@ -3,34 +3,13 @@
 import BookingStatsWidget from '@/modules/dashboard/components/BookingStatsWidget';
 import FinanceOverviewWidget from '@/modules/dashboard/components/FinanceOverviewWidget';
 import TodayAgendaWidget from '@/modules/dashboard/components/TodayAgendaWidget';
-import { useAuth } from '@/context/AuthContext';
 import { useBookings, useBookingStats } from '@/modules/booking/hooks/useBooking';
 import { useTransactionSummary } from '@/modules/spese/hooks/useTransactions';
-import { Box, Container, Grid, Skeleton } from '@mui/material';
+import { Box, Container, Grid } from '@mui/material';
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-
-  useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthLoading, isAuthenticated, router]);
-
-  if (isAuthLoading) {
-    return (
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
-        <Skeleton variant="rectangular" height={80} width="100%" />
-      </Box>
-    );
-  }
-
-  if (!isAuthenticated) return null;
-
   return <DashboardContent />;
 }
 

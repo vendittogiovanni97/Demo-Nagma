@@ -3,7 +3,7 @@ import { IUserRepository } from '../contracts/IUserRepository';
 import { RegisterDTO } from '../contracts/AuthDTOs';
 import { User } from '../domain/User';
 import { AppError } from '../../../shared/errors/AppError';
-import { configService } from '../../../container';
+import { config } from '../../../config/env';
 
 export class Register {
   constructor(private userRepository: IUserRepository) {}
@@ -14,7 +14,7 @@ export class Register {
       throw new AppError('Utente già registrato con questa email.', 400, 'DUPLICATE_EMAIL');
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, configService.getBcryptSaltRoundsSync());
+    const hashedPassword = await bcrypt.hash(data.password, config.bcryptSaltRounds);
     
     const user = new User({
       name: data.name,

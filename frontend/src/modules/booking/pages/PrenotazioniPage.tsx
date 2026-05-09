@@ -157,7 +157,7 @@ function PrenotazioniPageContent() {
       <ConfirmDialog {...confirmDialogProps} />
 
       {/* Consent Details Modal Trigger */}
-      {showConsensi && (
+      {showConsensi && isSuperAdmin && (
         <ConsentModal
           open={consentBooking !== null}
           onClose={() => setConsentBooking(null)}

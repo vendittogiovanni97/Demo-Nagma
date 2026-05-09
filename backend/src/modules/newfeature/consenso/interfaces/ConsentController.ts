@@ -1,15 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../../../../shared/utils/prisma';
+import { ConsentService } from '../application/ConsentService';
 import { configService } from '../../../../container';
-import { PdfGenerator } from '../infrastructure/PdfGenerator';
-import { logger } from '../../../../shared/utils/logger';
 
 export class ConsentController {
+  constructor(private readonly consentService: ConsentService) {}
+
   // GET /api/newfeature/config
   async getConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const showConsensi = await configService.getShowConsensi();
-      res.json({ success: true, showConsensi });
+      const showPosizionamento = await configService.getShowPosizionamento();
+      res.json({ success: true, showConsensi, showPosizionamento });
     } catch (err) {
       next(err);
     }
@@ -98,77 +100,73 @@ export class ConsentController {
 
       const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`;
 
-      // 1. Generate the PDF file
-      const pdfResult = await PdfGenerator.generateConsentPdf({
+      const result = await this.consentService.processConsent(
         bookingId,
         customerName,
+        booking.customer.phone,
         documentId,
-        phone: booking.customer.phone,
         medicalAnswers,
-        signatureB64,
-      });
-
-      // 2. Register the PDF in the Attachment table via Prisma
-      const attachment = await prisma.attachment.create({
-        data: {
-          bookingId,
-          fileName: pdfResult.fileName,
-          fileSize: pdfResult.fileSize,
-          mimeType: 'application/pdf',
-          filePath: `/uploads/attachments/${pdfResult.fileName}`,
-        },
-      });
-
-      // 3. Compile medical alerts
-      const alerts: string[] = [];
-      if (medicalAnswers.gravidanza) alerts.push('Stato di gravidanza/allattamento');
-      if (medicalAnswers.allergie) alerts.push(`Allergia: ${medicalAnswers.allergieDettagli || 'SÌ'}`);
-      if (medicalAnswers.anticoagulanti) alerts.push('Uso farmaci anticoagulanti');
-      if (medicalAnswers.cardiopatie) alerts.push('Soffre di cardiopatie/problemi cardiaci');
-      if (medicalAnswers.epilessia) alerts.push('Soffre di epilessia');
-      if (medicalAnswers.diabete) alerts.push('Soffre di diabete');
-      if (medicalAnswers.malattieInfettive) alerts.push('Soffre di malattie infettive trasmissibili');
-
-      const hasMedicalAlerts = alerts.length > 0;
-      const medicalAlertsDetails = alerts.join(' | ');
-
-      // 4. Update the Booking's formData JSON with consent state
-      const currentFormData = (booking.formData as Record<string, any>) || {};
-      const updatedFormData = {
-        ...currentFormData,
-        consent: {
-          signed: true,
-          signedAt: new Date().toISOString(),
-          documentId,
-          hasMedicalAlerts,
-          medicalAlertsDetails,
-          answers: medicalAnswers,
-          attachmentId: attachment.id,
-        },
-      };
-
-      await prisma.booking.update({
-        where: { id: bookingId },
-        data: {
-          formData: updatedFormData,
-        },
-      });
-
-      logger.info('Consenso informato registrato con successo', {
-        bookingId,
-        attachmentId: attachment.id,
-        hasMedicalAlerts,
-      });
+        signatureB64
+      );
 
       res.json({
         success: true,
         message: 'Consenso informato firmato e archiviato con successo!',
-        data: {
-          attachmentId: attachment.id,
-          hasMedicalAlerts,
-          medicalAlertsDetails,
-        },
+        data: result,
       });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // GET /api/newfeature/consents  (admin-only, protected by authMiddleware in routes)
+  async listConsents(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const showConsensi = await configService.getShowConsensi();
+      if (!showConsensi) {
+        res.status(403).json({ success: false, message: 'Funzionalità consensi non abilitata' });
+        return;
+      }
+
+      // Fetch all non-deleted bookings whose formData contains consent.signed = true
+      const bookings = await prisma.booking.findMany({
+        where: {
+          deletedAt: null,
+          formData: {
+            path: ['consent', 'signed'],
+            equals: true,
+          } as any,
+        },
+        include: {
+          customer: { select: { firstName: true, lastName: true, phone: true } },
+          artist: { select: { name: true } },
+          attachments: {
+            where: { mimeType: 'application/pdf' },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { id: true, fileName: true, filePath: true, createdAt: true },
+          },
+        },
+        orderBy: { date: 'desc' },
+      });
+
+      const data = bookings.map((b) => {
+        const consent = (b.formData as Record<string, any>)?.consent ?? {};
+        return {
+          bookingId: b.id,
+          date: b.date,
+          customerName: `${b.customer.firstName} ${b.customer.lastName}`,
+          phone: b.customer.phone,
+          artistName: b.artist?.name ?? null,
+          signedAt: consent.signedAt ?? null,
+          documentId: consent.documentId ?? null,
+          hasMedicalAlerts: consent.hasMedicalAlerts ?? false,
+          medicalAlertsDetails: consent.medicalAlertsDetails ?? '',
+          attachment: b.attachments[0] ?? null,
+        };
+      });
+
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }

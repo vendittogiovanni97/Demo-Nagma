@@ -2,21 +2,23 @@ import useSWR from 'swr';
 import { financeApi } from '../api/finance.api';
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 export function useFinance(initialMonth = new Date()) {
   const [month, setMonth] = useState(initialMonth);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [type, setType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const debouncedSearch = useDebouncedValue(search, 400);
 
   const monthStr = format(month, 'yyyy-MM');
 
   const { data, isLoading, mutate, error } = useSWR(
-    ['/finance/transactions', monthStr, page, search, type],
+    ['/finance/transactions', monthStr, page, debouncedSearch, type],
     () => financeApi.getAll({ 
       month: monthStr, 
       page, 
-      search, 
+      search: debouncedSearch, 
       type: type === 'ALL' ? undefined : type 
     })
   );

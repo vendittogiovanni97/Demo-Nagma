@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { IUserRepository } from '../../auth/contracts/IUserRepository';
 import { AppError } from '../../../shared/errors/AppError';
-import { configService } from '../../../container';
+import { config } from '../../../config/env';
 
 export class ResetStaffPassword {
   constructor(private userRepository: IUserRepository) {}
@@ -10,7 +10,7 @@ export class ResetStaffPassword {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new AppError('Utente non trovato.', 404);
 
-    const hashedPassword = await bcrypt.hash(data.newPassword, configService.getBcryptSaltRoundsSync());
+    const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
     await this.userRepository.update(userId, { password: hashedPassword });
   }
 }

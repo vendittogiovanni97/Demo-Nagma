@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../contracts/IUserRepository';
 import { LoginDTO, AuthResponseDTO } from '../contracts/AuthDTOs';
 import { AppError } from '../../../shared/errors/AppError';
-import { configService } from '../../../container';
+import { config } from '../../../config/env';
 
 export class Login {
   constructor(private userRepository: IUserRepository) {}
@@ -17,7 +17,7 @@ export class Login {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: configService.getJwtExpirySync() as any }
+      { expiresIn: config.jwtExpiry as any }
     );
 
     return {

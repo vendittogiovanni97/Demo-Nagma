@@ -14,10 +14,9 @@ import { Check } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
 // Consensus Integration
-import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
-import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
 import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
-
+import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
+import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
 // Components
 import SmartModal from '@/components/common/SmartModal';
 import FormAutocomplete from '@/components/forms/FormAutocomplete';
@@ -200,8 +199,8 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   const { isSuperAdmin } = useAuth();
   const [formState, dispatch] = useReducer(bookingFormReducer, initialFormState);
 
-  // Consensus States
-  const { showConsensi } = useConsentConfig();
+  // Consensus & Placement States
+  const { showConsensi, showPosizionamento } = useConsentConfig();
   const [consentOpen, setConsentOpen] = useState(false);
 
   const { data: customerResult, isLoading: customersLoading, mutate: mutateCustomers } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT });
@@ -310,8 +309,12 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   const executeBookingAction = async (data: CreateBookingData & { status?: BookingStatus }) => {
     dispatch({ type: 'SET_FIELD', field: 'loading', payload: true });
     try {
-      if (booking?.id) await bookingService.update(booking.id, data);
-      else await bookingService.create(data);
+      let saved: any = null;
+      if (booking?.id) {
+        saved = await bookingService.update(booking.id, data);
+      } else {
+        saved = await bookingService.create(data);
+      }
 
       setShowSuccess(true);
       await onSuccess?.();
@@ -368,7 +371,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   </Grid>
 
                   {/* Informed Consent Status Row (Conditional Feature Flag check) */}
-                  {showConsensi && (
+                  {showConsensi && isSuperAdmin && (
                     <Grid size={12}>
                       <Box sx={{
                         mt: 1.5,
@@ -560,6 +563,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   sx={styles.textarea}
                 />
               </Grid>
+
             </Grid>
           </Grid>
         </Box>
@@ -640,7 +644,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
       </SmartModal>
 
       {/* Consent Details Modal Trigger */}
-      {showConsensi && booking && (
+      {showConsensi && isSuperAdmin && booking && (
         <ConsentModal
           open={consentOpen}
           onClose={() => setConsentOpen(false)}

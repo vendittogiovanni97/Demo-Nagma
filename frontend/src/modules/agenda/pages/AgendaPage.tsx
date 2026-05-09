@@ -18,12 +18,15 @@ import { useStaffMembers } from '@/modules/staff/hooks/useStaff';
 import CalendarEvent from '../components/CalendarEvent';
 import AgendaSidebar from '../components/AgendaSidebar';
 import AgendaCalendar from '../components/AgendaCalendar';
+import DayBookingsModal from '../components/DayBookingsModal';
 import { useAgendaBookings } from '../hooks/useAgendaBookings';
 import { useCalendarEvents } from '../hooks/useCalendarEvents';
 
 export default function AgendaPage() {
   const { isSuperAdmin } = useAuth();
   const { confirmDialogProps } = useDeleteConfirm();
+
+  const [dayBookingsData, setDayBookingsData] = useState<{ date: Date; bookings: BookingModel[] } | null>(null);
 
   const {
     bookings,
@@ -115,6 +118,18 @@ export default function AgendaPage() {
     }
   }, [setCurrentMonth]);
 
+  const handleMoreLinkClick = useCallback((info: any) => {
+    const clickedDateStr = format(info.date, 'yyyy-MM-dd');
+    const dayBookings = filteredBookings.filter(b => {
+      const bDateStr = format(new Date(b.date), 'yyyy-MM-dd');
+      return bDateStr === clickedDateStr;
+    });
+    setDayBookingsData({
+      date: info.date,
+      bookings: dayBookings as BookingModel[],
+    });
+  }, [filteredBookings]);
+
   const isLoading = isBookingsLoading || isStaffLoading;
 
   return (
@@ -167,8 +182,20 @@ export default function AgendaPage() {
           handleDateClick={handleDateClick}
           handleEventClick={handleEventClick}
           handleDatesSet={handleDatesSet}
+          handleMoreLinkClick={handleMoreLinkClick}
         />
       </Box>
+
+      <DayBookingsModal
+        isOpen={dayBookingsData !== null}
+        onClose={() => setDayBookingsData(null)}
+        date={dayBookingsData?.date ?? null}
+        bookings={dayBookingsData?.bookings ?? []}
+        onBookingClick={(booking) => {
+          setEditingBooking(booking);
+          setIsModalOpen(true);
+        }}
+      />
 
       <BookingModal
         isOpen={isModalOpen}

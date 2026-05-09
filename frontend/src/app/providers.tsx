@@ -12,6 +12,7 @@ import theme from '@/theme/theme';
 import { ThemeProvider } from '@mui/material';
 
 import dynamic from 'next/dynamic';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 const Navbar = dynamic(() => import('@/components/layout/Navbar'), { ssr: false });
 const ClientCssBaseline = dynamic(() => import('@mui/material/CssBaseline'), { ssr: false });
@@ -31,9 +32,11 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
               {isStandalonePage ? (
                 children
               ) : (
-                <LayoutContainer maxWidth="full">
-                  {children}
-                </LayoutContainer>
+                <AuthGuard>
+                  <LayoutContainer maxWidth="full">
+                    {children}
+                  </LayoutContainer>
+                </AuthGuard>
               )}
             </div>
           </GlobalErrorBoundary>

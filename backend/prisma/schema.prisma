@@ -96,6 +96,7 @@ model Booking {
   customer       Customer             @relation(fields: [customerId], references: [id])
   history        BookingHistory[]
   whatsappLogs   WhatsAppMessageLog[]
+  placement      BookingPlacement?
 
   @@index([customerId, deletedAt])
   @@index([artistId, date])
@@ -287,4 +288,21 @@ enum TransactionType {
 enum WhatsAppMessageStatus {
   MANUAL_SENT
   FAILED
+}
+
+model BookingPlacement {
+  id         Int      @id @default(autoincrement())
+  bookingId  Int      @unique
+  bodyZone   String
+  view       String?  @default("FRONT")
+  x          Float?
+  y          Float?
+  sizeWidth  Float?
+  sizeHeight Float?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
 }

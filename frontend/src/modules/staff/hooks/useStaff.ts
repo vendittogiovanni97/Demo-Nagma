@@ -75,3 +75,21 @@ export function useStaffShifts(weekStart?: string, options?: HookOptions) {
 
   return { data, isLoading, error, mutate: fetchData };
 }
+
+export function useStaffForSelect() {
+  const [data, setData] = useState<{ id: number; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    staffApi.getAllForSelect().then((res: Staff[]) => {
+      if (active) {
+        setData(res.map(a => ({ id: a.id, name: a.name })));
+        setIsLoading(false);
+      }
+    });
+    return () => { active = false; };
+  }, []);
+
+  return { data, isLoading };
+}

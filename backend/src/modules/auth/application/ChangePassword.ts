@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { IUserRepository } from '../contracts/IUserRepository';
 import { ChangePasswordDTO } from '../contracts/AuthDTOs';
 import { AppError } from '../../../shared/errors/AppError';
-import { configService } from '../../../container';
+import { config } from '../../../config/env';
 
 export class ChangePassword {
   constructor(private userRepository: IUserRepository) {}
@@ -17,7 +17,7 @@ export class ChangePassword {
       throw new AppError('Password attuale non corretta.', 401);
     }
 
-    const hashedPassword = await bcrypt.hash(data.newPassword, configService.getBcryptSaltRoundsSync());
+    const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
     await this.userRepository.update(userId, { password: hashedPassword });
   }
 }

@@ -17,7 +17,8 @@ import {
   Divider,
 } from '@mui/material';
 import { ShieldCheck, Heart, AlertCircle, FileText, CheckCircle } from 'lucide-react';
-import { consensusApi, PublicBookingData, MedicalAnswers } from '../api/consenso.api';
+import { consensoService } from '../service/consenso.service';
+import { PublicBookingData, MedicalAnswers } from '../model/consenso.model';
 import ConsentCanvas from './ConsentCanvas';
 
 interface ConsentFormProps {
@@ -53,7 +54,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await consensusApi.getBookingPublic(bookingId);
+        const res = await consensoService.getBookingPublic(bookingId);
         if (res.success) {
           setBookingData(res.data);
         } else {
@@ -102,7 +103,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
 
     setSubmitting(true);
     try {
-      const res = await consensusApi.submitConsent(bookingId, {
+      const res = await consensoService.submitConsent(bookingId, {
         documentId,
         medicalAnswers,
         signatureB64: signatureB64 || '',

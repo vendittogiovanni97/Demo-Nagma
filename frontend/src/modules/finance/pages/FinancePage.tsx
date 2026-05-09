@@ -1,21 +1,15 @@
 "use client";
 
+import Button from '@/components/ui/Button';
 import {
-  Box,
-  Card,
-  CardContent,
   Container,
   Grid,
   Stack,
-  Typography,
-  useTheme
 } from '@mui/material';
-import Button from '@/components/ui/Button';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
   DollarSign,
-  Download,
   Plus,
   TrendingDown,
   TrendingUp
@@ -52,6 +46,7 @@ export default function FinancePage() {
 
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const handleDelete = async (id: number) => {
@@ -93,8 +88,8 @@ export default function FinancePage() {
               rows={transactions}
               columns={exportColumns}
               resolveRows={async () => {
-                const res = await financeApi.getAll({ 
-                  month: format(month, 'yyyy-MM'), 
+                const res = await financeApi.getAll({
+                  month: format(month, 'yyyy-MM'),
                   type: type === 'ALL' ? undefined : type,
                   search,
                   limit: 1000 // Prendi tutto per l'export

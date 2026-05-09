@@ -31,6 +31,7 @@ export const config = {
   bcryptSaltRounds: envInt('BCRYPT_SALT_ROUNDS', 10),
   loginRateLimitWindowMs: envInt('LOGIN_RATE_LIMIT_WINDOW_MINUTES', 15) * 60 * 1000,
   loginRateLimitMaxAttempts: envInt('LOGIN_RATE_LIMIT_MAX_ATTEMPTS', 5),
+  sessionTimeoutMinutes: envInt('SESSION_TIMEOUT_MINUTES', 30),
   jsonPayloadLimit: envStr('JSON_PAYLOAD_LIMIT', '1mb'),
 
   // Paginazione

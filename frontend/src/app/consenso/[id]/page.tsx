@@ -1,8 +1,7 @@
 "use client";
 
 import React, { use } from 'react';
-import ConsentForm from '@/modules/newfeature/consenso/components/ConsentForm';
-import { Container, Box } from '@mui/material';
+import ConsentPage from '@/modules/newfeature/consenso/pages/ConsentPage';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,11 +12,5 @@ export default function PublicConsentPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const bookingId = parseInt(resolvedParams.id, 10);
 
-  return (
-    <Container maxWidth="sm">
-      <Box sx={{ py: 2 }}>
-        <ConsentForm bookingId={bookingId} />
-      </Box>
-    </Container>
-  );
+  return <ConsentPage bookingId={bookingId} />;
 }

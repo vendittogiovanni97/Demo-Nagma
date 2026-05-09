@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../contracts/IUserRepository';
 import { AuthResponseDTO } from '../contracts/AuthDTOs';
 import { AppError } from '../../../shared/errors/AppError';
-import { configService } from '../../../container';
+import { config } from '../../../config/env';
 
 export class RefreshToken {
   constructor(private userRepository: IUserRepository) {}
@@ -16,7 +16,7 @@ export class RefreshToken {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: configService.getJwtExpirySync() as any }
+      { expiresIn: config.jwtExpiry as any }
     );
 
     return {

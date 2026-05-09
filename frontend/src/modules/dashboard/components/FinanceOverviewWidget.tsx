@@ -95,7 +95,7 @@ export default function FinanceOverviewWidget({
             <IconButton
               size="small"
               component={Link}
-              href="/admin/finance"
+              href="/finance"
               title="Vedi dettaglio finanza"
               sx={{
                 color: theme.palette.primary.main,

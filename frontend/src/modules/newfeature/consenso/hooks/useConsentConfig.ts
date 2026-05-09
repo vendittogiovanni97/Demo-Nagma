@@ -1,23 +1,26 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { consensusApi } from '../api/consenso.api';
+import { consensoService } from '../service/consenso.service';
 
 export function useConsentConfig() {
   const [loading, setLoading] = useState(true);
   const [showConsensi, setShowConsensi] = useState(false);
+  const [showPosizionamento, setShowPosizionamento] = useState(false);
 
   useEffect(() => {
     let active = true;
     const loadConfig = async () => {
       try {
-        const res = await consensusApi.getConfig();
+        const res = await consensoService.getConfig();
         if (active) {
           setShowConsensi(res.success ? res.showConsensi : false);
+          setShowPosizionamento(res.success ? res.showPosizionamento : false);
         }
       } catch {
         if (active) {
           setShowConsensi(false);
+          setShowPosizionamento(false);
         }
       } finally {
         if (active) {
@@ -33,5 +36,5 @@ export function useConsentConfig() {
     };
   }, []);
 
-  return { loading, showConsensi };
+  return { loading, showConsensi, showPosizionamento };
 }

@@ -64,5 +64,8 @@ export const ENDPOINTS = {
     CONFIG: '/api/newfeature/config',
     BOOKING_PUBLIC: (id: string | number) => `/api/newfeature/booking/${id}`,
     SUBMIT_CONSENT: (id: string | number) => `/api/newfeature/booking/${id}/consent`,
+    GET_PLACEMENT: (id: string | number) => `/api/newfeature/booking/${id}/placement`,
+    SAVE_PLACEMENT: (id: string | number) => `/api/newfeature/booking/${id}/placement`,
+    GET_CONSENTS: '/api/newfeature/consents',
   },
 };

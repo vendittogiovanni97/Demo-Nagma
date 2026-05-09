@@ -1,7 +1,7 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
-import { configService } from '../container';
 import { logger } from '../shared/utils/logger';
+import { config } from '../config/env';
 
 // FIX B5: Helper to get client IP with IPv6 support
 const getClientIP = (req: Request): string => {
@@ -30,11 +30,9 @@ const getOrCreateBucket = (key: string, windowMs: number) => {
   return newBucket;
 };
 
-// Login rate limiter - reads LOGIN_RATE_LIMIT_WINDOW_MINUTES and LOGIN_RATE_LIMIT_MAX_ATTEMPTS
-// from configService (set in DB or fallback to defaults)
-const loginWindowMinutes = configService.getLoginRateLimitWindowMinutesSync();
-const loginMaxAttempts = configService.getLoginRateLimitMaxAttemptsSync();
-const loginWindowMs = loginWindowMinutes * 60 * 1000;
+// Login rate limiter - reads LOGIN_RATE_LIMIT_WINDOW_MINUTES and LOGIN_RATE_LIMIT_MAX_ATTEMPTS from environment
+const loginWindowMs = config.loginRateLimitWindowMs;
+const loginMaxAttempts = config.loginRateLimitMaxAttempts;
 
 export const loginRateLimiter = rateLimit({
   windowMs: loginWindowMs,

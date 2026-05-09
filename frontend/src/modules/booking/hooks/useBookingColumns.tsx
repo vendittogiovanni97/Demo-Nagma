@@ -13,6 +13,7 @@ import type { Booking, BookingStatus } from '@/modules/booking/model/booking.typ
 // Consensus Integration
 import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
 import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
+import { useAuth } from '@/context/AuthContext';
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'error' | 'primary' | 'success' | 'warning' | 'info' | 'default' | 'secondary' }> = {
   CREATO: { label: 'Creato', color: 'info' },
@@ -33,6 +34,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
   const theme = useTheme();
   const { onAttachmentClick, onConsentClick } = options;
   const { showConsensi } = useConsentConfig();
+  const { isSuperAdmin } = useAuth();
 
   const staticColumns: Column<Booking>[] = [
     {
@@ -407,7 +409,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
 
   const bookingColumns = useMemo(() => {
     const cols = [...staticColumns];
-    if (showConsensi) {
+    if (showConsensi && isSuperAdmin) {
       const statusIdx = cols.findIndex(c => c.key === 'stato');
       if (statusIdx !== -1) {
         cols.splice(statusIdx, 0, {
@@ -436,7 +438,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       }
     }
     return cols;
-  }, [theme, onAttachmentClick, onConsentClick, showConsensi]);
+  }, [theme, onAttachmentClick, onConsentClick, showConsensi, isSuperAdmin]);
 
 
   const exportColumns = useMemo(() => [

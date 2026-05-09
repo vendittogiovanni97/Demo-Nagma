@@ -1,6 +1,7 @@
 import { IConfigRepository } from '../contracts/IConfigRepository';
 import { Config } from '../domain/Config';
 import { Cache } from '../../../shared/utils/cache';
+import { config } from '../../../config/env';
 
 export class ConfigService {
   private cache = new Cache<string>(5 * 60 * 1000);
@@ -26,15 +27,11 @@ export class ConfigService {
       { paramsKey: 'FILES_PATH', value: '/uploads/attachments/' },
       { paramsKey: 'DEBUG_HTTP', value: 'false' },
       { paramsKey: 'LOG_LEVEL', value: 'INFO' },
-      { paramsKey: 'JWT_EXPIRY', value: '8h' },
-      { paramsKey: 'BCRYPT_SALT_ROUNDS', value: '10' },
-      { paramsKey: 'LOGIN_RATE_LIMIT_WINDOW_MINUTES', value: '15' },
-      { paramsKey: 'LOGIN_RATE_LIMIT_MAX_ATTEMPTS', value: '5' },
-      { paramsKey: 'SESSION_TIMEOUT_MINUTES', value: '30' },
       { paramsKey: 'MAX_PAGE_LIMIT', value: '100' },
       { paramsKey: 'APP_VERSION', value: '1.0.0' },
       { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
       { paramsKey: 'showConsensi', value: 'true' },
+      { paramsKey: 'showPosizionamento', value: 'true' },
     ];
 
     for (const d of defaults) {
@@ -70,30 +67,7 @@ export class ConfigService {
     return this.criticalConfig[key] || defaultValue || '';
   }
 
-  // Specific Getters
-  async getJwtExpiry(): Promise<string> { return this.getValue('JWT_EXPIRY', '8h'); }
-  getJwtExpirySync(): string { return this.getValueSync('JWT_EXPIRY', '8h'); }
-  
-  async getBcryptSaltRounds(): Promise<number> { 
-    return parseInt(await this.getValue('BCRYPT_SALT_ROUNDS', '10'), 10); 
-  }
-  getBcryptSaltRoundsSync(): number { 
-    return parseInt(this.getValueSync('BCRYPT_SALT_ROUNDS', '10'), 10); 
-  }
 
-  async getLoginRateLimitWindowMinutes(): Promise<number> {
-    return parseInt(await this.getValue('LOGIN_RATE_LIMIT_WINDOW_MINUTES', '15'), 10);
-  }
-  getLoginRateLimitWindowMinutesSync(): number {
-    return parseInt(this.getValueSync('LOGIN_RATE_LIMIT_WINDOW_MINUTES', '15'), 10);
-  }
-
-  async getLoginRateLimitMaxAttempts(): Promise<number> {
-    return parseInt(await this.getValue('LOGIN_RATE_LIMIT_MAX_ATTEMPTS', '5'), 10);
-  }
-  getLoginRateLimitMaxAttemptsSync(): number {
-    return parseInt(this.getValueSync('LOGIN_RATE_LIMIT_MAX_ATTEMPTS', '5'), 10);
-  }
 
   async getMaxPageLimit(): Promise<number> {
     return parseInt(await this.getValue('MAX_PAGE_LIMIT', '100'), 10);
@@ -114,7 +88,7 @@ export class ConfigService {
     const bcryptjs = require('bcryptjs');
     if (!stored.startsWith('$2b$')) {
       // Auto-migration
-      const salt = await this.getBcryptSaltRounds();
+      const salt = config.bcryptSaltRounds;
       const hashed = await bcryptjs.hash(stored, salt);
       await this.setValue('BOOKING_UPDATE_PASSWORD', hashed);
       return await bcryptjs.compare(plainPassword, hashed);
@@ -129,6 +103,16 @@ export class ConfigService {
 
   getShowConsensiSync(): boolean {
     const val = this.getValueSync('showConsensi', 'true');
+    return val === 'true';
+  }
+
+  async getShowPosizionamento(): Promise<boolean> {
+    const val = await this.getValue('showPosizionamento', 'true');
+    return val === 'true';
+  }
+
+  getShowPosizionamentoSync(): boolean {
+    const val = this.getValueSync('showPosizionamento', 'true');
     return val === 'true';
   }
 }

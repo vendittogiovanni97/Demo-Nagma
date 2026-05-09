@@ -6,39 +6,42 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import PageHeader from '@/components/common/PageHeader';
 import SmartTable from '@/components/common/SmartTable';
 import PaginationControls from '@/components/feedback/PaginationControls';
+import { usePaginationFilters } from '@/hooks/usePaginationFilters';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useAuth } from '@/context/AuthContext';
 import { bookingHistoryService, type BookingAction, type BookingHistoryResponse, type BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
 import BookingHistoryCard from '../components/BookingHistoryCard';
 import BookingHistoryFilters from '../components/BookingHistoryFilters';
 import { useBookingHistoryColumns } from '../hooks/useBookingHistoryColumns';
-import { staffApi } from '@/modules/staff/api/staff.api';
+import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
-import type { Staff } from '@/modules/staff/model/staff.types';
 import ExportModal from '@/components/modals/ExportModal';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 
 export default function BookingHistoryPage() {
   const { user } = useAuth();
-  const [page, setPage] = useState(1);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+
+  const {
+    page,
+    setPage,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+  } = usePaginationFilters();
+
   const [action, setAction] = useState<BookingAction | ''>('');
   const [artistId, setArtistId] = useState<string>('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 400);
   
-  const [artists, setArtists] = useState<{ id: number; name: string }[]>([]);
+  const { data: artists } = useStaffForSelect();
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
   const [data, setData] = useState<BookingHistoryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-
-  useEffect(() => {
-    staffApi.getAllForSelect().then((data: Staff[]) => {
-      setArtists(data.map((a: Staff) => ({ id: a.id, name: a.name })));
-    });
-  }, []);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -49,7 +52,7 @@ export default function BookingHistoryPage() {
         endDate, 
         action: action || undefined,
         artistId: artistId ? Number(artistId) : undefined,
-        search: search.trim() || undefined
+        search: debouncedSearch.trim() || undefined
       });
       setData(res);
       setError(null);
@@ -58,7 +61,7 @@ export default function BookingHistoryPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, startDate, endDate, action, artistId, search]);
+  }, [page, startDate, endDate, action, artistId, debouncedSearch]);
 
   useEffect(() => {
     fetchData();
@@ -126,9 +129,9 @@ export default function BookingHistoryPage() {
             search={search}
             onSearchChange={(v) => { setSearch(v); setPage(1); }}
             startDate={startDate}
-            onStartDateChange={(v) => { setStartDate(v); setPage(1); }}
+            onStartDateChange={setStartDate}
             endDate={endDate}
-            onEndDateChange={(v) => { setEndDate(v); setPage(1); }}
+            onEndDateChange={setEndDate}
             action={action}
             onActionChange={(val) => { setAction(val); setPage(1); }}
             artistId={artistId}

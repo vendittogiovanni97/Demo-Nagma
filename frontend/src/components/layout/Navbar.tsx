@@ -4,6 +4,7 @@ import { branding } from "@/config/branding";
 import { navItems } from "@/config/nav-links";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useConsentConfig } from "@/modules/newfeature/consenso/hooks/useConsentConfig";
 import BookingModal from "@/modules/booking/components/modals/BookingModal";
 import {
   AppBar,
@@ -25,7 +26,9 @@ import {
   MessageSquare,
   Package,
   Plus,
-  Receipt
+  Receipt,
+  Map,
+  ClipboardList
 } from "lucide-react";
 
 import Image from "next/image";
@@ -48,6 +51,7 @@ export default function Navbar() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
+  const { showPosizionamento, showConsensi } = useConsentConfig();
   const { isSmall, isMedium, isLarge, isXLarge } = useTheme();
   const muiTheme = useMuiTheme() as unknown as Theme;
 
@@ -171,6 +175,8 @@ export default function Navbar() {
                 isAdmin={isAdmin}
                 isSuperAdmin={isSuperAdmin}
                 isLarge={isXLarge}
+                showPosizionamento={showPosizionamento}
+                showConsensi={showConsensi}
                 onMenuOpen={handleUserMenuOpen}
                 onMenuClose={handleUserMenuClose}
                 onLogout={logout}
@@ -354,6 +360,8 @@ interface NavbarUserMenuProps {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isLarge: boolean;
+  showPosizionamento: boolean;
+  showConsensi: boolean;
   onMenuOpen: (e: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
   onLogout: () => void;
@@ -368,6 +376,8 @@ function NavbarUserMenu({
   isAdmin,
   isSuperAdmin,
   isLarge,
+  showPosizionamento,
+  showConsensi,
   onMenuOpen,
   onMenuClose,
   onLogout,
@@ -379,15 +389,17 @@ function NavbarUserMenu({
 
   const menuItems = useMemo(
     () => [
-      { href: '/admin/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
+      { href: '/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
+      { href: '/posizionamento', icon: Map, label: 'Mappa Corporea', show: isSuperAdmin && showPosizionamento },
+      { href: '/consensi', icon: ClipboardList, label: 'Archivio Consensi', show: isAdmin && showConsensi },
 
       { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', show: isAdmin },
-      { href: '/admin/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
-      { href: '/admin/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
+      { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
+      { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
     ],
-    [isAdmin, isSuperAdmin]
+    [isAdmin, isSuperAdmin, showPosizionamento, showConsensi]
   );
 
   return (

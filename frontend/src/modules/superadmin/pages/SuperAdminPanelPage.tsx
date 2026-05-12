@@ -2,7 +2,7 @@
 
 import PageTransition from '@/components/layout/PageTransition';
 import { useToast } from '@/hooks/useToast';
-import { consensoService } from '@/modules/newfeature/consenso/service/consenso.service';
+import { configService } from '@/shared/services/config.service';
 import {
   Box,
   Button,
@@ -92,7 +92,7 @@ export default function SuperAdminPanelPage() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const res = await consensoService.getConfig();
+        const res = await configService.getConfig();
         if (res.success) {
           setShowConsensi(res.SHOW_CONSENSI);
           setShowPosizionamento(res.SHOW_POSIZIONAMENTO);
@@ -112,7 +112,7 @@ export default function SuperAdminPanelPage() {
   const handleSavePrefix = async () => {
     setSavingFlag(true);
     try {
-      const res = await consensoService.updateConfig({
+      const res = await configService.updateConfig({
         DEFAULT_PHONE_PREFIX: defaultPrefix,
       });
       if (res.success) {
@@ -134,7 +134,7 @@ export default function SuperAdminPanelPage() {
     const updatedPosizionamento = flag === 'posizionamento' ? !currentVal : showPosizionamento;
 
     try {
-      const res = await consensoService.updateConfig({
+      const res = await configService.updateConfig({
         SHOW_CONSENSI: updatedConsensi,
         SHOW_POSIZIONAMENTO: updatedPosizionamento,
       });
@@ -165,12 +165,31 @@ export default function SuperAdminPanelPage() {
     }, 1500);
   };
 
-  const handleBackupDb = () => {
+  const handleBackupDb = async () => {
     setBackingUp(true);
-    setTimeout(() => {
+    try {
+      const data = await configService.downloadBackup();
+      
+      const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+        JSON.stringify(data, null, 2)
+      )}`;
+      
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', jsonString);
+      downloadAnchor.setAttribute(
+        'download',
+        `nagma_backup_${new Date().toISOString().slice(0, 10)}.json`
+      );
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      toast.success('Backup del database generato e scaricato con successo!');
+    } catch (err) {
+      toast.error('Errore durante la generazione del backup.');
+    } finally {
       setBackingUp(false);
-      toast.success('Backup del database generato e salvato in locale con successo!');
-    }, 2000);
+    }
   };
 
   const handleRebootGateway = () => {

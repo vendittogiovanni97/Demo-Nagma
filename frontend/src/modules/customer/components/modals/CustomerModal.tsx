@@ -17,7 +17,7 @@ import { Box } from '@mui/material';
 import FormInput from '@/components/forms/FormInput';
 import FormTextarea from '@/components/forms/FormTextarea';
 
-import { consensoService } from '@/modules/newfeature/consenso/service/consenso.service';
+import { configService } from '@/shared/services/config.service';
 
 interface Props {
   isOpen: boolean;
@@ -63,7 +63,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     let cleanPhone = formData.phone.trim().replace(/\s+/g, '');
     if (cleanPhone && !cleanPhone.startsWith('+') && !cleanPhone.startsWith('00')) {
       try {
-        const res = await consensoService.getConfig();
+        const res = await configService.getConfig();
         const prefix = res.DEFAULT_PHONE_PREFIX || '+39';
         cleanPhone = prefix + cleanPhone;
       } catch {

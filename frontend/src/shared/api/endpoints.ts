@@ -61,11 +61,14 @@ export const ENDPOINTS = {
     SUMMARY: '/api/cream/summary',
   },
   NEW_FEATURE: {
-    CONFIG: '/api/newfeature/config',
     BOOKING_PUBLIC: (id: string | number) => `/api/newfeature/booking/${id}`,
     SUBMIT_CONSENT: (id: string | number) => `/api/newfeature/booking/${id}/consent`,
     GET_PLACEMENT: (id: string | number) => `/api/newfeature/booking/${id}/placement`,
     SAVE_PLACEMENT: (id: string | number) => `/api/newfeature/booking/${id}/placement`,
     GET_CONSENTS: '/api/newfeature/consents',
+  },
+  CONFIG: {
+    BASE: '/api/config',
+    BACKUP: '/api/config/backup',
   },
 };

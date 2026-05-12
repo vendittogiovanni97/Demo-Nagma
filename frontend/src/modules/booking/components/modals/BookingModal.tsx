@@ -17,7 +17,7 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
 import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
 import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
-import { consensoService } from '@/modules/newfeature/consenso/service/consenso.service';
+import { configService } from '@/shared/services/config.service';
 // Components
 import SmartModal from '@/components/common/SmartModal';
 import FormAutocomplete from '@/components/forms/FormAutocomplete';
@@ -285,7 +285,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         let cleanPhone = formState.newCustomerPhone.trim().replace(/\s+/g, '');
         if (cleanPhone && !cleanPhone.startsWith('+') && !cleanPhone.startsWith('00')) {
           try {
-            const res = await consensoService.getConfig();
+            const res = await configService.getConfig();
             const prefix = res.DEFAULT_PHONE_PREFIX || '+39';
             cleanPhone = prefix + cleanPhone;
           } catch {

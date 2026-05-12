@@ -10,6 +10,7 @@ import staffRoutes from './modules/staff/interfaces/staff.routes';
 import whatsappTemplateRoutes from './modules/whatsapp/interfaces/whatsapp.routes';
 import consentRoutes from './modules/newfeature/consenso/interfaces/consent.routes';
 import placementRoutes from './modules/newfeature/posizionamento/interfaces/booking-placement.routes';
+import configRoutes from './modules/config/interfaces/config.routes';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.use('/form-templates', formTemplateRoutes);
 router.use('/whatsapp-templates', whatsappTemplateRoutes);
 router.use('/cream', creamRoutes);
 router.use('/attachments', attachmentRoutes);
+router.use('/config', configRoutes);
 router.use('/newfeature', consentRoutes);
 router.use('/newfeature', placementRoutes);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { consensoService } from '../service/consenso.service';
+import { configService } from '@/shared/services/config.service';
 
 export function useConsentConfig() {
   const [loading, setLoading] = useState(true);
@@ -10,7 +10,7 @@ export function useConsentConfig() {
 
   const loadConfig = useCallback(async (active = true) => {
     try {
-      const res = await consensoService.getConfig();
+      const res = await configService.getConfig();
       if (active) {
         setSHOW_CONSENSI(res.success ? res.SHOW_CONSENSI : false);
         setSHOW_POSIZIONAMENTO(res.success ? res.SHOW_POSIZIONAMENTO : false);

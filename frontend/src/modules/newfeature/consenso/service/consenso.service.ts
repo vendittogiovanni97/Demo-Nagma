@@ -3,14 +3,6 @@ import { ENDPOINTS } from '@/shared/api/endpoints';
 import { PublicBookingData, ConsentSubmission } from '../model/consenso.model';
 
 export const consensoService = {
-  getConfig: async () => {
-    return httpClient.get<{ success: boolean; SHOW_CONSENSI: boolean; SHOW_POSIZIONAMENTO: boolean; DEFAULT_PHONE_PREFIX: string }>(ENDPOINTS.NEW_FEATURE.CONFIG);
-  },
-
-  updateConfig: async (data: { SHOW_CONSENSI?: boolean; SHOW_POSIZIONAMENTO?: boolean; DEFAULT_PHONE_PREFIX?: string }) => {
-    return httpClient.post<{ success: boolean; message: string }>(ENDPOINTS.NEW_FEATURE.CONFIG, data);
-  },
-
   getBookingPublic: async (id: number) => {
     return httpClient.get<{ success: boolean; data: PublicBookingData }>((ENDPOINTS.NEW_FEATURE.BOOKING_PUBLIC(id)) as any);
   },

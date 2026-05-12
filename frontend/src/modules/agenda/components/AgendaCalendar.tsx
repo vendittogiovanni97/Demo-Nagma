@@ -72,11 +72,11 @@ export default function AgendaCalendar({
           slotLabelInterval="01:00:00"
           slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           headerToolbar={{
-            left: 'prev,next title',
+            left: 'prev title next',
             center: '',
             right: 'dayGridMonth,timeGridWeek,timeGridDay',
           }}
-          buttonText={{ today: 'Oggi', month: 'Month', week: 'Week', day: 'Day' }}
+          buttonText={{ today: 'Oggi', month: 'Mese', week: 'Settimana', day: 'Giorno' }}
           events={events}
           eventContent={renderEventContent}
           dateClick={handleDateClick}

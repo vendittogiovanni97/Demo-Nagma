@@ -4,7 +4,7 @@ import type { DatesSetArg, DayCellContentArg, EventContentArg } from '@fullcalen
 import { Box } from '@mui/material';
 import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState } from 'react';
 
 import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -13,10 +13,8 @@ import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
-import { useStaffMembers } from '@/modules/staff/hooks/useStaff';
 
 import CalendarEvent from '../components/CalendarEvent';
-import AgendaSidebar from '../components/AgendaSidebar';
 import AgendaCalendar from '../components/AgendaCalendar';
 import DayBookingsModal from '../components/DayBookingsModal';
 import { useAgendaBookings } from '../hooks/useAgendaBookings';
@@ -51,51 +49,8 @@ export default function AgendaPage() {
     setPendingDeleteId,
   } = useAgendaBookings();
 
-  const { data: staffData, isLoading: isStaffLoading } = useStaffMembers({ limit: 100 });
-  const staffMembers = staffData?.data ?? [];
-
-  const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
-  const [selectAll, setSelectAll] = useState(true);
-
-  const handleToggleStaff = (staffId: number) => {
-    if (selectAll) {
-      setSelectAll(false);
-      setSelectedStaffIds([staffId]);
-    } else {
-      setSelectedStaffIds(prev => {
-        const newSelection = prev.includes(staffId) 
-          ? prev.filter(id => id !== staffId)
-          : [...prev, staffId];
-        
-        if (newSelection.length === staffMembers.length) {
-          setSelectAll(true);
-          return [];
-        } else if (newSelection.length === 0) {
-          setSelectAll(true);
-          return [];
-        }
-        return newSelection;
-      });
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectAll(false);
-      setSelectedStaffIds([]);
-    } else {
-      setSelectAll(true);
-      setSelectedStaffIds([]);
-    }
-  };
-
-  const filteredBookings = useMemo(() => {
-    if (!bookings) return [];
-    if (selectAll) return bookings;
-    return bookings.filter(b => selectedStaffIds.includes(b.artistId));
-  }, [bookings, selectAll, selectedStaffIds]);
-
-  const { events } = useCalendarEvents(filteredBookings);
+  const bookingsList = bookings || [];
+  const { events } = useCalendarEvents(bookingsList);
 
   const renderEventContent = useCallback((arg: EventContentArg) => (
     <CalendarEvent
@@ -120,7 +75,7 @@ export default function AgendaPage() {
 
   const handleMoreLinkClick = useCallback((info: any) => {
     const clickedDateStr = format(info.date, 'yyyy-MM-dd');
-    const dayBookings = filteredBookings.filter(b => {
+    const dayBookings = bookingsList.filter(b => {
       const bDateStr = format(new Date(b.date), 'yyyy-MM-dd');
       return bDateStr === clickedDateStr;
     });
@@ -128,9 +83,7 @@ export default function AgendaPage() {
       date: info.date,
       bookings: dayBookings as BookingModel[],
     });
-  }, [filteredBookings]);
-
-  const isLoading = isBookingsLoading || isStaffLoading;
+  }, [bookingsList]);
 
   return (
     <Box
@@ -161,20 +114,8 @@ export default function AgendaPage() {
           minHeight: { md: 1080 },
         }}
       >
-        <AgendaSidebar
-          onAddEventClick={() => {
-            setEditingBooking(null);
-            setIsModalOpen(true);
-          }}
-          staffMembers={staffMembers}
-          selectedStaffIds={selectedStaffIds}
-          selectAll={selectAll}
-          onToggleStaff={handleToggleStaff}
-          onSelectAll={handleSelectAll}
-        />
-
         <AgendaCalendar
-          isLoading={isLoading}
+          isLoading={isBookingsLoading}
           error={bookingsError}
           events={events}
           renderEventContent={renderEventContent}

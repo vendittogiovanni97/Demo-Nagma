@@ -405,17 +405,23 @@ input:-webkit-autofill:focus {
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: transparent;
   --fc-neutral-text-color: var(--color-text-primary);
-  --fc-today-bg-color: rgba(145, 85, 253, 0.06);
+  --fc-today-bg-color: rgba(0, 191, 255, 0.06);
   --fc-now-indicator-color: #ff5252;
   --fc-button-bg-color: transparent;
   --fc-button-border-color: rgba(255, 255, 255, 0.12);
   --fc-button-hover-bg-color: rgba(255, 255, 255, 0.05);
   --fc-button-hover-border-color: rgba(255, 255, 255, 0.2);
-  --fc-button-active-bg-color: rgba(145, 85, 253, 0.16);
-  --fc-button-active-border-color: rgba(145, 85, 253, 0.5);
+  --fc-button-active-bg-color: rgba(0, 191, 255, 0.16);
+  --fc-button-active-border-color: rgba(0, 191, 255, 0.5);
   --fc-button-text-color: var(--color-text-primary);
   font-family: var(--font-inter);
   height: 100%;
+}
+
+.fc-materio-wrapper .fc-toolbar-chunk:first-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1.25rem !important;
 }
 
 .fc-materio-wrapper .fc-toolbar-title {
@@ -423,6 +429,8 @@ input:-webkit-autofill:focus {
   font-size: 1.25rem !important;
   font-weight: 600 !important;
   color: var(--color-text-primary) !important;
+  text-transform: capitalize !important;
+  margin: 0 !important;
 }
 
 .fc-materio-wrapper .fc-toolbar.fc-header-toolbar {
@@ -459,9 +467,9 @@ input:-webkit-autofill:focus {
 
 .fc-materio-wrapper .fc-button-primary:not(:disabled).fc-button-active,
 .fc-materio-wrapper .fc-button-primary:not(:disabled):active {
-  background-color: rgba(145, 85, 253, 0.16) !important;
-  color: #9155FD !important;
-  border-color: rgba(145, 85, 253, 0.4) !important;
+  background-color: rgba(0, 191, 255, 0.16) !important;
+  color: #00BFFF !important;
+  border-color: rgba(0, 191, 255, 0.4) !important;
   font-weight: 600 !important;
 }
 
@@ -485,7 +493,7 @@ input:-webkit-autofill:focus {
 }
 
 .fc-materio-wrapper .fc-day-today .fc-col-header-cell-cushion {
-  color: #9155FD !important;
+  color: #00BFFF !important;
 }
 
 .fc-materio-wrapper .fc-daygrid-day-number {
@@ -552,7 +560,7 @@ input:-webkit-autofill:focus {
 
 .fc-materio-wrapper .fc-scroller {
   scrollbar-width: thin;
-  scrollbar-color: rgba(145, 85, 253, 0.25) transparent;
+  scrollbar-color: rgba(0, 191, 255, 0.25) transparent;
 }
 
 .fc-materio-wrapper .fc-scroller::-webkit-scrollbar {
@@ -564,14 +572,14 @@ input:-webkit-autofill:focus {
 }
 
 .fc-materio-wrapper .fc-scroller::-webkit-scrollbar-thumb {
-  background: rgba(145, 85, 253, 0.25);
+  background: rgba(0, 191, 255, 0.25);
   border-radius: 3px;
 }
 
 .fc-materio-wrapper .fc-day-today {
-  background: rgba(145, 85, 253, 0.04) !important;
+  background: rgba(0, 191, 255, 0.04) !important;
 }
 
 .fc-materio-wrapper .fc-timegrid-col.fc-day-today {
-  background: rgba(145, 85, 253, 0.04) !important;
+  background: rgba(0, 191, 255, 0.04) !important;
 }

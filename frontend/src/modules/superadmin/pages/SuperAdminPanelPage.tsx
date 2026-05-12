@@ -3,6 +3,8 @@
 import PageTransition from '@/components/layout/PageTransition';
 import { useToast } from '@/hooks/useToast';
 import { configService } from '@/shared/services/config.service';
+import { getToken } from '@/shared/utils/auth';
+import { API_BASE_URL, ENDPOINTS } from '@/shared/api/endpoints';
 import {
   Box,
   Button,
@@ -168,23 +170,19 @@ export default function SuperAdminPanelPage() {
   const handleBackupDb = async () => {
     setBackingUp(true);
     try {
-      const data = await configService.downloadBackup();
-      
-      const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(data, null, 2)
-      )}`;
-      
+      const token = getToken() || '';
+      const downloadUrl = `${API_BASE_URL}${ENDPOINTS.CONFIG.BACKUP}?token=${encodeURIComponent(token)}`;
+
       const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href', jsonString);
-      downloadAnchor.setAttribute(
-        'download',
-        `nagma_backup_${new Date().toISOString().slice(0, 10)}.json`
-      );
+      downloadAnchor.href = downloadUrl;
+      // Triggers browser native download of the server-supplied filename
+      downloadAnchor.setAttribute('download', '');
+
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
-      downloadAnchor.remove();
+      document.body.removeChild(downloadAnchor);
 
-      toast.success('Backup del database generato e scaricato con successo!');
+      toast.success('Backup SQL generato e scaricato con successo!');
     } catch (err) {
       toast.error('Errore durante la generazione del backup.');
     } finally {

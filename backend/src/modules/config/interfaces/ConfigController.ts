@@ -47,25 +47,76 @@ export class ConfigController {
   // GET /api/config/backup
   async downloadBackup(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const backupData = {
-        exportedAt: new Date().toISOString(),
-        users: await prisma.user.findMany(),
-        staff: await prisma.staff.findMany(),
-        customers: await prisma.customer.findMany(),
-        bookings: await prisma.booking.findMany(),
-        creamTattoos: await prisma.creamTattoo.findMany(),
-        creamSales: await prisma.creamSale.findMany(),
-        transactions: await prisma.transaction.findMany(),
-        formTemplates: await prisma.formTemplate.findMany(),
-        speseLibere: await prisma.spesaLibera.findMany(),
-        whatsAppTemplates: await prisma.whatsAppTemplate.findMany(),
-        config: await prisma.config.findMany()
+      const data = {
+        User: await prisma.user.findMany(),
+        Staff: await prisma.staff.findMany(),
+        Shift: await prisma.shift.findMany(),
+        Customer: await prisma.customer.findMany(),
+        Booking: await prisma.booking.findMany(),
+        CreamTattoo: await prisma.creamTattoo.findMany(),
+        CreamSale: await prisma.creamSale.findMany(),
+        BookingHistory: await prisma.bookingHistory.findMany(),
+        Transaction: await prisma.transaction.findMany(),
+        TransactionHistory: await prisma.transactionHistory.findMany(),
+        FormTemplate: await prisma.formTemplate.findMany(),
+        SpesaLibera: await prisma.spesaLibera.findMany(),
+        WhatsAppTemplate: await prisma.whatsAppTemplate.findMany(),
+        WhatsAppMessageLog: await prisma.whatsAppMessageLog.findMany(),
+        Config: await prisma.config.findMany(),
+        Attachment: await prisma.attachment.findMany(),
+        BookingPlacement: await prisma.bookingPlacement.findMany()
       };
 
-      const filename = `nagma_backup_${new Date().toISOString().slice(0, 10)}.json`;
-      res.setHeader('Content-Type', 'application/json');
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const dateStr = `${dd}_${mm}_${yyyy}`;
+      const filename = `nagma_backup_${dateStr}.sql`;
+
+      let sql = `-- ==========================================================\n`;
+      sql += `-- NAGMA STUDIO DATABASE BACKUP (.SQL)\n`;
+      sql += `-- Exported At: ${now.toISOString()}\n`;
+      sql += `-- ==========================================================\n\n`;
+      sql += `SET session_replication_role = 'replica';\n\n`;
+
+      const escapeSqlValue = (val: any): string => {
+        if (val === null || val === undefined) return 'NULL';
+        if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+        if (typeof val === 'number') return val.toString();
+        if (val instanceof Date) return `'${val.toISOString()}'`;
+        if (typeof val === 'object') {
+          if (typeof val.toISOString === 'function') {
+            return `'${val.toISOString()}'`;
+          }
+          return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+        }
+        return `'${val.toString().replace(/'/g, "''")}'`;
+      };
+
+      for (const [tableName, records] of Object.entries(data)) {
+        sql += `-- ----------------------------------------------------------\n`;
+        sql += `-- Table: "${tableName}"\n`;
+        sql += `-- ----------------------------------------------------------\n`;
+        sql += `TRUNCATE TABLE "${tableName}" CASCADE;\n`;
+
+        if (records.length > 0) {
+          records.forEach((rec: any) => {
+            const columns = Object.keys(rec);
+            const values = Object.values(rec).map(escapeSqlValue);
+            sql += `INSERT INTO "${tableName}" ("${columns.join('", "')}") VALUES (${values.join(', ')});\n`;
+          });
+        } else {
+          sql += `-- (No records)\n`;
+        }
+        sql += `\n`;
+      }
+
+      sql += `SET session_replication_role = 'origin';\n`;
+
+      res.setHeader('Content-Type', 'text/plain');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.send(JSON.stringify(backupData, null, 2));
+      res.send(sql);
     } catch (err) {
       next(err);
     }

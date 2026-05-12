@@ -64,7 +64,7 @@ export default function SmartFilters({
 
   // Responsive sizes - more compact for desktop to fit in one row
   const searchWidth = { xs: '100%', sm: 240, md: isXLarge ? 320 : 260 };
-  const dateWidth = { xs: 'calc(50% - 6px)', sm: 115, md: isXLarge ? 130 : 110 };
+  const dateWidth = { xs: 'calc(50% - 6px)', sm: 150, md: isXLarge ? 165 : 150 };
   const selectWidth = { xs: '100%', sm: 160, md: isXLarge ? 180 : 150 };
   const gap = isXLarge ? 1.5 : 0.75;
 

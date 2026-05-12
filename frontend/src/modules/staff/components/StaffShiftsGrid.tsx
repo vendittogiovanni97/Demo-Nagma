@@ -3,7 +3,7 @@
 import StatePanel from '@/components/feedback/StatePanel';
 import { DAYS_OF_WEEK } from '@/config/staff-config';
 import type { Shift, Staff } from '../model/staff.types';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, LinearProgress } from '@mui/material';
 import { addDays, format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
 import StaffMemberRow from './StaffMemberRow';
@@ -48,11 +48,10 @@ export default function StaffShiftsGrid({
             display: 'grid',
             gridTemplateColumns: '220px repeat(7, 1fr)',
             borderBottom: `1px solid ${theme.palette.divider}`,
-            bgcolor: 'rgba(0,0,0,0.2)',
+            bgcolor: '#0d1a28',
             position: 'sticky',
             top: 0,
             zIndex: 10,
-            backdropFilter: 'blur(12px)',
           }}
         >
           <Box
@@ -99,42 +98,62 @@ export default function StaffShiftsGrid({
           ))}
         </Box>
 
-        {isLoading && (
-          <StatePanel variant="loading" fullPage title="Caricamento griglia in corso..." />
-        )}
+        {isLoading && members.length === 0 ? (
+          <StatePanel variant="loading" title="Caricamento griglia in corso..." />
+        ) : (
+          <>
+            {isLoading && (
+              <LinearProgress
+                sx={{
+                  position: 'absolute',
+                  top: '50px',
+                  left: 0,
+                  right: 0,
+                  zIndex: 20,
+                  height: '2px',
+                  bgcolor: 'transparent',
+                  '& .MuiLinearProgress-bar': {
+                    background: 'linear-gradient(90deg, #00bfff, #9B6DFF)'
+                  }
+                }}
+              />
+            )}
 
-        {!isLoading && members.length === 0 && (
-          <Box
-            sx={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: theme.palette.text.secondary,
-              p: 4,
-            }}
-          >
-            Nessun membro del team trovato. Aggiungi il primo componente.
-          </Box>
+            {members.length === 0 ? (
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: theme.palette.text.secondary,
+                  p: 4,
+                }}
+              >
+                Nessun membro del team trovato. Aggiungi il primo componente.
+              </Box>
+            ) : (
+              <Box sx={{ opacity: isLoading ? 0.6 : 1, transition: 'opacity 0.25s' }}>
+                {members.map(member => (
+                  <StaffMemberRow
+                    key={member.id}
+                    member={member}
+                    shifts={shifts}
+                    weekStart={weekStart}
+                    updatingShiftId={updatingShiftId}
+                    isAddingShift={isAddingShift}
+                    canManageShiftData={canManageShiftData}
+                    onEditMember={onEditMember}
+                    onDeleteMember={onDeleteMember}
+                    onCycleShift={onCycleShift}
+                    onQuickAddShift={onQuickAddShift}
+                    onOpenAddShift={onOpenAddShift}
+                  />
+                ))}
+              </Box>
+            )}
+          </>
         )}
-
-        {!isLoading &&
-          members.map(member => (
-            <StaffMemberRow
-              key={member.id}
-              member={member}
-              shifts={shifts}
-              weekStart={weekStart}
-              updatingShiftId={updatingShiftId}
-              isAddingShift={isAddingShift}
-              canManageShiftData={canManageShiftData}
-              onEditMember={onEditMember}
-              onDeleteMember={onDeleteMember}
-              onCycleShift={onCycleShift}
-              onQuickAddShift={onQuickAddShift}
-              onOpenAddShift={onOpenAddShift}
-            />
-          ))}
       </Box>
     </Box>
   );

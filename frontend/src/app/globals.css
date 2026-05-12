@@ -21,6 +21,11 @@
 .gap-md { gap: 1rem; } /* 16px */
 .gap-lg { gap: 1.5rem; } /* 24px */
 
+html {
+  background-color: var(--color-background) !important;
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-text-primary);
@@ -30,6 +35,9 @@ body {
     radial-gradient(circle at bottom left, rgba(0, 191, 255, 0.04), transparent 800px),
     radial-gradient(circle at center, rgba(0, 191, 255, 0.01), transparent 1000px),
     linear-gradient(180deg, #0d1a28 0%, #0f2030 100%);
+  background-attachment: fixed !important;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .font-outfit {

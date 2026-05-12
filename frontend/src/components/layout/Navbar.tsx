@@ -112,18 +112,19 @@ export default function Navbar() {
           <AppBar
             position="fixed"
             sx={{
-              top: { xs: 0, sm: 6 },
+              top: 0,
               left: '50%',
               transform: 'translateX(-50%)',
               width: { xs: '100%', sm: 'fit-content' },
               maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
               right: 'auto',
-              backgroundColor: 'rgba(10, 26, 38, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: { xs: 'none', sm: '1px solid rgba(0, 191, 255, 0.12)' },
-              borderRadius: { xs: 0, sm: '100px' },
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-              borderBottom: { xs: '1px solid rgba(0, 191, 255, 0.12)', sm: '1px solid rgba(0, 191, 255, 0.12)' },
+              backgroundColor: 'rgba(8, 20, 30, 0.98)',
+              backdropFilter: 'blur(30px)',
+              border: { xs: 'none', sm: '1px solid rgba(0, 191, 255, 0.15)' },
+              borderTop: 'none',
+              borderRadius: { xs: 0, sm: '0 0 24px 24px' },
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)',
+              borderBottom: { xs: '1px solid rgba(0, 191, 255, 0.15)', sm: '1px solid rgba(0, 191, 255, 0.15)' },
             }}
           >
             <Toolbar

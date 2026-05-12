@@ -15,9 +15,5 @@ export const configService = {
 
   updateConfig: async (data: { SHOW_CONSENSI?: boolean; SHOW_POSIZIONAMENTO?: boolean; DEFAULT_PHONE_PREFIX?: string }) => {
     return httpClient.post<{ success: boolean; message: string }>(ENDPOINTS.CONFIG.BASE, data);
-  },
-
-  downloadBackup: async () => {
-    return httpClient.get<any>(ENDPOINTS.CONFIG.BACKUP);
   }
 };

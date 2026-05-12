@@ -304,14 +304,15 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
       } catch { toast.error('Errore creazione cliente'); dispatch({ type: 'SET_FIELD', field: 'loading', payload: false }); return; }
     }
 
-    const data: CreateBookingData = {
+    const data: CreateBookingData & { status?: BookingStatus } = {
       customerId: Number(customerId), artistId: Number(formState.artistId), date: bookingDate,
       duration: Number(formState.duration) || undefined, price: prezzoNum || undefined,
       deposit: Number(formState.deposit) || undefined, notes: formState.notes.trim() || undefined, formData,
+      status: formState.status,
     };
 
     if (booking?.id && !isSuperAdmin) {
-      dispatch({ type: 'SET_PENDING_DATA', payload: { ...data, status: formState.status } });
+      dispatch({ type: 'SET_PENDING_DATA', payload: data });
       dispatch({ type: 'SET_FIELD', field: 'showPasswordModal', payload: true });
     } else {
       await executeBookingAction(data);

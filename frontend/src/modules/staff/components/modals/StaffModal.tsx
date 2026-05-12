@@ -13,6 +13,7 @@ import SmartModal from '@/components/common/SmartModal';
 import Avatar from '@/components/data-display/Avatar';
 import FormInput from '@/components/forms/FormInput';
 import FormSelect from '@/components/forms/FormSelect';
+import { Palette } from 'lucide-react';
 
 const STAFF_TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
@@ -159,39 +160,63 @@ export default function StaffModal({ isOpen, onClose }: Props) {
             </Box>
 
             <Box
+              component="label"
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.5,
-                p: 1.5,
-                borderRadius: 2,
+                gap: 2,
+                p: 2,
+                borderRadius: 3,
                 border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderColor: color,
+                  boxShadow: `0 0 15px ${color}1a`,
+                }
               }}
             >
-              <Box
-                component="input"
+              <input
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                sx={{
-                  width: 44,
-                  height: 44,
-                  p: 0,
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 1.5,
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
+                style={{
+                  position: 'absolute',
+                  width: 0,
+                  height: 0,
+                  opacity: 0,
+                  pointerEvents: 'none'
                 }}
               />
 
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: theme.palette.text.primary }}>
-                  {color.toUpperCase()}
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '12px',
+                  backgroundColor: color,
+                  border: '2px solid rgba(255,255,255,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: `0 4px 12px ${color}4d`,
+                  flexShrink: 0,
+                  transition: 'transform 0.2s',
+                }}
+              >
+                <Palette size={18} style={{ color: '#ffffff', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }} />
+              </Box>
+
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: theme.palette.text.primary, fontFamily: 'Outfit', mb: 0.25 }}>
+                  Colore Personalizzato: <span style={{ color: color, fontFamily: 'monospace', fontWeight: 900 }}>{color.toUpperCase()}</span>
                 </Typography>
                 <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
-                  Usato per distinguere gli appuntamenti in agenda
+                  Clicca qui per aprire la tavolozza dei colori completa
                 </Typography>
               </Box>
             </Box>

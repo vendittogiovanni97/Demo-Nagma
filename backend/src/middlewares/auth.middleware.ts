@@ -40,10 +40,17 @@ export function validateJwtSecret(): void {
 }
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+  let token = '';
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith('Bearer ')) {
-    logger.warn('Richiesta autenticata senza token Bearer', {
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.query.token && typeof req.query.token === 'string') {
+    token = req.query.token;
+  }
+
+  if (!token) {
+    logger.warn('Richiesta autenticata senza token Bearer o query token', {
       requestId: req.requestId,
       method: req.method,
       path: req.originalUrl,
@@ -55,7 +62,6 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     });
   }
 
-  const token = authHeader.split(' ')[1];
   const secret = process.env.JWT_SECRET;
 
   // FIX #4: Defensive check (should never happen if validateJwtSecret() called at boot)

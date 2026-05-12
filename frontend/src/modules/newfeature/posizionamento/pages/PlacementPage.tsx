@@ -30,7 +30,7 @@ import { toast } from 'react-hot-toast';
 export default function PlacementPage() {
   const theme = useTheme();
   const { isSuperAdmin } = useAuth();
-  const { showPosizionamento, loading: configLoading } = useConsentConfig();
+  const { SHOW_POSIZIONAMENTO, loading: configLoading } = useConsentConfig();
 
   // Selected Booking
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
@@ -51,7 +51,7 @@ export default function PlacementPage() {
     limit: 100,
     startDate: startDate || undefined,
     endDate: endDate || undefined,
-    enabled: showPosizionamento && isSuperAdmin
+    enabled: SHOW_POSIZIONAMENTO && isSuperAdmin
   });
 
   const bookings = bookingsData?.data || [];
@@ -79,7 +79,7 @@ export default function PlacementPage() {
     savePlacement
   } = useBookingPlacement(
     selectedBooking?.id,
-    showPosizionamento,
+    SHOW_POSIZIONAMENTO,
     selectedBooking?.formData?.placement
   );
 
@@ -103,7 +103,7 @@ export default function PlacementPage() {
     );
   }
 
-  if (!isSuperAdmin || !showPosizionamento) {
+  if (!isSuperAdmin || !SHOW_POSIZIONAMENTO) {
     return (
       <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <AlertTriangle size={64} color={theme.palette.error.main} style={{ marginBottom: 16 }} />

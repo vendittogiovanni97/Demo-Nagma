@@ -2,7 +2,7 @@ import { Router } from 'express';
 import attachmentRoutes from './modules/attachment/interfaces/attachment.routes';
 import authRoutes from './modules/auth/interfaces/auth.routes';
 import bookingRoutes from './modules/booking/interfaces/booking.routes';
-import creamRoutes from './modules/cream/interfaces/cream.routes';
+import creamRoutes from './modules/cream/routes/cream.routes';
 import customerRoutes from './modules/customer/interfaces/customer.routes';
 import financeRoutes from './modules/finance/interfaces/finance.routes';
 import formTemplateRoutes from './modules/form-template/interfaces/form-template.routes';
@@ -25,4 +25,4 @@ router.use('/attachments', attachmentRoutes);
 router.use('/newfeature', consentRoutes);
 router.use('/newfeature', placementRoutes);
 
-export default router;
+export default router; // Hot-reloaded configs

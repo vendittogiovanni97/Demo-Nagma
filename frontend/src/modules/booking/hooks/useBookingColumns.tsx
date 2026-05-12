@@ -33,7 +33,7 @@ interface UseBookingColumnsOptions {
 export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
   const theme = useTheme();
   const { onAttachmentClick, onConsentClick } = options;
-  const { showConsensi } = useConsentConfig();
+  const { SHOW_CONSENSI } = useConsentConfig();
   const { isSuperAdmin } = useAuth();
 
   const staticColumns: Column<Booking>[] = [
@@ -409,7 +409,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
 
   const bookingColumns = useMemo(() => {
     const cols = [...staticColumns];
-    if (showConsensi && isSuperAdmin) {
+    if (SHOW_CONSENSI && isSuperAdmin) {
       const statusIdx = cols.findIndex(c => c.key === 'stato');
       if (statusIdx !== -1) {
         cols.splice(statusIdx, 0, {
@@ -438,7 +438,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       }
     }
     return cols;
-  }, [theme, onAttachmentClick, onConsentClick, showConsensi, isSuperAdmin]);
+  }, [theme, onAttachmentClick, onConsentClick, SHOW_CONSENSI, isSuperAdmin]);
 
 
   const exportColumns = useMemo(() => [

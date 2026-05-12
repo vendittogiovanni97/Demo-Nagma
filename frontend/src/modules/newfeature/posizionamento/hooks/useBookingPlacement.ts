@@ -5,7 +5,7 @@ import { placementService } from '../service/placement.service';
 
 export function useBookingPlacement(
   bookingId: number | undefined,
-  showPosizionamento: boolean,
+  SHOW_POSIZIONAMENTO: boolean,
   initialPlacementFallback: any
 ) {
   const [placement, setPlacement] = useState<any>(null);
@@ -17,7 +17,7 @@ export function useBookingPlacement(
       return;
     }
 
-    if (showPosizionamento) {
+    if (SHOW_POSIZIONAMENTO) {
       setLoading(true);
       placementService.getByBookingId(bookingId)
         .then((dbPlacement) => {
@@ -43,10 +43,10 @@ export function useBookingPlacement(
     } else {
       setPlacement(initialPlacementFallback || null);
     }
-  }, [bookingId, showPosizionamento, initialPlacementFallback]);
+  }, [bookingId, SHOW_POSIZIONAMENTO, initialPlacementFallback]);
 
   const savePlacement = async (targetBookingId: number) => {
-    if (!showPosizionamento || !placement) return null;
+    if (!SHOW_POSIZIONAMENTO || !placement) return null;
     
     setLoading(true);
     try {

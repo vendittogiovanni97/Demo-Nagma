@@ -30,8 +30,8 @@ export class ConfigService {
       { paramsKey: 'MAX_PAGE_LIMIT', value: '100' },
       { paramsKey: 'APP_VERSION', value: '1.0.0' },
       { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
-      { paramsKey: 'showConsensi', value: 'true' },
-      { paramsKey: 'showPosizionamento', value: 'true' },
+      { paramsKey: 'SHOW_CONSENSI', value: 'false' },
+      { paramsKey: 'SHOW_POSIZIONAMENTO', value: 'false' },
     ];
 
     for (const d of defaults) {
@@ -40,13 +40,13 @@ export class ConfigService {
   }
 
   async getValue(key: string, defaultValue?: string): Promise<string> {
-    if (this.criticalConfig[key]) return this.criticalConfig[key];
     const cached = this.cache.get(key);
     if (cached) return cached;
 
     const cfg = await this.configRepository.findByKey(key);
     const val = cfg?.value || defaultValue || '';
     this.cache.set(key, val);
+    this.criticalConfig[key] = val;
     return val;
   }
 
@@ -97,22 +97,22 @@ export class ConfigService {
   }
 
   async getShowConsensi(): Promise<boolean> {
-    const val = await this.getValue('showConsensi', 'true');
+    const val = await this.getValue('SHOW_CONSENSI', 'false');
     return val === 'true';
   }
 
   getShowConsensiSync(): boolean {
-    const val = this.getValueSync('showConsensi', 'true');
+    const val = this.getValueSync('SHOW_CONSENSI', 'false');
     return val === 'true';
   }
 
   async getShowPosizionamento(): Promise<boolean> {
-    const val = await this.getValue('showPosizionamento', 'true');
+    const val = await this.getValue('SHOW_POSIZIONAMENTO', 'false');
     return val === 'true';
   }
 
   getShowPosizionamentoSync(): boolean {
-    const val = this.getValueSync('showPosizionamento', 'true');
+    const val = this.getValueSync('SHOW_POSIZIONAMENTO', 'false');
     return val === 'true';
   }
 }

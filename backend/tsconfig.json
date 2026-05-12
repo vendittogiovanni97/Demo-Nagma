@@ -13,6 +13,6 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "prisma/**/*"],
   "exclude": ["src/**/__tests__/**", "src/**/*.test.ts", "src/**/*.spec.ts", "node_modules"]
 }

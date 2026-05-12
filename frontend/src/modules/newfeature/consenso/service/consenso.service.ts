@@ -4,7 +4,7 @@ import { PublicBookingData, ConsentSubmission } from '../model/consenso.model';
 
 export const consensoService = {
   getConfig: async () => {
-    return httpClient.get<{ success: boolean; showConsensi: boolean; showPosizionamento: boolean }>(ENDPOINTS.NEW_FEATURE.CONFIG);
+    return httpClient.get<{ success: boolean; SHOW_CONSENSI: boolean; SHOW_POSIZIONAMENTO: boolean }>(ENDPOINTS.NEW_FEATURE.CONFIG);
   },
 
   getBookingPublic: async (id: number) => {

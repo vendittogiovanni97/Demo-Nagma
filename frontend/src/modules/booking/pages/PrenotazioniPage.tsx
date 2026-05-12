@@ -30,7 +30,7 @@ function PrenotazioniPageContent() {
   const [attachmentsBooking, setAttachmentsBooking] = useState<Booking | null>(null);
   const [consentBooking, setConsentBooking] = useState<Booking | null>(null);
   const { confirmDialogProps } = useDeleteConfirm();
-  const { showConsensi } = useConsentConfig();
+  const { SHOW_CONSENSI } = useConsentConfig();
 
   const {
     month,
@@ -157,7 +157,7 @@ function PrenotazioniPageContent() {
       <ConfirmDialog {...confirmDialogProps} />
 
       {/* Consent Details Modal Trigger */}
-      {showConsensi && isSuperAdmin && (
+      {SHOW_CONSENSI && isSuperAdmin && (
         <ConsentModal
           open={consentBooking !== null}
           onClose={() => setConsentBooking(null)}

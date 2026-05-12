@@ -9,9 +9,9 @@ export class ConsentController {
   // GET /api/newfeature/config
   async getConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const showConsensi = await configService.getShowConsensi();
-      const showPosizionamento = await configService.getShowPosizionamento();
-      res.json({ success: true, showConsensi, showPosizionamento });
+      const SHOW_CONSENSI = await configService.getShowConsensi();
+      const SHOW_POSIZIONAMENTO = await configService.getShowPosizionamento();
+      res.json({ success: true, SHOW_CONSENSI, SHOW_POSIZIONAMENTO });
     } catch (err) {
       next(err);
     }

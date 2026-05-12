@@ -2,7 +2,7 @@
 
 import Button from '@/components/ui/Button';
 import {
-  Container,
+  Box,
   Grid,
   Stack,
 } from '@mui/material';
@@ -75,7 +75,7 @@ export default function FinancePage() {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ pt: 1, pb: 4 }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, pt: 1, pb: 4 }}>
       <PageHeader
         title="Storico Movimenti"
         subtitle="Cronologia completa di entrate e uscite dello studio"
@@ -111,7 +111,7 @@ export default function FinancePage() {
         }
       />
 
-      <Grid container spacing={3} sx={{ mb: 4, mt: 1 }}>
+      <Grid container spacing={3} sx={{ mb: 1, mt: 0.5 }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Entrate Totali"
@@ -166,7 +166,7 @@ export default function FinancePage() {
       />
 
       <ConfirmDialog {...confirmDialogProps} />
-    </Container>
+    </Box>
   );
 }
 

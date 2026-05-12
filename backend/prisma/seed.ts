@@ -243,6 +243,15 @@ async function seedConfig(): Promise<void> {
       paramsKey: 'BOOKING_UPDATE_PASSWORD',
       value: process.env.BOOKING_UPDATE_PASSWORD || '',
     },
+    // New Feature Flag Toggles
+    {
+      paramsKey: 'SHOW_CONSENSI',
+      value: 'false',
+    },
+    {
+      paramsKey: 'SHOW_POSIZIONAMENTO',
+      value: 'false',
+    },
   ];
 
   for (const config of configs) {

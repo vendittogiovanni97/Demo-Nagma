@@ -200,7 +200,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   const [formState, dispatch] = useReducer(bookingFormReducer, initialFormState);
 
   // Consensus & Placement States
-  const { showConsensi, showPosizionamento } = useConsentConfig();
+  const { SHOW_CONSENSI, SHOW_POSIZIONAMENTO } = useConsentConfig();
   const [consentOpen, setConsentOpen] = useState(false);
 
   const { data: customerResult, isLoading: customersLoading, mutate: mutateCustomers } = useCustomers({ page: 1, limit: EXPORT_FETCH_LIMIT });
@@ -371,7 +371,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   </Grid>
 
                   {/* Informed Consent Status Row (Conditional Feature Flag check) */}
-                  {showConsensi && isSuperAdmin && (
+                  {SHOW_CONSENSI && isSuperAdmin && (
                     <Grid size={12}>
                       <Box sx={{
                         mt: 1.5,
@@ -644,7 +644,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
       </SmartModal>
 
       {/* Consent Details Modal Trigger */}
-      {showConsensi && isSuperAdmin && booking && (
+      {SHOW_CONSENSI && isSuperAdmin && booking && (
         <ConsentModal
           open={consentOpen}
           onClose={() => setConsentOpen(false)}

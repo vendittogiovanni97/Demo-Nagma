@@ -26,8 +26,8 @@ import { ConsentRecord } from '../model/consent-list.types';
 
 export default function ConsentListPage() {
   const theme = useTheme();
-  const { isAdmin } = useAuth();
-  const { showConsensi, loading: configLoading } = useConsentConfig();
+  const { isSuperAdmin } = useAuth();
+  const { SHOW_CONSENSI, loading: configLoading } = useConsentConfig();
   const { data: consents, isLoading, error } = useConsentList();
 
   const [search, setSearch] = useState('');
@@ -36,7 +36,7 @@ export default function ConsentListPage() {
 
   const filtered = useMemo(() => {
     if (!debouncedSearch.trim()) return consents;
-    const q = debouncedSearch.toLowerCase();
+    const q = debouncedSearch.toLowerCase().trim();
     return consents.filter(
       (c) =>
         c.customerName.toLowerCase().includes(q) ||
@@ -62,7 +62,7 @@ export default function ConsentListPage() {
     );
   }
 
-  if (!isAdmin || !showConsensi) {
+  if (!isSuperAdmin || !SHOW_CONSENSI) {
     return (
       <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <AlertTriangle size={64} color={theme.palette.error.main} style={{ marginBottom: 16 }} />

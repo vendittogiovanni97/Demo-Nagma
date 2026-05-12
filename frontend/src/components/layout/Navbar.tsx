@@ -51,7 +51,7 @@ export default function Navbar() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
-  const { showPosizionamento, showConsensi } = useConsentConfig();
+  const { SHOW_POSIZIONAMENTO, SHOW_CONSENSI } = useConsentConfig();
   const { isSmall, isMedium, isLarge, isXLarge } = useTheme();
   const muiTheme = useMuiTheme() as unknown as Theme;
 
@@ -175,8 +175,8 @@ export default function Navbar() {
                 isAdmin={isAdmin}
                 isSuperAdmin={isSuperAdmin}
                 isLarge={isXLarge}
-                showPosizionamento={showPosizionamento}
-                showConsensi={showConsensi}
+                SHOW_POSIZIONAMENTO={SHOW_POSIZIONAMENTO}
+                SHOW_CONSENSI={SHOW_CONSENSI}
                 onMenuOpen={handleUserMenuOpen}
                 onMenuClose={handleUserMenuClose}
                 onLogout={logout}
@@ -360,8 +360,8 @@ interface NavbarUserMenuProps {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isLarge: boolean;
-  showPosizionamento: boolean;
-  showConsensi: boolean;
+  SHOW_POSIZIONAMENTO: boolean;
+  SHOW_CONSENSI: boolean;
   onMenuOpen: (e: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
   onLogout: () => void;
@@ -376,8 +376,8 @@ function NavbarUserMenu({
   isAdmin,
   isSuperAdmin,
   isLarge,
-  showPosizionamento,
-  showConsensi,
+  SHOW_POSIZIONAMENTO,
+  SHOW_CONSENSI,
   onMenuOpen,
   onMenuClose,
   onLogout,
@@ -391,15 +391,15 @@ function NavbarUserMenu({
     () => [
       { href: '/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
-      { href: '/posizionamento', icon: Map, label: 'Mappa Corporea', show: isSuperAdmin && showPosizionamento },
-      { href: '/consensi', icon: ClipboardList, label: 'Archivio Consensi', show: isAdmin && showConsensi },
+      { href: '/posizionamento', icon: Map, label: 'Mappa Corporea', show: isSuperAdmin && SHOW_POSIZIONAMENTO },
+      { href: '/consensi', icon: ClipboardList, label: 'Archivio Consensi', show: isSuperAdmin && SHOW_CONSENSI },
 
       { href: '/whatsapp', icon: MessageSquare, label: 'WhatsApp', show: isAdmin },
       { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
     ],
-    [isAdmin, isSuperAdmin, showPosizionamento, showConsensi]
+    [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]
   );
 
   return (

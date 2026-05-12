@@ -86,13 +86,8 @@ import { DeleteAttachment } from '../modules/attachment/application/DeleteAttach
 import { GetAttachmentPreview } from '../modules/attachment/application/GetAttachmentPreview';
 import { AttachmentController } from '../modules/attachment/interfaces/AttachmentController';
 
-import { PrismaCreamRepository } from '../modules/cream/infrastructure/PrismaCreamRepository';
-import { GetActiveCream } from '../modules/cream/application/GetActiveCream';
-import { CreateCream } from '../modules/cream/application/CreateCream';
-import { CreateCreamSale } from '../modules/cream/application/CreateCreamSale';
-import { GetCreamSales } from '../modules/cream/application/GetCreamSales';
-import { GetCreamSalesSummary } from '../modules/cream/application/GetCreamSalesSummary';
-import { CreamController } from '../modules/cream/interfaces/CreamController';
+import { CreamService } from '../modules/cream/services/CreamService';
+import { CreamController } from '../modules/cream/controllers/CreamController';
 
 import { PrismaConfigRepository } from '../modules/config/infrastructure/PrismaConfigRepository';
 import { ConfigService } from '../modules/config/application/ConfigService';
@@ -108,7 +103,7 @@ const spesaLiberaRepository = new PrismaSpesaLiberaRepository();
 const formTemplateRepository = new PrismaFormTemplateRepository();
 const whatsappRepository = new PrismaWhatsAppRepository();
 const attachmentRepository = new PrismaAttachmentRepository();
-const creamRepository = new PrismaCreamRepository();
+// Cream Repository is bypassed (using direct Prisma queries in CreamService)
 const configRepository = new PrismaConfigRepository();
 
 // Global Services
@@ -191,12 +186,8 @@ const getBookingAttachments = new GetBookingAttachments(attachmentRepository);
 const deleteAttachment = new DeleteAttachment(attachmentRepository);
 const getAttachmentPreview = new GetAttachmentPreview();
 
-// Use Cases - Cream
-const getActiveCream = new GetActiveCream(creamRepository);
-const createCream = new CreateCream(creamRepository);
-const createCreamSale = new CreateCreamSale(creamRepository);
-const getCreamSales = new GetCreamSales(creamRepository);
-const getCreamSalesSummary = new GetCreamSalesSummary(creamRepository);
+// Services - Cream
+const creamService = new CreamService();
 
 // Controllers
 const customerController = new CustomerController(
@@ -287,13 +278,7 @@ const attachmentController = new AttachmentController(
   getAttachmentPreview
 );
 
-const creamController = new CreamController(
-  getActiveCream,
-  createCream,
-  createCreamSale,
-  getCreamSales,
-  getCreamSalesSummary
-);
+const creamController = new CreamController(creamService);
 
 export const container = {
   customerController,

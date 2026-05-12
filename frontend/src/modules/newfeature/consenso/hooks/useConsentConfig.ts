@@ -5,8 +5,8 @@ import { consensoService } from '../service/consenso.service';
 
 export function useConsentConfig() {
   const [loading, setLoading] = useState(true);
-  const [showConsensi, setShowConsensi] = useState(false);
-  const [showPosizionamento, setShowPosizionamento] = useState(false);
+  const [SHOW_CONSENSI, setSHOW_CONSENSI] = useState(false);
+  const [SHOW_POSIZIONAMENTO, setSHOW_POSIZIONAMENTO] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -14,13 +14,13 @@ export function useConsentConfig() {
       try {
         const res = await consensoService.getConfig();
         if (active) {
-          setShowConsensi(res.success ? res.showConsensi : false);
-          setShowPosizionamento(res.success ? res.showPosizionamento : false);
+          setSHOW_CONSENSI(res.success ? res.SHOW_CONSENSI : false);
+          setSHOW_POSIZIONAMENTO(res.success ? res.SHOW_POSIZIONAMENTO : false);
         }
       } catch {
         if (active) {
-          setShowConsensi(false);
-          setShowPosizionamento(false);
+          setSHOW_CONSENSI(false);
+          setSHOW_POSIZIONAMENTO(false);
         }
       } finally {
         if (active) {
@@ -36,5 +36,5 @@ export function useConsentConfig() {
     };
   }, []);
 
-  return { loading, showConsensi, showPosizionamento };
+  return { loading, SHOW_CONSENSI, SHOW_POSIZIONAMENTO };
 }

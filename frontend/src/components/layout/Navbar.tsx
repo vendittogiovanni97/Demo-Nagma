@@ -28,7 +28,8 @@ import {
   Plus,
   Receipt,
   Map,
-  ClipboardList
+  ClipboardList,
+  Shield
 } from "lucide-react";
 
 import Image from "next/image";
@@ -54,6 +55,18 @@ export default function Navbar() {
   const { SHOW_POSIZIONAMENTO, SHOW_CONSENSI } = useConsentConfig();
   const { isSmall, isMedium, isLarge, isXLarge } = useTheme();
   const muiTheme = useMuiTheme() as unknown as Theme;
+
+  const filteredNavItems = useMemo(() => {
+    const items = [...navItems];
+    if (isSuperAdmin) {
+      items.push({
+        name: "Admin Panel",
+        href: "/admin-panel",
+        icon: Shield
+      });
+    }
+    return items;
+  }, [isSuperAdmin]);
 
   // Memoize responsive sizing to avoid 57+ calculations per render
   const navConfig = useMemo(
@@ -131,7 +144,7 @@ export default function Navbar() {
               <NavbarLogo navConfig={navConfig} />
               <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'rgba(0, 191, 255, 0.12)' }} />
               <NavbarItems
-                items={navItems}
+                items={filteredNavItems}
                 pathname={pathname}
                 navConfig={navConfig}
                 muiTheme={muiTheme}

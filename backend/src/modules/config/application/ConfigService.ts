@@ -32,6 +32,7 @@ export class ConfigService {
       { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
       { paramsKey: 'SHOW_CONSENSI', value: 'false' },
       { paramsKey: 'SHOW_POSIZIONAMENTO', value: 'false' },
+      { paramsKey: 'DEFAULT_PHONE_PREFIX', value: '+39' },
     ];
 
     for (const d of defaults) {
@@ -114,5 +115,13 @@ export class ConfigService {
   getShowPosizionamentoSync(): boolean {
     const val = this.getValueSync('SHOW_POSIZIONAMENTO', 'false');
     return val === 'true';
+  }
+
+  async getDefaultPhonePrefix(): Promise<string> {
+    return this.getValue('DEFAULT_PHONE_PREFIX', '+39');
+  }
+
+  getDefaultPhonePrefixSync(): string {
+    return this.getValueSync('DEFAULT_PHONE_PREFIX', '+39');
   }
 }

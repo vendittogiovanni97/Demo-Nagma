@@ -17,6 +17,7 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
 import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
 import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
+import { consensoService } from '@/modules/newfeature/consenso/service/consenso.service';
 // Components
 import SmartModal from '@/components/common/SmartModal';
 import FormAutocomplete from '@/components/forms/FormAutocomplete';
@@ -281,9 +282,22 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
       if (!formState.newCustomerFirstName || !formState.newCustomerLastName || !formState.newCustomerPhone) { toast.error('Dati nuovo cliente mancanti'); return; }
       dispatch({ type: 'SET_FIELD', field: 'loading', payload: true });
       try {
+        let cleanPhone = formState.newCustomerPhone.trim().replace(/\s+/g, '');
+        if (cleanPhone && !cleanPhone.startsWith('+') && !cleanPhone.startsWith('00')) {
+          try {
+            const res = await consensoService.getConfig();
+            const prefix = res.DEFAULT_PHONE_PREFIX || '+39';
+            cleanPhone = prefix + cleanPhone;
+          } catch {
+            cleanPhone = '+39' + cleanPhone;
+          }
+        }
+
         const newCustomer = await customerService.create({
-          firstName: formState.newCustomerFirstName, lastName: formState.newCustomerLastName,
-          phone: formState.newCustomerPhone, email: formState.newCustomerEmail.trim() || undefined
+          firstName: formState.newCustomerFirstName,
+          lastName: formState.newCustomerLastName,
+          phone: cleanPhone,
+          email: formState.newCustomerEmail.trim() || undefined
         });
         customerId = newCustomer.id.toString();
         await mutateCustomers();

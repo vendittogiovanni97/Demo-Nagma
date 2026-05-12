@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { consensoService } from '../service/consenso.service';
 
 export function useConsentConfig() {
@@ -8,33 +8,40 @@ export function useConsentConfig() {
   const [SHOW_CONSENSI, setSHOW_CONSENSI] = useState(false);
   const [SHOW_POSIZIONAMENTO, setSHOW_POSIZIONAMENTO] = useState(false);
 
+  const loadConfig = useCallback(async (active = true) => {
+    try {
+      const res = await consensoService.getConfig();
+      if (active) {
+        setSHOW_CONSENSI(res.success ? res.SHOW_CONSENSI : false);
+        setSHOW_POSIZIONAMENTO(res.success ? res.SHOW_POSIZIONAMENTO : false);
+      }
+    } catch {
+      if (active) {
+        setSHOW_CONSENSI(false);
+        setSHOW_POSIZIONAMENTO(false);
+      }
+    } finally {
+      if (active) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
-    const loadConfig = async () => {
-      try {
-        const res = await consensoService.getConfig();
-        if (active) {
-          setSHOW_CONSENSI(res.success ? res.SHOW_CONSENSI : false);
-          setSHOW_POSIZIONAMENTO(res.success ? res.SHOW_POSIZIONAMENTO : false);
-        }
-      } catch {
-        if (active) {
-          setSHOW_CONSENSI(false);
-          setSHOW_POSIZIONAMENTO(false);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
+    loadConfig(active);
+
+    const handleUpdate = () => {
+      loadConfig(active);
     };
 
-    loadConfig();
+    window.addEventListener('consent-config-updated', handleUpdate);
 
     return () => {
       active = false;
+      window.removeEventListener('consent-config-updated', handleUpdate);
     };
-  }, []);
+  }, [loadConfig]);
 
   return { loading, SHOW_CONSENSI, SHOW_POSIZIONAMENTO };
 }

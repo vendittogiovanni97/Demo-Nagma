@@ -10,7 +10,7 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children }: AuthGuardProps) {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin, isSuperAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,11 +23,17 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // Role-based route authorization
-    const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/posizionamento', '/consensi'];
+    const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/posizionamento', '/consensi', '/admin-panel'];
     const isAdminPath = adminOnlyPaths.some(p => pathname === p || pathname?.startsWith(p + '/'));
 
     if (isAdminPath && !isAdmin) {
       router.push('/');
+      return;
+    }
+
+    if ((pathname === '/admin-panel' || pathname?.startsWith('/admin-panel/')) && !isSuperAdmin) {
+      router.push('/');
+      return;
     }
   }, [isAuthenticated, isLoading, isAdmin, pathname, router]);
 
@@ -60,9 +66,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // Role check fallback to avoid content flash during redirect
-  const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/posizionamento', '/consensi'];
+  const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/posizionamento', '/consensi', '/admin-panel'];
   const isAdminPath = adminOnlyPaths.some(p => pathname === p || pathname?.startsWith(p + '/'));
   if (isAdminPath && !isAdmin) {
+    return null;
+  }
+  if ((pathname === '/admin-panel' || pathname?.startsWith('/admin-panel/')) && !isSuperAdmin) {
     return null;
   }
 

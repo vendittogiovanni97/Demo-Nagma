@@ -17,6 +17,8 @@ import { Box } from '@mui/material';
 import FormInput from '@/components/forms/FormInput';
 import FormTextarea from '@/components/forms/FormTextarea';
 
+import { consensoService } from '@/modules/newfeature/consenso/service/consenso.service';
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -58,12 +60,28 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
   }, [customer, isOpen]);
 
   const handleSave = async () => {
-    const validationError = validateData(createCustomerSchema, formData);
+    let cleanPhone = formData.phone.trim().replace(/\s+/g, '');
+    if (cleanPhone && !cleanPhone.startsWith('+') && !cleanPhone.startsWith('00')) {
+      try {
+        const res = await consensoService.getConfig();
+        const prefix = res.DEFAULT_PHONE_PREFIX || '+39';
+        cleanPhone = prefix + cleanPhone;
+      } catch {
+        cleanPhone = '+39' + cleanPhone;
+      }
+    }
+
+    const updatedData = {
+      ...formData,
+      phone: cleanPhone,
+    };
+
+    const validationError = validateData(createCustomerSchema, updatedData);
     if (validationError) {
       toast.error(extractErrorMessage(new Error(validationError), validationError));
       return;
     }
-    await submitForm(formData);
+    await submitForm(updatedData);
   };
 
   return (

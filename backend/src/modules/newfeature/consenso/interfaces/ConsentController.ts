@@ -11,7 +11,37 @@ export class ConsentController {
     try {
       const SHOW_CONSENSI = await configService.getShowConsensi();
       const SHOW_POSIZIONAMENTO = await configService.getShowPosizionamento();
-      res.json({ success: true, SHOW_CONSENSI, SHOW_POSIZIONAMENTO });
+      const DEFAULT_PHONE_PREFIX = await configService.getDefaultPhonePrefix();
+      res.json({ success: true, SHOW_CONSENSI, SHOW_POSIZIONAMENTO, DEFAULT_PHONE_PREFIX });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // POST /api/newfeature/config
+  async updateConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { SHOW_CONSENSI, SHOW_POSIZIONAMENTO, DEFAULT_PHONE_PREFIX } = req.body;
+
+      if (SHOW_CONSENSI !== undefined) {
+        await configService.setValue('SHOW_CONSENSI', SHOW_CONSENSI.toString());
+      }
+      if (SHOW_POSIZIONAMENTO !== undefined) {
+        await configService.setValue('SHOW_POSIZIONAMENTO', SHOW_POSIZIONAMENTO.toString());
+      }
+      if (DEFAULT_PHONE_PREFIX !== undefined) {
+        await configService.setValue('DEFAULT_PHONE_PREFIX', DEFAULT_PHONE_PREFIX.toString());
+      }
+
+      res.json({
+        success: true,
+        message: 'Configurazione aggiornata con successo',
+        data: {
+          SHOW_CONSENSI: SHOW_CONSENSI !== undefined ? SHOW_CONSENSI.toString() === 'true' : undefined,
+          SHOW_POSIZIONAMENTO: SHOW_POSIZIONAMENTO !== undefined ? SHOW_POSIZIONAMENTO.toString() === 'true' : undefined,
+          DEFAULT_PHONE_PREFIX
+        }
+      });
     } catch (err) {
       next(err);
     }

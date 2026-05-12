@@ -14,6 +14,7 @@ interface FormTextareaProps {
   rows?: number;
   disabled?: boolean;
   error?: string;
+  id?: string;
 }
 
 export default function FormTextarea({
@@ -26,6 +27,7 @@ export default function FormTextarea({
   rows = 3,
   disabled,
   error,
+  id,
 }: FormTextareaProps) {
   const theme = useTheme();
 
@@ -49,6 +51,7 @@ export default function FormTextarea({
         {label}
       </Box>
       <TextField
+        id={id}
         multiline
         rows={rows}
         fullWidth

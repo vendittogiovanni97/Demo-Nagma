@@ -18,6 +18,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 interface AttachmentListProps {
   bookingId: string;
   onRefresh?: () => void;
+  refreshTrigger?: number;
 }
 
 function formatFileSize(bytes: number): string {
@@ -38,10 +39,10 @@ function getFileExtension(fileName: string): string {
   return fileName.split('.').pop()?.toUpperCase() || '?';
 }
 
-export default function AttachmentList({ bookingId, onRefresh }: AttachmentListProps) {
+export default function AttachmentList({ bookingId, onRefresh, refreshTrigger }: AttachmentListProps) {
   const theme = useTheme();
   const { attachments, isLoading, deleting, deleteAttachment, downloadAttachment } = useAttachments({
-    bookingId, enabled: !!bookingId,
+    bookingId, enabled: !!bookingId, refreshTrigger,
   });
 
   const [previewOpen, setPreviewOpen] = useState(false);

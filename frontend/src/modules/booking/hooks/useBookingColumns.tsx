@@ -1,19 +1,19 @@
 "use client";
 
-import { useMemo } from 'react';
-import { useTheme } from '@mui/material/styles';
-import { Box, Chip, Stack, Typography, Badge } from '@mui/material';
-import { Clock, Phone, Timer, Paperclip } from 'lucide-react';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
 import type { Column } from '@/components/data-display/DataTable';
 import type { ExportFilter } from '@/components/modals/ExportModal';
 import type { Booking, BookingStatus } from '@/modules/booking/model/booking.types';
+import { Badge, Box, Chip, Stack, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { Clock, Paperclip, Phone, Timer } from 'lucide-react';
+import { useMemo } from 'react';
 
 // Consensus Integration
-import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
-import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
 import { useAuth } from '@/context/AuthContext';
+import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
+import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'error' | 'primary' | 'success' | 'warning' | 'info' | 'default' | 'secondary' }> = {
   CREATO: { label: 'Creato', color: 'info' },
@@ -40,7 +40,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'cliente',
       label: 'Cliente',
-      width: '250px',
+      width: '200px',
       render: (booking) => (
         booking.customer ? (
           <Box sx={{ minWidth: 0 }}>
@@ -71,7 +71,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'artista',
       label: 'Artista',
-      width: '180px',
+      width: '150px',
       render: (booking) => (
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
           <Box
@@ -119,7 +119,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'data_ora',
       label: 'Data & Ora',
-      width: '170px',
+      width: '140px',
       render: (booking) => (
         <Stack useFlexGap sx={{ gap: 0.25 }}>
           <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
@@ -176,15 +176,27 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       label: 'Prenotato il',
       width: '125px',
       render: (booking) => (
-        <Typography
-          variant="caption"
-          sx={{
-            color: theme.palette.text.secondary,
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {format(new Date(booking.createdAt), 'dd MMM yyyy', { locale: it })}
-        </Typography>
+        <Stack useFlexGap sx={{ gap: 0.25 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: theme.palette.text.primary,
+              fontWeight: 500,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {format(new Date(booking.createdAt), 'dd MMM yyyy', { locale: it })}
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: theme.palette.text.secondary,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {format(new Date(booking.createdAt), 'HH:mm')}
+          </Typography>
+        </Stack>
       ),
     },
     {
@@ -326,26 +338,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
         );
       },
     },
-    {
-      key: 'note',
-      label: 'Note',
-      width: '160px',
-      render: (booking) => (
-        <Typography
-          variant="caption"
-          sx={{
-            color: theme.palette.text.secondary,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            maxWidth: 160,
-          }}
-        >
-          {booking.notes || '—'}
-        </Typography>
-      ),
-    },
+
     {
       key: 'allegati',
       label: 'Allegati',
@@ -479,10 +472,13 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       type: 'select',
       options: [
         { value: '', label: 'Tutti gli stati' },
+        { value: 'CREATO', label: 'Creato' },
         { value: 'CONFERMATO', label: 'Confermato' },
         { value: 'COMPLETATO', label: 'Completato' },
+        { value: 'MODIFICATO', label: 'Modificato' },
         { value: 'ANNULLATO', label: 'Annullato' },
         { value: 'SPOSTATO', label: 'Spostato' },
+        { value: 'CANCELLATO', label: 'Cancellato' },
       ],
       filterFn: (b, v) => !v || b.status === v,
     },

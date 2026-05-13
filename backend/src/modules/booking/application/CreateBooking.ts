@@ -22,7 +22,7 @@ export class CreateBooking {
       );
     }
 
-    return this.bookingRepository.executeInTransaction(async (repo) => {
+    return this.bookingRepository.executeInTransaction(async (repo, tx) => {
       const booking = new Booking({
         customerId: data.customerId,
         artistId: data.artistId,
@@ -43,6 +43,25 @@ export class CreateBooking {
         newDate: saved.date,
         changedById,
       }));
+
+      // Create deposit transaction if deposit exists
+      if (saved.deposit && saved.deposit > 0) {
+        const customerName = saved.customer 
+          ? `${saved.customer.firstName} ${saved.customer.lastName || ''}`.trim() 
+          : 'Cliente';
+        
+        await tx.transaction.create({
+          data: {
+            type: 'INCOME',
+            category: 'Acconto',
+            description: `Acconto prenotazione #${saved.id} - ${customerName}`,
+            amount: saved.deposit,
+            date: new Date(),
+            sourceId: saved.id,
+            sourceType: 'BOOKING_DEPOSIT',
+          },
+        });
+      }
 
       return saved;
     });

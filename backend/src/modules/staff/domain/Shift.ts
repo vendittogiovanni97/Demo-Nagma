@@ -8,6 +8,7 @@ export interface ShiftProps {
   notes?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
+  staff?: any;
 }
 
 export class Shift {
@@ -20,6 +21,7 @@ export class Shift {
   get endTime() { return this.props.endTime; }
   get breakDuration() { return this.props.breakDuration; }
   get notes() { return this.props.notes; }
+  get staff() { return this.props.staff; }
 
   toJSON() {
     return { ...this.props };

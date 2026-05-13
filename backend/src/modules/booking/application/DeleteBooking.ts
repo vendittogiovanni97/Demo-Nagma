@@ -25,6 +25,34 @@ export class DeleteBooking {
           sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
         },
       });
+
+      // Create deposit refund expense transaction if booking has deposit and no refund exists yet
+      if (oldBooking.deposit && oldBooking.deposit > 0) {
+        const existingRefund = await tx.transaction.findFirst({
+          where: {
+            sourceId: id,
+            sourceType: 'BOOKING_REFUND',
+          },
+        });
+
+        if (!existingRefund) {
+          const customerName = oldBooking.customer 
+            ? `${oldBooking.customer.firstName} ${oldBooking.customer.lastName || ''}`.trim() 
+            : 'Cliente';
+
+          await tx.transaction.create({
+            data: {
+              type: 'EXPENSE',
+              category: 'Acconto',
+              description: `Rimborso acconto prenotazione #${oldBooking.id} - ${customerName}`,
+              amount: oldBooking.deposit,
+              date: new Date(), // Today (date of cancellation refund)
+              sourceId: oldBooking.id,
+              sourceType: 'BOOKING_REFUND',
+            },
+          });
+        }
+      }
     });
   }
 }

@@ -21,6 +21,7 @@ export class PrismaShiftRepository implements IShiftRepository {
       notes: raw.notes,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
+      staff: raw.staff,
     });
   }
 

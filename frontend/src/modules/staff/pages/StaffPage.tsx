@@ -123,7 +123,21 @@ export default function StaffPage() {
             columns={[
               { label: 'Collaboratore', value: (shift: Shift) => shift.staff?.name || '' },
               { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
-              { label: 'Giorno', value: (shift: Shift) => shift.dayOfWeek.toString() },
+              {
+                label: 'Giorno',
+                value: (shift: Shift) => {
+                  const DAYS = [
+                    'Lunedì',
+                    'Martedì',
+                    'Mercoledì',
+                    'Giovedì',
+                    'Venerdì',
+                    'Sabato',
+                    'Domenica',
+                  ];
+                  return DAYS[shift.dayOfWeek] || '';
+                },
+              },
               {
                 label: 'Orario',
                 value: (shift: Shift) =>

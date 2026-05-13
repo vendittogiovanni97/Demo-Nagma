@@ -15,6 +15,8 @@ export interface Column<T> {
   align?: 'left' | 'center' | 'right';
   width?: string;
   render?: (item: T) => ReactNode;
+  valueGetter?: (item: T) => any;
+  sortable?: boolean;
 }
 
 export interface DataTableProps<T> {
@@ -74,16 +76,66 @@ export default function DataTable<T extends object>({
 
       const def: ColDef<T> = {
         headerName: col.label,
-        sortable: true, resizable: true, suppressMovable: true,
+        sortable: col.sortable !== false, resizable: true, suppressMovable: true,
         ...(pxWidth ? { width: pxWidth } : { flex: 1 }),
       };
+
+      // Set up valueGetter for sorting and filtering
+      if (col.valueGetter) {
+        def.valueGetter = (params) => params.data ? col.valueGetter!(params.data) : '';
+      } else {
+        def.valueGetter = (params) => {
+          if (!params.data) return '';
+          const key = col.key;
+          const dataAny = params.data as any;
+          
+          if (key === 'cliente' || key === 'client') {
+            const cust = dataAny.customer || dataAny.booking?.customer;
+            return cust ? `${cust.firstName} ${cust.lastName}`.trim() : '';
+          }
+          if (key === 'artista' || key === 'artist') {
+            return dataAny.artist?.name || dataAny.booking?.artist?.name || '';
+          }
+          if (key === 'telefono' || key === 'phone') {
+            return dataAny.customer?.phone || dataAny.booking?.customer?.phone || '';
+          }
+          if (key === 'data_ora' || key === 'date' || key === 'data') {
+            return dataAny.date || dataAny.booking?.date || '';
+          }
+          if (key === 'prenotato_il' || key === 'createdAt') {
+            return dataAny.createdAt || dataAny.booking?.createdAt || '';
+          }
+          if (key === 'stato' || key === 'status') {
+            return dataAny.status || dataAny.booking?.status || '';
+          }
+          if (key === 'durata' || key === 'duration') {
+            return dataAny.duration || dataAny.booking?.duration || 0;
+          }
+          if (key === 'prezzo' || key === 'price') {
+            return dataAny.price || dataAny.booking?.price || 0;
+          }
+          if (key === 'saldo' || key === 'balance') {
+            return dataAny.balance || dataAny.booking?.balance || 0;
+          }
+          if (key === 'changedBy') {
+            return dataAny.changedBy?.name || '';
+          }
+          if (key === 'changedAt') {
+            return dataAny.changedAt || '';
+          }
+          if (key === 'action') {
+            return dataAny.action || '';
+          }
+          
+          return dataAny[col.key] !== undefined ? dataAny[col.key] : '';
+        };
+      }
 
       if (col.render) {
         def.cellRenderer = (params: ICellRendererParams<T>) =>
           params.data ? <div style={alignStyle}>{col.render!(params.data)}</div> : null;
       } else {
         def.cellStyle = col.align && col.align !== 'left' ? { textAlign: col.align } : undefined;
-        def.valueGetter = (params) => params.data ? String((params.data as Record<string, unknown>)[col.key] ?? '') : '';
       }
       return def;
     });
@@ -91,7 +143,7 @@ export default function DataTable<T extends object>({
     if (actions) {
       cols.push({
         headerName: 'Azioni',
-        sortable: false, resizable: false, suppressMovable: true, width: 170,
+        sortable: false, resizable: false, suppressMovable: true, width: 200,
         cellRenderer: (params: ICellRendererParams<T>) =>
           params.data ? <div style={{ ...CELL_WRAP_BASE, justifyContent: 'center' }}>{actions(params.data)}</div> : null,
       });

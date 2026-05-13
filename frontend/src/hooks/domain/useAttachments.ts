@@ -24,12 +24,13 @@ function authHeaders(extra: Record<string, string> = {}): Record<string, string>
 interface UseAttachmentsOptions {
   bookingId?: string;
   enabled?: boolean;
+  refreshTrigger?: number;
 }
 
 /**
  * Hook per gestire list, upload, delete di attachment
  */
-export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOptions) {
+export function useAttachments({ bookingId, enabled = true, refreshTrigger }: UseAttachmentsOptions) {
   const toast = useToast();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +55,7 @@ export function useAttachments({ bookingId, enabled = true }: UseAttachmentsOpti
 
   useEffect(() => {
     fetchAttachments();
-  }, [fetchAttachments]);
+  }, [fetchAttachments, refreshTrigger]);
 
   /**
    * Upload file verso API

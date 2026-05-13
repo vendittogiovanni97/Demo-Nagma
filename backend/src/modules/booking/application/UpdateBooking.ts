@@ -62,19 +62,32 @@ export class UpdateBooking {
     const artistPrice = fd && typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
     const fullPrice = booking.price ?? 0;
     const bookingDate = booking.date ?? new Date();
+    
+    const customerName = booking.customer 
+      ? `${booking.customer.firstName} ${booking.customer.lastName || ''}`.trim() 
+      : 'Cliente';
 
-    // INCOME
-    await tx.transaction.create({
-      data: {
-        type: 'INCOME',
-        category: 'Tatuaggio',
-        description: `Incasso prenotazione #${booking.id}`,
-        amount: fullPrice,
-        date: bookingDate,
-        sourceId: booking.id,
-        sourceType: 'BOOKING',
-      },
-    });
+    const depositAmount = booking.deposit ?? 0;
+    const finalIncomeAmount = fullPrice - depositAmount;
+
+    // INCOME (Only if remaining balance > 0)
+    if (finalIncomeAmount > 0) {
+      const description = depositAmount > 0 
+        ? `Saldo prenotazione #${booking.id} - ${customerName}`
+        : `Incasso prenotazione #${booking.id} - ${customerName}`;
+
+      await tx.transaction.create({
+        data: {
+          type: 'INCOME',
+          category: 'Tatuaggio',
+          description,
+          amount: finalIncomeAmount,
+          date: bookingDate,
+          sourceId: booking.id,
+          sourceType: 'BOOKING',
+        },
+      });
+    }
 
     // EXPENSE (artist commission)
     if (artistPrice > 0) {

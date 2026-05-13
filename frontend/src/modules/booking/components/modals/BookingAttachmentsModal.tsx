@@ -1,26 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
+  Chip,
   Stack,
-  Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Plus, X } from 'lucide-react';
-import { useAttachments } from '@/hooks/domain/useAttachments';
+import { Plus } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
+import SmartModal from '@/components/common/SmartModal';
+import Button from '@/components/ui/Button';
+import { useAuth } from '@/context/AuthContext';
 import {
   AttachmentList,
   AttachmentUploadModal,
 } from '@/modules/booking/components/attachments';
-import Button from '@/components/ui/Button';
-import { useAuth } from '@/context/AuthContext';
 import type { Booking } from '@/modules/booking/model/booking.types';
 
 interface BookingAttachmentsModalProps {
@@ -41,11 +37,7 @@ export default function BookingAttachmentsModal({
   const { isAdmin } = useAuth();
 
   const bookingId = booking ? String(booking.id) : '';
-  const { refreshList } = useAttachments({
-    bookingId,
-    enabled: isOpen && !!bookingId,
-  });
-
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   useEffect(() => {
@@ -53,10 +45,10 @@ export default function BookingAttachmentsModal({
   }, [booking?.id]);
 
   const handleUploadSuccess = useCallback(() => {
-    refreshList();
+    setRefreshTrigger((prev) => prev + 1);
     setIsUploadOpen(false);
     onMutate?.();
-  }, [refreshList, onMutate]);
+  }, [onMutate]);
 
   if (!booking) return null;
 
@@ -66,91 +58,57 @@ export default function BookingAttachmentsModal({
 
   return (
     <>
-      <Dialog
-        open={isOpen}
+      <SmartModal
+        isOpen={isOpen}
         onClose={onClose}
-        fullScreen={fullScreen}
+        title="Allegati prenotazione"
         maxWidth="md"
-        fullWidth
-        aria-labelledby="booking-attachments-title"
-      >
-        <DialogTitle
-          id="booking-attachments-title"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-            pr: 2,
-          }}
-        >
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
-              component="div"
-              sx={{
-                fontSize: { xs: '1rem', sm: '1.125rem' },
-                fontWeight: 700,
-                color: theme.palette.primary.main,
-                fontFamily: 'Outfit, sans-serif',
-                lineHeight: 1.2,
-              }}
-            >
-              Allegati prenotazione
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: theme.palette.text.secondary,
-                fontSize: '0.8125rem',
-                mt: 0.25,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {customerName}
-            </Typography>
-          </Box>
-          <IconButton
-            onClick={onClose}
-            aria-label="Chiudi"
+        showFooter={false}
+        headerAction={
+          <Chip
+            label={customerName}
             size="small"
-            sx={{ flexShrink: 0 }}
-          >
-            <X size={20} />
-          </IconButton>
-        </DialogTitle>
-
-        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-          <Stack spacing={2}>
-            {isAdmin && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: { xs: 'stretch', sm: 'flex-end' },
+            sx={{
+              backgroundColor: 'rgba(0, 191, 255, 0.08)',
+              color: 'primary.main',
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              border: '1px solid rgba(0, 191, 255, 0.15)',
+              fontFamily: 'Outfit, sans-serif',
+              height: 24,
+              px: 0.5,
+            }}
+          />
+        }
+      >
+        <Stack spacing={2}>
+          {isAdmin && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'stretch', sm: 'flex-end' },
+              }}
+            >
+              <Button
+                variant="primary"
+                icon={<Plus size={16} />}
+                onClick={(e) => {
+                  // Blur il pulsante prima di aprire il Dialog secondario:
+                  // MUI imposta aria-hidden sul Dialog parent e i lettori di
+                  // schermo lamentano il focus rimasto su un nodo nascosto.
+                  (e.currentTarget as HTMLButtonElement).blur();
+                  setIsUploadOpen(true);
                 }}
+                fullWidth={fullScreen}
               >
-                <Button
-                  variant="primary"
-                  icon={<Plus size={16} />}
-                  onClick={(e) => {
-                    // Blur il pulsante prima di aprire il Dialog secondario:
-                    // MUI imposta aria-hidden sul Dialog parent e i lettori di
-                    // schermo lamentano il focus rimasto su un nodo nascosto.
-                    (e.currentTarget as HTMLButtonElement).blur();
-                    setIsUploadOpen(true);
-                  }}
-                  fullWidth={fullScreen}
-                >
-                  Carica allegato
-                </Button>
-              </Box>
-            )}
+                Carica allegato
+              </Button>
+            </Box>
+          )}
 
-            <AttachmentList bookingId={bookingId} />
-          </Stack>
-        </DialogContent>
-      </Dialog>
+          <AttachmentList bookingId={bookingId} refreshTrigger={refreshTrigger} />
+        </Stack>
+      </SmartModal>
 
       <AttachmentUploadModal
         bookingId={bookingId}

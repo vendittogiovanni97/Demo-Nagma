@@ -10,6 +10,7 @@ import { Box } from '@mui/material';
 import { Clock } from 'lucide-react';
 
 import StatePanel from '@/components/feedback/StatePanel';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface AgendaCalendarProps {
   isLoading: boolean;
@@ -34,12 +35,14 @@ export default function AgendaCalendar({
   handleDatesSet,
   handleMoreLinkClick,
 }: AgendaCalendarProps) {
+  const { isSmall } = useBreakpoint();
+
   return (
     <Box
       className="fc-materio-wrapper"
       sx={{
         flex: 1,
-        p: 3,
+        p: { xs: 1, sm: 2, md: 3 },
         overflow: 'hidden',
       }}
       role="grid"
@@ -71,11 +74,19 @@ export default function AgendaCalendar({
           slotDuration="00:30:00"
           slotLabelInterval="01:00:00"
           slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-          headerToolbar={{
-            left: 'prev title next',
-            center: '',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-          }}
+          headerToolbar={
+            isSmall
+              ? {
+                  left: 'prev,next',
+                  center: 'title',
+                  right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                }
+              : {
+                  left: 'prev title next',
+                  center: '',
+                  right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                }
+          }
           buttonText={{ today: 'Oggi', month: 'Mese', week: 'Settimana', day: 'Giorno' }}
           events={events}
           eventContent={renderEventContent}
@@ -88,7 +99,11 @@ export default function AgendaCalendar({
           dayMaxEvents={2}
           moreLinkClick={handleMoreLinkClick}
           weekText="Settimana"
-          dayHeaderFormat={{ weekday: 'short', day: '2-digit', month: '2-digit' }}
+          dayHeaderFormat={
+            isSmall
+              ? { weekday: 'short' } // Just "lun", "mar" on mobile
+              : { weekday: 'short', day: '2-digit', month: '2-digit' } // "lun 05/01" on desktop
+          }
           dayCellContent={renderDayCellContent}
           datesSet={handleDatesSet}
         />

@@ -55,6 +55,7 @@ export default function AgendaPage() {
   const renderEventContent = useCallback((arg: EventContentArg) => (
     <CalendarEvent
       booking={arg.event.extendedProps.booking as BookingModel}
+      isMonthView={arg.view.type === 'dayGridMonth'}
     />
   ), []);
 
@@ -74,6 +75,9 @@ export default function AgendaPage() {
   }, [setCurrentMonth]);
 
   const handleMoreLinkClick = useCallback((info: any) => {
+    if (info.jsEvent) {
+      info.jsEvent.preventDefault();
+    }
     const clickedDateStr = format(info.date, 'yyyy-MM-dd');
     const dayBookings = bookingsList.filter(b => {
       const bDateStr = format(new Date(b.date), 'yyyy-MM-dd');
@@ -83,6 +87,7 @@ export default function AgendaPage() {
       date: info.date,
       bookings: dayBookings as BookingModel[],
     });
+    return 'none';
   }, [bookingsList]);
 
   return (
@@ -107,11 +112,11 @@ export default function AgendaPage() {
           borderRadius: 2,
           overflow: 'hidden',
           height: {
-            xs: 'calc(100vh - 40px)',
-            sm: 'calc(100vh - 45px)',
-            md: 'calc(100vh - 45px)',
+            xs: 'calc(100vh - 120px)',
+            sm: 'calc(100vh - 130px)',
+            md: 'calc(100vh - 140px)',
           },
-          minHeight: { md: 1080 },
+          minHeight: { md: 680 },
         }}
       >
         <AgendaCalendar

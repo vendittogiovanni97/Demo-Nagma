@@ -140,7 +140,9 @@ const styles = {
     }
   } as SxProps<Theme>,
   content: {
-    px: 3, py: 3,
+    px: 3,
+    pt: '16px !important',
+    pb: 3,
     '&::-webkit-scrollbar': { width: '6px' },
     '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
     '&::-webkit-scrollbar-thumb': {

@@ -15,15 +15,12 @@ export class GetFinanceSummary {
     if (cached) return cached;
 
     const transactionSummary = await this.transactionRepository.getSummary(month);
-    const speseLibere = await this.spesaLiberaRepository.findAll(month);
     
-    const speseLibereTotalExpense = speseLibere.reduce((sum, spesa) => {
-      const price = spesa.toJSON().price;
-      return sum + price;
-    }, 0);
-
+    // Every "Spesa Libera" is already registered as a transaction in the database upon creation,
+    // so transactionSummary.totalExpense already includes all "Spese Libere".
+    // Adding speseLibereTotalExpense here was causing a double-expense counting bug!
     const totalIncome = transactionSummary.totalIncome;
-    const totalExpense = transactionSummary.totalExpense + speseLibereTotalExpense;
+    const totalExpense = transactionSummary.totalExpense;
 
     const result = {
       totalIncome,

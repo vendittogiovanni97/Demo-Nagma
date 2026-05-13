@@ -2,21 +2,18 @@
 
 import React from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Box,
   Typography,
   Stack,
   Avatar,
   Chip,
-  IconButton,
+  Button,
 } from '@mui/material';
-import { X, Calendar, User, Palette, Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+
+import SmartModal from '@/components/common/SmartModal';
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 
 interface DayBookingsModalProps {
@@ -48,172 +45,181 @@ export default function DayBookingsModal({
   };
 
   return (
-    <Dialog
-      open={isOpen}
+    <SmartModal
+      isOpen={isOpen}
       onClose={onClose}
+      title="Appuntamenti di oggi"
+      headerAction={
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'rgba(255, 255, 255, 0.6)',
+            textTransform: 'capitalize',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            ml: 1,
+            letterSpacing: '0.02em'
+          }}
+        >
+          {formattedDate}
+        </Typography>
+      }
+      showFooter={false}
       maxWidth="sm"
-      fullWidth
-      sx={{
-        '& .MuiDialog-container': {
-          backdropFilter: 'blur(8px)',
-        },
-        '& .MuiPaper-root': {
-          backgroundColor: 'rgba(10, 15, 30, 0.95)',
-          backgroundImage: 'radial-gradient(circle at top right, rgba(145, 85, 253, 0.1), transparent 40%)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: '16px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 50px rgba(145, 85, 253, 0.05)',
-          overflow: 'hidden',
-        },
-      }}
     >
-      {/* HEADER */}
-      <DialogTitle sx={{ p: 2.5, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Box sx={{
-            p: 1,
-            borderRadius: '10px',
-            backgroundColor: 'rgba(145, 85, 253, 0.1)',
-            border: '1px solid rgba(145, 85, 253, 0.2)',
-            display: 'flex',
-          }}>
-            <Calendar size={20} className="text-[#9155FD]" />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'white', letterSpacing: -0.2, textTransform: 'capitalize' }}>
-              Appuntamenti di oggi
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textTransform: 'capitalize' }}>
-              {formattedDate}
-            </Typography>
-          </Box>
-        </Stack>
-        <IconButton onClick={onClose} size="small" sx={{ color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'white', backgroundColor: 'rgba(255,255,255,0.05)' } }}>
-          <X size={18} />
-        </IconButton>
-      </DialogTitle>
+      <Stack spacing={2}>
+        {bookings.map((booking) => {
+          const artistColor = booking.artistColor || booking.artist?.color || '#00BFFF';
+          const bookingTime = format(new Date(booking.date), 'HH:mm');
 
-      {/* BODY */}
-      <DialogContent sx={{ p: 2.5, py: 2, maxHeight: '420px', overflowY: 'auto' }}>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          {bookings.map((booking) => {
-            const artistColor = booking.artist?.color || '#9155FD';
-            const bookingTime = format(new Date(booking.date), 'HH:mm');
+          // Handle safe customer name fallback
+          const firstName = booking.customer?.firstName || (booking.customerName ? booking.customerName.split(' ')[0] : 'U');
+          const lastName = booking.customer?.lastName || (booking.customerName ? booking.customerName.split(' ').slice(1).join(' ') : '');
+          const customerInitials = firstName[0]?.toUpperCase() || 'U';
+          const customerFullName = booking.customer ? `${booking.customer.firstName} ${booking.customer.lastName || ''}` : (booking.customerName || 'Cliente');
 
-            return (
-              <Box
-                key={booking.id}
-                onClick={() => {
-                  onBookingClick(booking);
-                  onClose();
-                }}
-                sx={{
-                  p: 2,
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 2,
-                  '&:hover': {
-                    backgroundColor: 'rgba(145, 85, 253, 0.04)',
-                    borderColor: 'rgba(145, 85, 253, 0.2)',
-                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
-                    transform: 'translateY(-2px)',
-                    '& .arrow-icon': {
-                      transform: 'translateX(4px)',
-                      color: '#9155FD',
-                    }
+          return (
+            <Box
+              key={booking.id}
+              onClick={() => {
+                onBookingClick(booking);
+                onClose();
+              }}
+              sx={{
+                p: 2.2,
+                borderRadius: '14px',
+                backgroundColor: 'rgba(255, 255, 255, 0.035)',
+                border: `1px solid ${artistColor}25`,
+                boxShadow: `0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06)`,
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderColor: artistColor,
+                  boxShadow: `0 8px 24px ${artistColor}18, inset 0 1px 0 rgba(255, 255, 255, 0.1)`,
+                  transform: 'translateY(-2px)',
+                  '& .arrow-icon': {
+                    transform: 'translateX(4px)',
+                    color: artistColor,
                   }
-                }}
-              >
-                <Stack spacing={1.5} sx={{ flex: 1 }}>
-                  {/* TIME & DURATION */}
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                      <Clock size={13} className="text-[#9155FD]" />
-                      <Typography variant="body2" sx={{ fontWeight: 800, color: 'white', fontSize: '0.85rem' }}>
-                        {bookingTime}
-                      </Typography>
-                    </Stack>
-                    <Chip
-                      label={formatDuration(booking.duration || 60)}
-                      size="small"
-                      sx={{
-                        height: '18px',
-                        fontSize: '0.65rem',
-                        fontWeight: 700,
-                        backgroundColor: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        color: 'text.secondary',
-                      }}
-                    />
-                  </Stack>
+                }
+              }}
+            >
+              <Stack spacing={2} sx={{ flex: 1 }}>
+                {/* TIME & DURATION ROW */}
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  {/* TIME PILL */}
+                  <Box sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.6,
+                    px: 1.2,
+                    py: 0.4,
+                    borderRadius: '20px',
+                    backgroundColor: `${artistColor}12`,
+                    border: `1px solid ${artistColor}28`,
+                    boxShadow: `0 2px 6px ${artistColor}05`,
+                  }}>
+                    <Clock size={12} style={{ color: artistColor }} />
+                    <Typography sx={{ fontWeight: 800, color: 'white', fontSize: '0.75rem', fontFamily: 'monospace', lineHeight: 1 }}>
+                      {bookingTime}
+                    </Typography>
+                  </Box>
 
-                  {/* CUSTOMER & ARTIST */}
-                  <Stack direction="row" spacing={3} sx={{ alignItems: 'center' }}>
-                    {/* CLIENTE */}
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                      <Avatar sx={{ width: 22, height: 22, fontSize: '0.65rem', bgcolor: 'rgba(145, 85, 253, 0.15)', color: '#A78BFA', fontWeight: 800 }}>
-                        {booking.customer?.firstName[0]}
-                      </Avatar>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem' }}>
-                        {booking.customer?.firstName} {booking.customer?.lastName}
-                      </Typography>
-                    </Stack>
-
-                    {/* ARTISTA */}
-                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                      <Box sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: artistColor,
-                        boxShadow: `0 0 6px ${artistColor}`,
-                      }} />
-                      <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 500 }}>
-                        {booking.artist?.name || 'Non assegnato'}
-                      </Typography>
-                    </Stack>
-                  </Stack>
+                  {/* DURATION CHIP */}
+                  <Chip
+                    label={formatDuration(booking.duration || 60)}
+                    size="small"
+                    sx={{
+                      height: '20px',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: 'rgba(255, 255, 255, 0.75)',
+                    }}
+                  />
                 </Stack>
 
-                {/* INTERACTIVE ACTION ICON */}
-                <Box sx={{ display: 'flex', alignItems: 'center', pl: 1 }}>
-                  <ArrowRight
-                    size={16}
-                    className="arrow-icon text-text.secondary shrink-0"
-                    style={{ transition: 'all 0.2s ease-in-out' }}
-                  />
-                </Box>
-              </Box>
-            );
-          })}
-        </Stack>
-      </DialogContent>
+                {/* DETAILS SECTION */}
+                <Stack spacing={1.2}>
+                  {/* CLIENT ROW */}
+                  <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
+                    <Avatar sx={{
+                      width: 26,
+                      height: 26,
+                      fontSize: '0.75rem',
+                      bgcolor: `${artistColor}1A`,
+                      color: artistColor,
+                      fontWeight: 800,
+                      border: `1px solid ${artistColor}35`,
+                      boxShadow: `0 0 10px ${artistColor}10`
+                    }}>
+                      {customerInitials}
+                    </Avatar>
+                    <Typography sx={{ fontWeight: 700, color: '#ffffff', fontSize: '0.875rem', letterSpacing: '-0.1px' }}>
+                      {customerFullName}
+                    </Typography>
+                  </Stack>
 
-      {/* FOOTER */}
-      <DialogActions sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.05)', justifyContent: 'flex-end' }}>
+                  {/* ARTIST ROW */}
+                  <Stack direction="row" spacing={1.2} sx={{ alignItems: 'center' }}>
+                    <Box sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: artistColor,
+                      boxShadow: `0 0 8px ${artistColor}`,
+                      ml: 1.2 // Align beautifully with text after Avatar
+                    }} />
+                    <Typography sx={{ color: 'rgba(255, 255, 255, 0.65)', fontSize: '0.78rem', fontWeight: 500 }}>
+                      {booking.artist?.name || booking.artistName || 'Non assegnato'}
+                    </Typography>
+                  </Stack>
+                </Stack>
+              </Stack>
+
+              {/* INTERACTIVE ACTION ICON */}
+              <Box sx={{ display: 'flex', alignItems: 'center', pl: 1 }}>
+                <ArrowRight
+                  size={16}
+                  className="arrow-icon text-text.secondary shrink-0"
+                  style={{ transition: 'all 0.2s ease-in-out' }}
+                />
+              </Box>
+            </Box>
+          );
+        })}
+      </Stack>
+
+      {/* FOOTER CLOSE BUTTON */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, pt: 2, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <Button
           onClick={onClose}
           size="small"
           variant="outlined"
           sx={{
             borderRadius: '8px',
-            color: 'text.secondary',
+            color: 'rgba(255, 255, 255, 0.7)',
             borderColor: 'rgba(255,255,255,0.1)',
+            textTransform: 'none',
+            fontSize: '0.8rem',
+            px: 2.5,
+            py: 0.8,
             '&:hover': {
-              borderColor: 'rgba(255,255,255,0.2)',
-              backgroundColor: 'rgba(255,255,255,0.03)',
+              borderColor: 'rgba(255,255,255,0.25)',
+              backgroundColor: 'rgba(255,255,255,0.04)',
+              color: 'white',
             }
           }}
         >
           Chiudi
         </Button>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </SmartModal>
   );
 }

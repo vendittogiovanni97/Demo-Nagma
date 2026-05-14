@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
-import { isDebugHttpEnabled, logger, sanitizeForLog } from '../shared/utils/logger';
+import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import { logger } from '../shared/utils/logger';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -45,12 +45,10 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
   if (authHeader?.startsWith('Bearer ')) {
     token = authHeader.split(' ')[1];
-  } else if (req.query.token && typeof req.query.token === 'string') {
-    token = req.query.token;
   }
 
   if (!token) {
-    logger.warn('Richiesta autenticata senza token Bearer o query token', {
+    logger.warn('Richiesta autenticata senza token Bearer', {
       requestId: req.requestId,
       method: req.method,
       path: req.originalUrl,

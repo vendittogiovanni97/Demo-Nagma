@@ -40,7 +40,6 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'cliente',
       label: 'Cliente',
-      width: '200px',
       render: (booking) => (
         booking.customer ? (
           <Box sx={{ minWidth: 0 }}>

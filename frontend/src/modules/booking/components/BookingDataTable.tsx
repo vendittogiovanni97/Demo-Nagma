@@ -1,15 +1,15 @@
 "use client";
 
-import { memo, useState } from 'react';
 import PermissionGate from '@/components/auth/PermissionGate';
 import SmartTable from '@/components/common/SmartTable';
 import type { Column } from '@/components/data-display/DataTable';
-import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 import Button from '@/components/ui/Button';
 import type { Booking } from '@/modules/booking/model/booking.types';
+import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 import { Box } from '@mui/material';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { CheckCircle2, Edit, MessageCircle, RotateCcw, Trash2 } from 'lucide-react';
+import { memo, useState } from 'react';
 import BookingCard from './BookingCard';
 
 interface BookingDataTableProps {
@@ -65,7 +65,7 @@ function BookingDataTable({
         hasError={hasError}
         keyExtractor={(b) => b.id}
         getRowStyle={getRowStyle}
-        pageSize={12}
+        pageSize={9}
         renderCard={(booking) => (
           <BookingCard
             booking={booking}

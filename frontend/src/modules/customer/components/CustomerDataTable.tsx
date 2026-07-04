@@ -1,7 +1,8 @@
 "use client";
 
-import SmartTable from '@/components/common/SmartTable';
 import PermissionGate from '@/components/auth/PermissionGate';
+import SmartTable from '@/components/common/SmartTable';
+import type { Column } from '@/components/data-display/DataTable';
 import PaginationControls from '@/components/feedback/PaginationControls';
 import Button from '@/components/ui/Button';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
@@ -9,7 +10,6 @@ import { Box, useTheme as useMuiTheme } from '@mui/material';
 import { Edit, Eye, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CustomerCard from './CustomerCard';
-import type { Column } from '@/components/data-display/DataTable';
 
 interface Props {
   customers: Customer[];
@@ -47,6 +47,7 @@ export default function CustomerDataTable({
         columns={columns}
         data={customers}
         isLoading={isLoading}
+        pageSize={9}
         keyExtractor={(c) => c.id}
         emptyTitle={debouncedSearch ? 'Nessun risultato trovato' : 'Nessun cliente presente'}
         emptyDescription={

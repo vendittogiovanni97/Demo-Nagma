@@ -1,13 +1,13 @@
 "use client";
 
 import SmartTable from '@/components/common/SmartTable';
-import type { SpesaLibera } from '../model/spese.types';
+import Button from '@/components/ui/Button';
 import { formatPrice } from '@/shared/utils/format';
+import { Box, Typography, useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Trash2 } from 'lucide-react';
-import { Box, Typography, useTheme } from '@mui/material';
-import Button from '@/components/ui/Button';
+import type { SpesaLibera } from '../model/spese.types';
 
 interface SpesaDataTableProps {
   spese: SpesaLibera[];
@@ -15,6 +15,7 @@ interface SpesaDataTableProps {
   monthLabel: string;
   total: number;
   onDelete: (id: number) => void;
+  pageSize?: number;
 }
 
 export default function SpesaDataTable({
@@ -23,20 +24,21 @@ export default function SpesaDataTable({
   monthLabel,
   total,
   onDelete,
+  pageSize = 7,
 }: SpesaDataTableProps) {
   const theme = useTheme();
 
   const columns = [
     { key: 'name', label: 'Nome', flex: 1 },
-    { 
-      key: 'createdAt', 
-      label: 'Data', 
+    {
+      key: 'createdAt',
+      label: 'Data',
       width: '150px',
-      render: (s: SpesaLibera) => format(new Date(s.createdAt), 'd MMMM yyyy', { locale: it }) 
+      render: (s: SpesaLibera) => format(new Date(s.createdAt), 'd MMMM yyyy', { locale: it })
     },
-    { 
-      key: 'price', 
-      label: 'Prezzo', 
+    {
+      key: 'price',
+      label: 'Prezzo',
       align: 'right' as const,
       width: '120px',
       render: (s: SpesaLibera) => (
@@ -72,7 +74,7 @@ export default function SpesaDataTable({
             }}
           />
         )}
-        pageSize={15}
+        pageSize={pageSize}
       />
 
       <Box

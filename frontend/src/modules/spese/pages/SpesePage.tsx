@@ -41,25 +41,24 @@ export default function SpesePage() {
   return (
     <Box
       sx={{
-        flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        gap: 2,
-        maxWidth: 'xl',
-        mx: 'auto',
-        width: '100%',
-        pt: 1,
+        height: '100%',
+        gap: 1.5,
+        pr: 2,
+        pl: 2,
       }}
     >
-      <PageHeader 
-        title="Spese Libere" 
+      <PageHeader
+        title="Spese Libere"
         subtitle="Annotazioni rapide di spesa"
         icon={<Wallet size={24} />}
+        filters={<SpesaFilters currentDate={currentDate} onDateChange={setCurrentDate} />}
       />
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
-        <SpesaFilters currentDate={currentDate} onDateChange={setCurrentDate} />
-        <SpesaForm monthStr={monthStr} onSuccess={mutate} />
+      <SpesaForm monthStr={monthStr} onSuccess={mutate} />
+
+      <Box sx={{ flex: 1, minHeight: 0 }}>
         <SpesaDataTable
           spese={spese}
           isLoading={isLoading}

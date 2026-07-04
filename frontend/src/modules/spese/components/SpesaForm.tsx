@@ -14,13 +14,12 @@ interface SpesaFormProps {
   onSuccess?: () => void;
 }
 
-const glassPanelBaseSx = {
-  backgroundColor: 'background.paper',
-  backdropFilter: 'blur(20px)',
-  border: 1,
-  borderColor: 'divider',
-  borderRadius: 3,
-  transition: 'all 0.2s ease',
+const formContainerSx = {
+  display: 'flex',
+  flexDirection: { xs: 'column', sm: 'row' },
+  gap: 1.5,
+  width: '100%',
+  alignItems: 'center',
 };
 
 export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
@@ -56,43 +55,42 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
 
   const inputSx = {
     borderRadius: 2,
-    border: 1,
+    border: '1px solid',
     borderColor: 'divider',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     px: 2,
-    py: 1.5,
+    height: '42px',
     color: theme.palette.text.primary,
+    fontSize: '0.875rem',
+    transition: 'all 0.2s ease',
     '& .MuiInputBase-input::placeholder': {
       color: theme.palette.text.secondary,
       opacity: 1,
     },
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    },
     '&:focus-within': {
       borderColor: theme.palette.primary.main,
+      backgroundColor: 'rgba(0, 191, 255, 0.05)',
+      boxShadow: `0 0 0 2px rgba(0, 191, 255, 0.1)`,
     },
-    transition: 'border-color 0.2s ease',
   };
 
   return (
     <Box
       component="form"
       onSubmit={handleAdd}
-      sx={{
-        ...glassPanelBaseSx,
-        p: 2.5,
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        gap: 1.5,
-        '&:hover': { transform: 'none' },
-      }}
+      sx={formContainerSx}
     >
       <InputBase
         inputRef={nameRef}
         type="text"
-        placeholder="Nome spesa"
+        placeholder="Nome spesa (es. Caffè, Affitto...)"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
-        sx={{ flex: 1, ...inputSx }}
+        sx={{ flex: 1, width: '100%', ...inputSx }}
       />
       <InputBase
         type="number"
@@ -101,16 +99,22 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
         onChange={(e) => setPrice(e.target.value)}
         inputProps={{ step: '0.01', min: '0' }}
         required
-        sx={{ width: { xs: '100%', sm: 144 }, ...inputSx }}
+        sx={{ width: { xs: '100%', sm: 140 }, ...inputSx }}
       />
       <Button
         type="submit"
-        variant="primary"
-        size="md"
+        variant="secondary"
         disabled={isAdding}
         isLoading={isAdding}
-        loadingLabel="Aggiungo..."
-        icon={isAdding ? undefined : <Plus size={18} />}
+        loadingLabel="..."
+        icon={isAdding ? undefined : <Plus size={16} />}
+        sx={{
+          height: '42px',
+          width: { xs: '100%', sm: 'auto' },
+          px: 3,
+          borderRadius: 2,
+          fontWeight: 600,
+        }}
       >
         Aggiungi
       </Button>

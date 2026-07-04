@@ -14,6 +14,7 @@ export interface Column<T> {
   label: string;
   align?: 'left' | 'center' | 'right';
   width?: string;
+  minWidth?: string;
   render?: (item: T) => ReactNode;
   valueGetter?: (item: T) => any;
   sortable?: boolean;
@@ -78,6 +79,7 @@ export default function DataTable<T extends object>({
         headerName: col.label,
         sortable: col.sortable !== false, resizable: true, suppressMovable: true,
         ...(pxWidth ? { width: pxWidth } : { flex: 1 }),
+        ...(col.minWidth ? { minWidth: parsePxWidth(col.minWidth) } : { minWidth: pxWidth ? undefined : 200 }),
       };
 
       // Set up valueGetter for sorting and filtering

@@ -34,9 +34,7 @@ out
 
 
 .qwen
-.claude
 image
-CLAUDE.md
 
 # Large files - PDF in images folder
 landing-page/assets/images/*.pdf

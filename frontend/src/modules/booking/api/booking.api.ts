@@ -1,5 +1,5 @@
 import { ENDPOINTS } from '@/shared/api/endpoints';
-import { httpClient } from '@/shared/api/httpClient';
+import { apiClient } from '@/shared/api/client';
 import type { BookingDTO, BookingStatsDTO, CreateBookingRequest, UpdateBookingRequest } from './booking.types';
 
 export const bookingApi = {
@@ -10,37 +10,37 @@ export const bookingApi = {
     page?: number;
     limit?: number;
   }) => {
-    return httpClient.get<{ data: BookingDTO[]; total: number; hasMore: boolean }>(
+    return apiClient.get<{ data: BookingDTO[]; total: number; hasMore: boolean }>(
       ENDPOINTS.BOOKINGS.BASE,
       params
     );
   },
 
   getById: async (id: number) => {
-    return httpClient.get<BookingDTO>(ENDPOINTS.BOOKINGS.BY_ID(id));
+    return apiClient.get<BookingDTO>(ENDPOINTS.BOOKINGS.BY_ID(id));
   },
 
   create: async (data: CreateBookingRequest) => {
-    return httpClient.post<BookingDTO>(ENDPOINTS.BOOKINGS.BASE, data);
+    return apiClient.post<BookingDTO>(ENDPOINTS.BOOKINGS.BASE, data);
   },
 
   update: async (id: number, data: UpdateBookingRequest) => {
-    return httpClient.put<BookingDTO>(ENDPOINTS.BOOKINGS.BY_ID(id), data);
+    return apiClient.put<BookingDTO>(ENDPOINTS.BOOKINGS.BY_ID(id), data);
   },
 
   delete: async (id: number) => {
-    return httpClient.delete<void>(ENDPOINTS.BOOKINGS.BY_ID(id));
+    return apiClient.delete<void>(ENDPOINTS.BOOKINGS.BY_ID(id));
   },
 
   getStats: async (month?: string): Promise<BookingStatsDTO> => {
-    return httpClient.get<BookingStatsDTO>(ENDPOINTS.BOOKINGS.STATS, { month });
+    return apiClient.get<BookingStatsDTO>(ENDPOINTS.BOOKINGS.STATS, { month });
   },
 
   getHistory: async (id: number) => {
-    return httpClient.get(ENDPOINTS.BOOKINGS.HISTORY(id));
+    return apiClient.get(ENDPOINTS.BOOKINGS.HISTORY(id));
   },
 
   verifyPassword: async (password: string) => {
-    return httpClient.post<void>(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });
+    return apiClient.post<void>(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });
   }
 };

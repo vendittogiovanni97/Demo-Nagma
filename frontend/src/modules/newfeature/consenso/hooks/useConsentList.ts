@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { httpClient } from '@/shared/api/httpClient';
+import { apiClient } from '@/shared/api/client';
 import { ENDPOINTS } from '@/shared/api/endpoints';
 import { ConsentRecord } from '../model/consent-list.types';
 
@@ -14,7 +14,7 @@ export function useConsentList() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await httpClient.get<{ success: boolean; data: ConsentRecord[] }>(
+      const res = await apiClient.get<{ success: boolean; data: ConsentRecord[] }>(
         ENDPOINTS.NEW_FEATURE.GET_CONSENTS
       );
       setData(res.data ?? []);

@@ -7,6 +7,10 @@ const createMockPrisma = () => ({
     count: jest.fn(),
     upsert: jest.fn(),
   },
+  clientConfig: {
+    findFirst: jest.fn(),
+    update: jest.fn(),
+  },
   $connect: jest.fn(),
   $disconnect: jest.fn(),
 });
@@ -104,7 +108,7 @@ describe('ConfigService', () => {
 
   describe('verifyBookingUpdatePassword', () => {
     it('should return false when password is empty', async () => {
-      mockPrisma.config.findFirst.mockResolvedValue(null);
+      mockPrisma.clientConfig.findFirst.mockResolvedValue(null);
 
       const result = await service.verifyBookingUpdatePassword('test');
       expect(result).toBe(false);
@@ -114,8 +118,11 @@ describe('ConfigService', () => {
       jest.spyOn(bcryptjs, 'hash').mockResolvedValue('$2b$10$hashed' as never);
       jest.spyOn(bcryptjs, 'compare').mockResolvedValue(true as never);
 
-      mockPrisma.config.findFirst.mockResolvedValue({ paramsKey: 'BOOKING_UPDATE_PASSWORD', value: 'plain-pass' });
-      mockPrisma.config.upsert.mockResolvedValue({});
+      mockPrisma.clientConfig.findFirst.mockResolvedValue({
+        id: 1,
+        bookingUpdatePassword: 'plain-pass',
+      });
+      mockPrisma.clientConfig.update.mockResolvedValue({});
 
       const result = await service.verifyBookingUpdatePassword('plain-pass');
       expect(result).toBe(true);
@@ -124,9 +131,9 @@ describe('ConfigService', () => {
     it('should verify existing bcrypt password', async () => {
       jest.spyOn(bcryptjs, 'compare').mockResolvedValue(true as never);
 
-      mockPrisma.config.findFirst.mockResolvedValue({
-        paramsKey: 'BOOKING_UPDATE_PASSWORD',
-        value: '$2b$10$existinghash',
+      mockPrisma.clientConfig.findFirst.mockResolvedValue({
+        id: 1,
+        bookingUpdatePassword: '$2b$10$existinghash',
       });
 
       const result = await service.verifyBookingUpdatePassword('correct');
@@ -156,7 +163,7 @@ describe('ConfigService', () => {
     });
 
     it('should get booking update password', async () => {
-      mockPrisma.config.findFirst.mockResolvedValue({ paramsKey: 'BOOKING_UPDATE_PASSWORD', value: 'secret' });
+      mockPrisma.clientConfig.findFirst.mockResolvedValue({ id: 1, bookingUpdatePassword: 'secret' });
       expect(await service.getBookingUpdatePassword()).toBe('secret');
     });
   });

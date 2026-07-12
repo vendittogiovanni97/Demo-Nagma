@@ -2,6 +2,13 @@ import prisma from '../../../core/shared/utils/prisma';
 import { Cache } from '../../../core/shared/utils/cache';
 import { config } from '../../../core/config/env';
 
+export interface ClientFeatures {
+  enableCream: boolean;
+  enableWhatsApp: boolean;
+  enableFormTemplate: boolean;
+  enableConfig: boolean;
+}
+
 export class ConfigService {
   private cache = new Cache<string>(5 * 60 * 1000);
   private criticalConfig: Record<string, string> = {};
@@ -25,7 +32,6 @@ export class ConfigService {
       { paramsKey: 'LOG_LEVEL', value: 'INFO' },
       { paramsKey: 'MAX_PAGE_LIMIT', value: '100' },
       { paramsKey: 'APP_VERSION', value: '1.0.0' },
-      { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: '' },
       { paramsKey: 'SHOW_CONSENSI', value: 'false' },
       { paramsKey: 'SHOW_POSIZIONAMENTO', value: 'false' },
       { paramsKey: 'DEFAULT_PHONE_PREFIX', value: '+39' },
@@ -88,18 +94,23 @@ export class ConfigService {
   }
 
   async getBookingUpdatePassword(): Promise<string> {
-    return this.getValue('BOOKING_UPDATE_PASSWORD', '');
+    const clientConfig = await prisma.clientConfig.findFirst();
+    return clientConfig?.bookingUpdatePassword || '';
   }
 
   async verifyBookingUpdatePassword(plainPassword: string): Promise<boolean> {
-    const stored = await this.getBookingUpdatePassword();
+    const clientConfig = await prisma.clientConfig.findFirst();
+    const stored = clientConfig?.bookingUpdatePassword;
     if (!stored) return false;
 
     const bcryptjs = require('bcryptjs');
     if (!stored.startsWith('$2b$')) {
       const salt = config.bcryptSaltRounds;
       const hashed = await bcryptjs.hash(stored, salt);
-      await this.setValue('BOOKING_UPDATE_PASSWORD', hashed);
+      await prisma.clientConfig.update({
+        where: { id: clientConfig!.id },
+        data: { bookingUpdatePassword: hashed },
+      });
       return await bcryptjs.compare(plainPassword, hashed);
     }
     return await bcryptjs.compare(plainPassword, stored);
@@ -127,5 +138,55 @@ export class ConfigService {
 
   getDefaultPhonePrefixSync(): string {
     return this.getValueSync('DEFAULT_PHONE_PREFIX', '+39');
+  }
+
+  // Nuovo: features da ClientConfig
+  async getFeatures(): Promise<ClientFeatures> {
+    const clientConfig = await prisma.clientConfig.findFirst();
+    if (!clientConfig || !clientConfig.features) {
+      return {
+        enableCream: true,
+        enableWhatsApp: true,
+        enableFormTemplate: true,
+        enableConfig: true,
+      };
+    }
+    const features = clientConfig.features as Record<string, boolean>;
+    return {
+      enableCream: features.enableCream ?? true,
+      enableWhatsApp: features.enableWhatsApp ?? true,
+      enableFormTemplate: features.enableFormTemplate ?? true,
+      enableConfig: features.enableConfig ?? true,
+    };
+  }
+
+  // Nuovo: intera ClientConfig
+  async getClientConfig() {
+    return prisma.clientConfig.findFirst();
+  }
+
+  async updateClientConfig(data: Partial<{
+    clientName: string;
+    clientLogoUrl: string;
+    clientTimeZone: string;
+    clientLocale: string;
+    primaryColor: string;
+    secondaryColor: string;
+    features: Record<string, boolean>;
+    maxUsers: number;
+    maxBookings: number;
+    maxAttachmentSizeMB: number;
+    apiRateLimitPerMinute: number;
+    bookingUpdatePassword: string;
+    customFields: Record<string, any>;
+  }>) {
+    const existing = await prisma.clientConfig.findFirst();
+    if (!existing) {
+      return prisma.clientConfig.create({ data: data as any });
+    }
+    return prisma.clientConfig.update({
+      where: { id: existing.id },
+      data,
+    });
   }
 }

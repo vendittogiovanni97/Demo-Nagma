@@ -21,7 +21,7 @@ import { useConsentList } from '../hooks/useConsentList';
 import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 import PageHeader from '@/common/components/common/PageHeader';
 import PageTransition from '@/common/components/layout/PageTransition';
-import { API_BASE_URL } from '@/common/shared/api/endpoints';
+import { consensoService } from '../service/consenso.service';
 import { ConsentRecord } from '../model/consent-list.types';
 
 export default function ConsentListPage() {
@@ -58,7 +58,7 @@ export default function ConsentListPage() {
 
   const getPdfUrl = (record: ConsentRecord) => {
     if (!record.attachment) return null;
-    return `${API_BASE_URL}${record.attachment.filePath}`;
+    return consensoService.getPdfUrl(record.attachment.filePath);
   };
 
   if (configLoading) {

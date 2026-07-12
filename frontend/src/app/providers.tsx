@@ -8,8 +8,7 @@ import LayoutContainer from '@/common/components/layout/LayoutContainer';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { BreakpointProvider as CustomBreakpointProvider } from '@/common/context/BreakpointContext';
 import { ToastContainer } from '@/common/components/ui/Toast/ToastContainer';
-import theme from '@/common/theme/theme';
-import { ThemeProvider } from '@mui/material';
+import DynamicThemeProvider from '@/common/providers/ThemeProvider';
 
 import dynamic from 'next/dynamic';
 import AuthGuard from '@/common/components/auth/AuthGuard';
@@ -22,7 +21,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   const isStandalonePage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/consenso');
 
   return (
-    <ThemeProvider theme={theme}>
+    <DynamicThemeProvider>
       <ClientCssBaseline />
       <CustomBreakpointProvider>
         <AuthProvider>
@@ -43,6 +42,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         </AuthProvider>
       </CustomBreakpointProvider>
       <ToastContainer />
-    </ThemeProvider>
+    </DynamicThemeProvider>
   );
 }

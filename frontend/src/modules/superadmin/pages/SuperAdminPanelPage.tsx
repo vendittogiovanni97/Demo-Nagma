@@ -3,8 +3,6 @@
 import PageTransition from '@/common/components/layout/PageTransition';
 import { useToast } from '@/common/hooks/useToast';
 import { configService } from '@/common/shared/services/config.service';
-import { getToken } from '@/common/shared/utils/auth';
-import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
 import {
   Box,
   CircularProgress,
@@ -166,8 +164,7 @@ export default function SuperAdminPanelPage() {
   const handleBackupDb = async () => {
     setBackingUp(true);
     try {
-      const token = getToken() || '';
-      const downloadUrl = `${API_BASE_URL}${ENDPOINTS.CONFIG.BACKUP}?token=${encodeURIComponent(token)}`;
+      const downloadUrl = configService.downloadBackup();
 
       const downloadAnchor = document.createElement('a');
       downloadAnchor.href = downloadUrl;

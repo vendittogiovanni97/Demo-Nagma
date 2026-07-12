@@ -71,4 +71,7 @@ export const ENDPOINTS = {
     BASE: '/api/config',
     BACKUP: '/api/config/backup',
   },
+  ATTACHMENTS: {
+    DOWNLOAD: (id: string | number) => `/api/attachments/${id}/download`,
+  },
 };

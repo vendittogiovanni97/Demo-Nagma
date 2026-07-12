@@ -1,0 +1,94 @@
+{
+  "clientName": "Nagma",
+  "accounts": [
+    { "name": "Super Admin", "email": "superadmin@nagma.it", "role": "SUPER_ADMIN", "password": "superadmin123" },
+    { "name": "Miriam", "email": "miriam@nagma.it", "role": "ADMIN", "password": "Nagmatattoo1926!" },
+    { "name": "Giuseppe", "email": "giuseppe@nagma.it", "role": "ADMIN", "password": "Nagmatattoo1926!" }
+  ],
+  "staff": [
+    { "name": "Giuseppe Savoia", "type": "COLLABORATORE", "color": "#3b82f6" },
+    { "name": "Aniello Gozzi", "type": "COLLABORATORE", "color": "#10b981" },
+    { "name": "Pietro Russo", "type": "COLLABORATORE", "color": "#f59e0b" },
+    { "name": "Lorenzo Vignone", "type": "COLLABORATORE", "color": "#ef4444" },
+    { "name": "Vincenzo Santoro", "type": "COLLABORATORE", "color": "#8b5cf6" },
+    { "name": "Martina Paolino", "type": "APPRENDISTA", "color": "#ec4899" },
+    { "name": "Genny Diotiaiuti", "type": "APPRENDISTA", "color": "#06b6d4" },
+    { "name": "Boston", "type": "APPRENDISTA", "color": "#f97316" }
+  ],
+  "configs": [
+    { "paramsKey": "FILES_PATH", "value": "/uploads/attachments/" },
+    { "paramsKey": "JWT_EXPIRY", "value": "8h" },
+    { "paramsKey": "BCRYPT_SALT_ROUNDS", "value": "10" },
+    { "paramsKey": "LOGIN_RATE_LIMIT_WINDOW_MINUTES", "value": "15" },
+    { "paramsKey": "LOGIN_RATE_LIMIT_MAX_ATTEMPTS", "value": "5" },
+    { "paramsKey": "SESSION_TIMEOUT_MINUTES", "value": "30" },
+    { "paramsKey": "MAX_PAGE_LIMIT", "value": "100" },
+    { "paramsKey": "APP_VERSION", "value": "1.0.0" },
+    { "paramsKey": "LOG_LEVEL", "value": "INFO" },
+    { "paramsKey": "DEBUG_HTTP", "value": "false" },
+    { "paramsKey": "SHOW_CONSENSI", "value": "false" },
+    { "paramsKey": "SHOW_POSIZIONAMENTO", "value": "false" }
+  ],
+  "whatsappTemplates": [
+    {
+      "name": "Conferma Appuntamento", "category": "Conferma",
+      "body": "Ciao {{nome}}!\n\nTi confermiamo il tuo appuntamento per il {{data}} alle {{ora}}.\n\nRicorda di:\n• Mangiare qualcosa prima\n• Non bere alcolici 24h prima\n• Se hai domande scrivimi!\n\nA presto!"
+    },
+    {
+      "name": "Promemoria Appuntamento", "category": "Promemoria",
+      "body": "Ciao {{nome}}!\n\nTi ricordiamo che hai un appuntamento domani alle {{ora}}.\n\nSe non puoi più venire, per favore contattaci il prima possibile così possiamo riprogrammare.\n\nA domani!"
+    },
+    {
+      "name": "Richiesta Caparra", "category": "Caparra",
+      "body": "Ciao {{nome}}!\n\nPer confermare la prenotazione del {{data}} alle {{ora}}, ti chiediamo di versare una caparra di €30.\n\nPuoi versarla tramite:\n• Bonifico: IT00X0000000000000000000000\n• WhatsApp con satispay\n\nLasciaci la ricevuta una volta versato!"
+    },
+    {
+      "name": "Conferma Caparra Ricevuta", "category": "Conferma",
+      "body": "Ciao {{nome}}!\n\nAbbiamo ricevuto la caparra di €30 per l'appuntamento del {{data}} alle {{ora}}.\n\nSei confermato!\n\nTi ricordiamo le istruzioni prima dell'appuntamento:\n• Mangiare qualcosa prima\n• Non bere alcolici 24h prima\n• Portare documento"
+    },
+    {
+      "name": "Tattoo Pronto", "category": "Info",
+      "body": "Ciao {{nome}}!\n\nIl tuo tatuaggio è guarito bene! Per i prossimi 15 giorni:\n\nCura:\n• Applica crema lenitiva 2-3 volte al giorno\n• Lava con sapone neutro delicatamente\n\nEvita:\n• Non grattare, non esporti al sole\n• No piscine, mare, sauna\n\nSe hai dubbi scrivici!"
+    },
+    {
+      "name": "Prenotazione Annullata", "category": "Annullamento",
+      "body": "Ciao {{nome}}!\n\nAbbiamo cancellato la tua prenotazione del {{data}} alle {{ora}}.\n\nSe vuoi riprogrammare, scrivici qui!"
+    },
+    {
+      "name": "Coupon Sconto", "category": "Marketing",
+      "body": "Ciao {{nome}}!\n\nTi regaliamo il 10% di sconto sul tuo prossimo tatuaggio!\n\nCodice: TATTOO10\n\nLo sconto è valido per 3 mesi.\n\nPrenota quando vuoi!"
+    },
+    {
+      "name": "Check Post Trattamento", "category": "Follow-up",
+      "body": "Ciao {{nome}}!\n\nCome va il tatuaggio? È tutto okay?\n\nSe hai dubbi sulla guarigione o necessiti altre informazioni, siamo qui!"
+    }
+  ],
+  "formTemplate": {
+    "name": "Scheda Prenotazione Tattoo",
+    "schemaB64": "W3sidHlwZSI6InNlbGVjdCIsIm5hbWUiOiJ0YXR0b29TdHlsZSIsImxhYmVsIjoiU3RpbGUgVGF0dWFnZ2lvIiwib3B0aW9ucyI6WyJSZWFsaXN0aWNvIiwiVHJhZGl6aW9uYWxlIiwiTmVvdHJhZGl6aW9uYWxlIiwiQWNxdWVyZWxsbyIsIkJsYWNrd29yayIsIk1pbmltYWwiLCJHaWFwcG9uZXNlIiwiTGV0dGVyaW5nIiwiR2VvbWV0cmljbyIsIkFsdHJvIl19LHsidHlwZSI6InRleHQiLCJuYW1lIjoicHJvZ2V0dG9UaXBvIiwibGFiZWwiOiJUaXBvIGRpIFByb2dldHRvIn0seyJ0eXBlIjoic2VsZWN0IiwibmFtZSI6ImdyYW5kZXp6YSIsImxhYmVsIjoiR3JhbmRlenphIiwib3B0aW9ucyI6WyJQaWNjb2xvICg8IDEwY20pIiwiTWVkaW8gKDEwLTIwY20pIiwiR3JhbmRlICgyMC0zMGNtKSIsIkV4dHJhIExhcmdlICg+IDMwY20pIl19LHsidHlwZSI6InRleHQiLCJuYW1lIjoicG9zaXppb25lIiwibGFiZWwiOiJQb3NpemlvbmUgY29ycG8ifV0="
+  },
+  "creamTattoo": {
+    "name": "Crema Protettiva Tattoo",
+    "description": "Crema lenitiva post-tatuaggio"
+  },
+  "clientConfig": {
+    "clientName": "Nagma Tattoo Studio",
+    "clientLogoUrl": "/logo.svg",
+    "clientTimeZone": "Europe/Rome",
+    "clientLocale": "it-IT",
+    "primaryColor": "#00bfff",
+    "secondaryColor": "#1a2332",
+    "bookingUpdatePassword": "nagmatatto12",
+    "features": {
+      "enableCream": true,
+      "enableWhatsApp": true,
+      "enableFormTemplate": true,
+      "enableConfig": true
+    },
+    "maxUsers": 50,
+    "maxBookings": 10000,
+    "maxAttachmentSizeMB": 50,
+    "apiRateLimitPerMinute": 100,
+    "customFields": {}
+  }
+}

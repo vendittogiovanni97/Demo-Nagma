@@ -11,6 +11,7 @@ import { registerConfigRoutes } from './modules/config/routes';
 import { registerAttachmentRoutes } from './modules/attachment/routes';
 import { registerConsentRoutes } from './modules/newfeature/consenso/routes';
 import { registerBookingPlacementRoutes } from './modules/newfeature/posizionamento/routes';
+import { registerCustomFieldRoutes } from './modules/custom-field/routes/customField.routes';
 
 export function registerRoutes(app: Express): void {
   registerAuthRoutes(app);
@@ -25,4 +26,5 @@ export function registerRoutes(app: Express): void {
   registerAttachmentRoutes(app);
   registerConsentRoutes(app);
   registerBookingPlacementRoutes(app);
+  registerCustomFieldRoutes(app);
 }

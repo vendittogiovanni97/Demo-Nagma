@@ -175,11 +175,9 @@ export class BookingService {
   }
 
   async verifyPassword(password: string) {
-    const storedConfig = await prisma.config.findFirst({
-      where: { paramsKey: 'BOOKING_UPDATE_PASSWORD', deletedAt: null },
-    });
+    const clientConfig = await prisma.clientConfig.findFirst();
 
-    const storedPassword = storedConfig?.value;
+    const storedPassword = clientConfig?.bookingUpdatePassword;
     if (!storedPassword) {
       throw new AppError("Password non configurata. Contattare l'amministratore.", 503, 'PASSWORD_NOT_CONFIGURED');
     }
@@ -188,10 +186,9 @@ export class BookingService {
     if (!storedPassword.startsWith('$2b$')) {
       const salt = config.bcryptSaltRounds;
       const hashed = await bcrypt.hash(storedPassword, salt);
-      await prisma.config.upsert({
-        where: { paramsKey: 'BOOKING_UPDATE_PASSWORD' },
-        update: { value: hashed },
-        create: { paramsKey: 'BOOKING_UPDATE_PASSWORD', value: hashed },
+      await prisma.clientConfig.update({
+        where: { id: clientConfig!.id },
+        data: { bookingUpdatePassword: hashed },
       });
       isValid = await bcrypt.compare(password, hashed);
     } else {

@@ -1,34 +1,114 @@
 # CLAUDE.md — Demo Nagma (Tattoo CRM)
 
-## Regole Tecniche Dettagliate (Rules)
-Le regole tecniche complete sono nei file modulari:
-- @.claude/rules/backend-patterns.md — controller/service, DI container, handler factory, bootstrap
-- @.claude/rules/database.md — migration workflow, mai prisma db push, seed
-- @.claude/rules/code-style.md — loading/error state, commenti, TypeScript
-- @.claude/rules/ui-components.md — componenti UI, modali, form, colori
+## .claude/
+Regole, comandi, hook e skill in `.claude/`:
+- `.claude/rules/` — regole tecniche (backend-patterns, database, code-style, ui-components)
+- `.claude/commands/` — comandi custom (audit, deploy-check, migra, nuovo-modulo, review-modulo)
+- `.claude/hooks/` — hook pre/post bash e post-edit
+- `.claude/skills/` — skill per task specifici
+- `.claude/settings.json` — configurazione Claude
 
 ## Regole Assolute — Seguire SEMPRE
 
-1. **Rispondi in italiano** — sempre, qualunque lingua usi l'utente.
-2. **Nessun colore hardcoded** — usa sempre `theme.palette.*` o token del tema. Mai `#hex`, `rgba(...)`, `'red'` inline nell'`sx`.
-3. **Loading e Error via toast/provider** — mai `useState` sparsi per loading/errore API. Usa `useToast()` per feedback globali.
+1. **Rispondi in italiano** — sempre.
+2. **Nessun colore hardcoded** — usa `theme.palette.*` o token del tema. Mai `#hex`, `rgba()`, `'red'` inline in `sx`.
+3. **Loading e Error via toast/provider** — mai `useState` sparsi per loading/errore API. Usa `useToast()`.
 4. **Mai `prisma db push`** — solo Prisma Migrations (`prisma migrate dev`).
-5. **Mai committare .env** — solo `.env.example` nel repo.
-6. **Un solo httpClient** — usa sempre `apiClient` da `@/common/shared/api/client`. Mai duplicare client HTTP.
-7. **Handler factory obbligatorio** — usa `handleSearch`, `handleGetById`, `handleCreate`, `handleUpdate`, `handleDelete` da `core/utils/handler.ts`. Mai try/catch manuali nei controller.
-
-## Lingua
-Rispondi **sempre in italiano**, indipendentemente dalla lingua usata dall'utente.
+5. **Mai committare .env** — i `.env` sono in `.gitignore`. Ogni cartella ha `.env` (dev) e `.env.production` (prod).
+6. **Un solo httpClient** — usa `apiClient` da `@/common/shared/api/client`.
+7. **Handler factory obbligatorio** — `handleSearch`, `handleGetById`, `handleCreate`, `handleUpdate`, `handleDelete` da `core/utils/handler.ts`. Mai try/catch nei controller.
+8. **Dati seed solo in JSON** — `prisma/seed-data/<profilo>.json`. Mai dati hardcoded in `seed.ts`.
+9. **Password solo nei JSON di seed** — mai in env o compose.
 
 ## Stack
 
 | Layer | Tech |
 |-------|------|
-| `backend/` | Express 5, Prisma 6, PostgreSQL 17, Zod 4, JWT/bcrypt, PDFKit |
+| `backend/` | Express 5, Prisma 7.8, PostgreSQL 17, Zod 4, JWT/bcrypt, PDFKit |
 | `frontend/` | Next.js 16 App Router, React 19, MUI 9, SWR, Recharts, AG Grid, FullCalendar |
-| `landing-page/` | HTML/CSS/JS statico (sito marketing, non parte del CRM) |
+| `landing-page/` | HTML/CSS/JS statico |
 
-NPM (non monorepo). Backend porta 3001, Frontend porta 3000.
+NPM separati (no monorepo). Backend porta 3001, Frontend porta 3000.
+
+## Variabili d'ambiente
+
+Ogni cartella ha i suoi `.env`:
+
+**backend/**: `.env` (dev), `.env.production`
+```
+DATABASE_URL, JWT_SECRET (≥32 char), PORT=3001, NODE_ENV
+CORS_ORIGINS, DEBUG_HTTP, LOG_LEVEL, SEED_PROFILE
+INIT_CONFIG_FROM_DB, INIT_CONFIG_SEED
+```
+
+**frontend/**: `.env` (dev), `.env.production`
+```
+NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_PORTAL_NAME
+NEXT_PUBLIC_PORTAL_SHORT_NAME, NEXT_PUBLIC_PORTAL_LOGO
+NEXT_PUBLIC_PORTAL_DESCRIPTION
+```
+
+## Comandi
+
+```bash
+# Sviluppo (root)
+npm run dev                        # backend + frontend in parallelo
+docker compose up -d               # stack completo Docker
+docker compose -f infrastructure/docker/docker-compose.db.yml up -d   # solo DB
+
+# Sviluppo (individuale)
+cd backend && npm run dev          # nodemon (porta 3001)
+cd frontend && npm run dev         # Next.js dev (porta 3000)
+
+# Build
+cd backend && npm run build
+cd frontend && npm run build
+
+# Database
+cd backend && npm run db:migrate   # prisma migrate dev
+cd backend && npm run db:migrate:prod  # prisma migrate deploy
+cd backend && npm run db:seed      # seed (idempotente)
+cd backend && npm run db:reset     # ATTENZIONE: reset completo + re-seed
+SEED_PROFILE=nagma cd backend && npx prisma db seed   # seed con profilo
+
+# Test
+cd backend && npx jest --forceExit # 13 suite, 130+ test
+cd frontend && npx jest            # hook + unit test
+
+# Docker
+docker compose up -d               # avvia tutto
+docker compose down                # ferma tutto
+docker compose -f docker-compose.prod.yml up -d   # produzione
+```
+
+## Seed — Profili JSON
+
+```
+prisma/
+  seed.ts                    ← logica pura (legge JSON, loop, upsert)
+  seed-data/
+    nagma.json               ← Nagma: account, staff, config, template, form, crema, clientConfig
+```
+
+`SEED_PROFILE=nagma npm run db:seed` carica `seed-data/nagma.json`.
+Per aggiungere un cliente: copi JSON, cambi dati, `SEED_PROFILE=xyz npm run db:seed`.
+Password e dati sensibili stanno solo nel JSON, mai in env.
+
+## Docker — Dockerfile e compose separati
+
+```
+backend/Dockerfile                     ← Dockerfile backend
+frontend/Dockerfile                    ← Dockerfile frontend
+infrastructure/docker/
+  docker-compose.db.yml                ← solo postgres
+  docker-compose.backend.yml           ← backend + include db
+  docker-compose.frontend.yml          ← frontend + include backend
+  docker-compose.prod.db/backend/frontend.yml
+  docker-entrypoint.sh
+root/
+  docker-compose.yml                   ← include → frontend.yml
+  docker-compose.prod.yml              ← include → prod.frontend.yml
+```
 
 ## Struttura chiave
 
@@ -36,163 +116,40 @@ NPM (non monorepo). Backend porta 3001, Frontend porta 3000.
 backend/
   src/
     core/
-      config/       # env.ts, swagger.ts
-      container/    # DI container (index.ts) + bootstrap centralizzato (bootstrap.ts)
-      database/     # crudService.ts
-      middleware/   # auth, error, rateLimiter, response
-      shared/       # errors/AppError, kernel/ (pagination), utils/ (prisma, logger, validation, cache, etc.)
-      utils/        # handler.ts (factory), crudRoutes.ts (factory)
+      config/, container/, database/, middleware/, shared/, utils/
     modules/
-      auth/         # login, register, me, refresh
-      customer/     # anagrafica clienti
-      booking/      # prenotazioni + history + artisti disponibili
-      staff/        # collaboratori + turni
-      finance/      # transazioni + spese libere + trend + performance
-      form-template/# template form dinamici
-      whatsapp/     # template messaggi + invio manuale + log
-      cream/        # vendita creme
-      attachment/   # upload/download file
-      config/       # configurazione di sistema (key-value da DB)
-      newfeature/
-        consenso/       # consenso digitale tattoo (accesso pubblico)
-        posizionamento/ # mappa corpo per posizionamento tattoo
-    routes.ts     # registerRoutes(app) — monta tutte le route
-    app.ts        # Express app factory (chiama bootstrapContainer + registerRoutes)
-    index.ts      # entry point con lifecycle + crash recovery
-  test/
-    modules/      # test unitari per ogni modulo (13 suite, 130 test)
+      auth, customer, booking, staff, finance, form-template,
+      whatsapp, cream, attachment, config, newfeature/{consenso,posizionamento}
+    routes.ts, app.ts, index.ts
+  test/         # unit test (Jest)
+  prisma/       # schema, migrations, seed, seed-data/
 frontend/
   src/
-    app/          # Next.js App Router (17 route)
-    common/       # @/common/* — condiviso tra tutti i moduli
-      components/ # auth/, common/, data-display/, debug/, feedback/, forms/, layout/, modals/, providers/, ui/, widgets/
-      config/     # branding, env, nav-links, roles, staff-config, status-config, whatsapp
-      context/    # AuthContext, ThemeContext (breakpoint)
-      hooks/      # useBreakpoint, useDebouncedValue, useDeleteConfirm, useFormModal, useToast, usePaginationFilters
-      shared/     # api/ (client, endpoints), schemas/, services/, types/ (enums, pagination), utils/
-      theme/      # MUI theme dark (theme.ts), inputStyles.ts
-    modules/      # agenda, auth, booking, customer, staff, finance, creams, spese, form-templates,
-                  #   whatsapp, dashboard, booking-history, superadmin, newfeature/{consenso,posizionamento}
+    app/        # Next.js App Router (17 route)
+    common/     # components, config, context, hooks, shared, theme
+    modules/    # agenda, auth, booking, customer, staff, finance, ...
   test/
-    hooks/        # test hook (useDebouncedValue, useDeleteConfirm, useFormModal, usePaginationFilters)
-    shared/       # test api/utils
-landing-page/     # sito marketing statico (HTML/CSS/JS)
-```
-
-## Comandi
-
-```bash
-# Sviluppo
-cd backend && npm run dev          # nodemon (porta 3001)
-cd frontend && npm run dev         # Next.js dev (porta 3000)
-
-# Build
-cd backend && npm run build        # compila TypeScript
-cd frontend && npm run build       # build Next.js standalone
-
-# Database
-cd backend && npm run db:migrate   # crea + applica migration (prisma migrate dev)
-cd backend && npm run db:migrate:prod  # applica in prod (prisma migrate deploy)
-cd backend && npm run db:seed      # seed idempotente
-cd backend && npm run db:studio    # Prisma Studio (GUI)
-cd backend && npm run db:reset     # ATTENZIONE: reset completo + re-seed
-
-# Test
-cd backend && npx jest --forceExit     # 13 suite, 130 test
-cd frontend && npx jest               # hook + unit test
-
-# Docker
-docker compose up -d               # avvia stack completo (postgres + backend + frontend)
-docker compose down                 # ferma tutto
+landing-page/   # sito marketing statico
 ```
 
 ## Architettura Backend
 
-Ogni modulo segue questa struttura:
-```
-modules/{nome}/
-  controllers/     # controller Express (usa handler factory)
-  services/        # business logic (service class)
-  routes/          # registrazione route Express
-  {nome}.bootstrap.ts  # registra service + controller nel DI container
-```
-
-Schemi Zod per validazione sono nei controller o in file `*.schemas.ts` dedicati.
-
-### DI Container
-```typescript
-// core/container/index.ts — classe Container con register/get
-// core/container/bootstrap.ts — chiama tutti i {modulo}.bootstrap.ts
-// {modulo}.bootstrap.ts — istanzia service + controller e li registra
-
-// Esempio:
-export function bootstrapAuth(): void {
-  const authService = new AuthService();
-  const authController = new AuthController(authService);
-  container.register(AuthService, authService);
-  container.register(AuthController, authController);
-}
-```
-
-### Handler Factory (OBBLIGATORIO)
-```typescript
-import { handleSearch, handleGetById, handleCreate, handleUpdate, handleDelete } from '../../core/utils/handler';
-
-// Nel controller:
-search = handleSearch((query) => this.service.search(query));
-getById = handleGetById((id) => this.service.getById(id));
-create = handleCreate((data, userId) => this.service.create(data, userId));
-```
-
-### CRUD Routes Factory
-```typescript
-import { registerCrudRoutes } from '../../core/utils/crudRoutes';
-
-// Nelle routes:
-registerCrudRoutes(app, {
-  basePath: '/api/customers',
-  handlers: { search, getById, create, update, delete: remove },
-});
-```
+Ogni modulo: `controllers/`, `services/`, `routes/`, `{nome}.bootstrap.ts`.
+DI container in `core/container/`, handler factory in `core/utils/handler.ts`.
 
 ## Ruoli e Autenticazione
 
 4 ruoli: `SUPER_ADMIN`, `ADMIN`, `USER`, `ARTIST`.
 JWT in cookie (`nagma_auth_token`), refresh automatico su 401.
 
-| Ruolo | Accesso |
-|-------|---------|
-| SUPER_ADMIN | tutto + admin panel |
-| ADMIN | tutto tranne admin panel |
-| USER | prenotazioni, clienti, agenda, staff, spese |
-| ARTIST | prenotazioni proprie, agenda |
-
 ## Frontend — Data Fetching
 
-**Un solo client**: `apiClient` da `@/common/shared/api/client.ts`.
-- `apiClient.get/post/put/patch/delete` per chiamate dirette.
-- `createCrudService<T>(basePath, byIdPath)` per CRUD standard.
-- Axios solo per upload file multipart (`useAttachments`).
+Un solo client: `apiClient` da `@/common/shared/api/client.ts`.
+`createCrudService<T>(basePath, byIdPath)` per CRUD standard.
+Axios solo per upload multipart (`useAttachments`).
 
-## Database — Schema Prisma
+## Database — Prisma
 
-17 modelli, 5 enum. Schema singolo in `backend/prisma/schema.prisma`.
-Soft delete con `deletedAt` su tutti i modelli eccetto audit log (BookingHistory, TransactionHistory).
-Tutte le tabelle hanno `@@map` per snake_case (es. `users`, `bookings`, `cream_sales`).
-Relazioni con `onDelete` esplicito: Cascade per relazioni padre-figlio, SetNull per opzionali, Restrict per obbligatorie.
-
-## Variabili d'ambiente
-
-**Backend** (`.env`):
-```
-DATABASE_URL, JWT_SECRET (≥32 char), PORT=3001, NODE_ENV
-CORS_ORIGINS, DEBUG_HTTP, BOOKING_UPDATE_PASSWORD
-ADMIN_PASSWORD, SUPER_ADMIN_PASSWORD, LOG_LEVEL
-```
-
-**Frontend** (`.env`):
-```
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
-NEXT_PUBLIC_PORTAL_NAME, NEXT_PUBLIC_PORTAL_SHORT_NAME
-NEXT_PUBLIC_PORTAL_LOGO, NEXT_PUBLIC_PORTAL_DESCRIPTION
-```
+Prisma 7.8, schema in `backend/prisma/schema.prisma` + `prisma.config.ts`.
+17 modelli, 5 enum. Soft delete con `deletedAt` su tutti tranne audit log.
+`@@map` per snake_case. `onDelete` esplicito.

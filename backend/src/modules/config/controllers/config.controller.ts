@@ -1,8 +1,9 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../../core/middleware/auth.middleware';
-import { ConfigService } from '../services/configService';
+import { ConfigService, ClientFeatures } from '../services/configService';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 import prisma from '../../../core/shared/utils/prisma';
+import { clearFeatureCache } from '../../../core/middleware/featureFlag.middleware';
 
 export class ConfigController {
   constructor(private readonly configService: ConfigService) {}
@@ -81,9 +82,9 @@ export class ConfigController {
         if (typeof val.toISOString === 'function') {
           return `'${val.toISOString()}'`;
         }
-        return `'${JSON.stringify(val).replace(/'/g, "'")}'`;
+        return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
       }
-      return `'${val.toString().replace(/'/g, "'")}'`;
+      return `'${val.toString().replace(/'/g, "''")}'`;
     };
 
     for (const [tableName, records] of Object.entries(data)) {
@@ -109,5 +110,54 @@ export class ConfigController {
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(sql);
+  });
+
+  // Nuovo: ClientConfig endpoints
+  getClientConfig = asyncHandler(async (_req: AuthRequest, res: Response) => {
+    const clientConfig = await this.configService.getClientConfig();
+    if (!clientConfig) {
+      res.status(404).json({ success: false, error: 'ClientConfig non trovato' });
+      return;
+    }
+    res.json({ success: true, data: clientConfig });
+  });
+
+  updateClientConfig = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const {
+      clientName,
+      clientLogoUrl,
+      clientTimeZone,
+      clientLocale,
+      primaryColor,
+      secondaryColor,
+      features,
+      maxUsers,
+      maxBookings,
+      maxAttachmentSizeMB,
+      apiRateLimitPerMinute,
+      bookingUpdatePassword,
+      customFields,
+    } = req.body;
+
+    const updated = await this.configService.updateClientConfig({
+      clientName,
+      clientLogoUrl,
+      clientTimeZone,
+      clientLocale,
+      primaryColor,
+      secondaryColor,
+      features: features as Record<string, boolean>,
+      maxUsers,
+      maxBookings,
+      maxAttachmentSizeMB,
+      apiRateLimitPerMinute,
+      bookingUpdatePassword,
+      customFields,
+    });
+
+    // Invalida cache feature flags
+    clearFeatureCache();
+
+    res.json({ success: true, message: 'ClientConfig aggiornato con successo', data: updated });
   });
 }

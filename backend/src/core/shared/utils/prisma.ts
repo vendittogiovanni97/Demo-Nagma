@@ -1,12 +1,13 @@
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
 import { logger } from './logger';
 
 export const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5432/nagmadb?schema=public';
 
-// Prisma 6: Connection pooling is handled automatically by Prisma
-const prisma = new PrismaClient({
-  errorFormat: 'pretty',
-});
+const pool = new Pool({ connectionString: DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter, errorFormat: 'pretty' });
 
 // FIX B6: Monitor slow queries at Prisma level
 // Note: Query event monitoring in PrismaClient requires proper typing

@@ -5,10 +5,9 @@ import {
   Box, CircularProgress, useTheme, SxProps, Theme
 } from '@mui/material';
 import SmartModal from '@/common/components/common/SmartModal';
-import axios from 'axios';
 import Icon from '@/common/components/ui/Icon';
-import { getToken } from '@/common/shared/utils/auth';
 import { useToast } from '@/common/hooks/useToast';
+import { bookingApi } from '@/modules/booking/api/booking.api';
 import type { Attachment } from '@/modules/booking/model/attachment.types';
 
 interface AttachmentPreviewModalProps {
@@ -47,19 +46,12 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
 
     setIsLoading(true);
     let cancelled = false;
-    let objectUrl: string | null = null;
 
     (async () => {
       try {
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        const token = getToken();
-        const response = await axios.get(`${API_BASE}/attachments/${attachment.id}/download`, {
-          responseType: 'blob',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+        const blob = await bookingApi.downloadAttachment(attachment.id, attachment.mimeType);
         if (cancelled) return;
-        const typedBlob = new Blob([response.data], { type: attachment.mimeType });
-        objectUrl = URL.createObjectURL(typedBlob);
+        const objectUrl = URL.createObjectURL(blob);
         setPreviewUrl(objectUrl);
       } catch {
         if (!cancelled) {
@@ -73,7 +65,6 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
 
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [open, attachment.id, attachment.mimeType, isRenderable, toast]);
 

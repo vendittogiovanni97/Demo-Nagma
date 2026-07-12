@@ -1,5 +1,6 @@
-import { ENDPOINTS } from '@/common/shared/api/endpoints';
+import { ENDPOINTS, API_BASE_URL } from '@/common/shared/api/endpoints';
 import { apiClient } from '@/common/shared/api/client';
+import { getToken } from '@/common/shared/utils/auth';
 import type { BookingDTO, BookingStatsDTO, CreateBookingRequest, UpdateBookingRequest } from './booking.types';
 
 export const bookingApi = {
@@ -42,5 +43,15 @@ export const bookingApi = {
 
   verifyPassword: async (password: string) => {
     return apiClient.post<void>(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });
-  }
+  },
+
+  downloadAttachment: async (id: string | number, mimeType: string) => {
+    const token = getToken();
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.ATTACHMENTS.DOWNLOAD(id)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!response.ok) throw new Error('Download fallito');
+    const blob = await response.blob();
+    return new Blob([blob], { type: mimeType });
+  },
 };

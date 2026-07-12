@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -282,6 +281,50 @@ model Config {
   @@index([paramsKey])
   @@index([deletedAt])
   @@map("configs")
+}
+
+model ClientConfig {
+  id                   Int           @id @default(autoincrement())
+  clientName           String
+  clientLogoUrl        String?
+  clientTimeZone       String        @default("Europe/Rome")
+  clientLocale         String        @default("it-IT")
+  primaryColor         String        @default("#1976d2")
+  secondaryColor       String        @default("#ff9800")
+  features             Json
+  maxUsers             Int           @default(50)
+  maxBookings          Int           @default(10000)
+  maxAttachmentSizeMB  Int           @default(50)
+  apiRateLimitPerMinute Int          @default(100)
+  bookingUpdatePassword String?
+  customFields         Json?
+  customFieldsRel      CustomField[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@map("client_configs")
+}
+
+model CustomField {
+  id          String   @id @default(cuid())
+  entityType  String   // "customer", "booking", "staff", etc.
+  fieldName   String
+  fieldType   String   // "string", "number", "boolean", "date", "select", "multiselect"
+  fieldLabel  String
+  isRequired  Boolean  @default(false)
+  options     Json?    // per select/multiselect
+  defaultValue Json?
+  clientId    Int
+  clientConfig ClientConfig @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([entityType, fieldName, clientId])
+  @@index([clientId])
+  @@index([entityType])
+  @@index([deletedAt])
+  @@map("custom_fields")
 }
 
 model Attachment {

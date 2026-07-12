@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 import type { Server } from 'http';
 import prisma from './core/shared/utils/prisma';

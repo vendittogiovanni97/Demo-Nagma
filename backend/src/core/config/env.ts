@@ -45,7 +45,6 @@ export const config = {
   // Resilienza
   restartDelayMs: envInt('RESTART_DELAY_MS', 10_000),
 
-  // Security - Booking Updates (DEPRECATED: usa configService.getBookingUpdatePasswordSync())
-  // Password non ha default nel codice — deve essere impostata nel DB via ENV al primo avvio
+  // Booking password — solo per seed iniziale in ClientConfig (via seed.ts)
   bookingUpdatePassword: envStr('BOOKING_UPDATE_PASSWORD', ''),
 } as const;

@@ -2,12 +2,14 @@ import { Express, Router } from 'express';
 import { container } from '../../../core/container';
 import { WhatsAppController } from '../controllers/whatsapp.controller';
 import { authMiddleware, requireRoles } from '../../../core/middleware/auth.middleware';
+import { requireFeature } from '../../../core/middleware/featureFlag.middleware';
 
 export function registerWhatsAppRoutes(app: Express): void {
   const controller = container.get(WhatsAppController);
   const router = Router();
 
   router.use(authMiddleware);
+  router.use(requireFeature('enableWhatsApp'));
 
   router.get('/', controller.getAll);
   router.get('/logs', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getLogs);

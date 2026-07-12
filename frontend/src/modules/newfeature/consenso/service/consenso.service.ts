@@ -1,6 +1,7 @@
 import { apiClient } from '@/common/shared/api/client';
-import { ENDPOINTS } from '@/common/shared/api/endpoints';
+import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
 import { PublicBookingData, ConsentSubmission } from '../model/consenso.model';
+import type { ConsentRecord } from '../model/consent-list.types';
 
 export const consensoService = {
   getBookingPublic: async (id: number) => {
@@ -17,5 +18,15 @@ export const consensoService = {
         medicalAlertsDetails: string;
       };
     }>(ENDPOINTS.NEW_FEATURE.SUBMIT_CONSENT(id), data);
-  }
+  },
+
+  getConsents: async () => {
+    return apiClient.get<{ success: boolean; data: ConsentRecord[] }>(
+      ENDPOINTS.NEW_FEATURE.GET_CONSENTS
+    );
+  },
+
+  getPdfUrl: (filePath: string) => {
+    return `${API_BASE_URL}${filePath}`;
+  },
 };

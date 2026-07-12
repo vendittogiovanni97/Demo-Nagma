@@ -2,6 +2,7 @@ import { bootstrapAuth } from '../../modules/auth/auth.bootstrap';
 import { bootstrapBooking } from '../../modules/booking/booking.bootstrap';
 import { bootstrapConfig } from '../../modules/config/config.bootstrap';
 import { bootstrapCream } from '../../modules/cream/cream.bootstrap';
+import { bootstrapCustomField } from '../../modules/custom-field/customField.bootstrap';
 import { bootstrapCustomer } from '../../modules/customer/customer.bootstrap';
 import { bootstrapFinance } from '../../modules/finance/finance.bootstrap';
 import { bootstrapFormTemplate } from '../../modules/form-template/formTemplate.bootstrap';
@@ -17,6 +18,7 @@ export function bootstrapContainer(): void {
   bootstrapBooking();
   bootstrapConfig();
   bootstrapCream();
+  bootstrapCustomField();
   bootstrapCustomer();
   bootstrapFinance();
   bootstrapFormTemplate();

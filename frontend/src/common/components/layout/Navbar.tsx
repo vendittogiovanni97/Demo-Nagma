@@ -5,6 +5,7 @@ import { navItems } from "@/common/config/nav-links";
 import { useAuth } from "@/common/context/AuthContext";
 import { useBreakpointContext } from "@/common/context/BreakpointContext";
 import { useConsentConfig } from "@/modules/newfeature/consenso/hooks/useConsentConfig";
+import { useClientConfig } from "@/common/hooks/useClientConfig";
 import BookingModal from "@/modules/booking/components/modals/BookingModal";
 import { alpha } from "@mui/material/styles";
 import {
@@ -258,8 +259,14 @@ function UnauthenticatedNavbar({ navConfig }: { navConfig: NavConfigType }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
   const theme = useMuiTheme() as unknown as Theme;
+  const { clientConfig } = useClientConfig();
   const logoBoxSize = navConfig.logoBox + 26;
   const logoImgSize = navConfig.logoSize + 30;
+
+  // Usa logo da ClientConfig se disponibile, altrimenti fallback a branding
+  const logoUrl = clientConfig?.clientLogoUrl || branding.portalLogo;
+  const logoAlt = clientConfig?.clientName || branding.portalName;
+
   return (
     <Link href="/" style={{ display: 'flex', alignItems: 'center', paddingRight: 4, textDecoration: 'none' }}>
       <Box
@@ -276,8 +283,8 @@ function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
         }}
       >
         <Image
-          src={branding.portalLogo}
-          alt={branding.portalName}
+          src={logoUrl}
+          alt={logoAlt}
           width={logoImgSize}
           height={logoImgSize}
           priority
@@ -415,6 +422,7 @@ function NavbarUserMenu({
       { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
+      { href: '/admin-panel/settings', icon: FileText, label: 'Impostazioni Client', show: isSuperAdmin },
     ],
     [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]
   );

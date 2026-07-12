@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '@/common/shared/api/client';
-import { ENDPOINTS } from '@/common/shared/api/endpoints';
+import { consensoService } from '../service/consenso.service';
 import { ConsentRecord } from '../model/consent-list.types';
 
 export function useConsentList() {
@@ -14,9 +13,7 @@ export function useConsentList() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<{ success: boolean; data: ConsentRecord[] }>(
-        ENDPOINTS.NEW_FEATURE.GET_CONSENTS
-      );
+      const res = await consensoService.getConsents();
       setData(res.data ?? []);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Errore nel caricamento consensi'));

@@ -3,6 +3,7 @@ import { container } from '../../../core/container';
 import { FormTemplateController } from '../controllers/formTemplate.controller';
 import { registerCrudRoutes } from '../../../core/utils/crudRoutes';
 import { authMiddleware, adminOnly } from '../../../core/middleware/auth.middleware';
+import { requireFeature } from '../../../core/middleware/featureFlag.middleware';
 
 export function registerFormTemplateRoutes(app: Express): void {
   const controller = container.get(FormTemplateController);
@@ -17,9 +18,11 @@ export function registerFormTemplateRoutes(app: Express): void {
       delete: controller.delete,
     },
     middlewares: {
-      create: [authMiddleware, adminOnly],
-      update: [authMiddleware, adminOnly],
-      delete: [authMiddleware, adminOnly],
+      search: [authMiddleware, requireFeature('enableFormTemplate')],
+      getById: [authMiddleware, requireFeature('enableFormTemplate')],
+      create: [authMiddleware, adminOnly, requireFeature('enableFormTemplate')],
+      update: [authMiddleware, adminOnly, requireFeature('enableFormTemplate')],
+      delete: [authMiddleware, adminOnly, requireFeature('enableFormTemplate')],
     },
   });
 }

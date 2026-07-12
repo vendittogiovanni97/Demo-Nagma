@@ -16,6 +16,7 @@ import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import Card from '@/common/components/ui/Card';
 import Icon from '@/common/components/ui/Icon';
+import CustomFieldsManager from '../components/CustomFieldsManager';
 import { useEffect, useState } from 'react';
 
 interface CustomSwitchProps {
@@ -73,6 +74,7 @@ export default function SuperAdminPanelPage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [savingFlag, setSavingFlag] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'customFields'>('general');
 
   // Feature Flags
   const [showConsensi, setShowConsensi] = useState(false);
@@ -247,7 +249,69 @@ export default function SuperAdminPanelPage() {
           </Box>
         </Box>
 
-        <Grid container spacing={3.5}>
+        {/* Tab Navigation */}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{
+            mb: 4,
+            p: 0.5,
+            borderRadius: 2,
+            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+            backgroundColor: alpha(theme.palette.common.black, 0.3),
+            width: 'fit-content',
+          }}
+        >
+          <Button
+            variant={activeTab === 'general' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('general')}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 1.5,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              color: activeTab === 'general' ? 'common.white' : 'text.secondary',
+              ...(activeTab === 'general' ? {
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+              } : {
+                '&:hover': {
+                  color: 'text.primary',
+                  backgroundColor: alpha(theme.palette.common.white, 0.05),
+                }
+              })
+            }}
+          >
+            Impostazioni Generali
+          </Button>
+          <Button
+            variant={activeTab === 'customFields' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('customFields')}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 1.5,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              color: activeTab === 'customFields' ? 'common.white' : 'text.secondary',
+              ...(activeTab === 'customFields' ? {
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+              } : {
+                '&:hover': {
+                  color: 'text.primary',
+                  backgroundColor: alpha(theme.palette.common.white, 0.05),
+                }
+              })
+            }}
+          >
+            Campi Personalizzati
+          </Button>
+        </Stack>
+
+        {activeTab === 'general' ? (
+          <Grid container spacing={3.5}>
           {/* LEFT: Feature Toggles */}
           <Grid size={{ xs: 12, md: 6 }}>
             <Card
@@ -592,6 +656,9 @@ export default function SuperAdminPanelPage() {
             </Card>
           </Grid>
         </Grid>
+        ) : (
+          <CustomFieldsManager />
+        )}
       </Box>
     </PageTransition>
   );

@@ -71,6 +71,11 @@ export const ENDPOINTS = {
     BASE: '/api/config',
     BACKUP: '/api/config/backup',
   },
+  CUSTOM_FIELDS: {
+    BASE: '/api/custom-fields',
+    BY_ID: (id: string | number) => `/api/custom-fields/${id}`,
+    VALIDATE: '/api/custom-fields/validate',
+  },
   ATTACHMENTS: {
     DOWNLOAD: (id: string | number) => `/api/attachments/${id}/download`,
   },

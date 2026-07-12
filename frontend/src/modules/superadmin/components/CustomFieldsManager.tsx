@@ -24,7 +24,7 @@ import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import SwitchInput from '@/common/components/forms/SwitchInput';
 import { useToast } from '@/common/hooks/useToast';
-import { customFieldService, type CustomField } from '@/common/shared/services/customField.service';
+import { customFieldService, type CustomField } from '@/modules/custom-fields/api/customField.api';
 
 const ENTITY_OPTIONS = [
   { value: 'customer', label: 'Clienti' },
@@ -69,12 +69,8 @@ export default function CustomFieldsManager() {
   const fetchFields = async () => {
     setLoading(true);
     try {
-      const res = await customFieldService.getAll(entityFilter);
-      if (res.success) {
-        setFields(res.data);
-      } else {
-        toast.error('Errore durante il caricamento dei campi personalizzati.');
-      }
+      const fields = await customFieldService.getAll(entityFilter);
+      setFields(fields);
     } catch (err) {
       toast.error('Errore di caricamento.');
     } finally {
@@ -103,12 +99,12 @@ export default function CustomFieldsManager() {
     setFieldName(field.fieldName);
     setFieldType(field.fieldType);
     setIsRequired(field.isRequired);
-    
-    // Parse options if array
-    if (field.options && Array.isArray(field.options)) {
-      setOptionsString(field.options.join(', '));
-    } else if (field.options && typeof field.options === 'object') {
+
+    // Parse options if object (Record<string, string>)
+    if (field.options && typeof field.options === 'object' && !Array.isArray(field.options)) {
       setOptionsString(Object.values(field.options).join(', '));
+    } else if (field.options && Array.isArray(field.options)) {
+      setOptionsString(field.options.join(', '));
     } else {
       setOptionsString('');
     }
@@ -131,18 +127,24 @@ export default function CustomFieldsManager() {
 
     setSaving(true);
     try {
-      let parsedOptions: string[] | undefined = undefined;
+      let parsedOptions: Record<string, string> | undefined = undefined;
       if (fieldType === 'select' || fieldType === 'multiselect') {
-        parsedOptions = optionsString
+        const opts = optionsString
           .split(',')
           .map((opt) => opt.trim())
           .filter(Boolean);
-        
-        if (parsedOptions.length === 0) {
+
+        if (opts.length === 0) {
           toast.error('Fornisci almeno un\'opzione per i campi di tipo select/multiselect.');
           setSaving(false);
           return;
         }
+
+        // Convert array to object with value->label mapping
+        parsedOptions = opts.reduce((acc, opt) => {
+          acc[opt.toLowerCase().replace(/\s+/g, '_')] = opt;
+          return acc;
+        }, {} as Record<string, string>);
       }
 
       let parsedDefault: any = defaultValue.trim();
@@ -155,7 +157,7 @@ export default function CustomFieldsManager() {
       const payload = {
         entityType: entityFilter,
         fieldName,
-        fieldType,
+        fieldType: fieldType as CustomField['fieldType'],
         fieldLabel,
         isRequired,
         options: parsedOptions,
@@ -169,13 +171,9 @@ export default function CustomFieldsManager() {
         res = await customFieldService.create(payload);
       }
 
-      if (res.success) {
-        toast.success(editingField ? 'Campo aggiornato!' : 'Nuovo campo creato!');
-        setIsModalOpen(false);
-        fetchFields();
-      } else {
-        toast.error('Errore durante il salvataggio.');
-      }
+      toast.success(editingField ? 'Campo aggiornato!' : 'Nuovo campo creato!');
+      setIsModalOpen(false);
+      fetchFields();
     } catch (err: any) {
       toast.error(err.message || 'Errore nel salvataggio.');
     } finally {
@@ -191,14 +189,10 @@ export default function CustomFieldsManager() {
   const handleDelete = async () => {
     if (!deletingId) return;
     try {
-      const res = await customFieldService.delete(deletingId);
-      if (res.success) {
-        toast.success('Campo eliminato con successo!');
-        setIsConfirmOpen(false);
-        fetchFields();
-      } else {
-        toast.error('Errore durante l\'eliminazione.');
-      }
+      await customFieldService.delete(deletingId);
+      toast.success('Campo eliminato con successo!');
+      setIsConfirmOpen(false);
+      fetchFields();
     } catch (err) {
       toast.error('Errore di connessione.');
     }

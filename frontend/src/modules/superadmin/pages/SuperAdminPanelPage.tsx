@@ -18,6 +18,10 @@ import Card from '@/common/components/ui/Card';
 import Icon from '@/common/components/ui/Icon';
 import CustomFieldsManager from '../components/CustomFieldsManager';
 import { useEffect, useState } from 'react';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
+import SwitchInput from '@/common/components/forms/SwitchInput';
+import { ClientConfig } from '@/common/shared/services/config.service';
 
 interface CustomSwitchProps {
   checked: boolean;
@@ -90,13 +94,23 @@ export default function SuperAdminPanelPage() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const res = await configService.getConfig();
-        if (res.success) {
-          setShowConsensi(res.SHOW_CONSENSI);
-          setShowPosizionamento(res.SHOW_POSIZIONAMENTO);
-          if (res.DEFAULT_PHONE_PREFIX) {
-            setDefaultPrefix(res.DEFAULT_PHONE_PREFIX);
+        // Fetch both old SystemConfig (for backward compat) and new ClientConfig
+        const [systemRes, clientRes] = await Promise.all([
+          configService.getConfig(),
+          configService.getClientConfig().catch(() => null),
+        ]);
+
+        if (systemRes.success) {
+          setShowConsensi(systemRes.SHOW_CONSENSI);
+          setShowPosizionamento(systemRes.SHOW_POSIZIONAMENTO);
+          if (systemRes.DEFAULT_PHONE_PREFIX) {
+            setDefaultPrefix(systemRes.DEFAULT_PHONE_PREFIX);
           }
+        }
+
+        if (clientRes) {
+          // Could use clientRes for new features like primaryColor, secondaryColor, etc.
+          console.log('ClientConfig loaded:', { ...clientRes, bookingUpdatePassword: '[REDACTED]' });
         }
       } catch (err) {
         toast.error('Impossibile caricare i parametri di configurazione.');

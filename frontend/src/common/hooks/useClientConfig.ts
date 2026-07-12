@@ -18,8 +18,8 @@ export interface ClientConfig {
   maxUsers: number;
   maxBookings: number;
   maxAttachmentSizeMB: number;
+  bookingUpdatePassword: string | null;
   apiRateLimitPerMinute: number;
-  bookingUpdatePassword?: string;
   customFields?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
@@ -41,6 +41,7 @@ const DEFAULT_CLIENT_CONFIG: ClientConfig = {
   maxUsers: 100,
   maxBookings: 1000,
   maxAttachmentSizeMB: 50,
+  bookingUpdatePassword: null,
   apiRateLimitPerMinute: 60,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

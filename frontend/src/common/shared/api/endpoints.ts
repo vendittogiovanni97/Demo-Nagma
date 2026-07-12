@@ -70,6 +70,7 @@ export const ENDPOINTS = {
   CONFIG: {
     BASE: '/api/config',
     BACKUP: '/api/config/backup',
+    CLIENT_CONFIG: '/api/client-config',
   },
   CUSTOM_FIELDS: {
     BASE: '/api/custom-fields',

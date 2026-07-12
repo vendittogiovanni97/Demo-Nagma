@@ -2,6 +2,29 @@ import { apiClient } from '@/common/shared/api/client';
 import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
 import { getToken } from '@/common/shared/utils/auth';
 
+export interface ClientConfig {
+  id: number;
+  clientName: string;
+  clientLogoUrl?: string;
+  clientTimeZone: string;
+  clientLocale: string;
+  primaryColor: string;
+  secondaryColor: string;
+  features: {
+    enableCream: boolean;
+    enableWhatsApp: boolean;
+    enableFormTemplate: boolean;
+    enableConfig: boolean;
+  };
+  maxUsers: number;
+  maxBookings: number;
+  maxAttachmentSizeMB: number;
+  apiRateLimitPerMinute: number;
+  customFields?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SystemConfig {
   success: boolean;
   SHOW_CONSENSI: boolean;
@@ -10,7 +33,7 @@ export interface SystemConfig {
 }
 
 export const configService = {
-  getConfig: async () => {
+  getConfig: async (): Promise<SystemConfig> => {
     return apiClient.get<SystemConfig>(ENDPOINTS.CONFIG.BASE);
   },
 
@@ -21,5 +44,16 @@ export const configService = {
   downloadBackup: () => {
     const token = getToken() || '';
     return `${API_BASE_URL}${ENDPOINTS.CONFIG.BACKUP}?token=${encodeURIComponent(token)}`;
+  },
+
+  // New ClientConfig endpoints
+  getClientConfig: async (): Promise<ClientConfig> => {
+    const response = await apiClient.get<{ success: boolean; data: ClientConfig }>(ENDPOINTS.CONFIG.CLIENT_CONFIG);
+    return response.data;
+  },
+
+  updateClientConfig: async (payload: Partial<ClientConfig>): Promise<ClientConfig> => {
+    const response = await apiClient.put<{ success: boolean; data: ClientConfig }>(ENDPOINTS.CONFIG.CLIENT_CONFIG, payload);
+    return response.data;
   },
 };

@@ -89,10 +89,6 @@ export default function ClientSettingsPage() {
     try {
       setIsSaving(true);
       const payload: any = { ...formData };
-      // Invia password solo se l'admin l'ha modificata
-      if (!payload.bookingUpdatePassword) {
-        delete payload.bookingUpdatePassword;
-      }
       await updateConfig(payload);
       toast.success('Configurazione salvata con successo');
     } catch (error) {

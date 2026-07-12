@@ -26,6 +26,7 @@ interface FormInputProps {
   pattern?: string;
   autoComplete?: string;
   hideLabel?: boolean;
+  name?: string;
   sx?: SxProps<Theme>;
 }
 

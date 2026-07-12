@@ -1,5 +1,3 @@
-"use client";
-
 import { authService } from '@/modules/auth/api/auth.api';
 import type { AuthUser, LoginCredentials } from '@/modules/auth/model/auth.types';
 import { clearSession, getToken, getUser, setToken, setUser } from '@/common/shared/utils/auth';
@@ -45,9 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsAuthenticated(true);
         } catch {
           if (!isMounted) return;
-          clearSession();
-          setCurrentUser(null);
-          setIsAuthenticated(false);
+          // Try to refresh token
+          try {
+            const response = await authService.refresh();
+            setToken(response.token);
+            setUser(response.user);
+            setCurrentUser(response.user);
+            setIsAuthenticated(true);
+          } catch {
+            clearSession();
+            setCurrentUser(null);
+            setIsAuthenticated(false);
+          }
         } finally {
           if (isMounted) setIsLoading(false);
         }

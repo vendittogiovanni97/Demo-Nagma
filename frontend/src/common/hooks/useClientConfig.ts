@@ -53,8 +53,10 @@ const DEFAULT_CLIENT_CONFIG: ClientConfig = {
  * Cachea il risultato per evitare richieste multiple
  */
 export const useClientConfig = () => {
+  const token = getToken();
+
   const { data, error, isLoading, mutate } = useSWR<{ success: boolean; data: ClientConfig }>(
-    '/api/client-config',
+    token ? '/api/client-config' : null,
     async (url) => {
       try {
         const response = await apiClient.get<{ success: boolean; data: ClientConfig }>(url);

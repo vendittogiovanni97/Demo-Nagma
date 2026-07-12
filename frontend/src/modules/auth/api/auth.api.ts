@@ -18,4 +18,7 @@ export const authService = {
   changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<void> => {
     return apiClient.put<void>(`${ENDPOINTS.AUTH.ME}/password`, data);
   },
+  refresh: async (): Promise<AuthResponse> => {
+    return apiClient.post<AuthResponse>(ENDPOINTS.AUTH.REFRESH);
+  },
 };

@@ -10,7 +10,13 @@ test.describe('Happy Path - Full User Journey', () => {
 
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
+
+    // Wait for login request to complete
+    const loginPromise = page.waitForResponse(response =>
+      response.url().includes('/api/auth/login') && response.status() === 200
+    );
     await page.click('button[type="submit"]');
+    await loginPromise;
 
     await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
     await expect(page.locator('body')).not.toContainText('errore', { timeout: 5000 });
@@ -20,7 +26,13 @@ test.describe('Happy Path - Full User Journey', () => {
     // Login
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
+
+    const loginPromise = page.waitForResponse(response =>
+      response.url().includes('/api/auth/login') && response.status() === 200
+    );
     await page.click('button[type="submit"]');
+    await loginPromise;
+
     await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 
     // Navigate to admin panel
@@ -50,7 +62,13 @@ test.describe('Happy Path - Full User Journey', () => {
     // Login
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
+
+    const loginPromise = page.waitForResponse(response =>
+      response.url().includes('/api/auth/login') && response.status() === 200
+    );
     await page.click('button[type="submit"]');
+    await loginPromise;
+
     await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 
     // Navigate to settings
@@ -90,7 +108,13 @@ test.describe('Happy Path - Full User Journey', () => {
     // Login as superadmin
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
+
+    const loginPromise = page.waitForResponse(response =>
+      response.url().includes('/api/auth/login') && response.status() === 200
+    );
     await page.click('button[type="submit"]');
+    await loginPromise;
+
     await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 
     // Disable Cream feature

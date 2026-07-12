@@ -1,6 +1,5 @@
 import useSWR from 'swr';
 import { apiClient } from '@/common/shared/api/client';
-import { useAuth } from '@/common/context/AuthContext';
 
 export interface ClientConfig {
   id: string;
@@ -53,10 +52,8 @@ const DEFAULT_CLIENT_CONFIG: ClientConfig = {
  * Cachea il risultato per evitare richieste multiple
  */
 export const useClientConfig = () => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-
   const { data, error, isLoading, mutate } = useSWR<{ success: boolean; data: ClientConfig }>(
-    isAuthenticated ? '/api/client-config' : null,
+    '/api/client-config',
     async (url) => {
       try {
         const response = await apiClient.get<{ success: boolean; data: ClientConfig }>(url);
@@ -77,7 +74,7 @@ export const useClientConfig = () => {
 
   return {
     clientConfig,
-    isLoading: authLoading || isLoading,
+    isLoading,
     error,
     mutate,
   };

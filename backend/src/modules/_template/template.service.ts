@@ -1,4 +1,4 @@
-import { prisma } from '@/common/utils/prisma';
+import prisma from '../../core/shared/utils/prisma';
 import templateSchema, { TemplateCreateDTO, TemplateUpdateDTO } from './template.schema';
 
 export class TemplateService {
@@ -8,7 +8,7 @@ export class TemplateService {
   async create(data: TemplateCreateDTO) {
     // Validate input
     const validatedData = templateSchema.parse(data);
-    
+
     return await prisma.template.create({
       data: validatedData,
     });
@@ -33,7 +33,7 @@ export class TemplateService {
     orderBy?: any;
   } = {}) {
     const { skip = 0, take = 20, where = {}, orderBy } = params;
-    
+
     return await prisma.template.findMany({
       skip,
       take,
@@ -49,7 +49,7 @@ export class TemplateService {
     where?: any;
   } = {}) {
     const { where = {} } = params;
-    
+
     return await prisma.template.count({
       where,
     });
@@ -61,7 +61,7 @@ export class TemplateService {
   async update(id: string, data: TemplateUpdateDTO) {
     // Validate input
     const validatedData = templateSchema.partial().parse(data);
-    
+
     return await prisma.template.update({
       where: { id },
       data: validatedData,

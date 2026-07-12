@@ -1,5 +1,5 @@
 import { TemplateService } from './template.service';
-import { prisma } from '@/common/utils/prisma';
+import prisma from '../../core/shared/utils/prisma';
 
 describe('TemplateService', () => {
   let service: TemplateService;
@@ -7,7 +7,7 @@ describe('TemplateService', () => {
 
   beforeAll(async () => {
     service = new TemplateService();
-    
+
     // Clear any test data
     await prisma.template.deleteMany({
       where: {
@@ -43,7 +43,7 @@ describe('TemplateService', () => {
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
       expect(result.name).toBe(templateData.name);
-      
+
       testTemplateId = result.id;
     });
   });
@@ -65,7 +65,7 @@ describe('TemplateService', () => {
           }
         }
       });
-      
+
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBeGreaterThan(0);
     });
@@ -90,7 +90,7 @@ describe('TemplateService', () => {
       const result = await service.delete(testTemplateId);
       expect(result).toBeDefined();
       expect(result.deletedAt).not.toBeNull();
-      
+
       // Verify it's not found in regular queries
       const afterDelete = await service.findById(testTemplateId);
       expect(afterDelete).toBeNull();
@@ -104,7 +104,7 @@ describe('TemplateService', () => {
         name: 'test-template-count-1',
         description: 'Count test 1',
       });
-      
+
       await service.create({
         name: 'test-template-count-2',
         description: 'Count test 2',
@@ -117,9 +117,9 @@ describe('TemplateService', () => {
           }
         }
       });
-      
+
       expect(count).toBeGreaterThanOrEqual(2);
-      
+
       // Clean up
       await prisma.template.deleteMany({
         where: {

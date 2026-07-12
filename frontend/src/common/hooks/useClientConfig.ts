@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import { apiClient } from '@/common/shared/api/client';
+import { getToken } from '@/common/shared/utils/auth';
 
 export interface ClientConfig {
   id: string;

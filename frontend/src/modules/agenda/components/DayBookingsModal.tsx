@@ -33,8 +33,8 @@ export default function DayBookingsModal({
   bookings,
   onBookingClick,
 }: DayBookingsModalProps) {
-  if (!date) return null;
   const theme = useTheme();
+  if (!date) return null;
 
   const formattedDate = format(date, 'EEEE d MMMM yyyy', { locale: it });
 

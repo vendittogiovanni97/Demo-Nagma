@@ -3,19 +3,19 @@
 import { Stack } from '@mui/material';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 
-import PageHeader from '@/components/common/PageHeader';
-import SmartTable from '@/components/common/SmartTable';
-import PaginationControls from '@/components/feedback/PaginationControls';
-import { usePaginationFilters } from '@/hooks/usePaginationFilters';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { useAuth } from '@/context/AuthContext';
+import PageHeader from '@/common/components/common/PageHeader';
+import SmartTable from '@/common/components/common/SmartTable';
+import PaginationControls from '@/common/components/feedback/PaginationControls';
+import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
+import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
+import { useAuth } from '@/common/context/AuthContext';
 import { bookingHistoryService, type BookingAction, type BookingHistoryResponse, type BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
 import BookingHistoryCard from '../components/BookingHistoryCard';
 import BookingHistoryFilters from '../components/BookingHistoryFilters';
 import { useBookingHistoryColumns } from '../hooks/useBookingHistoryColumns';
 import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
-import ExportModal from '@/components/modals/ExportModal';
+import ExportModal from '@/common/components/modals/ExportModal';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 

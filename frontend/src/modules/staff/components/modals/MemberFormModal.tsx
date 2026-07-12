@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/useToast';
+import { useAuth } from '@/common/context/AuthContext';
+import { useFormModal } from '@/common/hooks/useFormModal';
 import { staffApi } from '@/modules/staff/api/staff.api';
 import type { Staff } from '@/modules/staff/model/staff.types';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
-import StatePanel from '@/components/feedback/StatePanel';
-import Avatar from '@/components/data-display/Avatar';
-import SmartModal from '@/components/common/SmartModal';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import Avatar from '@/common/components/data-display/Avatar';
+import SmartModal from '@/common/components/common/SmartModal';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
 
 const TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
@@ -31,14 +31,12 @@ interface MemberFormModalProps {
 }
 
 export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: MemberFormModalProps) {
-  const toast = useToast();
   const { isAdmin } = useAuth();
   const theme = useTheme();
   
   const [name, setName] = useState('');
   const [type, setType] = useState<StaffTypeValue>('COLLABORATORE');
   const [color, setColor] = useState(COLOR_PRESETS[0]);
-  const [loading, setLoading] = useState(false);
 
   const isEditing = !!member;
 
@@ -50,26 +48,23 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
     }
   }, [isOpen, member]);
 
-  const handleSave = async () => {
-    setLoading(true);
-    try {
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
       const payload = { name, type, color };
-
       if (isEditing) {
         await staffApi.update(member!.id, payload);
-        toast.success('Membro modificato');
       } else {
         await staffApi.create(payload);
-        toast.success('Membro creato');
       }
       onSuccess();
-      onClose();
-    } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error, isEditing ? 'Errore durante la modifica' : 'Errore durante la creazione');
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    },
+    onClose,
+    successMessage: isEditing ? 'Membro modificato' : 'Membro creato',
+    errorMessage: isEditing ? 'Errore durante la modifica' : 'Errore durante la creazione',
+  });
+
+  const handleSave = async () => {
+    await handleSubmit();
   };
 
   return (
@@ -78,7 +73,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
       onClose={onClose}
       title={isEditing ? 'Modifica Membro' : 'Nuovo Membro'}
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={isLoading}
       saveLabel={isEditing ? 'Salva Modifiche' : 'Crea Membro'}
       maxWidth="sm"
     >
@@ -99,7 +94,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
               p: 2,
               borderRadius: 2,
               border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              backgroundColor: alpha(theme.palette.common.white, 0.03),
             }}
           >
             <Avatar 
@@ -159,7 +154,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
                       width: 32,
                       height: 32,
                       borderRadius: '50%',
-                      border: isSelected ? `2px solid ${theme.palette.common.white}` : `1px solid rgba(255,255,255,0.1)`,
+                      border: isSelected ? `2px solid ${theme.palette.common.white}` : `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
                       outline: isSelected ? `2px solid ${preset}` : 'none',
                       outlineOffset: 1,
                       backgroundColor: preset,

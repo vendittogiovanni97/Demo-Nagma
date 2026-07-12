@@ -1,12 +1,13 @@
 "use client";
 
-import PermissionGate from '@/components/auth/PermissionGate';
-import Avatar from '@/components/data-display/Avatar';
-import Badge from '@/components/ui/Badge';
-import { DAYS_OF_WEEK } from '@/config/staff-config';
+import PermissionGate from '@/common/components/auth/PermissionGate';
+import Avatar from '@/common/components/data-display/Avatar';
+import Badge from '@/common/components/ui/Badge';
+import { DAYS_OF_WEEK } from '@/common/config/staff-config';
 import type { Shift, Staff } from '../model/staff.types';
+import { alpha } from '@mui/material/styles';
 import { Box, Typography, useTheme, IconButton, Menu, MenuItem } from '@mui/material';
-import { Edit, Trash2, MoreVertical } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useState } from 'react';
 import ShiftCell from './ShiftCell';
 
@@ -38,7 +39,7 @@ export default function StaffMemberRow({
   onOpenAddShift,
 }: StaffMemberRowProps) {
   const theme = useTheme();
-  const memberColor = member.color || '#3b82f6';
+  const memberColor = member.color || theme.palette.info.main;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
@@ -66,7 +67,7 @@ export default function StaffMemberRow({
         display: 'grid',
         gridTemplateColumns: '220px repeat(7, 1fr)',
         borderBottom: `1px solid ${theme.palette.divider}`,
-        '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' },
+        '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.03) },
         transition: 'colors 0.2s',
         position: 'relative',
         minHeight: '80px',
@@ -119,11 +120,11 @@ export default function StaffMemberRow({
               top: 1,
               color: theme.palette.primary.main,
               '&:hover': {
-                bgcolor: 'rgba(0, 191, 255, 0.1)',
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
               },
             }}
           >
-            <MoreVertical size={18} />
+            <Icon name="moreVertical" size={18} />
           </IconButton>
           <Menu
             anchorEl={anchorEl}
@@ -133,7 +134,7 @@ export default function StaffMemberRow({
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
             <MenuItem onClick={handleEdit} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Edit size={16} />
+              <Icon name="edit" size={16} />
               <Typography variant="body2">Modifica</Typography>
             </MenuItem>
             <MenuItem
@@ -144,11 +145,11 @@ export default function StaffMemberRow({
                 alignItems: 'center',
                 color: theme.palette.error.main,
                 '&:hover': {
-                  bgcolor: 'rgba(244, 67, 54, 0.1)',
+                  bgcolor: alpha(theme.palette.error.main, 0.1),
                 },
               }}
             >
-              <Trash2 size={16} />
+              <Icon name="trash2" size={16} />
               <Typography variant="body2">Elimina</Typography>
             </MenuItem>
           </Menu>

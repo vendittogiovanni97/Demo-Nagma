@@ -1,14 +1,15 @@
 "use client";
 
-import { branding } from '@/config/branding';
-import { useAuth } from '@/context/AuthContext';
-import { Lock, Mail } from 'lucide-react';
+import { branding } from '@/common/config/branding';
+import { useAuth } from '@/common/context/AuthContext';
+import Icon, { Lock, Mail } from '@/common/components/ui/Icon';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import Button from '@/components/ui/Button';
-import FormInput from '@/components/forms/FormInput';
+import { alpha } from '@mui/material/styles';
+import Button from '@/common/components/ui/Button';
+import FormInput from '@/common/components/forms/FormInput';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -53,7 +54,7 @@ export default function LoginPage() {
           position: 'relative',
         }}
       >
-        <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(10, 26, 38, 0.1), rgba(10, 26, 38, 1))' }} />
+        <Box sx={{ position: 'absolute', inset: 0, background: (theme) => `linear-gradient(to right, ${alpha(theme.palette.background.default, 0.1)}, ${alpha(theme.palette.background.default, 1)})` }} />
       </Box>
 
       {/* Right side: Login Form */}
@@ -64,7 +65,7 @@ export default function LoginPage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(10, 26, 38, 1)',
+          backgroundColor: 'background.default',
           p: { xs: 3, sm: 6 },
           position: 'relative',
           zIndex: 1,

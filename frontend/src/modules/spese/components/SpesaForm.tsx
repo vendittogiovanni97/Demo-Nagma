@@ -1,14 +1,14 @@
 "use client";
 
-import Button from '@/components/ui/Button';
-import { Plus } from 'lucide-react';
+import Button from '@/common/components/ui/Button';
+import Icon from '@/common/components/ui/Icon';
 import { useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import InputBase from '@mui/material/InputBase';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
-import { useToast } from '@/hooks/useToast';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
+import { useToast } from '@/common/hooks/useToast';
+import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 interface SpesaFormProps {
   monthStr: string;
   onSuccess?: () => void;
@@ -57,7 +57,7 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
     borderRadius: 2,
     border: '1px solid',
     borderColor: 'divider',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: alpha(theme.palette.common.white, 0.03),
     px: 2,
     height: '42px',
     color: theme.palette.text.primary,
@@ -68,12 +68,12 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
       opacity: 1,
     },
     '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      backgroundColor: alpha(theme.palette.common.white, 0.05),
     },
     '&:focus-within': {
       borderColor: theme.palette.primary.main,
-      backgroundColor: 'rgba(0, 191, 255, 0.05)',
-      boxShadow: `0 0 0 2px rgba(0, 191, 255, 0.1)`,
+      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`,
     },
   };
 
@@ -107,7 +107,7 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
         disabled={isAdding}
         isLoading={isAdding}
         loadingLabel="..."
-        icon={isAdding ? undefined : <Plus size={16} />}
+        icon={isAdding ? undefined : <Icon name="plus" size={16} />}
         sx={{
           height: '42px',
           width: { xs: '100%', sm: 'auto' },

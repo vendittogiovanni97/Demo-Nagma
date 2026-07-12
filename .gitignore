@@ -38,3 +38,8 @@ image
 
 # Large files - PDF in images folder
 landing-page/assets/images/*.pdf
+
+
+.agents
+.claude
+.opencode

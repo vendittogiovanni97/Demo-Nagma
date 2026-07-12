@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/common/context/AuthContext';
 import { bookingApi as bookingService } from '../api/booking.api';
 
 interface UseBookingActionsOptions {

@@ -2,19 +2,19 @@
 
 import { usePathname } from 'next/navigation';
 
-import GlobalErrorBoundary from '@/components/feedback/GlobalErrorBoundary';
-import LayoutContainer from '@/components/layout/LayoutContainer';
+import GlobalErrorBoundary from '@/common/components/feedback/GlobalErrorBoundary';
+import LayoutContainer from '@/common/components/layout/LayoutContainer';
 
-import { AuthProvider } from '@/context/AuthContext';
-import { ThemeProvider as CustomThemeProvider } from '@/context/ThemeContext';
-import { ToastContainer } from '@/components/ui/Toast/ToastContainer';
-import theme from '@/theme/theme';
+import { AuthProvider } from '@/common/context/AuthContext';
+import { BreakpointProvider as CustomBreakpointProvider } from '@/common/context/BreakpointContext';
+import { ToastContainer } from '@/common/components/ui/Toast/ToastContainer';
+import theme from '@/common/theme/theme';
 import { ThemeProvider } from '@mui/material';
 
 import dynamic from 'next/dynamic';
-import AuthGuard from '@/components/auth/AuthGuard';
+import AuthGuard from '@/common/components/auth/AuthGuard';
 
-const Navbar = dynamic(() => import('@/components/layout/Navbar'), { ssr: false });
+const Navbar = dynamic(() => import('@/common/components/layout/Navbar'), { ssr: false });
 const ClientCssBaseline = dynamic(() => import('@mui/material/CssBaseline'), { ssr: false });
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider theme={theme}>
       <ClientCssBaseline />
-      <CustomThemeProvider>
+      <CustomBreakpointProvider>
         <AuthProvider>
           <GlobalErrorBoundary>
             <div className="flex flex-col min-h-screen">
@@ -41,7 +41,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             </div>
           </GlobalErrorBoundary>
         </AuthProvider>
-      </CustomThemeProvider>
+      </CustomBreakpointProvider>
       <ToastContainer />
     </ThemeProvider>
   );

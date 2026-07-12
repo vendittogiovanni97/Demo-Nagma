@@ -1,21 +1,21 @@
 "use client";
 
-import SmartModal from '@/components/common/SmartModal';
-import SmartTable from '@/components/common/SmartTable';
-import { Column } from '@/components/data-display/DataTable';
+import SmartModal from '@/common/components/common/SmartModal';
+import SmartTable from '@/common/components/common/SmartTable';
+import { Column } from '@/common/components/data-display/DataTable';
 import {
-  Avatar,
   Box,
-  Chip,
-  IconButton,
   Stack,
   Tooltip,
   Typography,
   useTheme
 } from '@mui/material';
+import Avatar from '@/common/components/data-display/Avatar';
+import Badge from '@/common/components/ui/Badge';
+import Button from '@/common/components/ui/Button';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Edit, Eye, Info, PlusCircle, Trash2 } from 'lucide-react';
+import Icon, { Info, PlusCircle, Trash2 } from '@/common/components/ui/Icon';
 import { useState } from 'react';
 import { TransactionHistory } from '../api/finance.api';
 
@@ -39,10 +39,10 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
 
   const getActionIcon = (action: string) => {
     switch (action) {
-      case 'CREATED': return <PlusCircle size={14} />;
-      case 'UPDATED': return <Edit size={14} />;
-      case 'DELETED': return <Trash2 size={14} />;
-      default: return <Info size={14} />;
+      case 'CREATED': return PlusCircle;
+      case 'UPDATED': return Info;
+      case 'DELETED': return Trash2;
+      default: return Info;
     }
   };
 
@@ -73,9 +73,12 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
       render: (row) => (
         <Stack sx={{ flexDirection: 'row', gap: 1, alignItems: 'center' }} component="div">
 
-          <Avatar sx={{ width: 24, height: 24, fontSize: '0.65rem', bgcolor: theme.palette.primary.main }}>
-            {row.changedBy?.name?.charAt(0) ?? 'U'}
-          </Avatar>
+          <Avatar
+            name={row.changedBy?.name ?? 'U'}
+            color={theme.palette.primary.main}
+            size="sm"
+            sx={{ width: 24, height: 24, fontSize: '0.65rem' }}
+          />
           <Typography variant="body2">{row.changedBy?.name ?? 'Utente Sconosciuto'}</Typography>
         </Stack>
       )
@@ -85,12 +88,11 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
       label: 'Azione',
       width: '150px',
       render: (row) => (
-        <Chip
-          size="small"
+        <Badge
+          size="sm"
           icon={getActionIcon(row.action)}
           label={getActionLabel(row.action)}
           sx={{
-            fontWeight: 700,
             bgcolor: `${getActionColor(row.action)}15`,
             color: getActionColor(row.action),
             border: `1px solid ${getActionColor(row.action)}30`
@@ -111,9 +113,7 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
 
   const actions = (row: TransactionHistory) => (
     <Tooltip title="Vedi Dettagli JSON">
-      <IconButton size="small" onClick={() => setSelectedLog(row)} sx={{ color: theme.palette.primary.main }}>
-        <Eye size={18} />
-      </IconButton>
+      <Button variant="icon" icon={<Icon name="eye" size={18} />} onClick={() => setSelectedLog(row)} sx={{ color: theme.palette.primary.main }} />
     </Tooltip>
   );
 

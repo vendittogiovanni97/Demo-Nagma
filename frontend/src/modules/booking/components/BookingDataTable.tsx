@@ -1,14 +1,14 @@
 "use client";
 
-import PermissionGate from '@/components/auth/PermissionGate';
-import SmartTable from '@/components/common/SmartTable';
-import type { Column } from '@/components/data-display/DataTable';
-import Button from '@/components/ui/Button';
+import PermissionGate from '@/common/components/auth/PermissionGate';
+import SmartTable from '@/common/components/common/SmartTable';
+import type { Column } from '@/common/components/data-display/DataTable';
+import Button from '@/common/components/ui/Button';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 import { Box } from '@mui/material';
-import { useTheme as useMuiTheme } from '@mui/material/styles';
-import { CheckCircle2, Edit, MessageCircle, RotateCcw, Trash2 } from 'lucide-react';
+import { useTheme as useMuiTheme, alpha } from '@mui/material/styles';
+import Icon from '@/common/components/ui/Icon';
 import { memo, useState } from 'react';
 import BookingCard from './BookingCard';
 
@@ -84,7 +84,7 @@ function BookingDataTable({
                   <>
                     <Button
                       variant="icon"
-                      icon={<CheckCircle2 size={18} />}
+                      icon={<Icon name="checkCircle2" size={18} />}
                       title="Completato"
                       sx={{
                         color: `${theme.palette.success.main}99`,
@@ -97,26 +97,26 @@ function BookingDataTable({
                     />
                     <Button
                       variant="icon"
-                      icon={<MessageCircle size={18} />}
+                      icon={<Icon name="messageCircle" size={18} />}
                       title="WhatsApp"
                       sx={{
-                        color: `#25D36699`,
+                        color: alpha(theme.palette.custom.whatsapp, 0.6),
                         '&:hover': {
-                          color: '#25D366',
-                          backgroundColor: '#25D36610',
+                          color: theme.palette.custom.whatsapp,
+                          backgroundColor: alpha(theme.palette.custom.whatsapp, 0.063),
                         },
                       }}
                       onClick={() => handleOpenWhatsAppModal(booking)}
                     />
                     <Button
                       variant="icon"
-                      icon={<Edit size={18} />}
+                      icon={<Icon name="edit" size={18} />}
                       title="Modifica"
                       onClick={() => onEdit(booking)}
                     />
                     <Button
                       variant="icon"
-                      icon={<Trash2 size={18} />}
+                      icon={<Icon name="trash2" size={18} />}
                       sx={{
                         color: `${theme.palette.error.main}99`,
                         '&:hover': {
@@ -132,7 +132,7 @@ function BookingDataTable({
                 {booking.status === 'ANNULLATO' && (
                   <Button
                     variant="icon"
-                    icon={<RotateCcw size={18} />}
+                    icon={<Icon name="rotateCcw" size={18} />}
                     title="Ripristina"
                     sx={{
                       color: `${theme.palette.warning.main}99`,

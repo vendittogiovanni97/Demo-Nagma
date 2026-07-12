@@ -1,15 +1,14 @@
 "use client";
 
-import MonthPicker from '@/components/ui/MonthPicker';
+import FormInput from '@/common/components/forms/FormInput';
+import MonthPicker from '@/common/components/ui/MonthPicker';
 import {
-  InputAdornment,
   Stack,
-  TextField,
   ToggleButton,
   ToggleButtonGroup,
   useTheme
 } from '@mui/material';
-import { Search } from 'lucide-react';
+import Icon, { Search } from '@/common/components/ui/Icon';
 
 interface FinanceFiltersProps {
   month: Date;
@@ -47,24 +46,13 @@ export default function FinanceFilters({
 
       <Stack sx={{ flexDirection: 'row', gap: 2, flex: 1 }} component="div">
 
-        <TextField
+        <FormInput
           placeholder="Cerca per descrizione o categoria..."
           value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          size="small"
-          fullWidth
-          sx={{ maxWidth: 400 }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={18} color={theme.palette.text.secondary} />
-                </InputAdornment>
-              ),
-              sx: { borderRadius: 2 }
-            }
-          }}
-
+          onChange={onSearchChange}
+          size="sm"
+          icon={Search}
+          sx={{ maxWidth: 400, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
         />
 
         <MonthPicker value={month} onChange={onMonthChange} />

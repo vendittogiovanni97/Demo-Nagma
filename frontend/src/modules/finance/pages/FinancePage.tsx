@@ -1,6 +1,6 @@
 "use client";
 
-import Button from '@/components/ui/Button';
+import Button from '@/common/components/ui/Button';
 import {
   Box,
   Grid,
@@ -8,20 +8,15 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import {
-  DollarSign,
-  Plus,
-  TrendingDown,
-  TrendingUp
-} from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useState } from 'react';
 
-import PageHeader from '@/components/common/PageHeader';
-import ExportModal from '@/components/modals/ExportModal';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import PageHeader from '@/common/components/common/PageHeader';
+import ExportModal from '@/common/components/modals/ExportModal';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import TransactionModal from '@/modules/spese/components/modals/TransactionModal';
-import { formatPrice } from '@/shared/utils/format';
+import { formatPrice } from '@/common/shared/utils/format';
 import { financeApi, Transaction } from '../api/finance.api';
 import FinanceDataTable from '../components/FinanceDataTable';
 import FinanceFilters from '../components/FinanceFilters';
@@ -79,7 +74,7 @@ export default function FinancePage() {
       <PageHeader
         title="Storico Movimenti"
         subtitle="Cronologia completa di entrate e uscite dello studio"
-        icon={<DollarSign size={24} />}
+            icon={<Icon name="dollarSign" size={24} />}
         actions={
           <Stack sx={{ flexDirection: 'row', gap: 2 }} component="div">
             <ExportModal
@@ -99,7 +94,7 @@ export default function FinancePage() {
             />
             <Button
               variant="primary"
-              icon={<Plus size={18} />}
+              icon={<Icon name="plus" size={18} />}
               onClick={() => {
                 setSelectedTransaction(null);
                 setIsModalOpen(true);
@@ -116,7 +111,7 @@ export default function FinancePage() {
           <SummaryCard
             title="Entrate Totali"
             amount={summary?.totalIncome ?? 0}
-            icon={<TrendingUp size={24} />}
+            icon={<Icon name="trendingUp" size={24} />}
             color="primary.main"
             isLoading={isLoading}
           />
@@ -125,7 +120,7 @@ export default function FinancePage() {
           <SummaryCard
             title="Uscite Totali"
             amount={summary?.totalExpense ?? 0}
-            icon={<TrendingDown size={24} />}
+            icon={<Icon name="trendingDown" size={24} />}
             color="error.main"
             isLoading={isLoading}
           />
@@ -134,7 +129,7 @@ export default function FinancePage() {
           <SummaryCard
             title="Bilancio Netto"
             amount={summary?.balance ?? 0}
-            icon={<DollarSign size={24} />}
+        icon={<Icon name="dollarSign" size={24} />}
             color={ (summary?.balance ?? 0) >= 0 ? 'success.main' : 'warning.main' }
             isLoading={isLoading}
           />

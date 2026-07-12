@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { CreamService } from '../services/CreamService';
-import { validate } from '../../../shared/utils/validation';
-import { createCreamSchema, createCreamSaleSchema } from '../schemas/cream.schemas';
-import { parsePageQuery } from '../../../shared/utils/date-utils';
-import { parseId } from '../../../shared/utils/parse-id';
-import { asyncHandler } from '../../../shared/utils/asyncHandler';
+import { handleCreate } from '../../../core/utils/handler';
+import { validate } from '../../../core/shared/utils/validation';
+import { createCreamSchema, createCreamSaleSchema } from './cream.schemas';
+import { parsePageQuery } from '../../../core/shared/utils/date-utils';
+import { parseId } from '../../../core/shared/utils/parse-id';
+import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 
 export class CreamController {
   constructor(private readonly creamService: CreamService) {}
@@ -17,11 +18,7 @@ export class CreamController {
     res.json(result);
   });
 
-  create = asyncHandler(async (req: Request, res: Response) => {
-    const data = validate(createCreamSchema, req.body);
-    const result = await this.creamService.create(data);
-    res.status(201).json(result);
-  });
+  create = handleCreate(async (data) => this.creamService.create(data), createCreamSchema);
 
   getSales = asyncHandler(async (req: Request, res: Response) => {
     const creamId = parseId(req.params.id);

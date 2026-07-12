@@ -1,11 +1,11 @@
 "use client";
 
-import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
+import Badge from '@/common/components/ui/Badge';
+import Button from '@/common/components/ui/Button';
 import type { FormTemplate } from '@/modules/form-templates/model/form-template.types';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
-import { FileText, Trash2 } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 
 function decodeFieldCount(schemaB64: string): number {
   try {
@@ -82,7 +82,7 @@ export default function TemplateListPanel({
             }}
           >
             <Box sx={{ color: 'rgba(255,255,255,0.2)', mb: 1.5 }}>
-              <FileText size={32} />
+              <Icon name="fileText" size={32} />
             </Box>
             <Box
               component="p"
@@ -152,7 +152,7 @@ export default function TemplateListPanel({
                       color: isSelected ? 'black' : 'white',
                     }}
                   >
-                    <FileText size={18} />
+                    <Icon name="fileText" size={18} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Box
@@ -173,7 +173,7 @@ export default function TemplateListPanel({
                 </Box>
                 <Button
                   variant="icon"
-                  icon={<Trash2 size={18} />}
+                  icon={<Icon name="trash2" size={18} />}
                   sx={{
                     color: 'rgba(244,67,54,0.6)',
                     '&:hover': {

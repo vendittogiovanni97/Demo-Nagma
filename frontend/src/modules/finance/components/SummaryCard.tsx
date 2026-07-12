@@ -1,7 +1,8 @@
 "use client";
 
-import { Box, Card, CardContent, Stack, Typography, useTheme } from '@mui/material';
-import { formatPrice } from '@/shared/utils/format';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
+import Card from '@/common/components/ui/Card';
+import { formatPrice } from '@/common/shared/utils/format';
 
 interface SummaryCardProps {
   title: string;
@@ -21,7 +22,6 @@ export default function SummaryCard({ title, amount, icon, color, isLoading }: S
         background: `linear-gradient(135deg, ${color}08 0%, transparent 100%)`,
       }}
     >
-      <CardContent>
         <Stack
           sx={{
             flexDirection: 'row',
@@ -63,7 +63,6 @@ export default function SummaryCard({ title, amount, icon, color, isLoading }: S
             {icon}
           </Box>
         </Stack>
-      </CardContent>
     </Card>
   );
 }

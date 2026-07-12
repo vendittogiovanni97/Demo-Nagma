@@ -1,13 +1,13 @@
 'use client';
 
-import { usePaginationFilters } from '@/hooks/usePaginationFilters';
+import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
 import { Box } from '@mui/material';
-import { Plus } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import PageHeader from '@/components/common/PageHeader';
-import DataTable from '@/components/data-display/DataTable';
-import { useToast } from '@/hooks/useToast';
+import PageHeader from '@/common/components/common/PageHeader';
+import DataTable from '@/common/components/data-display/DataTable';
+import { useToast } from '@/common/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
 import { staffApi } from '@/modules/staff/api/staff.api';
 import CreamFilters from '../components/CreamFilters';
@@ -130,7 +130,7 @@ export default function CreamsPage() {
         }
         showButton
         buttonLabel="Nuova Vendita"
-        buttonIcon={<Plus size={18} />}
+        buttonIcon={<Icon name="plus" size={18} />}
         onButtonClick={() => setIsModalOpen(true)}
       />
 

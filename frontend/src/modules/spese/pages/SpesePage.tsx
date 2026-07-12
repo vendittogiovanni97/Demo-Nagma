@@ -3,11 +3,11 @@
 import Box from '@mui/material/Box';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Wallet } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 
-import PageHeader from '@/components/common/PageHeader';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import PageHeader from '@/common/components/common/PageHeader';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
 import SpesaDataTable from '../components/SpesaDataTable';
 import SpesaFilters from '../components/SpesaFilters';
@@ -52,7 +52,7 @@ export default function SpesePage() {
       <PageHeader
         title="Spese Libere"
         subtitle="Annotazioni rapide di spesa"
-        icon={<Wallet size={24} />}
+        icon={<Icon name="wallet" size={24} />}
         filters={<SpesaFilters currentDate={currentDate} onDateChange={setCurrentDate} />}
       />
 

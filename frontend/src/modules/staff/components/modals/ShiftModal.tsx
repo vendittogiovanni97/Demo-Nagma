@@ -1,17 +1,17 @@
 "use client";
 
-import StatePanel from '@/components/feedback/StatePanel';
-import { EXPORT_FETCH_LIMIT } from '@/config/env';
-import { useAuth } from '@/context/AuthContext';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
+import { useAuth } from '@/common/context/AuthContext';
 import { useStaffMembers } from '@/modules/staff/hooks/useStaff';
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/common/hooks/useToast';
 import { staffApi } from '@/modules/staff/api/staff.api';
+import { useFormModal } from '@/common/hooks/useFormModal';
 import type { CreateShiftData } from '@/modules/staff/model/staff.types';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
 import { useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import SmartModal from '@/components/common/SmartModal';
-import FormSelect from '@/components/forms/FormSelect';
+import SmartModal from '@/common/components/common/SmartModal';
+import FormSelect from '@/common/components/forms/FormSelect';
 
 interface Props {
   isOpen: boolean;
@@ -46,27 +46,9 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
   const [staffId, setStaffId] = useState(initialStaffId !== undefined ? initialStaffId.toString() : '');
   const [dayOfWeek, setDayOfWeek] = useState(initialDayOfWeek !== undefined ? initialDayOfWeek.toString() : '0');
   const [label, setLabel] = useState('Mattina');
-  const [loading, setLoading] = useState(false);
 
-  const { data: membersResult } = useStaffMembers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
-  const members = membersResult?.data;
-
-  // React to prop changes
-  if (isOpen && initialStaffId !== undefined && staffId !== initialStaffId.toString() && !loading) {
-    setStaffId(initialStaffId.toString());
-  }
-  if (isOpen && initialDayOfWeek !== undefined && dayOfWeek !== initialDayOfWeek.toString() && !loading) {
-    setDayOfWeek(initialDayOfWeek.toString());
-  }
-
-  const handleSave = async () => {
-    if (!staffId) {
-      toast.error('Seleziona un collaboratore');
-      return;
-    }
-
-    setLoading(true);
-    try {
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
       const data: CreateShiftData = {
         staffId: Number(staffId),
         weekStart,
@@ -75,17 +57,33 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
         isOff: label === 'Riposo',
       };
       await staffApi.createShift(data);
-      toast.success('Turno pianificato');
       setStaffId('');
       setDayOfWeek('0');
       setLabel('Mattina');
       onSuccess();
-      onClose();
-    } catch (err: unknown) {
-      toast.error(extractErrorMessage(err, 'Errore nella creazione turno'));
-    } finally {
-      setLoading(false);
+    },
+    onClose,
+    successMessage: 'Turno pianificato',
+    errorMessage: 'Errore nella creazione turno',
+  });
+
+  const { data: membersResult } = useStaffMembers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
+  const members = membersResult?.data;
+
+  // React to prop changes
+  if (isOpen && initialStaffId !== undefined && staffId !== initialStaffId.toString() && !isLoading) {
+    setStaffId(initialStaffId.toString());
+  }
+  if (isOpen && initialDayOfWeek !== undefined && dayOfWeek !== initialDayOfWeek.toString() && !isLoading) {
+    setDayOfWeek(initialDayOfWeek.toString());
+  }
+
+  const handleSave = async () => {
+    if (!staffId) {
+      toast.error('Seleziona un collaboratore');
+      return;
     }
+    await handleSubmit();
   };
 
   const staffOptions = (members || []).map(m => ({ value: m.id.toString(), label: m.name }));
@@ -96,7 +94,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
       onClose={onClose}
       title="Pianifica Turno"
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={isLoading}
       saveLabel="Salva Turno"
       maxWidth="sm"
     >

@@ -1,18 +1,19 @@
 "use client";
 
-import PageHeader from '@/components/common/PageHeader';
-import StatePanel from '@/components/feedback/StatePanel';
-import WeekNavigator from '@/components/layout/WeekNavigator';
-import ExportModal from '@/components/modals/ExportModal';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useAuth } from '@/context/AuthContext';
+import PageHeader from '@/common/components/common/PageHeader';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import WeekNavigator from '@/common/components/layout/WeekNavigator';
+import ExportModal from '@/common/components/modals/ExportModal';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useAuth } from '@/common/context/AuthContext';
 import { useStaffMembers, useStaffShifts } from '../hooks/useStaff';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { staffApi } from '../api/staff.api';
 import type { Shift, Staff } from '../model/staff.types';
-import { Box, Paper, useTheme } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import Paper from '@/common/components/ui/Paper';
 import { addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
-import { Plus } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useState } from 'react';
 import ShiftModal from '../components/modals/ShiftModal';
 import StaffModal from '../components/modals/StaffModal';
@@ -148,12 +149,12 @@ export default function StaffPage() {
         }
         showSecondaryButton
         secondaryButtonLabel="Turno"
-        secondaryButtonIcon={<Plus size={14} />}
+        secondaryButtonIcon={<Icon name="plus" size={14} />}
         secondaryButtonRequiresAdmin
         onSecondaryButtonClick={() => openAddShift()}
         showButton
         buttonLabel="Staff"
-        buttonIcon={<Plus size={14} />}
+        buttonIcon={<Icon name="plus" size={14} />}
         buttonRequiresAdmin
         onButtonClick={() => setIsStaffModalOpen(true)}
       />

@@ -1,9 +1,10 @@
 "use client";
 
-import Button from '@/components/ui/Button';
+import Button from '@/common/components/ui/Button';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 import Box from '@mui/material/Box';
-import { Edit3, FileText, Plus, Save, X } from 'lucide-react';
+import { useTheme, alpha } from '@mui/material/styles';
+import Icon from '@/common/components/ui/Icon';
 import FieldEditor from './FieldEditor';
 
 interface TemplateEditorPanelProps {
@@ -35,12 +36,13 @@ export default function TemplateEditorPanel({
   onSave,
   onNewTemplate,
 }: TemplateEditorPanelProps) {
+  const theme = useTheme();
   const isEditorOpen = selectedId !== null || isCreating;
 
   return (
     <Box
       sx={{
-        backgroundColor: 'rgba(26,35,50,0.8)',
+        backgroundColor: alpha(theme.palette.background.paper, 0.8),
         backdropFilter: 'blur(10px)',
         flex: 1,
         width: { xs: '100%' },
@@ -49,7 +51,7 @@ export default function TemplateEditorPanel({
         borderRadius: 2,
         position: 'relative',
         border: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: alpha(theme.palette.common.white, 0.1),
         minHeight: 500,
         overflow: 'hidden',
       }}
@@ -61,7 +63,7 @@ export default function TemplateEditorPanel({
               p: 3,
               pb: 2,
               borderBottom: 1,
-              borderColor: 'rgba(255,255,255,0.1)',
+              borderColor: alpha(theme.palette.common.white, 0.1),
               backgroundColor: 'rgba(0,0,0,0.2)',
               display: 'flex',
               flexDirection: 'column',
@@ -88,9 +90,9 @@ export default function TemplateEditorPanel({
                 >
                   {isCreating ? 'Creazione Nuovo' : 'Modalità Modifica'}
                 </Box>
-                <Edit3 size={12} />
+                <Icon name="edit3" size={12} />
               </Box>
-              <Button variant="ghost" icon={<X size={20} />} onClick={onClose} sx={{ p: 0.25 }} />
+              <Button variant="ghost" icon={<Icon name="x" size={20} />} onClick={onClose} sx={{ p: 0.25 }} />
             </Box>
             <Box
               component="input"
@@ -130,7 +132,7 @@ export default function TemplateEditorPanel({
                 justifyContent: 'space-between',
                 pb: 1,
                 borderBottom: 1,
-                borderColor: 'rgba(255,255,255,0.1)',
+                borderColor: alpha(theme.palette.common.white, 0.1),
               }}
             >
               <Box
@@ -138,7 +140,7 @@ export default function TemplateEditorPanel({
                 sx={{
                   fontSize: '0.875rem',
                   fontWeight: 700,
-                  color: 'white',
+                  color: 'common.white',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                 }}
@@ -165,13 +167,13 @@ export default function TemplateEditorPanel({
                   borderRadius: 2,
                   border: '2px dashed',
                   borderColor: 'divider',
-                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  backgroundColor: alpha(theme.palette.common.white, 0.05),
                 }}
               >
                 <Box sx={{ color: 'text.secondary', mb: 1.5, opacity: 0.5 }}>
-                  <Plus size={40} />
+                  <Icon name="plus" size={40} />
                 </Box>
-                <Box component="p" sx={{ color: 'white', fontWeight: 600, mb: 0.25 }}>
+                <Box component="p" sx={{ color: 'common.white', fontWeight: 600, mb: 0.25 }}>
                   Nessun campo aggiunto
                 </Box>
                 <Box
@@ -204,7 +206,7 @@ export default function TemplateEditorPanel({
                 <Button
                   variant="secondary"
                   size="md"
-                  icon={<Plus size={18} />}
+                  icon={<Icon name="plus" size={18} />}
                   fullWidth
                   onClick={onAddField}
                   sx={{ mt: 2 }}
@@ -218,9 +220,9 @@ export default function TemplateEditorPanel({
           <Box
             sx={{
               p: 3,
-              backgroundColor: '#081018',
+              backgroundColor: 'background.default',
               borderTop: 1,
-              borderColor: 'rgba(255,255,255,0.1)',
+              borderColor: alpha(theme.palette.common.white, 0.1),
               display: 'flex',
               justifyContent: 'flex-end',
               gap: 1.5,
@@ -233,7 +235,7 @@ export default function TemplateEditorPanel({
             <Button
               variant="primary"
               size="md"
-              icon={!saving ? <Save size={18} /> : undefined}
+              icon={!saving ? <Icon name="save" size={18} /> : undefined}
               onClick={onSave}
               disabled={saving}
               isLoading={saving}
@@ -263,17 +265,17 @@ export default function TemplateEditorPanel({
               width: 96,
               height: 96,
               borderRadius: '50%',
-              backgroundColor: 'rgba(0,191,255,0.05)',
+              backgroundColor: alpha(theme.palette.primary.main, 0.05),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mb: 3,
               border: 1,
-              borderColor: 'rgba(0,191,255,0.1)',
+              borderColor: alpha(theme.palette.primary.main, 0.1),
             }}
           >
-            <Box sx={{ color: 'rgba(0,191,255,0.6)' }}>
-              <FileText size={40} />
+            <Box sx={{ color: alpha(theme.palette.primary.main, 0.6) }}>
+              <Icon name="fileText" size={40} />
             </Box>
           </Box>
           <Box
@@ -281,7 +283,7 @@ export default function TemplateEditorPanel({
             sx={{
               fontSize: '1.5rem',
               fontWeight: 700,
-              color: 'white',
+              color: 'common.white',
               fontFamily: 'Outfit, sans-serif',
               mb: 0.5,
             }}
@@ -301,7 +303,7 @@ export default function TemplateEditorPanel({
             Seleziona un template dal raccoglitore a sinistra per visualizzarne o modificarne la
             struttura, oppure creane uno partendo da zero.
           </Box>
-          <Button variant="primary" icon={<Plus />} size="lg" onClick={onNewTemplate}>
+          <Button variant="primary" icon={(props: any) => <Icon name="plus" {...props} />} size="lg" onClick={onNewTemplate}>
             Nuovo Template
           </Button>
         </Box>

@@ -5,35 +5,23 @@ import {
   Box,
   Grid,
   Typography,
-  Card,
-  CardContent,
   CircularProgress,
-  Chip,
-  Button,
   Divider,
   useTheme,
 } from '@mui/material';
-import {
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  Download,
-  Search,
-  User,
-  Calendar,
-  Shield,
-  Phone,
-  ExternalLink
-} from 'lucide-react';
+import Card from '@/common/components/ui/Card';
+import Badge from '@/common/components/ui/Badge';
+import Button from '@/common/components/ui/Button';
+import Icon, { CheckCircle } from '@/common/components/ui/Icon';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/common/context/AuthContext';
 import { useConsentConfig } from '../hooks/useConsentConfig';
 import { useConsentList } from '../hooks/useConsentList';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import PageHeader from '@/components/common/PageHeader';
-import PageTransition from '@/components/layout/PageTransition';
-import { API_BASE_URL } from '@/shared/api/endpoints';
+import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
+import PageHeader from '@/common/components/common/PageHeader';
+import PageTransition from '@/common/components/layout/PageTransition';
+import { API_BASE_URL } from '@/common/shared/api/endpoints';
 import { ConsentRecord } from '../model/consent-list.types';
 
 export default function ConsentListPage() {
@@ -76,7 +64,7 @@ export default function ConsentListPage() {
   if (configLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress size={50} sx={{ color: '#00bfff' }} />
+        <CircularProgress size={50} sx={{ color: 'primary.main' }} />
       </Box>
     );
   }
@@ -84,8 +72,10 @@ export default function ConsentListPage() {
   if (!isSuperAdmin || !SHOW_CONSENSI) {
     return (
       <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <AlertTriangle size={64} color={theme.palette.error.main} style={{ marginBottom: 16 }} />
-        <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, color: '#ffffff', fontFamily: 'Outfit' }}>
+        <Box sx={{ mb: 2 }}>
+          <Icon name="alertTriangle" size={64} color={theme.palette.error.main} />
+        </Box>
+        <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, color: 'common.white', fontFamily: 'Outfit' }}>
           Accesso Non Autorizzato
         </Typography>
         <Typography variant="body1" sx={{ color: theme.palette.text.secondary, textAlign: 'center', maxWidth: 450 }}>
@@ -114,8 +104,9 @@ export default function ConsentListPage() {
             mb: 4,
             p: 2,
             borderRadius: 4,
-            background: 'rgba(10, 26, 40, 0.4)',
-            border: '1px solid rgba(0, 191, 255, 0.08)',
+            background: (t) => `${t.palette.background.default}66`,
+            border: 1,
+            borderColor: 'divider',
             backdropFilter: 'blur(10px)',
           }}
         >
@@ -128,16 +119,19 @@ export default function ConsentListPage() {
             py: 1.25,
             borderRadius: 3,
             bgcolor: 'rgba(0,0,0,0.2)',
-            border: '1px solid rgba(0, 191, 255, 0.1)',
+            border: 1,
+            borderColor: 'divider',
             flexGrow: 1,
             maxWidth: { md: '450px' },
             transition: 'all 0.2s',
             '&:focus-within': {
-              borderColor: '#00bfff',
-              boxShadow: '0 0 10px rgba(0, 191, 255, 0.15)',
+              borderColor: 'primary.main',
+              boxShadow: (t) => `0 0 10px ${t.palette.primary.main}26`,
             }
           }}>
-            <Search size={16} style={{ color: 'rgba(0, 191, 255, 0.6)', flexShrink: 0 }} />
+            <Box component="span" sx={{ display: 'inline-flex', flexShrink: 0 }}>
+              <Icon name="search" size={16} color={`${theme.palette.primary.main}99`} />
+            </Box>
             <Box
               component="input"
               value={search}
@@ -148,10 +142,10 @@ export default function ConsentListPage() {
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: '#ffffff',
+                color: 'common.white',
                 fontSize: '0.85rem',
                 fontFamily: 'Outfit',
-                '&::placeholder': { color: 'rgba(255,255,255,0.3)' },
+                '&::placeholder': { color: (t) => `${t.palette.common.white}4d` },
               }}
             />
           </Box>
@@ -168,7 +162,7 @@ export default function ConsentListPage() {
                 <Button
                   key={btn.id}
                   onClick={() => setFilter(btn.id as any)}
-                  size="small"
+                  size="sm"
                   sx={{
                     borderRadius: 3,
                     px: 2.5,
@@ -177,12 +171,13 @@ export default function ConsentListPage() {
                     fontFamily: 'Outfit',
                     fontSize: '0.8rem',
                     fontWeight: isActive ? 800 : 500,
-                    bgcolor: isActive ? 'rgba(0, 191, 255, 0.12)' : 'rgba(255,255,255,0.02)',
-                    border: isActive ? '1px solid #00bfff' : '1px solid rgba(255,255,255,0.05)',
-                    color: isActive ? '#00bfff' : 'rgba(255,255,255,0.6)',
+                    bgcolor: isActive ? (t) => `${t.palette.primary.main}1f` : 'rgba(255,255,255,0.02)',
+                    border: isActive ? 1 : '1px solid rgba(255,255,255,0.05)',
+                    borderColor: isActive ? 'primary.main' : 'transparent',
+                    color: isActive ? 'primary.main' : 'rgba(255,255,255,0.6)',
                     whiteSpace: 'nowrap',
                     '&:hover': {
-                      bgcolor: isActive ? 'rgba(0, 191, 255, 0.18)' : 'rgba(255,255,255,0.06)',
+                      bgcolor: isActive ? (t) => `${t.palette.primary.main}2e` : 'rgba(255,255,255,0.06)',
                     }
                   }}
                 >
@@ -196,31 +191,36 @@ export default function ConsentListPage() {
         {/* MAIN GRID */}
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
-            <CircularProgress size={50} sx={{ color: '#00bfff' }} />
+            <CircularProgress size={50} sx={{ color: 'primary.main' }} />
           </Box>
         ) : error ? (
-          <Box sx={{ textAlign: 'center', py: 8, bgcolor: 'rgba(244,67,54,0.05)', border: '1px solid rgba(244,67,54,0.15)', borderRadius: 4, p: 4 }}>
-            <AlertTriangle size={48} color={theme.palette.error.main} style={{ margin: '0 auto 16px' }} />
-            <Typography variant="h6" sx={{ color: '#fff', mb: 1, fontWeight: 700 }}>
+          <Box sx={{ textAlign: 'center', py: 8,             bgcolor: (t) => `${t.palette.error.main}0d`, border: 1, borderColor: 'error.main', borderOpacity: 0.15, borderRadius: 4, p: 4 }}>
+          <Box sx={{ mx: 'auto', mb: 2 }}>
+            <Icon name="alertTriangle" size={48} color={theme.palette.error.main} />
+          </Box>
+            <Typography variant="h6" sx={{ color: 'common.white', mb: 1, fontWeight: 700 }}>
               Errore nel caricamento dell'archivio
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+            <Typography variant="body2" sx={{ color: (t) => `${t.palette.common.white}80` }}>
               Non è stato possibile caricare i dati dei consensi. Riprova più tardi.
             </Typography>
           </Box>
         ) : filtered.length === 0 ? (
-          <Card sx={{
-            background: 'rgba(10, 26, 38, 0.3)',
-            border: '1px solid rgba(0, 191, 255, 0.08)',
+          <Card variant="minimal" sx={(t) => ({
+            background: `${t.palette.background.default}4d`,
+            border: 1,
+            borderColor: 'divider',
             borderRadius: 5,
             p: 8,
             textAlign: 'center'
-          }}>
-            <FileText size={64} style={{ color: 'rgba(0, 191, 255, 0.25)', marginBottom: 20 }} />
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#fff', mb: 1, fontFamily: 'Outfit' }}>
+          })}>
+            <Box sx={{ color: `${theme.palette.primary.main}40`, mb: 2.5 }}>
+              <Icon name="fileText" size={64} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'common.white', mb: 1, fontFamily: 'Outfit' }}>
               Nessun consenso trovato
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', maxWidth: 400, mx: 'auto' }}>
+            <Typography variant="body2" sx={{ color: (t) => `${t.palette.common.white}66`, maxWidth: 400, mx: 'auto' }}>
               Nessun documento corrisponde ai criteri di ricerca impostati. Prova a cambiare parole chiave o filtri.
             </Typography>
           </Card>
@@ -231,13 +231,15 @@ export default function ConsentListPage() {
               return (
                 <Grid key={c.bookingId} size={{ xs: 12, sm: 6, md: 4 }}>
                   <Card
+                    variant="minimal"
+                    size="md"
                     sx={{
                       height: '100%',
                       background: 'linear-gradient(135deg, rgba(10, 26, 40, 0.8) 0%, rgba(6, 15, 25, 0.9) 100%)',
                       backdropFilter: 'blur(20px)',
                       border: c.hasMedicalAlerts 
-                        ? '1px solid rgba(255, 152, 0, 0.25)' 
-                        : '1px solid rgba(0, 191, 255, 0.12)',
+                        ? 1 : 1,
+                        borderColor: c.hasMedicalAlerts ? 'warning.main' : 'divider',
                       borderRadius: 4,
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -248,11 +250,11 @@ export default function ConsentListPage() {
                       '&:hover': {
                         transform: 'translateY(-6px)',
                         boxShadow: c.hasMedicalAlerts
-                          ? '0 12px 30px rgba(255, 152, 0, 0.12)'
-                          : '0 12px 30px rgba(0, 191, 255, 0.15)',
+                          ? (t) => `0 12px 30px ${t.palette.warning.main}1f`
+                          : (t) => `0 12px 30px ${t.palette.primary.main}26`,
                         borderColor: c.hasMedicalAlerts 
-                          ? 'rgba(255, 152, 0, 0.5)' 
-                          : 'rgba(0, 191, 255, 0.4)',
+                          ? 'warning.main' 
+                          : 'primary.main',
                       },
                     }}
                   >
@@ -264,36 +266,29 @@ export default function ConsentListPage() {
                         left: 0,
                         right: 0,
                         height: '3px',
-                        background: 'linear-gradient(90deg, #ff9800, #ff5722)'
+                        background: (t) => `linear-gradient(90deg, ${t.palette.warning.main}, ${t.palette.error.main})`
                       }} />
                     )}
 
-                    <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                       {/* Card Header */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                         <Box>
-                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#fff', fontFamily: 'Outfit', mb: 0.5 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 800, color: 'common.white', fontFamily: 'Outfit', mb: 0.5 }}>
                             {c.customerName}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'rgba(255,255,255,0.4)' }}>
-                            <Phone size={12} />
+                            <Icon name="phone" size={12} />
                             <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
                               {c.phone || 'Nessun telefono'}
                             </Typography>
                           </Box>
                         </Box>
-                        <Chip
-                          icon={<CheckCircle size={12} style={{ color: '#4caf50' }} />}
+                        <Badge
+                          variant="success"
+                          icon={CheckCircle}
                           label="Firmato"
-                          size="small"
-                          sx={{
-                            bgcolor: 'rgba(76,175,80,0.1)',
-                            color: '#4caf50',
-                            fontWeight: 700,
-                            fontSize: '0.65rem',
-                            border: '1px solid rgba(76,175,80,0.2)',
-                            px: 0.5
-                          }}
+                          size="sm"
                         />
                       </Box>
 
@@ -302,13 +297,13 @@ export default function ConsentListPage() {
                       {/* Info Rows */}
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: 'rgba(255,255,255,0.7)' }}>
-                          <User size={14} style={{ color: '#00bfff' }} />
+                            <Icon name="user" size={14} color={theme.palette.primary.main} />
                           <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
                             Artista: <strong style={{ color: '#fff' }}>{c.artistName ?? 'N/D'}</strong>
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: 'rgba(255,255,255,0.7)' }}>
-                          <Calendar size={14} style={{ color: '#ce93d8' }} />
+                          <Icon name="calendar" size={14} color={theme.palette.custom.purple} />
                           <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
                             Data: <strong style={{ color: '#fff' }}>{format(new Date(c.date), 'dd MMMM yyyy, HH:mm', { locale: it })}</strong>
                           </Typography>
@@ -318,16 +313,17 @@ export default function ConsentListPage() {
                       {/* Medical Alert warning block */}
                       {c.hasMedicalAlerts ? (
                         <Box sx={{
-                          bgcolor: 'rgba(255,152,0,0.05)',
-                          border: '1px solid rgba(255,152,0,0.15)',
+                          bgcolor: (t) => `${t.palette.warning.main}0d`,
+                          border: 1,
+                          borderColor: (t) => `${t.palette.warning.main}26`,
                           borderRadius: 2.5,
                           p: 1.5,
                           mt: 'auto',
                           mb: 2,
                         }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            <AlertTriangle size={14} color="#ff9800" />
-                            <Typography variant="caption" sx={{ color: '#ff9800', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            <Icon name="alertTriangle" size={14} color={theme.palette.warning.main} />
+                            <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                               Alert Medici Rilevati
                             </Typography>
                           </Box>
@@ -337,8 +333,9 @@ export default function ConsentListPage() {
                         </Box>
                       ) : (
                         <Box sx={{
-                          bgcolor: 'rgba(76,175,80,0.03)',
-                          border: '1px solid rgba(76,175,80,0.08)',
+                          bgcolor: (t) => `${t.palette.success.main}08`,
+                          border: 1,
+                          borderColor: (t) => `${t.palette.success.main}14`,
                           borderRadius: 2.5,
                           p: 1.5,
                           mt: 'auto',
@@ -347,7 +344,7 @@ export default function ConsentListPage() {
                           alignItems: 'center',
                           gap: 1
                         }}>
-                          <Shield size={14} color="#4caf50" />
+                          <Icon name="shield" size={14} color={theme.palette.success.main} />
                           <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>
                             Nessuna anomalia o allergia dichiarata.
                           </Typography>
@@ -357,17 +354,16 @@ export default function ConsentListPage() {
                       {/* Download Button */}
                       {pdfUrl ? (
                         <Button
-                          variant="contained"
-                          href={pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          variant="ghost"
                           fullWidth
-                          startIcon={<ExternalLink size={14} />}
+                          icon={<Icon name="externalLink" size={14} />}
+                          onClick={() => window.open(pdfUrl, '_blank')}
                           sx={{
                             borderRadius: 3,
-                            bgcolor: c.hasMedicalAlerts ? 'rgba(255, 152, 0, 0.15)' : 'rgba(0, 191, 255, 0.12)',
-                            border: c.hasMedicalAlerts ? '1px solid rgba(255, 152, 0, 0.3)' : '1px solid rgba(0, 191, 255, 0.3)',
-                            color: c.hasMedicalAlerts ? '#ff9800' : '#00bfff',
+                            bgcolor: c.hasMedicalAlerts ? (t) => `${t.palette.warning.main}26` : (t) => `${t.palette.primary.main}1f`,
+                            border: 1,
+                            borderColor: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
+                            color: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
                             fontWeight: 800,
                             textTransform: 'none',
                             fontSize: '0.8rem',
@@ -375,11 +371,11 @@ export default function ConsentListPage() {
                             boxShadow: 'none',
                             transition: 'all 0.25s',
                             '&:hover': {
-                              bgcolor: c.hasMedicalAlerts ? '#ff9800' : '#00bfff',
-                              color: '#060b13',
+                              bgcolor: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
+                              color: (t) => t.palette.background.default,
                               boxShadow: c.hasMedicalAlerts 
-                                ? '0 6px 16px rgba(255, 152, 0, 0.3)'
-                                : '0 6px 16px rgba(0, 191, 255, 0.3)',
+                                ? (t) => `0 6px 16px ${t.palette.warning.main}4d`
+                                : (t) => `0 6px 16px ${t.palette.primary.main}4d`,
                               borderColor: 'transparent'
                             },
                           }}
@@ -388,7 +384,7 @@ export default function ConsentListPage() {
                         </Button>
                       ) : (
                         <Button
-                          variant="contained"
+                          variant="ghost"
                           disabled
                           fullWidth
                           sx={{
@@ -401,7 +397,7 @@ export default function ConsentListPage() {
                           PDF Non Disponibile
                         </Button>
                       )}
-                    </CardContent>
+                    </Box>
                   </Card>
                 </Grid>
               );

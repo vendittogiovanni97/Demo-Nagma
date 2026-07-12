@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { nonEmptyString, transactionTypeSchema } from '@/shared/schemas/common';
+import { nonEmptyString, transactionTypeSchema } from '@/common/shared/schemas/common';
 
 export const createTransactionSchema = z.object({
   type: transactionTypeSchema,

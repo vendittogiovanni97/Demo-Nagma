@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { nonEmptyString } from '@/shared/schemas/common';
+import { nonEmptyString } from '@/common/shared/schemas/common';
 
 export const createStaffSchema = z.object({
   name: nonEmptyString('Il nome è obbligatorio'),

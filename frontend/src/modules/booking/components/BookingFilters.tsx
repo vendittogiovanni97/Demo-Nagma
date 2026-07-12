@@ -1,12 +1,12 @@
 "use client";
 
-import SmartFilters from '@/components/common/SmartFilters';
+import SmartFilters from '@/common/components/common/SmartFilters';
 import type { BookingStatus } from '@/modules/booking/model/booking.types';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
-import { useTheme } from '@/context/ThemeContext';
-import Button from '@/components/ui/Button';
-import FormSelect from '@/components/forms/FormSelect';
-import { X } from 'lucide-react';
+import { useBreakpointContext } from '@/common/context/BreakpointContext';
+import Button from '@/common/components/ui/Button';
+import FormSelect from '@/common/components/forms/FormSelect';
+import Icon from '@/common/components/ui/Icon';
 
 interface BookingFiltersProps {
   monthLabel: string;
@@ -42,7 +42,7 @@ export default function BookingFilters({
   onNextMonth,
 }: BookingFiltersProps) {
   const theme = useMuiTheme();
-  const { isXLarge } = useTheme();
+  const { isXLarge } = useBreakpointContext();
 
   return (
     <SmartFilters
@@ -99,7 +99,7 @@ export default function BookingFilters({
           variant="ghost"
           size="sm"
           onClick={onResetDateRange}
-          icon={<X size={14} />}
+          icon={<Icon name="x" size={14} />}
           sx={{ fontSize: '0.75rem', px: 1 }}
         >
           Reset

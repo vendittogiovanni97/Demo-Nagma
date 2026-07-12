@@ -1,8 +1,8 @@
 "use client";
 
-import SmartFilters from '@/components/common/SmartFilters';
-import Button from '@/components/ui/Button';
-import { X } from 'lucide-react';
+import SmartFilters from '@/common/components/common/SmartFilters';
+import Button from '@/common/components/ui/Button';
+import Icon from '@/common/components/ui/Icon';
 
 interface Props {
   search: string;
@@ -41,7 +41,7 @@ export default function CustomerFilters({
           variant="ghost"
           size="sm"
           onClick={onResetDates}
-          icon={<X size={14} />}
+          icon={<Icon name="x" size={14} />}
           sx={{ fontSize: '0.75rem', px: 1 }}
         >
           Reset

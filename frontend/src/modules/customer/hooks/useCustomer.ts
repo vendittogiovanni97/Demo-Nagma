@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { customerApi } from '../api/customer.api';
 import { customerMapper } from '../api/customer.mapper';
 import type { CustomerModel, CustomerSummaryModel } from '../model/customer.model';
-import type { PaginatedResponse } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/common/shared/types/pagination';
 
 interface UseCustomersParams {
   search?: string;

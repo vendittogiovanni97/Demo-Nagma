@@ -1,19 +1,20 @@
 "use client";
 
-import StatePanel from '@/components/feedback/StatePanel';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/useToast';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import { useAuth } from '@/common/context/AuthContext';
+import { useFormModal } from '@/common/hooks/useFormModal';
+import { useToast } from '@/common/hooks/useToast';
 import { createStaffSchema } from '@/modules/staff/model/staff.schema';
 import { staffApi } from '@/modules/staff/api/staff.api';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
-import { validateData } from '@/shared/utils/validation';
+import { validateData } from '@/common/shared/utils/validation';
 import { useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import SmartModal from '@/components/common/SmartModal';
-import Avatar from '@/components/data-display/Avatar';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
-import { Palette } from 'lucide-react';
+import { alpha } from '@mui/material/styles';
+import SmartModal from '@/common/components/common/SmartModal';
+import Avatar from '@/common/components/data-display/Avatar';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
+import Icon from '@/common/components/ui/Icon';
 
 const STAFF_TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
@@ -34,7 +35,19 @@ export default function StaffModal({ isOpen, onClose }: Props) {
   const [name, setName] = useState('');
   const [type, setType] = useState('COLLABORATORE');
   const [color, setColor] = useState(() => theme.palette.primary.main);
-  const [loading, setLoading] = useState(false);
+
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
+      const payload = { name, type, color };
+      await staffApi.create(payload);
+      setName('');
+      setType('COLLABORATORE');
+      setColor(theme.palette.primary.main);
+    },
+    onClose,
+    successMessage: `${name} aggiunto al team!`,
+    errorMessage: "Errore durante l'inserimento",
+  });
 
   const handleSave = async () => {
     const payload = { name, type, color };
@@ -43,20 +56,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
       toast.error(validationError);
       return;
     }
-
-    setLoading(true);
-    try {
-      await staffApi.create(payload);
-      toast.success(`${name} aggiunto al team!`);
-      setName('');
-      setType('COLLABORATORE');
-      setColor(theme.palette.primary.main);
-      onClose();
-    } catch (error: unknown) {
-      toast.error(extractErrorMessage(error, 'Errore durante l\'inserimento'));
-    } finally {
-      setLoading(false);
-    }
+    await handleSubmit();
   };
 
   return (
@@ -66,7 +66,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
       title="Aggiungi Staff"
       maxWidth="sm"
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={isLoading}
       saveLabel="Crea Profilo Staff"
     >
       {!isAdmin ? (
@@ -85,7 +85,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
               p: 2,
               borderRadius: 2,
               border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              backgroundColor: alpha(theme.palette.common.white, 0.03),
             }}
           >
             <Avatar
@@ -168,13 +168,13 @@ export default function StaffModal({ isOpen, onClose }: Props) {
                 p: 2,
                 borderRadius: 3,
                 border: `1px solid ${theme.palette.divider}`,
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                backgroundColor: alpha(theme.palette.common.white, 0.02),
                 cursor: 'pointer',
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
                 overflow: 'hidden',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: alpha(theme.palette.common.white, 0.05),
                   borderColor: color,
                   boxShadow: `0 0 15px ${color}1a`,
                 }
@@ -199,7 +199,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
                   height: 44,
                   borderRadius: '12px',
                   backgroundColor: color,
-                  border: '2px solid rgba(255,255,255,0.2)',
+                  border: `2px solid ${alpha(theme.palette.common.white, 0.2)}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -208,7 +208,9 @@ export default function StaffModal({ isOpen, onClose }: Props) {
                   transition: 'transform 0.2s',
                 }}
               >
-                <Palette size={18} style={{ color: '#ffffff', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }} />
+                <Box sx={{ color: theme.palette.common.white, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))', display: 'inline-flex' }}>
+                  <Icon name="palette" size={18} />
+                </Box>
               </Box>
 
               <Box sx={{ flexGrow: 1, minWidth: 0 }}>

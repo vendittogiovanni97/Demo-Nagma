@@ -1,24 +1,23 @@
 "use client";
 
-import { DollarSign, Eye, EyeOff, Maximize2, TrendingDown, TrendingUp } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 
-import MonthPicker from '@/components/ui/MonthPicker';
-import { formatPrice } from '@/shared/utils/format';
+import MonthPicker from '@/common/components/ui/MonthPicker';
+import { formatPrice } from '@/common/shared/utils/format';
+import { alpha } from '@mui/material/styles';
 import {
   Box,
-  Card,
-  CardContent,
-  CardHeader,
-  IconButton,
-  Skeleton,
   Stack,
   Typography,
   useTheme,
 } from '@mui/material';
+import { Skeleton } from '@/common/components/feedback/Skeleton';
+import Button from '@/common/components/ui/Button';
+import Card from '@/common/components/ui/Card';
 
 interface FinanceOverviewWidgetProps {
   totalIncome: number;
@@ -52,84 +51,78 @@ export default function FinanceOverviewWidget({
   return (
     <Card
       className={className}
+      variant="minimal"
+      size="md"
       sx={{
-        background: theme.palette.background.paper,
+        bgcolor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.primary.main}20`,
-        borderRadius: 2,
         transition: theme.transitions.create(['all'], { duration: 300 }),
         '&:hover': {
           borderColor: theme.palette.primary.main,
-          boxShadow: theme.shadows[3],
         },
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <CardHeader
-        title={
-          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
-            <Box
-              sx={{
-                p: 0.75,
-                borderRadius: 1.25,
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${theme.palette.primary.main}12` }}>
+        <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
+          <Box
+            sx={{
+              p: 0.75,
+              borderRadius: 1.25,
+              bgcolor: `${theme.palette.primary.main}15`,
+              color: theme.palette.primary.main,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name="dollarSign" size={18} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Panoramica Finanziaria
+          </Typography>
+        </Stack>
+        <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
+          {hasMonthControls && (
+            <MonthPicker value={monthDate!} onChange={onMonthChange!} />
+          )}
+          <Button
+            variant="icon"
+            icon={<Icon name="maximize2" size={16} />}
+            onClick={() => {}}
+            component={Link}
+            href="/finance"
+            title="Vedi dettaglio finanza"
+            sx={{
+              color: theme.palette.primary.main,
+              '&:hover': {
                 bgcolor: `${theme.palette.primary.main}15`,
-                color: theme.palette.primary.main,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <DollarSign size={18} />
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Panoramica Finanziaria
-            </Typography>
-          </Stack>
-        }
-        action={
-          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
-            {hasMonthControls && (
-              <MonthPicker value={monthDate!} onChange={onMonthChange!} />
-            )}
-            <IconButton
-              size="small"
-              component={Link}
-              href="/finance"
-              title="Vedi dettaglio finanza"
-              sx={{
-                color: theme.palette.primary.main,
-                transition: theme.transitions.create(['all'], { duration: 300 }),
-                '&:hover': {
-                  bgcolor: `${theme.palette.primary.main}15`,
-                },
-              }}
-            >
-              <Maximize2 size={16} />
-            </IconButton>
-            <IconButton
-              size="small"
+              },
+            }}
+          />
+          <Button
+            variant="icon"
+            icon={showData ? <Icon name="eye" size={16} /> : <Icon name="eyeOff" size={16} />}
+            onClick={() => setShowData(!showData)}
+            title={showData ? 'Nascondi dati' : 'Mostra dati'}
+            sx={{
+              color: theme.palette.primary.main,
+              '&:hover': {
+                bgcolor: `${theme.palette.primary.main}15`,
+              },
+            }}
+          />
+        </Stack>
+      </Box>
 
-              onClick={() => setShowData(!showData)}
-              title={showData ? 'Nascondi dati' : 'Mostra dati'}
-              sx={{
-                color: theme.palette.primary.main,
-                transition: theme.transitions.create(['all'], { duration: 300 }),
-                '&:hover': {
-                  bgcolor: `${theme.palette.primary.main}15`,
-                },
-              }}
-            >
-              {showData ? <Eye size={16} /> : <EyeOff size={16} />}
-            </IconButton>
-          </Stack>
-        }
-        sx={{ pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${theme.palette.primary.main}12` }}
-      />
-      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: { xs: 1.5, sm: 2, md: 2.5 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 2.5 } } }}>
+      {/* Content */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {isLoading ? (
           <Stack useFlexGap sx={{ gap: 2 }}>
-            <Skeleton variant="rectangular" height={200} />
+            <Skeleton variant="rect" height={200} />
           </Stack>
         ) : (
           <Stack direction={{ xs: 'column', sm: 'row' }} useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, alignItems: 'stretch', flex: 1 }}>
@@ -170,15 +163,15 @@ export default function FinanceOverviewWidget({
                         return (
                           <Box
                             sx={{
-                              bgcolor: 'rgba(10, 10, 10, 0.95)',
+                              bgcolor: alpha(theme.palette.background.default, 0.95),
                               backdropFilter: 'blur(8px)',
                               border: `1px solid ${data.color}33`,
                               borderRadius: 2,
                               p: 1.5,
-                              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                              boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
                             }}
                           >
-                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '0.1em', display: 'block', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ color: alpha(theme.palette.common.white, 0.5), textTransform: 'uppercase', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '0.1em', display: 'block', mb: 0.5 }}>
                               {data.name}
                             </Typography>
                             <Typography variant="body1" sx={{ color: data.color, fontWeight: 800 }}>
@@ -240,7 +233,7 @@ export default function FinanceOverviewWidget({
                       background: `linear-gradient(135deg, ${theme.palette.primary.main}30, ${theme.palette.primary.main}15)`,
                     }}
                   >
-                    <TrendingUp size={14} color={theme.palette.primary.main} />
+                    <Icon name="trendingUp" size={14} color={theme.palette.primary.main} />
                   </Box>
                   <Typography
                     variant="body2"
@@ -314,7 +307,7 @@ export default function FinanceOverviewWidget({
                       background: `linear-gradient(135deg, ${theme.palette.error.main}30, ${theme.palette.error.main}15)`,
                     }}
                   >
-                    <TrendingDown size={14} color={theme.palette.error.main} />
+                    <Icon name="trendingDown" size={14} color={theme.palette.error.main} />
                   </Box>
                   <Typography
                     variant="body2"
@@ -343,7 +336,7 @@ export default function FinanceOverviewWidget({
             </Stack>
           </Stack>
         )}
-      </CardContent>
+      </Box>
     </Card>
   );
 }

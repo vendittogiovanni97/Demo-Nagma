@@ -1,6 +1,6 @@
 "use client";
 
-import MonthPicker from '@/components/ui/MonthPicker';
+import MonthPicker from '@/common/components/ui/MonthPicker';
 import Box from '@mui/material/Box';
 
 interface SpesaFiltersProps {

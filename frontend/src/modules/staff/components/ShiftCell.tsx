@@ -1,9 +1,9 @@
 "use client";
 
-import Button from '@/components/ui/Button';
+import Button from '@/common/components/ui/Button';
 import type { Shift } from '../model/staff.types';
 import { Box, Typography, useTheme } from '@mui/material';
-import { Loader2, Plus } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 
 interface ShiftCellProps {
   shift: Shift | undefined;
@@ -65,7 +65,9 @@ export default function ShiftCell({
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '28px' }}>
             {isUpdating ? (
-              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: 'rgba(255,255,255,0.5)' }} />
+              <Box component="span" sx={{ animation: 'spin 1s linear infinite', display: 'inline-flex', color: 'rgba(255,255,255,0.5)' }}>
+                <Icon name="loader2" size={14} />
+              </Box>
             ) : (
               <Typography
                 sx={{
@@ -83,7 +85,9 @@ export default function ShiftCell({
       ) : (
         <Box sx={{ position: 'absolute', inset: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {isAdding ? (
-            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: 'rgba(255,255,255,0.2)' }} />
+            <Box component="span" sx={{ animation: 'spin 1s linear infinite', display: 'inline-flex', color: 'rgba(255,255,255,0.2)' }}>
+              <Icon name="loader2" size={16} />
+            </Box>
           ) : canManageShiftData ? (
             <>
               <Box
@@ -119,7 +123,7 @@ export default function ShiftCell({
                 }}
                 title="Aggiungi Mattina (Doppio click per opzioni)"
                 onDoubleClick={onDoubleClickAdd}
-                icon={<Plus size={16} />}
+                icon={<Icon name="plus" size={16} />}
               >
                 <span style={{ fontSize: '0.5rem', fontWeight: 700 }}>MATTINA</span>
               </Button>

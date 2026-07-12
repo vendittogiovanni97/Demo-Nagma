@@ -1,7 +1,7 @@
 "use client";
 
-import StatePanel from '@/components/feedback/StatePanel';
-import { DAYS_OF_WEEK } from '@/config/staff-config';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import { DAYS_OF_WEEK } from '@/common/config/staff-config';
 import type { Shift, Staff } from '../model/staff.types';
 import { Box, Typography, useTheme, LinearProgress } from '@mui/material';
 import { addDays, format, parseISO } from 'date-fns';
@@ -48,7 +48,7 @@ export default function StaffShiftsGrid({
             display: 'grid',
             gridTemplateColumns: '220px repeat(7, 1fr)',
             borderBottom: `1px solid ${theme.palette.divider}`,
-            bgcolor: '#0d1a28',
+            bgcolor: 'background.default',
             position: 'sticky',
             top: 0,
             zIndex: 10,
@@ -113,7 +113,7 @@ export default function StaffShiftsGrid({
                   height: '2px',
                   bgcolor: 'transparent',
                   '& .MuiLinearProgress-bar': {
-                    background: 'linear-gradient(90deg, #00bfff, #9B6DFF)'
+                    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.custom.purple})`
                   }
                 }}
               />

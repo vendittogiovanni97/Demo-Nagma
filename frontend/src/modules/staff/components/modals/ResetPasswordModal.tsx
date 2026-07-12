@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
 
-import { useToast } from '@/hooks/useToast';
+import { useFormModal } from '@/common/hooks/useFormModal';
+import { useToast } from '@/common/hooks/useToast';
 import { staffApi } from '@/modules/staff/api/staff.api';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
-import SmartModal from '@/components/common/SmartModal';
-import FormInput from '@/components/forms/FormInput';
-import { Lock } from 'lucide-react';
+import SmartModal from '@/common/components/common/SmartModal';
+import FormInput from '@/common/components/forms/FormInput';
+import Icon, { Lock } from '@/common/components/ui/Icon';
 
 interface ResetPasswordModalProps {
   isOpen: boolean;
@@ -28,27 +28,25 @@ export default function ResetPasswordModal({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const toast = useToast();
-  const [loading, setLoading] = useState(false);
+
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
+      await staffApi.resetMemberPassword(memberId, newPassword);
+      setNewPassword('');
+      setConfirmPassword('');
+      onSuccess();
+    },
+    onClose,
+    successMessage: `Password di ${userName} resettata`,
+    errorMessage: 'Errore durante il reset della password',
+  });
 
   const handleSave = async () => {
     if (newPassword !== confirmPassword) {
       toast.error('Le password inserite non sono uguali');
       return;
     }
-
-    setLoading(true);
-    try {
-      await staffApi.resetMemberPassword(memberId, newPassword);
-      toast.success(`Password di ${userName} resettata`);
-      setNewPassword('');
-      setConfirmPassword('');
-      onSuccess();
-      onClose();
-    } catch (error: unknown) {
-      toast.error(extractErrorMessage(error, 'Errore durante il reset della password'));
-    } finally {
-      setLoading(false);
-    }
+    await handleSubmit();
   };
 
   return (
@@ -57,7 +55,7 @@ export default function ResetPasswordModal({
       onClose={onClose}
       title={`Reset Password - ${userName}`}
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={isLoading}
       saveLabel="Resetta Password"
       maxWidth="sm"
     >

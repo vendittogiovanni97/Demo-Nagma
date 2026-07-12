@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Button, Stack, Typography } from '@mui/material';
-import { RotateCcw, PenTool } from 'lucide-react';
+import { Box, Stack, Typography, useTheme } from '@mui/material';
+import Button from '@/common/components/ui/Button';
+import Icon from '@/common/components/ui/Icon';
 
 interface ConsentCanvasProps {
   onSignatureChange: (signatureB64: string | null) => void;
 }
 
 export default function ConsentCanvas({ onSignatureChange }: ConsentCanvasProps) {
+  const theme = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -32,7 +34,7 @@ export default function ConsentCanvas({ onSignatureChange }: ConsentCanvasProps)
     // Set drawing styles
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#9155FD'; // Accent color of Nagma
+    ctx.strokeStyle = theme.palette.custom.purple;
     ctx.lineWidth = 2.5;
   }, []);
 
@@ -119,7 +121,7 @@ export default function ConsentCanvas({ onSignatureChange }: ConsentCanvasProps)
         sx={{
           border: '1.5px dashed var(--color-surface-border)',
           borderRadius: '12px',
-          backgroundColor: '#0F172A', // Deep slate contrast
+          backgroundColor: (theme) => theme.palette.background.default,
           position: 'relative',
           height: 180,
           cursor: 'crosshair',
@@ -142,7 +144,7 @@ export default function ConsentCanvas({ onSignatureChange }: ConsentCanvasProps)
               opacity: 0.5,
             }}
           >
-            <PenTool size={20} className="text-[#9155FD]" />
+            <Icon name="penTool" size={20} color={theme.palette.custom.purple} />
             <Typography sx={{ fontSize: '0.75rem', fontWeight: 600 }}>
               Firma con il dito o mouse qui dentro
             </Typography>
@@ -163,28 +165,26 @@ export default function ConsentCanvas({ onSignatureChange }: ConsentCanvasProps)
       </Box>
 
       <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-        <Typography sx={{ fontSize: '0.7rem', color: isEmpty ? 'text.secondary' : '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Typography sx={{ fontSize: '0.7rem', color: isEmpty ? 'text.secondary' : 'custom.emerald', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {!isEmpty && (
             <>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10B981' }} />
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'custom.emerald' }} />
               Firma acquisita con successo
             </>
           )}
         </Typography>
         <Button
-          size="small"
-          variant="outlined"
-          color="secondary"
+          size="sm"
+          variant="ghost"
           onClick={clearCanvas}
           disabled={isEmpty}
-          startIcon={<RotateCcw size={12} />}
+          icon={<Icon name="rotateCw" size={12} />}
           sx={{
             fontSize: '0.7rem',
             textTransform: 'uppercase',
             fontWeight: 700,
             borderRadius: '6px',
-            borderColor: 'var(--color-surface-border)',
-            color: 'text.secondary',
+            border: '1px solid var(--color-surface-border)',
             '&:hover': {
               borderColor: 'var(--color-surface-border)',
               backgroundColor: 'rgba(255,255,255,0.05)',

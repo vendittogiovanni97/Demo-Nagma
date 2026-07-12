@@ -3,22 +3,22 @@
 import { Box, Typography, useTheme } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
-import StatePanel from '@/components/feedback/StatePanel';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
-import SmartModal from '@/components/common/SmartModal';
-import { EXPORT_FETCH_LIMIT } from '@/config/env';
-import { useAuth } from '@/context/AuthContext';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
+import SmartModal from '@/common/components/common/SmartModal';
+import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
+import { useAuth } from '@/common/context/AuthContext';
 import { useCustomers } from '@/modules/customer/hooks/useCustomer';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsApp';
-import { useToast } from '@/hooks/useToast';
-import { useWhatsAppComposer } from '@/hooks/useWhatsAppComposer';
+import { useToast } from '@/common/hooks/useToast';
+import { useWhatsAppComposer } from '@/common/hooks/useWhatsAppComposer';
+import { useFormModal } from '@/common/hooks/useFormModal';
 import { sendWhatsAppMessageSchema } from '@/modules/whatsapp/model/whatsapp.schema';
 import { whatsappApi as whatsappService } from '../../api/whatsapp.api';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
-import { validateData } from '@/shared/utils/validation';
+import { validateData } from '@/common/shared/utils/validation';
 
 interface WhatsAppSendModalProps {
   isOpen: boolean;
@@ -43,7 +43,6 @@ export default function WhatsAppSendModal({
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
-  const [isSending, setIsSending] = useState(false);
 
   const { data: templates, isLoading: templatesLoading, error: templatesError } = useWhatsAppTemplates({
     enabled: isOpen && canSend,
@@ -117,6 +116,25 @@ export default function WhatsAppSendModal({
     mode: 'modal',
   });
 
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
+      const response = await whatsappService.sendManualMessage({
+        templateId: selectedTemplate!.id,
+        customerId: selectedCustomerId ? Number(selectedCustomerId) : (customer?.id || booking?.customer?.id || undefined),
+        bookingId: booking?.id || undefined,
+        recipientName: recipientName || undefined,
+        recipientPhone,
+        message: messageDraft,
+        variables,
+      });
+      window.open(response.whatsappUrl, '_blank', 'noopener,noreferrer');
+      onSuccess?.();
+    },
+    onClose,
+    successMessage: 'Messaggio preparato. Apro WhatsApp Web.',
+    errorMessage: 'Errore durante la preparazione del messaggio',
+  });
+
   const handleSend = async () => {
     if (!selectedTemplate) {
       toast.error('Seleziona un template');
@@ -139,18 +157,7 @@ export default function WhatsAppSendModal({
       return;
     }
 
-    setIsSending(true);
-    try {
-      const response = await whatsappService.sendManualMessage(payload);
-      toast.success('Messaggio preparato. Apro WhatsApp Web.');
-      window.open(response.whatsappUrl, '_blank', 'noopener,noreferrer');
-      onSuccess?.();
-      onClose();
-    } catch (error: unknown) {
-      toast.error(extractErrorMessage(error, 'Errore durante la preparazione del messaggio'));
-    } finally {
-      setIsSending(false);
-    }
+    await handleSubmit();
   };
 
   return (
@@ -160,7 +167,7 @@ export default function WhatsAppSendModal({
       title="Invio WhatsApp Manuale"
       maxWidth="md"
       onSave={handleSend}
-      isSaving={isSending}
+      isSaving={isLoading}
       saveLabel="Apri WhatsApp"
     >
       {!canSend ? (

@@ -1,30 +1,28 @@
-import { Router } from 'express';
-import attachmentRoutes from './modules/attachment/interfaces/attachment.routes';
-import authRoutes from './modules/auth/interfaces/auth.routes';
-import bookingRoutes from './modules/booking/interfaces/booking.routes';
-import creamRoutes from './modules/cream/routes/cream.routes';
-import customerRoutes from './modules/customer/interfaces/customer.routes';
-import financeRoutes from './modules/finance/interfaces/finance.routes';
-import formTemplateRoutes from './modules/form-template/interfaces/form-template.routes';
-import staffRoutes from './modules/staff/interfaces/staff.routes';
-import whatsappTemplateRoutes from './modules/whatsapp/interfaces/whatsapp.routes';
-import consentRoutes from './modules/newfeature/consenso/interfaces/consent.routes';
-import placementRoutes from './modules/newfeature/posizionamento/interfaces/booking-placement.routes';
-import configRoutes from './modules/config/interfaces/config.routes';
+import { Express } from 'express';
+import { registerAuthRoutes } from './modules/auth/routes';
+import { registerCustomerRoutes } from './modules/customer/routes';
+import { registerBookingRoutes } from './modules/booking/routes';
+import { registerStaffRoutes } from './modules/staff/routes';
+import { registerFinanceRoutes } from './modules/finance/routes';
+import { registerWhatsAppRoutes } from './modules/whatsapp/routes';
+import { registerFormTemplateRoutes } from './modules/form-template/routes';
+import { registerCreamRoutes } from './modules/cream/routes';
+import { registerConfigRoutes } from './modules/config/routes';
+import { registerAttachmentRoutes } from './modules/attachment/routes';
+import { registerConsentRoutes } from './modules/newfeature/consenso/routes';
+import { registerBookingPlacementRoutes } from './modules/newfeature/posizionamento/routes';
 
-const router = Router();
-
-router.use('/auth', authRoutes);
-router.use('/customers', customerRoutes);
-router.use('/finance', financeRoutes);
-router.use('/bookings', bookingRoutes);
-router.use('/staff', staffRoutes);
-router.use('/form-templates', formTemplateRoutes);
-router.use('/whatsapp-templates', whatsappTemplateRoutes);
-router.use('/cream', creamRoutes);
-router.use('/attachments', attachmentRoutes);
-router.use('/config', configRoutes);
-router.use('/newfeature', consentRoutes);
-router.use('/newfeature', placementRoutes);
-
-export default router; // Hot-reloaded configs
+export function registerRoutes(app: Express): void {
+  registerAuthRoutes(app);
+  registerCustomerRoutes(app);
+  registerBookingRoutes(app);
+  registerStaffRoutes(app);
+  registerFinanceRoutes(app);
+  registerWhatsAppRoutes(app);
+  registerFormTemplateRoutes(app);
+  registerCreamRoutes(app);
+  registerConfigRoutes(app);
+  registerAttachmentRoutes(app);
+  registerConsentRoutes(app);
+  registerBookingPlacementRoutes(app);
+}

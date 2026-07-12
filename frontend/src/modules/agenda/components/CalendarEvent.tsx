@@ -2,8 +2,9 @@
 
 import { memo } from 'react';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { format } from 'date-fns';
-import { Check } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 
@@ -70,13 +71,13 @@ function CalendarEvent({
               width: isMonthView ? 11 : 14,
               height: isMonthView ? 11 : 14,
               borderRadius: '50%',
-              backgroundColor: 'rgba(16, 185, 129, 0.25)',
-              border: '1px solid #10b981',
-              color: '#10b981',
+              backgroundColor: alpha(theme.palette.success.main, 0.25),
+              border: `1px solid ${theme.palette.success.main}`,
+              color: theme.palette.success.main,
               flexShrink: 0,
             }}
           >
-            <Check size={isMonthView ? 6 : 8} strokeWidth={3} />
+            <Icon name="check" size={isMonthView ? 6 : 8} />
           </Box>
         ) : (isCancelled || isRescheduled) ? (
           <Box
@@ -103,7 +104,7 @@ function CalendarEvent({
       <Typography
         sx={{
           fontWeight: isMonthView ? 600 : 700,
-          color: '#ffffff',
+          color: theme.palette.common.white,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',

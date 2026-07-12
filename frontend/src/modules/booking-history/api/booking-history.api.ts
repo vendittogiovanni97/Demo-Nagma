@@ -1,7 +1,8 @@
-import { apiClient } from '@/shared/api/client';
-import { ENDPOINTS } from '@/shared/api/endpoints';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
+import type { BookingStatus } from '@/common/shared/types/enums';
 
-export type BookingAction = 'CREATO' | 'CONFERMATO' | 'COMPLETATO' | 'MODIFICATO' | 'SPOSTATO' | 'ANNULLATO' | 'CANCELLATO';
+export type BookingAction = BookingStatus;
 
 export interface BookingHistoryEntry {
   id: number;

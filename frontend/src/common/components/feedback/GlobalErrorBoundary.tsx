@@ -1,0 +1,98 @@
+"use client";
+
+import React from 'react';
+import { alpha } from '@mui/material/styles';
+import { Box, Stack, Typography, useTheme, SxProps, Theme } from '@mui/material';
+import Icon from '@/common/components/ui/Icon';
+import { useRouter } from 'next/navigation';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import Button from '@/common/components/ui/Button';
+
+function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+  const router = useRouter();
+  const theme = useTheme();
+
+  return (
+    <Box sx={styles.container}>
+      <Box sx={(t) => styles.iconWrapper(t)}>
+        <Icon name="alertCircle" size={40} color={theme.palette.error.main} />
+      </Box>
+
+      <Typography variant="h3" sx={styles.title}>
+        Qualcosa è andato storto
+      </Typography>
+
+      <Typography variant="body1" sx={styles.subtitle}>
+        Si è verificato un errore inaspettato. Abbiamo notificato il team tecnico. 
+        Puoi provare a ricaricare la pagina o tornare alla Dashboard.
+      </Typography>
+
+      {process.env.NODE_ENV === 'development' && !!error && (
+        <Box component="pre" sx={(t) => styles.errorBox(t)}>
+          {error instanceof Error ? error.message : String(error)}
+        </Box>
+      )}
+
+      <Stack direction={{ xs: 'column', sm: 'row' }} useFlexGap sx={styles.stack}>
+        <Button
+          variant="primary" size="md"
+          onClick={resetErrorBoundary}
+          startIcon={<Icon name="refreshCw" size={18} />}
+        >
+          Riprova subito
+        </Button>
+
+        <Button
+          variant="secondary" size="md"
+          onClick={() => {
+            resetErrorBoundary();
+            router.push('/');
+          }}
+          startIcon={<Icon name="home" size={18} />}
+        >
+          Torna alla Home
+        </Button>
+      </Stack>
+    </Box>
+  );
+}
+
+export default function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => {}}>
+      {children}
+    </ErrorBoundary>
+  );
+}
+
+const styles = {
+  container: {
+    minHeight: '100vh', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', p: 3, textAlign: 'center',
+    animation: 'fadeIn 0.5s ease-in-out',
+    '@keyframes fadeIn': {
+      from: { opacity: 0, transform: 'translateY(20px)' },
+      to: { opacity: 1, transform: 'translateY(0)' },
+    },
+  } as SxProps<Theme>,
+  iconWrapper: (theme: Theme) => ({
+    width: 80, height: 80, bgcolor: alpha(theme.palette.error.main, 0.1),
+    borderRadius: '50%', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', mb: 3, border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
+  }),
+  title: {
+    fontWeight: 700, color: 'text.primary', mb: 1.5,
+  } as SxProps<Theme>,
+  subtitle: {
+    color: 'text.secondary', maxWidth: '600px', mb: 4,
+  } as SxProps<Theme>,
+  errorBox: (theme: Theme) => ({
+    bgcolor: alpha(theme.palette.error.main, 0.05), border: `1px solid ${alpha(theme.palette.error.main, 0.1)}`,
+    p: 2, borderRadius: 2, textAlign: 'left', fontSize: '0.75rem',
+    color: 'error.light', mb: 4, maxWidth: '800px', overflow: 'auto',
+    fontFamily: 'monospace',
+  }),
+  stack: {
+    gap: 2, alignItems: 'center'
+  } as SxProps<Theme>,
+};

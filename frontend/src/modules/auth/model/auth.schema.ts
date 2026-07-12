@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { nonEmptyString, roleSchema } from '@/shared/schemas/common';
+import { nonEmptyString, roleSchema } from '@/common/shared/schemas/common';
 
 export const loginSchema = z.object({
   email: z.string().email('Email non valida'),

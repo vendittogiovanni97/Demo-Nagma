@@ -1,8 +1,8 @@
 "use client";
 
 import { Box } from '@mui/material';
-import SmartFilters from '@/components/common/SmartFilters';
-import FormSelect from '@/components/forms/FormSelect';
+import SmartFilters from '@/common/components/common/SmartFilters';
+import FormSelect from '@/common/components/forms/FormSelect';
 import type { BookingAction } from '@/modules/booking-history/api/booking-history.api';
 
 interface BookingHistoryFiltersProps {

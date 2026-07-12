@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { transactionApi } from '../api/transaction.api';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
 import type { FinanceSummary, Transaction, SpesaLibera } from '../model/spese.types';
-import type { PaginatedResponse } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/common/shared/types/pagination';
 
 interface UseTransactionsOptions {
   month?: string;

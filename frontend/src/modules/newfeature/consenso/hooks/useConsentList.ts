@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { apiClient } from '@/shared/api/client';
-import { ENDPOINTS } from '@/shared/api/endpoints';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import { ConsentRecord } from '../model/consent-list.types';
 
 export function useConsentList() {

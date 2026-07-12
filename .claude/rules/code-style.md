@@ -8,7 +8,7 @@ const [loading, setLoading] = useState(false);
 const [error, setError] = useState<string | null>(null);
 
 // ✅ corretto — toast globale
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/common/hooks/useToast';
 const toast = useToast();
 toast.success('Operazione completata');
 toast.error('Errore durante il salvataggio');
@@ -32,11 +32,13 @@ Se qualcosa è inutilizzato, cancellalo completamente. Mai:
 - `strict: true` — non disabilitare mai
 
 ## Import Path
-Frontend: usare sempre `@/` (alias per `src/`):
+Frontend: usare sempre `@/` (alias per `src/`). I file condivisi sono sotto `@/common/`:
 ```typescript
 // ✅ corretto
-import { apiClient } from '@/shared/api/client';
+import { apiClient } from '@/common/shared/api/client';
+import { useToast } from '@/common/hooks/useToast';
 
 // ❌ vietato
-import { apiClient } from '../../../shared/api/client';
+import { apiClient } from '../../../common/shared/api/client';
+import { useToast } from '@/hooks/useToast';  // vecchio path, ora è in common/
 ```

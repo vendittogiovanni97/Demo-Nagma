@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Box, CircularProgress, Dialog, DialogContent, DialogTitle,
-  IconButton, useTheme, SxProps, Theme
+  Box, CircularProgress, useTheme, SxProps, Theme
 } from '@mui/material';
+import SmartModal from '@/common/components/common/SmartModal';
 import axios from 'axios';
-import { X, FileText, Music, AlertCircle } from 'lucide-react';
-import { getToken } from '@/shared/utils/auth';
-import { useToast } from '@/hooks/useToast';
+import Icon from '@/common/components/ui/Icon';
+import { getToken } from '@/common/shared/utils/auth';
+import { useToast } from '@/common/hooks/useToast';
 import type { Attachment } from '@/modules/booking/model/attachment.types';
 
 interface AttachmentPreviewModalProps {
@@ -81,7 +81,7 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
     if (isLoading) return <Box sx={styles.loader}><CircularProgress /></Box>;
     if (previewError) return (
       <Box sx={styles.errorState}>
-        <AlertCircle size={48} />
+        <Icon name="alertCircle" size={48} />
         <Box sx={{ textAlign: 'center' }}>
           <Box sx={styles.errorTitle}>Anteprima non disponibile</Box>
           <Box sx={styles.errorSubtitle}>Impossibile caricare il file ({attachment.mimeType})</Box>
@@ -102,14 +102,14 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
       case 'audio':
         return (
           <Box sx={styles.audioContainer}>
-            <Box sx={styles.iconCircle}><Music size={40} color={theme.palette.primary.main} /></Box>
+            <Box sx={styles.iconCircle}><Icon name="music" size={40} color={theme.palette.primary.main} /></Box>
             <Box component="audio" src={previewUrl!} controls sx={{ width: '100%', maxWidth: 400 }} />
           </Box>
         );
       default:
         return (
           <Box sx={styles.errorState}>
-            <Box sx={styles.iconCircle}><FileText size={40} color={theme.palette.primary.main} /></Box>
+            <Box sx={styles.iconCircle}><Icon name="fileText" size={40} color={theme.palette.primary.main} /></Box>
             <Box sx={{ textAlign: 'center' }}>
               <Box sx={styles.errorTitle}>Anteprima non disponibile</Box>
               <Box sx={styles.errorSubtitle}>Scarica il file per visualizzarlo ({attachment.mimeType})</Box>
@@ -120,18 +120,17 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
   };
 
   return (
-    <Dialog
-      open={open} onClose={onClose} maxWidth="md" fullWidth
-      slotProps={{ paper: { sx: styles.paper }, backdrop: { sx: styles.backdrop } }}
+    <SmartModal
+      isOpen={open}
+      onClose={onClose}
+      title={attachment.fileName}
+      maxWidth="md"
+      showFooter={false}
     >
-      <DialogTitle sx={styles.title}>
-        <Box sx={styles.titleText}>{attachment.fileName}</Box>
-        <IconButton onClick={onClose} size="small" sx={styles.closeButton}><X size={18} /></IconButton>
-      </DialogTitle>
-      <DialogContent sx={styles.content}>
+      <Box sx={styles.content}>
         {renderContent()}
-      </DialogContent>
-    </Dialog>
+      </Box>
+    </SmartModal>
   );
 }
 

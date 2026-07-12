@@ -1,8 +1,8 @@
-import type { Column } from '@/components/data-display/DataTable';
+import type { Column } from '@/common/components/data-display/DataTable';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Mail, Phone } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useMemo } from 'react';
 import { useTheme } from '@mui/material';
 import { Box } from '@mui/material';
@@ -51,7 +51,7 @@ export function useCustomerColumns(): Column<Customer>[] {
               color: theme.palette.text.secondary,
             }}
           >
-            <Phone size={13} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+            <Icon name="phone" size={13} color={theme.palette.primary.main} />
             <Box component="span" sx={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}>
               {customer.phone}
             </Box>
@@ -72,7 +72,7 @@ export function useCustomerColumns(): Column<Customer>[] {
                 color: theme.palette.text.secondary,
               }}
             >
-              <Mail size={13} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+              <Icon name="mail" size={13} color={theme.palette.primary.main} />
               <Box
                 component="span"
                 sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}

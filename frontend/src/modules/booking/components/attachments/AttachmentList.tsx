@@ -5,15 +5,15 @@ import {
   Box, CircularProgress, IconButton, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, useTheme, SxProps, Theme, Typography
 } from '@mui/material';
-import { Download, Eye, Trash2 } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 
 // Hooks & Types
-import { useAttachments } from '@/hooks/domain/useAttachments';
+import { useAttachments } from '@/common/hooks/domain/useAttachments';
 import type { Attachment } from '@/modules/booking/model/attachment.types';
 
 // Components
 import AttachmentPreviewModal from './AttachmentPreviewModal';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 
 interface AttachmentListProps {
   bookingId: string;
@@ -122,13 +122,13 @@ export default function AttachmentList({ bookingId, onRefresh, refreshTrigger }:
                 <TableCell align="center">
                   <Box sx={styles.actions}>
                     <IconButton size="small" onClick={() => handlePreview(attachment)} sx={styles.actionButton('primary')}>
-                      <Eye size={16} />
+                      <Icon name="eye" size={16} />
                     </IconButton>
                     <IconButton size="small" onClick={() => downloadAttachment(attachment.id, attachment.fileName)} sx={styles.actionButton('primary')}>
-                      <Download size={16} />
+                      <Icon name="download" size={16} />
                     </IconButton>
                     <IconButton size="small" onClick={() => handleDeleteClick(attachment.id)} disabled={deleting !== null} sx={styles.actionButton('error')}>
-                      {deleting === attachment.id ? <CircularProgress size={16} color="inherit" /> : <Trash2 size={16} />}
+                      {deleting === attachment.id ? <CircularProgress size={16} color="inherit" /> : <Icon name="trash2" size={16} />}
                     </IconButton>
                   </Box>
                 </TableCell>

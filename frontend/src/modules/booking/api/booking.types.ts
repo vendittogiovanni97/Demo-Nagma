@@ -1,4 +1,5 @@
-export type BookingStatus = 'CREATO' | 'CONFERMATO' | 'COMPLETATO' | 'MODIFICATO' | 'SPOSTATO' | 'ANNULLATO' | 'CANCELLATO';
+import { BookingStatus } from '@/common/shared/types/enums';
+export type { BookingStatus };
 
 export interface BookingDTO {
   id: number;

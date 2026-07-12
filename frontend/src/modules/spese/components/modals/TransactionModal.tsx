@@ -1,14 +1,14 @@
 "use client";
 
-import StatePanel from '@/components/feedback/StatePanel';
-import { useAuth } from '@/context/AuthContext';
-import { useFormModal } from '@/hooks/useFormModal';
-import { useToast } from '@/hooks/useToast';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import { useAuth } from '@/common/context/AuthContext';
+import { useFormModal } from '@/common/hooks/useFormModal';
+import { useToast } from '@/common/hooks/useToast';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import SmartModal from '@/components/common/SmartModal';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
+import SmartModal from '@/common/components/common/SmartModal';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
 import { Box } from '@mui/material';
 import { financeApi, Transaction } from '@/modules/finance/api/finance.api';
 

@@ -1,13 +1,13 @@
 "use client";
 
-import PageHeader from '@/components/common/PageHeader';
-import SmartFilters from '@/components/common/SmartFilters';
-import { useAuth } from '@/context/AuthContext';
+import PageHeader from '@/common/components/common/PageHeader';
+import SmartFilters from '@/common/components/common/SmartFilters';
+import { useAuth } from '@/common/context/AuthContext';
 import { useFormTemplates } from '../hooks/useFormTemplates';
 import { useFormTemplateEditor } from '../hooks/useFormTemplateEditor';
 import TemplateListPanel from '../components/TemplateListPanel';
 import TemplateEditorPanel from '../components/TemplateEditorPanel';
-import { Plus } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
@@ -68,7 +68,7 @@ export default function FormTemplatesPage() {
         }
         showButton
         buttonLabel="Nuovo Template"
-        buttonIcon={<Plus />}
+        buttonIcon={<Icon name="plus" />}
         onButtonClick={handleNewTemplate}
       />
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { Edit, Trash2 } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
-import Button from '@/components/ui/Button';
+import Button from '@/common/components/ui/Button';
 import type { WhatsAppTemplate } from '../model/whatsapp.types';
 
 interface TemplateCardProps {
@@ -58,13 +58,13 @@ export default function TemplateCard({ template, onEdit, onDelete }: TemplateCar
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
             variant="icon"
-            icon={<Edit size={18} />}
+            icon={<Icon name="edit" size={18} />}
             title="Modifica"
             onClick={() => onEdit(template)}
           />
           <Button
             variant="icon"
-            icon={<Trash2 size={18} />}
+            icon={<Icon name="trash2" size={18} />}
             sx={{
               color: 'error.main',
               opacity: 0.6,

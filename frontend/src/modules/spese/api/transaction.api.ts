@@ -1,7 +1,7 @@
-import { apiClient } from '@/shared/api/client';
-import { ENDPOINTS } from '@/shared/api/endpoints';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import type { Transaction, CreateTransactionData, FinanceSummary, MonthlyTrend, ArtistPerformance } from '../model/spese.types';
-import type { PaginatedResponse } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/common/shared/types/pagination';
 
 export const transactionApi = {
   getAll: async ({

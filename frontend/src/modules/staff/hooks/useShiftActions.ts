@@ -1,7 +1,7 @@
 "use client";
 
-import { SHIFT_LABELS } from '@/config/staff-config';
-import { useToast } from '@/hooks/useToast';
+import { SHIFT_LABELS } from '@/common/config/staff-config';
+import { useToast } from '@/common/hooks/useToast';
 import { staffApi } from '../api/staff.api';
 import type { Shift } from '../model/staff.types';
 import { useState } from 'react';

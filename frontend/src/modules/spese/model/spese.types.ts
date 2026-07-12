@@ -1,4 +1,5 @@
-export type TransactionType = 'INCOME' | 'EXPENSE';
+import { TransactionType } from '@/common/shared/types/enums';
+export type { TransactionType };
 
 export interface Transaction {
   id: number;

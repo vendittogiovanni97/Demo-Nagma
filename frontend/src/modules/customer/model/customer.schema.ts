@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { nonEmptyString, optionalEmailSchema } from '@/shared/schemas/common';
+import { nonEmptyString, optionalEmailSchema } from '@/common/shared/schemas/common';
 
 export const createCustomerSchema = z.object({
   firstName: nonEmptyString('Il nome è obbligatorio'),

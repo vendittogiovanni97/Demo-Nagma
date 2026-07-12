@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { configService } from '@/shared/services/config.service';
+import { configService } from '@/common/shared/services/config.service';
 
 export function useConsentConfig() {
   const [loading, setLoading] = useState(true);

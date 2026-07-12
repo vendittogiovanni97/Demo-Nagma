@@ -8,21 +8,23 @@ datasource db {
 }
 
 model User {
-  id               Int                  @id @default(autoincrement())
-  name             String
-  email            String               @unique
-  password         String
-  role             Role                 @default(ADMIN)
-  phone            String?
-  color            String?
-  deletedAt        DateTime?
-  createdAt        DateTime             @default(now())
-  bookingHistories BookingHistory[]
-  transactionHistories TransactionHistory[]
-  whatsappLogs     WhatsAppMessageLog[]
+  id                    Int                  @id @default(autoincrement())
+  name                  String
+  email                 String               @unique
+  password              String
+  role                  Role                 @default(ADMIN)
+  phone                 String?
+  color                 String?
+  deletedAt             DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  bookingHistories      BookingHistory[]
+  transactionHistories  TransactionHistory[]
+  whatsappLogs          WhatsAppMessageLog[]
 
   @@index([role])
   @@index([deletedAt])
+  @@map("users")
 }
 
 model Staff {
@@ -40,6 +42,7 @@ model Staff {
   @@index([type])
   @@index([createdAt])
   @@index([deletedAt])
+  @@map("staff")
 }
 
 model Shift {
@@ -50,12 +53,15 @@ model Shift {
   breakDuration Int?
   notes         String?
   staffId       Int
+  deletedAt     DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   staff         Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@index([date])
   @@index([staffId, date])
+  @@index([deletedAt])
+  @@map("shifts")
 }
 
 model Customer {
@@ -67,6 +73,7 @@ model Customer {
   notes        String?
   deletedAt    DateTime?
   createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
   bookings     Booking[]
   whatsappLogs WhatsAppMessageLog[]
 
@@ -74,6 +81,7 @@ model Customer {
   @@index([email])
   @@index([lastName, firstName])
   @@index([deletedAt, createdAt])
+  @@map("customers")
 }
 
 model Booking {
@@ -92,8 +100,8 @@ model Booking {
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
   attachments    Attachment[]
-  artist         Staff?               @relation(fields: [artistId], references: [id])
-  customer       Customer             @relation(fields: [customerId], references: [id])
+  artist         Staff?               @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  customer       Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
   history        BookingHistory[]
   whatsappLogs   WhatsAppMessageLog[]
   placement      BookingPlacement?
@@ -104,6 +112,7 @@ model Booking {
   @@index([status, date])
   @@index([status])
   @@index([date])
+  @@map("bookings")
 }
 
 model CreamTattoo {
@@ -111,22 +120,31 @@ model CreamTattoo {
   name        String      @default("Crema Protettiva Tattoo")
   description String?
   isActive    Boolean     @default(true)
+  deletedAt   DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   sales       CreamSale[]
+
+  @@index([deletedAt])
+  @@map("cream_tattoos")
 }
 
 model CreamSale {
-  id       Int         @id @default(autoincrement())
-  creamId  Int
-  artistId Int
-  quantity Int         @default(1)
-  soldAt   DateTime    @default(now())
-  artist   Staff       @relation(fields: [artistId], references: [id])
-  cream    CreamTattoo @relation(fields: [creamId], references: [id])
+  id        Int         @id @default(autoincrement())
+  creamId   Int
+  artistId  Int
+  quantity  Int         @default(1)
+  soldAt    DateTime    @default(now())
+  deletedAt DateTime?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  artist    Staff       @relation(fields: [artistId], references: [id], onDelete: Restrict)
+  cream     CreamTattoo @relation(fields: [creamId], references: [id], onDelete: Restrict)
 
   @@index([creamId, soldAt])
   @@index([artistId, soldAt])
+  @@index([deletedAt])
+  @@map("cream_sales")
 }
 
 model BookingHistory {
@@ -137,11 +155,12 @@ model BookingHistory {
   newDate     DateTime?
   changedById Int?
   changedAt   DateTime      @default(now())
-  booking     Booking       @relation(fields: [bookingId], references: [id])
-  changedBy   User?         @relation(fields: [changedById], references: [id])
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  changedBy   User?         @relation(fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([bookingId, changedAt])
   @@index([changedById])
+  @@map("booking_histories")
 }
 
 model Transaction {
@@ -154,46 +173,57 @@ model Transaction {
   attachmentUrl String?
   deletedAt     DateTime?
   createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
   sourceId      Int?
-  sourceType    String?              // BOOKING, SPESA_LIBERA, ARTIST_PAYMENT
+  sourceType    String?
   history       TransactionHistory[]
 
   @@index([date, type])
   @@index([deletedAt])
   @@index([category])
   @@index([sourceId, sourceType])
+  @@map("transactions")
 }
 
 model TransactionHistory {
   id            Int             @id @default(autoincrement())
   transactionId Int
-  action        String          // CREATED, UPDATED, DELETED
+  action        String
   oldData       Json?
   newData       Json?
   changedById   Int?
   changedAt     DateTime        @default(now())
-  transaction   Transaction     @relation(fields: [transactionId], references: [id])
-  changedBy     User?           @relation(fields: [changedById], references: [id])
+  transaction   Transaction     @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  changedBy     User?           @relation(fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([transactionId, changedAt])
   @@index([changedById])
+  @@map("transaction_histories")
 }
 
 model FormTemplate {
   id        Int      @id @default(autoincrement())
   name      String
   schemaB64 String
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([deletedAt])
+  @@map("form_templates")
 }
 
 model SpesaLibera {
   id        Int      @id @default(autoincrement())
   name      String
   price     Decimal  @db.Decimal(10, 2)
+  deletedAt DateTime?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([createdAt])
+  @@index([deletedAt])
+  @@map("spese_libere")
 }
 
 model WhatsAppTemplate {
@@ -202,12 +232,15 @@ model WhatsAppTemplate {
   category  String?
   body      String
   isActive  Boolean              @default(true)
+  deletedAt DateTime?
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
   logs      WhatsAppMessageLog[]
 
   @@index([category])
   @@index([isActive])
+  @@index([deletedAt])
+  @@map("whatsapp_templates")
 }
 
 model WhatsAppMessageLog {
@@ -223,25 +256,32 @@ model WhatsAppMessageLog {
   status         WhatsAppMessageStatus @default(MANUAL_SENT)
   variablesJson  Json?
   createdAt      DateTime              @default(now())
-  booking        Booking?              @relation(fields: [bookingId], references: [id])
-  createdBy      User                  @relation(fields: [createdById], references: [id])
-  customer       Customer?             @relation(fields: [customerId], references: [id])
-  template       WhatsAppTemplate?     @relation(fields: [templateId], references: [id])
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+  booking        Booking?              @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  createdBy      User                  @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  customer       Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  template       WhatsAppTemplate?     @relation(fields: [templateId], references: [id], onDelete: SetNull)
 
   @@index([customerId, createdAt])
   @@index([status, createdAt])
   @@index([templateId, createdAt])
   @@index([createdById])
+  @@index([deletedAt])
+  @@map("whatsapp_message_logs")
 }
 
 model Config {
   id        Int      @id @default(autoincrement())
   paramsKey String   @unique
   value     String
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([paramsKey])
+  @@index([deletedAt])
+  @@map("configs")
 }
 
 model Attachment {
@@ -251,11 +291,14 @@ model Attachment {
   fileSize  Int
   mimeType  String
   filePath  String
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
+  @@index([deletedAt])
+  @@map("attachments")
 }
 
 enum Role {
@@ -300,9 +343,12 @@ model BookingPlacement {
   sizeWidth  Float?
   sizeHeight Float?
   notes      String?
+  deletedAt  DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
+  @@index([deletedAt])
+  @@map("booking_placements")
 }

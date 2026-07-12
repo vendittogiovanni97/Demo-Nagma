@@ -5,7 +5,7 @@ import type { DateClickArg } from '@fullcalendar/interaction';
 import { format } from 'date-fns';
 import { useCallback, useState } from 'react';
 
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/common/context/AuthContext';
 import { bookingApi as bookingService } from '@/modules/booking/api/booking.api';
 import { useBookings } from '@/modules/booking/hooks/useBooking';
 import type { BookingModel } from '@/modules/booking/model/booking.model';

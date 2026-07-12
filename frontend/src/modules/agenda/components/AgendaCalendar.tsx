@@ -7,10 +7,10 @@ import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { Box } from '@mui/material';
-import { Clock } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 
-import StatePanel from '@/components/feedback/StatePanel';
-import { useBreakpoint } from '@/hooks/useBreakpoint';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import { useBreakpoint } from '@/common/hooks/useBreakpoint';
 
 interface AgendaCalendarProps {
   isLoading: boolean;
@@ -52,7 +52,7 @@ export default function AgendaCalendar({
         <StatePanel
           variant="loading"
           fullPage
-          icon={Clock}
+          icon={(props: any) => <Icon name="clock" {...props} />}
           title="Carico l'agenda"
           description="Sto recuperando gli appuntamenti."
         />

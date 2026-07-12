@@ -1,11 +1,12 @@
 "use client";
 
-import Button from '@/components/ui/Button';
+import Button from '@/common/components/ui/Button';
+import CheckboxInput from '@/common/components/forms/CheckboxInput';
+import FormSelect from '@/common/components/forms/FormSelect';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
-import { Checkbox, FormControlLabel, MenuItem, Select, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
-import { Trash2 } from 'lucide-react';
+import { useTheme, alpha } from '@mui/material/styles';
+import Icon from '@/common/components/ui/Icon';
 
 const FIELD_TYPES: FieldDef['type'][] = ['text', 'number', 'date', 'select', 'checkbox'];
 
@@ -48,14 +49,14 @@ export default function FieldEditor({ field, onChange, onRemove }: FieldEditorPr
     <Box
       sx={{
         position: 'relative',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: alpha(theme.palette.common.white, 0.05),
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 2,
         p: 2.5,
         transition: 'all 0.2s ease',
         '&:hover': {
-          borderColor: 'rgba(0,191,255,0.3)',
-          backgroundColor: 'rgba(255,255,255,0.1)',
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          backgroundColor: alpha(theme.palette.common.white, 0.1),
         },
       }}
     >
@@ -74,7 +75,7 @@ export default function FieldEditor({ field, onChange, onRemove }: FieldEditorPr
           size="sm"
           type="button"
           onClick={onRemove}
-          icon={<Trash2 size={16} />}
+          icon={<Icon name="trash2" size={16} />}
           sx={{ p: 0.75 }}
           title="Elimina campo"
         />
@@ -119,53 +120,27 @@ export default function FieldEditor({ field, onChange, onRemove }: FieldEditorPr
             <Box component="label" sx={labelSx}>
               Tipologia di Campo
             </Box>
-            <Select
+            <FormSelect
               value={field.type}
-              onChange={(e) => onChange({ ...field, type: e.target.value as FieldDef['type'] })}
+              onChange={(v) => onChange({ ...field, type: v as FieldDef['type'] })}
+              options={FIELD_TYPES.map(t => ({ value: t, label: t.toUpperCase() }))}
               size="small"
-              fullWidth
               sx={{
-                backgroundColor: 'rgba(0,0,0,0.4)',
-                borderRadius: 2,
-                fontSize: '0.875rem',
-                color: 'white',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.primary.main,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  borderRadius: 2,
+                  fontSize: '0.875rem',
                 },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.primary.main,
-                },
-                '& .MuiSelect-icon': { color: theme.palette.text.secondary },
               }}
-            >
-              {FIELD_TYPES.map((t) => (
-                <MenuItem key={t} value={t} sx={{ fontSize: '0.875rem' }}>
-                  {t.toUpperCase()}
-                </MenuItem>
-              ))}
-            </Select>
+            />
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', pt: 3 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={field.required || false}
-                  onChange={(e) => onChange({ ...field, required: e.target.checked })}
-                  size="small"
-                  sx={{
-                    color: theme.palette.divider,
-                    '&.Mui-checked': { color: theme.palette.primary.main },
-                  }}
-                />
-              }
-              label={
-                <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: 'white' }}>
-                  Campo Obbligatorio
-                </Typography>
-              }
-              sx={{ userSelect: 'none', cursor: 'pointer', m: 0 }}
+            <CheckboxInput
+              label="Campo Obbligatorio"
+              checked={field.required || false}
+              onChange={(checked) => onChange({ ...field, required: checked })}
+              sx={{ color: theme.palette.divider, '&.Mui-checked': { color: theme.palette.primary.main } }}
             />
           </Box>
         </Box>

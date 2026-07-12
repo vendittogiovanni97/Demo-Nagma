@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useSearchParams } from 'next/navigation';
-import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { DEBOUNCE_SEARCH_DELAY } from '@/common/config/env';
+import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 import type { Booking, BookingStatus } from '@/modules/booking/model/booking.types';
 
 function monthKey(date: Date) {

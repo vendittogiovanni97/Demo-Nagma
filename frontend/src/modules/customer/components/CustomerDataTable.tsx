@@ -1,13 +1,14 @@
 "use client";
 
-import PermissionGate from '@/components/auth/PermissionGate';
-import SmartTable from '@/components/common/SmartTable';
-import type { Column } from '@/components/data-display/DataTable';
-import PaginationControls from '@/components/feedback/PaginationControls';
-import Button from '@/components/ui/Button';
+import PermissionGate from '@/common/components/auth/PermissionGate';
+import SmartTable from '@/common/components/common/SmartTable';
+import type { Column } from '@/common/components/data-display/DataTable';
+import PaginationControls from '@/common/components/feedback/PaginationControls';
+import Button from '@/common/components/ui/Button';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { Box, useTheme as useMuiTheme } from '@mui/material';
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import { alpha } from '@mui/material/styles';
+import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
 import CustomerCard from './CustomerCard';
 
@@ -66,7 +67,7 @@ export default function CustomerDataTable({
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <Button
               variant="icon"
-              icon={<Eye size={18} />}
+              icon={<Icon name="eye" size={18} />}
               title="Dettagli"
               onClick={() => router.push(`/clienti/${customer.id}`)}
             />
@@ -74,18 +75,18 @@ export default function CustomerDataTable({
               <>
                 <Button
                   variant="icon"
-                  icon={<Edit size={18} />}
+                  icon={<Icon name="edit" size={18} />}
                   title="Modifica"
                   onClick={() => onEdit(customer)}
                 />
                 <Button
                   variant="icon"
-                  icon={<Trash2 size={18} />}
+                  icon={<Icon name="trash2" size={18} />}
                   sx={{
-                    color: 'rgba(244,67,54,0.6)',
+                    color: alpha(theme.palette.error.main, 0.6),
                     '&:hover': {
                       color: theme.palette.error.main,
-                      backgroundColor: 'rgba(244,67,54,0.1)',
+                      backgroundColor: alpha(theme.palette.error.main, 0.1),
                     },
                   }}
                   title="Elimina"
@@ -101,7 +102,7 @@ export default function CustomerDataTable({
         <Box
           sx={{
             borderTop: `1px solid ${theme.palette.divider}`,
-            bgcolor: 'rgba(255,255,255,0.02)',
+            bgcolor: alpha(theme.palette.common.white, 0.02),
             mt: 'auto'
           }}
         >

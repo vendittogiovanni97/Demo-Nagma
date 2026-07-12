@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { nonEmptyString, whatsappMessageStatusSchema } from '@/shared/schemas/common';
+import { nonEmptyString, whatsappMessageStatusSchema } from '@/common/shared/schemas/common';
 
 export const createWhatsAppTemplateSchema = z.object({
   name: nonEmptyString('Il nome del template è obbligatorio'),

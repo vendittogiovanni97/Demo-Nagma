@@ -2,17 +2,17 @@
 
 import {
   Box,
-  Chip,
   Stack,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Plus } from 'lucide-react';
+import Badge from '@/common/components/ui/Badge';
+import Icon from '@/common/components/ui/Icon';
 import { useCallback, useEffect, useState } from 'react';
 
-import SmartModal from '@/components/common/SmartModal';
-import Button from '@/components/ui/Button';
-import { useAuth } from '@/context/AuthContext';
+import SmartModal from '@/common/components/common/SmartModal';
+import Button from '@/common/components/ui/Button';
+import { useAuth } from '@/common/context/AuthContext';
 import {
   AttachmentList,
   AttachmentUploadModal,
@@ -65,19 +65,10 @@ export default function BookingAttachmentsModal({
         maxWidth="md"
         showFooter={false}
         headerAction={
-          <Chip
+          <Badge
             label={customerName}
-            size="small"
-            sx={{
-              backgroundColor: 'rgba(0, 191, 255, 0.08)',
-              color: 'primary.main',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-              border: '1px solid rgba(0, 191, 255, 0.15)',
-              fontFamily: 'Outfit, sans-serif',
-              height: 24,
-              px: 0.5,
-            }}
+            size="sm"
+            variant="primary"
           />
         }
       >
@@ -91,7 +82,7 @@ export default function BookingAttachmentsModal({
             >
               <Button
                 variant="primary"
-                icon={<Plus size={16} />}
+                icon={<Icon name="plus" size={16} />}
                 onClick={(e) => {
                   // Blur il pulsante prima di aprire il Dialog secondario:
                   // MUI imposta aria-hidden sul Dialog parent e i lettori di

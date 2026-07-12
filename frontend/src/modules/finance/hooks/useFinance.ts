@@ -2,7 +2,7 @@ import useSWR from 'swr';
 import { financeApi } from '../api/finance.api';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 
 export function useFinance(initialMonth = new Date()) {
   const [month, setMonth] = useState(initialMonth);

@@ -1,23 +1,23 @@
 "use client";
 
-import SmartModal from '@/components/common/SmartModal';
-import StatePanel from '@/components/feedback/StatePanel';
-import { useAuth } from '@/context/AuthContext';
-import { useFormModal } from '@/hooks/useFormModal';
-import { useToast } from '@/hooks/useToast';
+import SmartModal from '@/common/components/common/SmartModal';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import { useAuth } from '@/common/context/AuthContext';
+import { useFormModal } from '@/common/hooks/useFormModal';
+import { useToast } from '@/common/hooks/useToast';
 import { createCustomerSchema } from '@/modules/customer/model/customer.schema';
 import { customerApi as customerService } from '@/modules/customer/api/customer.api';
 import type { CreateCustomerRequest as CreateCustomerData } from '@/modules/customer/api/customer.types';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
-import { validateData } from '@/shared/utils/validation';
-import { Mail, Phone, User } from 'lucide-react';
+import { extractErrorMessage } from '@/common/shared/utils/extract-error';
+import { validateData } from '@/common/shared/utils/validation';
+import Icon, { Mail, Phone, User } from '@/common/components/ui/Icon';
 import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import FormInput from '@/components/forms/FormInput';
-import FormTextarea from '@/components/forms/FormTextarea';
+import FormInput from '@/common/components/forms/FormInput';
+import FormTextarea from '@/common/components/forms/FormTextarea';
 
-import { configService } from '@/shared/services/config.service';
+import { configService } from '@/common/shared/services/config.service';
 
 interface Props {
   isOpen: boolean;
@@ -133,7 +133,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
             value={formData.phone}
             onChange={(v) => setFormData({ ...formData, phone: v })}
             placeholder="Telefono"
-            icon={Phone}
+              icon={Phone}
             required
           />
 

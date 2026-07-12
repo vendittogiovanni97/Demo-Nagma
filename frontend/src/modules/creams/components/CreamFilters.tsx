@@ -1,6 +1,6 @@
 "use client";
 
-import SmartFilters from '@/components/common/SmartFilters';
+import SmartFilters from '@/common/components/common/SmartFilters';
 
 interface StaffMember {
   id: number;

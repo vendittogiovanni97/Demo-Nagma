@@ -2,40 +2,40 @@
 
 import {
   Box,
-  FormControlLabel,
   Grid,
-  Switch,
   Typography,
   useTheme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import SwitchInput from '@/common/components/forms/SwitchInput';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
 // Consensus Integration
 import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
 import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
 import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
-import { configService } from '@/shared/services/config.service';
+import { configService } from '@/common/shared/services/config.service';
 // Components
-import SmartModal from '@/components/common/SmartModal';
-import FormAutocomplete from '@/components/forms/FormAutocomplete';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
-import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
+import SmartModal from '@/common/components/common/SmartModal';
+import FormAutocomplete from '@/common/components/forms/FormAutocomplete';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
+import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 
 // Types & Config
-import { EXPORT_FETCH_LIMIT } from '@/config/env';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/useToast';
+import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
+import { useAuth } from '@/common/context/AuthContext';
+import { useToast } from '@/common/hooks/useToast';
 import type { Booking, BookingStatus, CreateBookingData } from '@/modules/booking/model/booking.types';
 import { customerApi as customerService } from '@/modules/customer/api/customer.api';
 import { useCustomers } from '@/modules/customer/hooks/useCustomer';
 import { useFormTemplates } from '@/modules/form-templates/hooks/useFormTemplates';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 import { staffApi as staffService } from '@/modules/staff/api/staff.api';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
+import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import { bookingApi as bookingService } from '../../api/booking.api';
 import { PERCENTUALE_OPTIONS_VALUES } from '../../hooks/booking-config';
 
@@ -197,6 +197,7 @@ function bookingFormReducer(state: BookingFormState, action: BookingFormAction):
 export default function BookingModal({ isOpen, onClose, onSuccess, booking, initialDate, initialTime }: Props) {
   const toast = useToast();
   const theme = useTheme();
+  const styles = createStyles(theme);
   const { isSuperAdmin } = useAuth();
   const [formState, dispatch] = useReducer(bookingFormReducer, initialFormState);
 
@@ -227,7 +228,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         try {
           const data = await staffService.getAllForSelect();
           if (!mounted) return;
-          dispatch({ type: 'SET_ARTISTS', payload: data.map(m => ({ id: m.id, name: m.name, color: m.color || '#00bfff' })) });
+          dispatch({ type: 'SET_ARTISTS', payload: data.map(m => ({ id: m.id, name: m.name, color: m.color || theme.palette.primary.main })) });
           dispatch({ type: 'SET_FIELD', field: 'initialArtistLoaded', payload: true });
         } catch (err) {
           if (mounted) toast.error(extractErrorMessage(err, 'Errore artisti'));
@@ -352,17 +353,10 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
         title={booking ? 'Modifica Prenotazione' : 'Nuova Prenotazione'}
         saveLabel={booking ? 'Salva Modifiche' : 'Conferma Prenotazione'}
         headerAction={!booking && (
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={formState.isNewCustomer}
-                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'isNewCustomer', payload: e.target.checked })}
-                sx={styles.switch}
-              />
-            }
-            label={<Typography sx={styles.switchLabel(formState.isNewCustomer)}>Nuovo Cliente</Typography>}
-            sx={{ m: 0, flexDirection: 'row', gap: 1 }}
+          <SwitchInput
+            label="Nuovo Cliente"
+            checked={formState.isNewCustomer}
+            onChange={(checked) => dispatch({ type: 'SET_FIELD', field: 'isNewCustomer', payload: checked })}
           />
         )}
       >
@@ -392,14 +386,14 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                         mt: 1.5,
                         p: 2,
                         borderRadius: '12px',
-                        backgroundColor: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.05)',
+                        backgroundColor: alpha(theme.palette.common.white, 0.02),
+                        border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                       }}>
                         <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'white', fontSize: '0.8rem' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'common.white', fontSize: '0.8rem' }}>
                             Consenso Informato Digitale
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem' }}>
@@ -549,9 +543,9 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                 <Grid size={12}>
                   <Box sx={styles.statusGroup}>
                     {([
-                      { v: 'CREATO', l: 'Creato', c: '#9e9e9e' },
+                      { v: 'CREATO', l: 'Creato', c: theme.palette.text.secondary },
                       { v: 'CONFERMATO', l: 'Confermato', c: theme.palette.primary.main },
-                      { v: 'MODIFICATO', l: 'Modificato', c: '#ce93d8' },
+                      { v: 'MODIFICATO', l: 'Modificato', c: theme.palette.custom.purple },
                       { v: 'SPOSTATO', l: 'Spostato', c: theme.palette.warning.main },
                       { v: 'ANNULLATO', l: 'Annullato', c: theme.palette.error.main },
                       { v: 'COMPLETATO', l: 'Completato', c: theme.palette.success.main },
@@ -610,7 +604,7 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                 left: 0,
                 right: 0,
                 bottom: 0,
-                bgcolor: 'rgba(10, 15, 25, 0.85)',
+                bgcolor: alpha(theme.palette.common.black, 0.85),
                 backdropFilter: 'blur(8px)',
                 zIndex: 9999,
                 display: 'flex',
@@ -633,11 +627,11 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)',
+                  boxShadow: `0 0 40px ${alpha(theme.palette.success.main, 0.4)}`,
                   mb: 3,
                 }}
               >
-                <Check size={60} color="white" />
+                <Icon name="check" size={60} color="white" />
               </Box>
               <Typography
                 component={motion.p}
@@ -670,53 +664,55 @@ export default function BookingModal({ isOpen, onClose, onSuccess, booking, init
   );
 }
 
-const styles = {
-  container: { p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 },
-  sectionHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0 },
-  label: { fontSize: '0.625rem', fontWeight: 800, color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.12em', mb: 0.75 },
-  separator: { height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.05)', my: 0.25 },
-  formControlLabel: { m: 0, flexDirection: 'row-reverse', gap: 1.5 },
-  switch: {
-    '& .MuiSwitch-switchBase.Mui-checked': { color: 'primary.main' },
-    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'primary.main', opacity: 0.5 }
-  },
-  switchLabel: (isActive: boolean) => ({ fontSize: '0.625rem', color: isActive ? 'primary.main' : 'text.secondary', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }),
-  newCustomerFields: (isActive: boolean) => ({
-    p: 3, borderRadius: '16px', bgcolor: isActive ? 'rgba(0, 191, 255, 0.02)' : 'transparent',
-    border: '1px solid', borderColor: isActive ? 'rgba(0, 191, 255, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-    opacity: isActive ? 1 : 0.4, transition: 'all 0.3s ease', pointerEvents: isActive ? 'auto' : 'none',
-    filter: isActive ? 'none' : 'grayscale(100%) brightness(0.8)',
-  }),
-  resultsRow: { display: 'flex', gap: 3, height: '100%' },
-  resultBoxArtist: { flex: 1, p: 1.25, borderRadius: '12px', bgcolor: 'rgba(255, 152, 0, 0.05)', border: '1px solid rgba(255, 152, 0, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
-  resultLabelArtist: { fontSize: '0.6rem', color: '#ff9800', textTransform: 'uppercase', fontWeight: 800, mb: 0.25 },
-  resultValueArtist: { fontSize: '1.15rem', fontWeight: 900, color: '#ff9800' },
-  resultBoxStudio: { flex: 1, p: 1.25, borderRadius: '12px', bgcolor: 'rgba(76, 175, 80, 0.05)', border: '1px solid rgba(76, 175, 80, 0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
-  resultLabelStudio: { fontSize: '0.6rem', color: '#4caf50', textTransform: 'uppercase', fontWeight: 800, mb: 0.25 },
-  resultValueStudio: { fontSize: '1.15rem', fontWeight: 900, color: '#4caf50' },
-  statusGroup: { display: 'flex', gap: 1, flexWrap: 'wrap' },
-  statusButton: (isActive: boolean, color: string) => ({
-    px: 2.5, py: 1.25, borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900,
-    border: '2px solid',
-    borderColor: isActive ? color : 'rgba(255, 255, 255, 0.05)',
-    backgroundColor: isActive ? `${color}40` : 'rgba(255, 255, 255, 0.02)',
-    color: isActive ? '#ffffff' : 'text.secondary',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    boxShadow: isActive ? `0 0 25px ${color}60, inset 0 0 10px ${color}30` : 'none',
-    transform: isActive ? 'translateY(-2px)' : 'none',
-    textShadow: isActive ? `0 0 8px ${color}` : 'none',
-    '&:hover': {
-      backgroundColor: isActive ? `${color}50` : 'rgba(255, 255, 255, 0.05)',
-      borderColor: isActive ? color : 'rgba(255, 255, 255, 0.1)',
-      transform: 'translateY(-2px)',
-    }
-  }),
-  textarea: {
-    width: '100%', borderRadius: '12px', border: '1px solid rgba(0, 191, 255, 0.1)',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', px: 2, py: 2, fontSize: '0.9375rem',
-    color: 'text.primary', outline: 'none', transition: 'all 0.3s ease', resize: 'vertical', minHeight: '100px', fontFamily: 'inherit'
-  },
-};
+function createStyles(theme: any) {
+  return {
+    container: { p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 },
+    sectionHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0 },
+    label: { fontSize: '0.625rem', fontWeight: 800, color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.12em', mb: 0.75 },
+    separator: { height: '1px', backgroundColor: alpha(theme.palette.common.white, 0.05), my: 0.25 },
+    formControlLabel: { m: 0, flexDirection: 'row-reverse', gap: 1.5 },
+    switch: {
+      '& .MuiSwitch-switchBase.Mui-checked': { color: 'primary.main' },
+      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'primary.main', opacity: 0.5 }
+    },
+    switchLabel: (isActive: boolean) => ({ fontSize: '0.625rem', color: isActive ? 'primary.main' : 'text.secondary', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }),
+    newCustomerFields: (isActive: boolean) => ({
+      p: 3, borderRadius: '16px', bgcolor: isActive ? alpha(theme.palette.primary.main, 0.02) : 'transparent',
+      border: '1px solid', borderColor: isActive ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.03),
+      opacity: isActive ? 1 : 0.4, transition: 'all 0.3s ease', pointerEvents: isActive ? 'auto' : 'none',
+      filter: isActive ? 'none' : 'grayscale(100%) brightness(0.8)',
+    }),
+    resultsRow: { display: 'flex', gap: 3, height: '100%' },
+    resultBoxArtist: { flex: 1, p: 1.25, borderRadius: '12px', bgcolor: alpha(theme.palette.warning.main, 0.05), border: `1px solid ${alpha(theme.palette.warning.main, 0.12)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
+    resultLabelArtist: { fontSize: '0.6rem', color: theme.palette.warning.main, textTransform: 'uppercase', fontWeight: 800, mb: 0.25 },
+    resultValueArtist: { fontSize: '1.15rem', fontWeight: 900, color: theme.palette.warning.main },
+    resultBoxStudio: { flex: 1, p: 1.25, borderRadius: '12px', bgcolor: alpha(theme.palette.success.main, 0.05), border: `1px solid ${alpha(theme.palette.success.main, 0.12)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
+    resultLabelStudio: { fontSize: '0.6rem', color: theme.palette.success.main, textTransform: 'uppercase', fontWeight: 800, mb: 0.25 },
+    resultValueStudio: { fontSize: '1.15rem', fontWeight: 900, color: theme.palette.success.main },
+    statusGroup: { display: 'flex', gap: 1, flexWrap: 'wrap' },
+    statusButton: (isActive: boolean, color: string) => ({
+      px: 2.5, py: 1.25, borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900,
+      border: '2px solid',
+      borderColor: isActive ? color : alpha(theme.palette.common.white, 0.05),
+      backgroundColor: isActive ? alpha(color, 0.25) : alpha(theme.palette.common.white, 0.02),
+      color: isActive ? theme.palette.common.white : 'text.secondary',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      cursor: 'pointer',
+      textTransform: 'uppercase',
+      letterSpacing: '0.06em',
+      boxShadow: isActive ? `0 0 25px ${alpha(color, 0.38)}, inset 0 0 10px ${alpha(color, 0.19)}` : 'none',
+      transform: isActive ? 'translateY(-2px)' : 'none',
+      textShadow: isActive ? `0 0 8px ${color}` : 'none',
+      '&:hover': {
+        backgroundColor: isActive ? alpha(color, 0.31) : alpha(theme.palette.common.white, 0.05),
+        borderColor: isActive ? color : alpha(theme.palette.common.white, 0.1),
+        transform: 'translateY(-2px)',
+      }
+    }),
+    textarea: {
+      width: '100%', borderRadius: '12px', border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+      backgroundColor: alpha(theme.palette.common.black, 0.2), px: 2, py: 2, fontSize: '0.9375rem',
+      color: 'text.primary', outline: 'none', transition: 'all 0.3s ease', resize: 'vertical', minHeight: '100px', fontFamily: 'inherit'
+    },
+  };
+}

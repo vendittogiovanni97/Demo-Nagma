@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from 'react';
-import { Package, Hash, User } from 'lucide-react';
+import Icon, { Hash, User } from '@/common/components/ui/Icon';
 import { Box, Typography, useTheme } from '@mui/material';
 
-import SmartModal from '@/components/common/SmartModal';
-import FormInput from '@/components/forms/FormInput';
-import FormSelect from '@/components/forms/FormSelect';
+import SmartModal from '@/common/components/common/SmartModal';
+import { useFormModal } from '@/common/hooks/useFormModal';
+import FormInput from '@/common/components/forms/FormInput';
+import FormSelect from '@/common/components/forms/FormSelect';
 
 interface StaffMember {
   id: number;
@@ -33,7 +34,6 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
   const theme = useTheme();
   const [selectedArtistId, setSelectedArtistId] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(false);
 
   const handleClose = () => {
     onClose();
@@ -41,15 +41,20 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
     setQuantity(1);
   };
 
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
+      await onSubmit(selectedArtistId, quantity);
+      setSelectedArtistId(0);
+      setQuantity(1);
+    },
+    onClose,
+    successMessage: 'Vendita registrata',
+    errorMessage: 'Errore durante la registrazione della vendita',
+  });
+
   const handleSave = async () => {
     if (!selectedArtistId) return;
-    setLoading(true);
-    try {
-      await onSubmit(selectedArtistId, quantity);
-      handleClose();
-    } finally {
-      setLoading(false);
-    }
+    await handleSubmit();
   };
 
   const staffOptions = (teamMembers || []).map(m => ({
@@ -63,7 +68,7 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
       onClose={handleClose}
       title="Registra Vendita Crema"
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={isLoading}
       saveLabel="Registra Vendita"
       maxWidth="sm"
     >
@@ -91,7 +96,7 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
               backgroundColor: `${theme.palette.primary.main}15`,
             }}
           >
-            <Package size={20} color={theme.palette.primary.main} />
+            <Icon name="package" size={20} color={theme.palette.primary.main} />
           </Box>
           <Box>
             <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

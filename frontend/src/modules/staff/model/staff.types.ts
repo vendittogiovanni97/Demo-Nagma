@@ -1,4 +1,5 @@
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'USER' | 'ARTIST';
+import { Role } from '@/common/shared/types/enums';
+export { Role };
 
 export interface User {
   id: number;

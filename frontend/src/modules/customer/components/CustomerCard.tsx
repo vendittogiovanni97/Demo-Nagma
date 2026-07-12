@@ -1,11 +1,11 @@
 'use client';
 
-import PermissionGate from '@/components/auth/PermissionGate';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import PermissionGate from '@/common/components/auth/PermissionGate';
+import Button from '@/common/components/ui/Button';
+import Card from '@/common/components/ui/Card';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
 
 interface CustomerCardProps {
@@ -167,7 +167,7 @@ export default function CustomerCard({
           <Button
             variant="ghost"
             size="sm"
-            icon={<Eye size={16} />}
+            icon={<Icon name="eye" size={16} />}
             fullWidth
             onClick={() => router.push(`/clienti/${customer.id}`)}
           >
@@ -178,7 +178,7 @@ export default function CustomerCard({
             <Button
               variant="secondary"
               size="sm"
-              icon={<Edit size={16} />}
+              icon={<Icon name="edit" size={16} />}
               fullWidth
               onClick={() => onEdit(customer)}
             >
@@ -190,7 +190,7 @@ export default function CustomerCard({
             <Button
               variant="danger"
               size="sm"
-              icon={<Trash2 size={16} />}
+              icon={<Icon name="trash2" size={16} />}
               fullWidth
               onClick={() => onDelete(customer.id)}
             >

@@ -1,6 +1,6 @@
-import { apiClient } from '@/shared/api/client';
-import { ENDPOINTS } from '@/shared/api/endpoints';
-import { PaginatedResponse } from '@/shared/types/pagination';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
+import { PaginatedResponse } from '@/common/shared/types/pagination';
 
 export interface Transaction {
   id: number;

@@ -3,21 +3,21 @@
 import type { Booking } from '@/modules/booking/model/booking.types';
 import {
   Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Skeleton,
   Stack,
   Typography,
   useTheme,
-  Avatar,
+  Tooltip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import Avatar from '@/common/components/data-display/Avatar';
+import { Skeleton } from '@/common/components/feedback/Skeleton';
+import Badge from '@/common/components/ui/Badge';
+import Button from '@/common/components/ui/Button';
+import Card from '@/common/components/ui/Card';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Calendar, Clock, ExternalLink, MessageCircle, ArrowRight } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
-import { IconButton, Tooltip } from '@mui/material';
 
 interface TodayAgendaWidgetProps {
   bookings?: Booking[];
@@ -58,15 +58,15 @@ export default function TodayAgendaWidget({
 
   const getStatusBadge = (status: string, color: string) => {
     const statusMap: Record<string, { label: string, color: string, bgcolor: string }> = {
-      CONFERMATO: { label: 'Confermato', color: '#10B981', bgcolor: 'rgba(16, 185, 129, 0.12)' },
-      CREATO: { label: 'Creato', color: '#00BFFF', bgcolor: 'rgba(0, 191, 255, 0.12)' },
-      COMPLETATO: { label: 'Completato', color: '#8B5CF6', bgcolor: 'rgba(139, 92, 246, 0.12)' },
-      ANNULLATO: { label: 'Annullato', color: '#EF4444', bgcolor: 'rgba(239, 68, 68, 0.12)' },
-      CANCELLATO: { label: 'Cancellato', color: '#EF4444', bgcolor: 'rgba(239, 68, 68, 0.12)' },
-      SPOSTATO: { label: 'Spostato', color: '#F59E0B', bgcolor: 'rgba(245, 158, 11, 0.12)' },
+      CONFERMATO: { label: 'Confermato', color: theme.palette.custom.emerald, bgcolor: alpha(theme.palette.custom.emerald, 0.12) },
+      CREATO: { label: 'Creato', color: theme.palette.primary.main, bgcolor: 'divider' },
+      COMPLETATO: { label: 'Completato', color: theme.palette.custom.purple, bgcolor: alpha(theme.palette.custom.purple, 0.12) },
+      ANNULLATO: { label: 'Annullato', color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.12) },
+      CANCELLATO: { label: 'Cancellato', color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.12) },
+      SPOSTATO: { label: 'Spostato', color: theme.palette.warning.main, bgcolor: alpha(theme.palette.warning.main, 0.12) },
     };
 
-    const config = statusMap[status] || { label: status, color: '#94A3B8', bgcolor: 'rgba(148, 163, 184, 0.12)' };
+    const config = statusMap[status] || { label: status, color: theme.palette.text.secondary, bgcolor: alpha(theme.palette.text.secondary, 0.12) };
 
     return (
       <Box sx={{
@@ -89,16 +89,16 @@ export default function TodayAgendaWidget({
   return (
     <Card
       className={className}
+      variant="glass"
+      size="md"
       sx={{
-        background: 'rgba(10, 26, 38, 0.5)',
-        backdropFilter: 'blur(20px)',
-        border: `1px solid rgba(0, 191, 255, 0.15)`,
-        borderRadius: '16px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+        bgcolor: alpha(theme.palette.background.default, 0.5),
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+        boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`,
         transition: theme.transitions.create(['all'], { duration: 300 }),
         '&:hover': {
-          borderColor: 'rgba(0, 191, 255, 0.3)',
-          boxShadow: '0 12px 40px rgba(0, 191, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
         },
         height: '100%',
         display: 'flex',
@@ -106,73 +106,64 @@ export default function TodayAgendaWidget({
         overflow: 'hidden',
       }}
     >
-      <CardHeader
-        title={
-          <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
-            <Box
-              sx={{
-                p: 1,
-                borderRadius: '10px',
-                bgcolor: 'rgba(0, 191, 255, 0.1)',
-                color: '#00BFFF',
-                border: '1px solid rgba(0, 191, 255, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1.5, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
+        <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
+          <Box
+            sx={{
+              p: 1,
+              borderRadius: '10px',
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              color: 'primary.main',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Icon name="calendar" size={18} />
+          </Box>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'common.white', fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', letterSpacing: '-0.3px' }}>
+              Appuntamenti Oggi
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize', fontWeight: 500 }}>
+              {format(new Date(), 'EEEE dd MMMM', { locale: it })}
+            </Typography>
+          </Box>
+        </Stack>
+        <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mt: 0.5, mr: 0.5 }}>
+          <Badge
+            label={String(todayBookings.length)}
+            variant="primary"
+            size="sm"
+          />
+          <Tooltip title="Vedi tutte le prenotazioni">
+            <Button
+              variant="icon"
+              icon={<Icon name="externalLink" size={15} />}
+              onClick={() => {
+                const today = format(new Date(), 'yyyy-MM-dd');
+                router.push(`/prenotazioni?startDate=${today}&endDate=${today}`);
               }}
-            >
-              <Calendar size={18} />
-            </Box>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: 'white', fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', letterSpacing: '-0.3px' }}>
-                Appuntamenti Oggi
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize', fontWeight: 500 }}>
-                {format(new Date(), 'EEEE dd MMMM', { locale: it })}
-              </Typography>
-            </Box>
-          </Stack>
-        }
-        action={
-          <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mt: 0.5, mr: 0.5 }}>
-            <Chip
-              label={todayBookings.length}
               sx={{
-                bgcolor: 'rgba(0, 191, 255, 0.15)',
-                color: '#00BFFF',
-                border: '1px solid rgba(0, 191, 255, 0.2)',
-                fontWeight: 800,
-                fontSize: '0.75rem',
+                color: 'primary.main',
+                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                  color: 'common.white',
+                  borderColor: 'primary.main'
+                },
               }}
             />
-            <Tooltip title="Vedi tutte le prenotazioni">
-              <IconButton
-                size="small"
-                onClick={() => {
-                  const today = format(new Date(), 'yyyy-MM-dd');
-                  router.push(`/prenotazioni?startDate=${today}&endDate=${today}`);
-                }}
-                sx={{
-                  color: '#00BFFF',
-                  bgcolor: 'rgba(0, 191, 255, 0.05)',
-                  border: '1px solid rgba(0, 191, 255, 0.1)',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: 'rgba(0, 191, 255, 0.15)',
-                    color: 'white',
-                    borderColor: '#00BFFF'
-                  },
-                }}
-              >
-                <ExternalLink size={15} />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        }
-        sx={{ pb: 1.5, borderBottom: `1px solid rgba(0, 191, 255, 0.1)` }}
-      />
-      <CardContent
+          </Tooltip>
+        </Stack>
+      </Box>
+
+      {/* Content */}
+      <Box
         sx={{
           flex: 1,
           overflow: 'auto',
@@ -180,22 +171,21 @@ export default function TodayAgendaWidget({
           flexDirection: 'column',
           gap: 1.5,
           minHeight: { xs: 200, md: 300 },
-          p: 2.2,
-          '&:last-child': { pb: 2.2 },
+          mt: 1.5,
           '&::-webkit-scrollbar': { width: '6px' },
           '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: 'rgba(0, 191, 255, 0.15)',
+            backgroundColor: alpha(theme.palette.primary.main, 0.15),
             borderRadius: '10px',
-            '&:hover': { backgroundColor: 'rgba(0, 191, 255, 0.3)' }
+            '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.3) }
           }
         }}
       >
         {isLoading ? (
           <Stack useFlexGap sx={{ gap: 1.5 }}>
-            <Skeleton variant="rectangular" height={70} sx={{ borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.03)' }} />
-            <Skeleton variant="rectangular" height={70} sx={{ borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.03)' }} />
-            <Skeleton variant="rectangular" height={70} sx={{ borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.03)' }} />
+            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.common.white, 0.03) }} />
+            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.common.white, 0.03) }} />
+            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.common.white, 0.03) }} />
           </Stack>
         ) : todayBookings.length === 0 ? (
           <Stack
@@ -208,17 +198,17 @@ export default function TodayAgendaWidget({
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                bgcolor: 'rgba(0, 191, 255, 0.1)',
-                border: '1px solid rgba(0, 191, 255, 0.15)',
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 20px rgba(0, 191, 255, 0.05)'
+                boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.05)}`
               }}
             >
-              <Calendar size={24} color="#00BFFF" />
+              <Icon name="calendar" size={24} color={theme.palette.primary.main} />
             </Box>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: 'white' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'common.white' }}>
               Nessun appuntamento oggi
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -233,18 +223,18 @@ export default function TodayAgendaWidget({
                 flex: 1,
                 p: 1.2,
                 borderRadius: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(0, 191, 255, 0.08)',
+                backgroundColor: alpha(theme.palette.common.white, 0.02),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 0.2,
-                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.03)'
+                boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`
               }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Prenotati
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: 'white', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
+                <Typography variant="body1" sx={{ fontWeight: 800, color: 'common.white', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
                   {todayBookings.length}
                 </Typography>
               </Box>
@@ -253,18 +243,18 @@ export default function TodayAgendaWidget({
                 flex: 1,
                 p: 1.2,
                 borderRadius: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(0, 191, 255, 0.08)',
+                backgroundColor: alpha(theme.palette.common.white, 0.02),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 0.2,
-                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.03)'
+                boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`
               }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Ore Totali
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: '#00BFFF', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
+                <Typography variant="body1" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
                   {totalHours}h
                 </Typography>
               </Box>
@@ -273,18 +263,18 @@ export default function TodayAgendaWidget({
                 flex: 1,
                 p: 1.2,
                 borderRadius: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(0, 191, 255, 0.08)',
+                backgroundColor: alpha(theme.palette.common.white, 0.02),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 0.2,
-                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.03)'
+                boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`
               }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Valore
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: '#10B981', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
+                <Typography variant="body1" sx={{ fontWeight: 800, color: 'custom.emerald', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
                   €{totalEarnings}
                 </Typography>
               </Box>
@@ -292,7 +282,7 @@ export default function TodayAgendaWidget({
 
             {/* BOOKINGS LIST */}
             {todayBookings.map((booking) => {
-              const artistColor = booking.artist?.color || '#00BFFF';
+              const artistColor = booking.artist?.color || theme.palette.primary.main;
               const bookingTime = format(new Date(booking.date), 'HH:mm');
 
               const firstName = booking.customer?.firstName || 'U';
@@ -309,10 +299,10 @@ export default function TodayAgendaWidget({
                   sx={{
                     p: 2,
                     borderRadius: '14px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    backgroundColor: alpha(theme.palette.common.white, 0.03),
                     border: `1px solid ${artistColor}18`,
                     borderLeft: `4px solid ${artistColor}`,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.04)',
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, 0.15)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.04)}`,
                     cursor: 'pointer',
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
@@ -322,9 +312,9 @@ export default function TodayAgendaWidget({
                     position: 'relative',
                     overflow: 'hidden',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      backgroundColor: alpha(theme.palette.common.white, 0.05),
                       borderColor: artistColor,
-                      boxShadow: `0 8px 24px ${artistColor}15, inset 0 1px 0 rgba(255, 255, 255, 0.08)`,
+                      boxShadow: `0 8px 24px ${artistColor}15, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.08)}`,
                       transform: 'translateY(-2px)',
                       '& .arrow-icon': {
                         transform: 'translateX(4px)',
@@ -351,24 +341,17 @@ export default function TodayAgendaWidget({
                         backgroundColor: `${artistColor}15`,
                         border: `1px solid ${artistColor}25`,
                       }}>
-                        <Clock size={11} style={{ color: artistColor }} />
-                        <Typography sx={{ fontWeight: 800, color: 'white', fontSize: '0.72rem', fontFamily: 'monospace', lineHeight: 1 }}>
+                        <Icon name="clock" size={11} color={artistColor} />
+                        <Typography sx={{ fontWeight: 800, color: 'common.white', fontSize: '0.72rem', fontFamily: 'monospace', lineHeight: 1 }}>
                           {bookingTime}
                         </Typography>
                       </Box>
 
                       {/* DURATION */}
-                      <Chip
+                      <Badge
                         label={formatDuration(booking.duration || 60)}
-                        size="small"
-                        sx={{
-                          height: '18px',
-                          fontSize: '0.65rem',
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                          border: '1px solid rgba(255, 255, 255, 0.06)',
-                          color: 'rgba(255, 255, 255, 0.65)',
-                        }}
+                        size="xs"
+                        variant="default"
                       />
 
                       {/* STATUS */}
@@ -379,18 +362,19 @@ export default function TodayAgendaWidget({
                     <Stack spacing={1}>
                       {/* CLIENT ROW */}
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
-                        <Avatar sx={{
-                          width: 24,
-                          height: 24,
-                          fontSize: '0.7rem',
-                          bgcolor: `${artistColor}1F`,
-                          color: artistColor,
-                          fontWeight: 800,
-                          border: `1px solid ${artistColor}30`,
-                        }}>
-                          {customerInitials}
-                        </Avatar>
-                        <Typography sx={{ fontWeight: 700, color: 'white', fontSize: '0.82rem', letterSpacing: '-0.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Avatar
+                          firstName={firstName}
+                          lastName={lastName}
+                          color={artistColor}
+                          size="sm"
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            fontSize: '0.7rem',
+                            border: `1px solid ${artistColor}30`,
+                          }}
+                        />
+                        <Typography sx={{ fontWeight: 700, color: 'common.white', fontSize: '0.82rem', letterSpacing: '-0.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {customerFullName}
                         </Typography>
                       </Stack>
@@ -405,7 +389,7 @@ export default function TodayAgendaWidget({
                           boxShadow: `0 0 6px ${artistColor}`,
                           ml: 1 // Aligns dot beautifully under text
                         }} />
-                        <Typography sx={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: '0.75rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ color: alpha(theme.palette.common.white, 0.55), fontSize: '0.75rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {booking.artist?.name || 'Non assegnato'}
                         </Typography>
                       </Stack>
@@ -423,7 +407,7 @@ export default function TodayAgendaWidget({
                       opacity: 0.3,
                     }}
                   >
-                    <ArrowRight size={16} style={{ color: 'white' }} />
+                    <Icon name="arrowRight" size={16} color={theme.palette.common.white} />
                   </Box>
 
                   {/* QUICK ACTION BAR (FADES IN ON HOVER) */}
@@ -444,53 +428,51 @@ export default function TodayAgendaWidget({
                   >
                     {booking.customer?.phone && (
                       <Tooltip title="Invia WhatsApp">
-                        <IconButton
-                          size="small"
+                        <Button
+                          variant="icon"
+                          icon={<Icon name="messageCircle" size={13} />}
                           onClick={() => {
                             const formattedPhone = booking.customer?.phone?.replace(/\D/g, '');
                             window.open(`https://wa.me/${formattedPhone}`, '_blank');
                           }}
                           sx={{
-                            color: '#25D366',
-                            bgcolor: 'rgba(37, 211, 102, 0.1)',
-                            border: '1px solid rgba(37, 211, 102, 0.2)',
                             width: 28,
                             height: 28,
-                            transition: 'all 0.2s',
+                            minWidth: 28,
+                            color: 'custom.whatsapp',
+                            bgcolor: alpha(theme.palette.custom.whatsapp, 0.1),
+                            border: `1px solid ${alpha(theme.palette.custom.whatsapp, 0.2)}`,
                             '&:hover': {
-                              bgcolor: '#25D366',
-                              color: 'white',
-                              boxShadow: '0 0 10px rgba(37, 211, 102, 0.4)',
+                              bgcolor: 'custom.whatsapp',
+                              color: 'common.white',
+                              boxShadow: `0 0 10px ${alpha(theme.palette.custom.whatsapp, 0.4)}`,
                             }
                           }}
-                        >
-                          <MessageCircle size={13} />
-                        </IconButton>
+                        />
                       </Tooltip>
                     )}
 
                     <Tooltip title="Vedi Dettagli">
-                      <IconButton
-                        size="small"
+                      <Button
+                        variant="icon"
+                        icon={<Icon name="externalLink" size={13} />}
                         onClick={() => {
                           router.push(`/prenotazioni?id=${booking.id}`);
                         }}
                         sx={{
-                          color: '#00BFFF',
-                          bgcolor: 'rgba(0, 191, 255, 0.1)',
-                          border: '1px solid rgba(0, 191, 255, 0.2)',
                           width: 28,
                           height: 28,
-                          transition: 'all 0.2s',
+                          minWidth: 28,
+                          color: 'primary.main',
+                          bgcolor: alpha(theme.palette.primary.main, 0.1),
+                          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                           '&:hover': {
-                            bgcolor: '#00BFFF',
-                            color: 'white',
-                            boxShadow: '0 0 10px rgba(0, 191, 255, 0.4)',
+                            bgcolor: 'primary.main',
+                            color: 'common.white',
+                            boxShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.4)}`,
                           }
                         }}
-                      >
-                        <ExternalLink size={13} />
-                      </IconButton>
+                      />
                     </Tooltip>
                   </Box>
                 </Box>
@@ -498,7 +480,7 @@ export default function TodayAgendaWidget({
             })}
           </Stack>
         )}
-      </CardContent>
+      </Box>
     </Card>
   );
 }

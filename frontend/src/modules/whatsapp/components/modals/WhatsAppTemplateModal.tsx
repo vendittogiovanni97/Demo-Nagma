@@ -1,17 +1,19 @@
 "use client";
 
-import { Box, Typography, FormControlLabel, Switch, Button, Tooltip } from '@mui/material';
+import { Box, Typography, Tooltip } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-import FormInput from '@/components/forms/FormInput';
-import FormTextarea from '@/components/forms/FormTextarea';
-import SmartModal from '@/components/common/SmartModal';
-import { useToast } from '@/hooks/useToast';
+import Button from '@/common/components/ui/Button';
+import FormInput from '@/common/components/forms/FormInput';
+import FormTextarea from '@/common/components/forms/FormTextarea';
+import SmartModal from '@/common/components/common/SmartModal';
+import { useToast } from '@/common/hooks/useToast';
 import { createWhatsAppTemplateSchema } from '@/modules/whatsapp/model/whatsapp.schema';
 import { whatsappApi as whatsappService } from '../../api/whatsapp.api';
 import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '../../model/whatsapp.types';
-import { extractErrorMessage } from '@/shared/utils/extract-error';
-import { validateData } from '@/shared/utils/validation';
+import SwitchInput from '@/common/components/forms/SwitchInput';
+import { useFormModal } from '@/common/hooks/useFormModal';
+import { validateData } from '@/common/shared/utils/validation';
 
 interface WhatsAppTemplateModalProps {
   isOpen: boolean;
@@ -39,7 +41,6 @@ export default function WhatsAppTemplateModal({
   const [category, setCategory] = useState('');
   const [body, setBody] = useState('');
   const [isActive, setIsActive] = useState(true);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -48,6 +49,26 @@ export default function WhatsAppTemplateModal({
     setBody(template?.body || '');
     setIsActive(template?.isActive ?? true);
   }, [isOpen, template]);
+
+  const { isLoading, handleSubmit } = useFormModal({
+    onSubmit: async () => {
+      const payload: CreateWhatsAppTemplateData = {
+        name,
+        category: category || undefined,
+        body,
+        isActive,
+      };
+      if (template) {
+        await whatsappService.updateTemplate(template.id, payload);
+      } else {
+        await whatsappService.createTemplate(payload);
+      }
+      onSuccess?.();
+    },
+    onClose,
+    successMessage: template ? 'Template aggiornato' : 'Template creato',
+    errorMessage: 'Errore durante il salvataggio del template',
+  });
 
   const insertVariable = (variableVal: string) => {
     const textarea = document.getElementById('whatsapp-template-body') as HTMLTextAreaElement;
@@ -83,25 +104,7 @@ export default function WhatsAppTemplateModal({
       toast.error(validationError);
       return;
     }
-
-    setLoading(true);
-    try {
-      if (template) {
-        await whatsappService.updateTemplate(template.id, payload);
-        toast.success('Template aggiornato');
-      } else {
-        await whatsappService.createTemplate(payload);
-        toast.success('Template creato');
-      }
-
-      onSuccess?.();
-      onClose();
-    } catch (error: unknown) {
-      const errorMessage = extractErrorMessage(error, 'Errore durante il salvataggio del template');
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    await handleSubmit();
   };
 
   return (
@@ -110,7 +113,7 @@ export default function WhatsAppTemplateModal({
       onClose={onClose}
       title={template ? 'Modifica Template WhatsApp' : 'Nuovo Template WhatsApp'}
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={isLoading}
       saveLabel={template ? 'Salva modifiche' : 'Crea template'}
       maxWidth="md"
     >
@@ -145,10 +148,9 @@ export default function WhatsAppTemplateModal({
               I template disattivati non saranno visibili durante l'invio manuale
             </Typography>
           </Box>
-          <Switch
+          <SwitchInput
             checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            color="primary"
+            onChange={setIsActive}
           />
         </Box>
 
@@ -190,15 +192,15 @@ export default function WhatsAppTemplateModal({
                 <Tooltip key={v.value} title={`Inserisci ${v.value}`} arrow>
                   <Button
                     onClick={() => insertVariable(v.value)}
-                    variant="outlined"
-                    size="small"
+                    variant="ghost"
+                    size="sm"
                     sx={{
                       textTransform: 'none',
                       borderRadius: '8px',
                       fontSize: '0.75rem',
                       fontWeight: 600,
                       color: 'text.primary',
-                      borderColor: 'rgba(255, 255, 255, 0.15)',
+                      border: `1px solid rgba(255, 255, 255, 0.15)`,
                       background: 'rgba(255, 255, 255, 0.03)',
                       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {

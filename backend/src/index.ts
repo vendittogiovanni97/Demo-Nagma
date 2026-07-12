@@ -2,11 +2,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import type { Server } from 'http';
-import prisma from './shared/utils/prisma';
+import prisma from './core/shared/utils/prisma';
 import { createApp } from './app';
-import { config } from './config/env';
-import { isDebugHttpEnabled, logger } from './shared/utils/logger';
-import { configService } from './container';
+import { config } from './core/config/env';
+import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
+import { container } from './core/container';
+import { ConfigService } from './modules/config/services/configService';
+const configService = container.get(ConfigService);
 
 const RESTART_DELAY_MS = config.restartDelayMs;
 const port = Number(process.env.PORT || 3001);

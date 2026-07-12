@@ -1,20 +1,20 @@
 import { Prisma } from '@prisma/client';
-import prisma from '../../../shared/utils/prisma';
-import { CreateCreamInput, CreateCreamSaleInput } from '../schemas/cream.schemas';
-import { IPaginatedResponse } from '../../../shared/kernel/interfaces';
-import { paginate, buildPagination } from '../../../shared/kernel/pagination';
+import prisma from '../../../core/shared/utils/prisma';
+import type { CreateCreamInput, CreateCreamSaleInput } from '../controllers/cream.schemas';
+import { IPaginatedResponse } from '../../../core/shared/kernel/interfaces';
+import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
 
 export class CreamService {
   async findActive() {
     return prisma.creamTattoo.findFirst({
-      where: { isActive: true },
+      where: { isActive: true, deletedAt: null },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findById(id: number) {
-    return prisma.creamTattoo.findUnique({
-      where: { id },
+    return prisma.creamTattoo.findFirst({
+      where: { id, deletedAt: null },
     });
   }
 
@@ -53,7 +53,7 @@ export class CreamService {
     limit: number,
     filters?: { startDate?: string; endDate?: string; artistId?: number }
   ): Promise<IPaginatedResponse<any>> {
-    const where: Prisma.CreamSaleWhereInput = { creamId };
+    const where: Prisma.CreamSaleWhereInput = { creamId, deletedAt: null };
 
     if (filters?.startDate || filters?.endDate) {
       where.soldAt = {};

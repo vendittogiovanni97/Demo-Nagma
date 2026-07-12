@@ -4,16 +4,18 @@ import dynamic from 'next/dynamic';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { MessageCircle, Plus } from 'lucide-react';
+import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
+import Icon from '@/common/components/ui/Icon';
 import { useMemo, useState } from 'react';
 
-import PageHeader from '@/components/common/PageHeader';
-import StatePanel from '@/components/feedback/StatePanel';
-import Button from '@/components/ui/Button';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useAuth } from '@/context/AuthContext';
+import PageHeader from '@/common/components/common/PageHeader';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import Button from '@/common/components/ui/Button';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useAuth } from '@/common/context/AuthContext';
 import { useWhatsAppTemplates } from '@/modules/whatsapp/hooks/useWhatsApp';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { whatsappApi as whatsappService } from '@/modules/whatsapp/api/whatsapp.api';
 import type { WhatsAppTemplate } from '@/modules/whatsapp/model/whatsapp.types';
 import TemplateList from '../components/TemplateList';
@@ -25,6 +27,7 @@ const WhatsAppTemplateModal = dynamic(
 );
 
 export default function WhatsAppPage() {
+  const theme = useTheme();
   const { isAdmin } = useAuth();
   const canManageTemplates = isAdmin;
 
@@ -85,7 +88,7 @@ export default function WhatsAppPage() {
         title="WhatsApp Templates"
         showButton
         buttonLabel="Nuovo Template"
-        buttonIcon={<Plus size={16} />}
+        buttonIcon={<Icon name="plus" size={16} />}
         onButtonClick={() => {
           setEditingTemplate(null);
           setIsTemplateModalOpen(true);
@@ -101,14 +104,14 @@ export default function WhatsAppPage() {
           overflow: 'hidden',
           p: 3,
           position: 'relative',
-          backgroundColor: 'rgba(255,255,255,0.03)',
+          backgroundColor: alpha(theme.palette.common.white, 0.03),
           backdropFilter: 'blur(12px)',
           border: 1,
           borderColor: 'divider',
         }}
       >
-        <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'rgba(255,255,255,0.08)', pb: 2 }}>
-          <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>Gestione Template</Typography>
+        <Box sx={{ mb: 3, borderBottom: 1, borderColor: alpha(theme.palette.common.white, 0.08), pb: 2 }}>
+          <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: 'common.white' }}>Gestione Template</Typography>
           <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary', mt: 0.5 }}>
             {"Crea e modifica i modelli di messaggio pronti da inviare dall'agenda."}
           </Typography>
@@ -121,11 +124,11 @@ export default function WhatsAppPage() {
             variant="empty"
             title="Nessun template trovato"
             description="Crea il tuo primo template WhatsApp per inviare messaggi rapidi ai clienti direttamente dall'agenda."
-            icon={MessageCircle}
+            icon={(props: any) => <Icon name="messageCircle" {...props} />}
             action={
               <Button
                 variant="primary"
-                icon={<Plus size={16} />}
+                icon={<Icon name="plus" size={16} />}
                 onClick={() => setIsTemplateModalOpen(true)}
                 sx={{ mt: 1 }}
               >

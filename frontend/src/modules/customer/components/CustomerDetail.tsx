@@ -1,13 +1,13 @@
 "use client";
 
-import { Skeleton } from '@/components/feedback/Skeleton';
-import StatePanel from '@/components/feedback/StatePanel';
-import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { BOOKING_STATUS_CONFIG, getBookingStatusBadgeVariant } from '@/config/status-config';
-import { useAuth } from '@/context/AuthContext';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { Skeleton } from '@/common/components/feedback/Skeleton';
+import StatePanel from '@/common/components/feedback/StatePanel';
+import Badge from '@/common/components/ui/Badge';
+import Button from '@/common/components/ui/Button';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { BOOKING_STATUS_CONFIG, getBookingStatusBadgeVariant } from '@/common/config/status-config';
+import { useAuth } from '@/common/context/AuthContext';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { customerApi as customerService } from '@/modules/customer/api/customer.api';
 import CustomerModal from '@/modules/customer/components/modals/CustomerModal';
 import { useCustomer, useCustomerSummary } from '@/modules/customer/hooks/useCustomer';
@@ -17,7 +17,6 @@ import {
   Alert,
   Box,
   Link,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -26,20 +25,11 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import Paper from '@/common/components/ui/Paper';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import {
-  AlertTriangle,
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Edit,
-  Mail,
-  MessageCircle,
-  Phone,
-  TrendingUp,
-  User,
-} from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -126,7 +116,7 @@ export default function CustomerDetail({ id }: Props) {
           variant="ghost"
           size="sm"
           onClick={() => router.push('/clienti')}
-          icon={<ArrowLeft size={20} />}
+          icon={<Icon name="arrowLeft" size={20} />}
           sx={{ p: 1 }}
         />
         <Box sx={{ flex: 1 }}>
@@ -143,7 +133,7 @@ export default function CustomerDetail({ id }: Props) {
         </Box>
         {isAdmin && (
           <>
-            <Button variant="secondary" icon={<Edit />} onClick={handleEdit}>
+            <Button variant="secondary" icon={(props: any) => <Icon name="edit" {...props} />} onClick={handleEdit}>
               Modifica
             </Button>
             <Button variant="primary" onClick={handleDelete}>
@@ -165,7 +155,7 @@ export default function CustomerDetail({ id }: Props) {
             <Paper
               sx={{
                 p: 3,
-                bgcolor: 'rgba(255, 255, 255, 0.04)',
+                bgcolor: alpha(theme.palette.common.white, 0.04),
                 border: `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 flexDirection: 'column',
@@ -210,7 +200,7 @@ export default function CustomerDetail({ id }: Props) {
             <Paper
               sx={{
                 p: 3,
-                bgcolor: 'rgba(255, 255, 255, 0.04)',
+                bgcolor: alpha(theme.palette.common.white, 0.04),
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 2,
               }}
@@ -219,14 +209,14 @@ export default function CustomerDetail({ id }: Props) {
                 variant="h6"
                 sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
               >
-                <User size={18} style={{ color: theme.palette.primary.main }} />
+                <Icon name="user" size={18} color={theme.palette.primary.main} />
                 Dati Anagrafici
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: '0.875rem' }}
                 >
-                  <Phone size={16} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+                  <Icon name="phone" size={16} color={theme.palette.primary.main} />
                   <Link
                     href={`tel:${customer.phone}`}
                     sx={{
@@ -247,7 +237,7 @@ export default function CustomerDetail({ id }: Props) {
                       fontSize: '0.875rem',
                     }}
                   >
-                    <Mail size={16} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+                    <Icon name="mail" size={16} color={theme.palette.primary.main} />
                     <Link
                       href={`mailto:${customer.email}`}
                       sx={{
@@ -269,7 +259,7 @@ export default function CustomerDetail({ id }: Props) {
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  <Calendar size={16} style={{ flexShrink: 0 }} />
+                  <Icon name="calendar" size={16} />
                   Cliente dal{' '}
                   {format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it })}
                 </Box>
@@ -280,12 +270,12 @@ export default function CustomerDetail({ id }: Props) {
                   severity="warning"
                   sx={{
                     mt: 2,
-                    bgcolor: 'rgba(255, 152, 0, 0.08)',
-                    border: `1px solid rgba(255, 152, 0, 0.2)`,
+                    bgcolor: alpha(theme.palette.warning.main, 0.08),
+                    border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '4px' }} />
+                    <Icon name="alertTriangle" size={16} />
                     <Box>
                       <Typography
                         sx={{
@@ -312,7 +302,7 @@ export default function CustomerDetail({ id }: Props) {
               <Paper
                 sx={{
                   p: 3,
-                  bgcolor: 'rgba(255, 255, 255, 0.04)',
+                  bgcolor: alpha(theme.palette.common.white, 0.04),
                   border: `1px solid ${theme.palette.divider}`,
                   borderRadius: 2,
                 }}
@@ -321,7 +311,7 @@ export default function CustomerDetail({ id }: Props) {
                   variant="h6"
                   sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
                 >
-                  <TrendingUp size={18} style={{ color: theme.palette.primary.main }} />
+                  <Icon name="trendingUp" size={18} color={theme.palette.primary.main} />
                   Riepilogo
                 </Typography>
                 <Box
@@ -330,7 +320,7 @@ export default function CustomerDetail({ id }: Props) {
                   <Box sx={{ gridColumn: 'span 3' }}>
                     <Box
                       sx={{
-                        bgcolor: 'rgba(255,255,255,0.05)',
+                        bgcolor: alpha(theme.palette.common.white, 0.05),
                         borderRadius: 1,
                         p: 2,
                         textAlign: 'center',
@@ -355,7 +345,7 @@ export default function CustomerDetail({ id }: Props) {
                   <Box sx={{ gridColumn: 'span 3' }}>
                     <Box
                       sx={{
-                        bgcolor: 'rgba(255,255,255,0.05)',
+                        bgcolor: alpha(theme.palette.common.white, 0.05),
                         borderRadius: 1,
                         p: 2,
                         textAlign: 'center',
@@ -380,7 +370,7 @@ export default function CustomerDetail({ id }: Props) {
                   <Box sx={{ gridColumn: 'span 3' }}>
                     <Box
                       sx={{
-                        bgcolor: 'rgba(255,255,255,0.05)',
+                        bgcolor: alpha(theme.palette.common.white, 0.05),
                         borderRadius: 1,
                         p: 2,
                         textAlign: 'center',
@@ -436,7 +426,7 @@ export default function CustomerDetail({ id }: Props) {
             <Paper
               sx={{
                 p: 3,
-                bgcolor: 'rgba(255, 255, 255, 0.04)',
+                bgcolor: alpha(theme.palette.common.white, 0.04),
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 2,
               }}
@@ -453,7 +443,7 @@ export default function CustomerDetail({ id }: Props) {
                   variant="h6"
                   sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}
                 >
-                  <Calendar size={18} style={{ color: theme.palette.primary.main }} />
+                  <Icon name="calendar" size={18} color={theme.palette.primary.main} />
                   Prossimi Appuntamenti
                 </Typography>
                 {upcomingBookings.length > 0 && (
@@ -473,7 +463,7 @@ export default function CustomerDetail({ id }: Props) {
               </Box>
               {upcomingBookings.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                  <Calendar size={32} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
+                  <Icon name="calendar" size={32} />
                   <Typography variant="body2">Nessun appuntamento futuro</Typography>
                 </Box>
               ) : (
@@ -486,9 +476,9 @@ export default function CustomerDetail({ id }: Props) {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         p: 1.5,
-                        bgcolor: 'rgba(255,255,255,0.05)',
+                        bgcolor: alpha(theme.palette.common.white, 0.05),
                         borderRadius: 1,
-                        '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' },
+                        '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.08) },
                         transition: 'colors 0.2s',
                       }}
                     >
@@ -498,7 +488,7 @@ export default function CustomerDetail({ id }: Props) {
                             width: '4px',
                             height: '40px',
                             borderRadius: '4px',
-                            backgroundColor: booking.artist?.color || '#6b7280',
+                            backgroundColor: booking.artist?.color || theme.palette.text.secondary,
                           }}
                         />
                         <Box>
@@ -539,7 +529,7 @@ export default function CustomerDetail({ id }: Props) {
             <Paper
               sx={{
                 p: 3,
-                bgcolor: 'rgba(255, 255, 255, 0.04)',
+                bgcolor: alpha(theme.palette.common.white, 0.04),
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 2,
               }}
@@ -548,12 +538,12 @@ export default function CustomerDetail({ id }: Props) {
                 variant="h6"
                 sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
               >
-                <Clock size={18} style={{ color: theme.palette.text.secondary }} />
+                <Icon name="clock" size={18} color={theme.palette.text.secondary} />
                 Storico Appuntamenti
               </Typography>
               {pastBookings.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                  <Clock size={32} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
+                  <Icon name="clock" size={32} />
                   <Typography variant="body2">Nessun appuntamento passato</Typography>
                 </Box>
               ) : (
@@ -632,7 +622,7 @@ export default function CustomerDetail({ id }: Props) {
               <Paper
                 sx={{
                   p: 3,
-                  bgcolor: 'rgba(255, 255, 255, 0.04)',
+                  bgcolor: alpha(theme.palette.common.white, 0.04),
                   border: `1px solid ${theme.palette.divider}`,
                   borderRadius: 2,
                 }}
@@ -641,7 +631,7 @@ export default function CustomerDetail({ id }: Props) {
                   variant="h6"
                   sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
                 >
-                  <MessageCircle size={18} style={{ color: theme.palette.success.main }} />
+                  <Icon name="messageCircle" size={18} color={theme.palette.success.main} />
                   Ultimi WhatsApp
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -653,7 +643,7 @@ export default function CustomerDetail({ id }: Props) {
                         alignItems: 'flex-start',
                         justifyContent: 'space-between',
                         p: 1.5,
-                        bgcolor: 'rgba(255,255,255,0.05)',
+                        bgcolor: alpha(theme.palette.common.white, 0.05),
                         borderRadius: 1,
                       }}
                     >
@@ -673,8 +663,8 @@ export default function CustomerDetail({ id }: Props) {
                               borderRadius: '12px',
                               bgcolor:
                                 log.status === 'MANUAL_SENT'
-                                  ? 'rgba(76, 175, 80, 0.2)'
-                                  : 'rgba(244, 67, 54, 0.2)',
+                                  ? alpha(theme.palette.success.main, 0.2)
+                                  : alpha(theme.palette.error.main, 0.2),
                               color:
                                 log.status === 'MANUAL_SENT'
                                   ? theme.palette.success.light

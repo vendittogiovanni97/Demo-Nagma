@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Box, useTheme } from '@mui/material';
-import type { Column } from '@/components/data-display/DataTable';
+import type { Column } from '@/common/components/data-display/DataTable';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { CreamSale } from '@/modules/creams/api/cream.api';

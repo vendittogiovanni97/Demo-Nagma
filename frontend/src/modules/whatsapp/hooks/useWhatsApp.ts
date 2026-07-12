@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { whatsappApi } from '../api/whatsapp.api';
-import type { PaginatedResponse } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/common/shared/types/pagination';
 import type { WhatsAppMessageLog, WhatsAppMessageStatus, WhatsAppTemplate } from '../model/whatsapp.types';
 
 interface UseWhatsAppTemplatesOptions {

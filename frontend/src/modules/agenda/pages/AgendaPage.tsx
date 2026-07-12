@@ -6,10 +6,10 @@ import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useCallback, useState } from 'react';
 
-import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useAuth } from '@/context/AuthContext';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useAuth } from '@/common/context/AuthContext';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';

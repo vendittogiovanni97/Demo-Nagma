@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { staffApi } from '../api/staff.api';
 import type { Shift, Staff } from '../model/staff.types';
-import type { PaginatedResponse } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/common/shared/types/pagination';
 
 interface MemberHookOptions {
   search?: string;

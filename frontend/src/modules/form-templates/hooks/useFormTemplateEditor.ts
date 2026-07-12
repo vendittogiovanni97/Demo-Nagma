@@ -1,6 +1,6 @@
 "use client";
 
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/common/hooks/useToast';
 import { formTemplateService } from '@/modules/form-templates/api/form-template.api';
 import type { FieldDef, FormTemplate } from '@/modules/form-templates/model/form-template.types';
 import { useState } from 'react';

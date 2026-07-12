@@ -4,13 +4,19 @@ import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
-import { config } from './config/env';
-import { getSwaggerSpec } from './config/swagger';
-import { configService } from './container';
-import { globalErrorHandler } from './middlewares/error.middleware';
-import apiRoutes from './routes';
-import { isDebugHttpEnabled, logger, sanitizeForLog } from './shared/utils/logger';
-import prisma from './shared/utils/prisma';
+import { config } from './core/config/env';
+import { getSwaggerSpec } from './core/config/swagger';
+import { bootstrapContainer } from './core/container/bootstrap';
+import { container } from './core/container';
+import { ConfigService } from './modules/config/services/configService';
+import { globalErrorHandler } from './core/middleware/error.middleware';
+import { registerRoutes } from './routes';
+import { isDebugHttpEnabled, logger, sanitizeForLog } from './core/shared/utils/logger';
+import prisma from './core/shared/utils/prisma';
+
+bootstrapContainer();
+
+const configService = container.get(ConfigService);
 
 export function createApp() {
   const app = express();
@@ -118,7 +124,7 @@ export function createApp() {
     next();
   });
 
-  app.use('/api', apiRoutes);
+  registerRoutes(app);
 
   // Build the Swagger spec only when /api-docs is actually requested.
   app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {

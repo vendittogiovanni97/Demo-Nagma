@@ -1,7 +1,7 @@
 "use client";
 
-import { apiClient } from '@/shared/api/client';
-import { ENDPOINTS } from '@/shared/api/endpoints';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import { BookingPlacementData } from '../model/placement.types';
 
 export const placementService = {

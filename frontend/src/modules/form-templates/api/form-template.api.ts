@@ -1,5 +1,5 @@
-import { apiClient } from '@/shared/api/client';
-import { ENDPOINTS } from '@/shared/api/endpoints';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import type { FormTemplate } from '@/modules/form-templates/model/form-template.types';
 
 export const formTemplateService = {

@@ -1,11 +1,11 @@
 "use client";
 
-import PageHeader from '@/components/common/PageHeader';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useAuth } from '@/context/AuthContext';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import PageHeader from '@/common/components/common/PageHeader';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useAuth } from '@/common/context/AuthContext';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { Box } from '@mui/material';
-import { Plus } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useState } from 'react';
 import { customerApi } from '../api/customer.api';
 import CustomerDataTable from '../components/CustomerDataTable';
@@ -60,7 +60,7 @@ export default function CustomerListPage() {
         title="Clienti"
         showButton
         buttonLabel="Nuovo Cliente"
-        buttonIcon={<Plus size={18} />}
+        buttonIcon={<Icon name="plus" size={18} />}
         buttonRequiresAdmin
         onButtonClick={() => setIsModalOpen(true)}
         filters={

@@ -1,17 +1,15 @@
-import { Router } from 'express';
-import { container } from '../../../container';
-import { adminOnly, authMiddleware } from '../../../middlewares/auth.middleware';
+import { Express } from 'express';
+import { container } from '../../../core/container';
+import { CreamController } from '../controllers/CreamController';
+import { adminOnly, authMiddleware } from '../../../core/middleware/auth.middleware';
 
-const router = Router();
-const controller = container.creamController;
+export function registerCreamRoutes(app: Express): void {
+  const controller = container.get(CreamController);
 
-router.use(authMiddleware);
-
-router.get('/', controller.getActive);
-router.get('/active', controller.getActive);
-router.post('/', adminOnly, controller.create);
-router.get('/:id/sales', controller.getSales);
-router.post('/sales', controller.createSale);
-router.get('/summary', controller.getSalesSummary);
-
-export default router;
+  app.get('/api/cream', authMiddleware, controller.getActive);
+  app.get('/api/cream/active', authMiddleware, controller.getActive);
+  app.post('/api/cream', authMiddleware, adminOnly, controller.create);
+  app.get('/api/cream/summary', authMiddleware, controller.getSalesSummary);
+  app.get('/api/cream/:id/sales', authMiddleware, controller.getSales);
+  app.post('/api/cream/sales', authMiddleware, controller.createSale);
+}

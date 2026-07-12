@@ -1,30 +1,23 @@
 "use client";
 
-import PageTransition from '@/components/layout/PageTransition';
-import { useToast } from '@/hooks/useToast';
-import { configService } from '@/shared/services/config.service';
-import { getToken } from '@/shared/utils/auth';
-import { API_BASE_URL, ENDPOINTS } from '@/shared/api/endpoints';
+import PageTransition from '@/common/components/layout/PageTransition';
+import { useToast } from '@/common/hooks/useToast';
+import { configService } from '@/common/shared/services/config.service';
+import { getToken } from '@/common/shared/utils/auth';
+import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
 import {
   Box,
-  Button,
-  Card,
   CircularProgress,
   Grid,
   LinearProgress,
   Stack,
-  Typography
+  Typography,
+  useTheme,
 } from '@mui/material';
-import {
-  Cpu,
-  Database,
-  HardDrive,
-  Network,
-  RefreshCw,
-  Settings2,
-  Shield,
-  ToggleLeft,
-} from 'lucide-react';
+import { alpha } from '@mui/material/styles';
+import Button from '@/common/components/ui/Button';
+import Card from '@/common/components/ui/Card';
+import Icon from '@/common/components/ui/Icon';
 import { useEffect, useState } from 'react';
 
 interface CustomSwitchProps {
@@ -35,6 +28,8 @@ interface CustomSwitchProps {
 }
 
 function CustomSwitch({ checked, onChange, disabled, activeColor }: CustomSwitchProps) {
+  const theme = useTheme();
+
   return (
     <Box
       onClick={() => !disabled && onChange()}
@@ -42,8 +37,8 @@ function CustomSwitch({ checked, onChange, disabled, activeColor }: CustomSwitch
         width: 52,
         height: 28,
         borderRadius: '14px',
-        backgroundColor: checked ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.05)',
-        border: checked ? `1.5px solid ${activeColor}` : '1.5px solid rgba(255, 255, 255, 0.15)',
+        backgroundColor: checked ? alpha(theme.palette.common.black, 0.4) : alpha(theme.palette.common.white, 0.05),
+        border: checked ? `1.5px solid ${activeColor}` : `1.5px solid ${alpha(theme.palette.common.white, 0.15)}`,
         boxShadow: checked ? `0 0 10px ${activeColor}33, inset 0 0 5px ${activeColor}22` : 'none',
         position: 'relative',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -54,7 +49,7 @@ function CustomSwitch({ checked, onChange, disabled, activeColor }: CustomSwitch
         padding: '2.5px',
         userSelect: 'none',
         '&:hover': {
-          borderColor: checked ? activeColor : 'rgba(255, 255, 255, 0.3)',
+          borderColor: checked ? activeColor : alpha(theme.palette.common.white, 0.3),
         }
       }}
     >
@@ -63,7 +58,7 @@ function CustomSwitch({ checked, onChange, disabled, activeColor }: CustomSwitch
           width: 21,
           height: 21,
           borderRadius: '50%',
-          backgroundColor: checked ? activeColor : '#64748b',
+          backgroundColor: checked ? activeColor : theme.palette.text.secondary,
           transform: checked ? 'translateX(24px)' : 'translateX(0px)',
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: checked
@@ -76,6 +71,7 @@ function CustomSwitch({ checked, onChange, disabled, activeColor }: CustomSwitch
 }
 
 export default function SuperAdminPanelPage() {
+  const theme = useTheme();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [savingFlag, setSavingFlag] = useState(false);
@@ -201,7 +197,7 @@ export default function SuperAdminPanelPage() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-        <CircularProgress size={45} sx={{ color: '#00bfff' }} />
+        <CircularProgress size={45} sx={{ color: 'primary.main' }} />
       </Box>
     );
   }
@@ -218,9 +214,9 @@ export default function SuperAdminPanelPage() {
             mb: 4,
             p: 3,
             borderRadius: 3,
-            border: '1px solid rgba(0, 191, 255, 0.15)',
-            background: 'linear-gradient(135deg, rgba(6, 11, 19, 0.95) 0%, rgba(10, 26, 40, 0.9) 100%)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(0, 191, 255, 0.05)',
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.common.black, 0.95)} 0%, ${alpha(theme.palette.background.default, 0.9)} 100%)`,
+            boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}, inset 0 0 15px ${alpha(theme.palette.primary.main, 0.05)}`,
           }}
         >
           <Box
@@ -231,21 +227,21 @@ export default function SuperAdminPanelPage() {
               width: 56,
               height: 56,
               borderRadius: '50%',
-              backgroundColor: 'rgba(0, 191, 255, 0.1)',
-              border: '2px solid rgba(0, 191, 255, 0.4)',
-              boxShadow: '0 0 20px rgba(0, 191, 255, 0.25)',
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+              boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.25)}`,
               animation: 'pulse 2s infinite ease-in-out',
               '@keyframes pulse': {
-                '0%': { transform: 'scale(1)', boxShadow: '0 0 20px rgba(0, 191, 255, 0.25)' },
-                '50%': { transform: 'scale(1.05)', boxShadow: '0 0 30px rgba(0, 191, 255, 0.4)' },
-                '100%': { transform: 'scale(1)', boxShadow: '0 0 20px rgba(0, 191, 255, 0.25)' },
+                '0%': { transform: 'scale(1)', boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.25)}` },
+                '50%': { transform: 'scale(1.05)', boxShadow: `0 0 30px ${alpha(theme.palette.primary.main, 0.4)}` },
+                '100%': { transform: 'scale(1)', boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.25)}` },
               }
             }}
           >
-            <Shield size={28} color="#00bfff" />
+            <Icon name="shield" size={28} color={theme.palette.primary.main} />
           </Box>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'common.white', letterSpacing: '-0.02em', mb: 0.5 }}>
               Pannello di Controllo Super Admin
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.875rem', opacity: 0.85 }}>
@@ -258,18 +254,18 @@ export default function SuperAdminPanelPage() {
           {/* LEFT: Feature Toggles */}
           <Grid size={{ xs: 12, md: 6 }}>
             <Card
+              variant="glass"
+              size="md"
               sx={{
-                p: 3,
                 height: '100%',
                 borderRadius: 3,
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'rgba(255, 255, 255, 0.02)',
+                background: alpha(theme.palette.common.white, 0.02),
                 backdropFilter: 'blur(20px)',
               }}
             >
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 3 }}>
-                <ToggleLeft color="#00bfff" size={22} />
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff' }}>
+                <Icon name="toggleLeft" size={22} color={theme.palette.primary.main} />
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white' }}>
                   Attivazione Moduli e Feature Flags
                 </Typography>
               </Stack>
@@ -286,13 +282,13 @@ export default function SuperAdminPanelPage() {
                     justifyContent: 'space-between',
                     p: 2.5,
                     borderRadius: 2,
-                    border: showConsensi ? '1px solid rgba(0, 229, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.06)',
-                    backgroundColor: showConsensi ? 'rgba(0, 229, 255, 0.03)' : 'rgba(255, 255, 255, 0.01)',
+                    border: showConsensi ? `1px solid ${alpha(theme.palette.primary.main, 0.2)}` : `1px solid ${alpha(theme.palette.common.white, 0.06)}`,
+                    backgroundColor: showConsensi ? alpha(theme.palette.primary.main, 0.03) : alpha(theme.palette.common.white, 0.01),
                     transition: 'all 0.3s ease',
                   }}
                 >
                   <Box sx={{ pr: 2 }}>
-                    <Typography sx={{ fontWeight: 600, color: '#ffffff', fontSize: '1rem', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 600, color: 'common.white', fontSize: '1rem', mb: 0.5 }}>
                       📄 Archivio Consensi
                     </Typography>
                     <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
@@ -303,7 +299,7 @@ export default function SuperAdminPanelPage() {
                     checked={showConsensi}
                     disabled={savingFlag}
                     onChange={() => handleToggleFlag('consensi', showConsensi)}
-                    activeColor="#00e5ff"
+                    activeColor={theme.palette.primary.main}
                   />
                 </Box>
 
@@ -315,13 +311,13 @@ export default function SuperAdminPanelPage() {
                     justifyContent: 'space-between',
                     p: 2.5,
                     borderRadius: 2,
-                    border: showPosizionamento ? '1px solid rgba(112, 0, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.06)',
-                    backgroundColor: showPosizionamento ? 'rgba(112, 0, 255, 0.03)' : 'rgba(255, 255, 255, 0.01)',
+                    border: showPosizionamento ? `1px solid ${alpha(theme.palette.custom.purple, 0.2)}` : `1px solid ${alpha(theme.palette.common.white, 0.06)}`,
+                    backgroundColor: showPosizionamento ? alpha(theme.palette.custom.purple, 0.03) : alpha(theme.palette.common.white, 0.01),
                     transition: 'all 0.3s ease',
                   }}
                 >
                   <Box sx={{ pr: 2 }}>
-                    <Typography sx={{ fontWeight: 600, color: '#ffffff', fontSize: '1rem', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 600, color: 'common.white', fontSize: '1rem', mb: 0.5 }}>
                       🗺️ Mappa Corporea
                     </Typography>
                     <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
@@ -332,7 +328,7 @@ export default function SuperAdminPanelPage() {
                     checked={showPosizionamento}
                     disabled={savingFlag}
                     onChange={() => handleToggleFlag('posizionamento', showPosizionamento)}
-                    activeColor="#a855f7"
+                    activeColor={theme.palette.custom.purple}
                   />
                 </Box>
 
@@ -341,12 +337,12 @@ export default function SuperAdminPanelPage() {
                   sx={{
                     p: 2.5,
                     borderRadius: 2,
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.01)',
+                    border: `1px solid ${alpha(theme.palette.common.white, 0.06)}`,
+                    backgroundColor: alpha(theme.palette.common.white, 0.01),
                     transition: 'all 0.3s ease',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 600, color: '#ffffff', fontSize: '1rem', mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 600, color: 'common.white', fontSize: '1rem', mb: 0.5 }}>
                     🌍 Prefisso Telefonico di Default (WhatsApp)
                   </Typography>
                   <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', mb: 2 }}>
@@ -359,10 +355,10 @@ export default function SuperAdminPanelPage() {
                       onChange={(e) => setDefaultPrefix(e.target.value)}
                       disabled={savingFlag}
                       style={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        border: '1px solid rgba(0, 191, 255, 0.2)',
+                        backgroundColor: alpha(theme.palette.common.black, 0.3),
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                         borderRadius: '8px',
-                        color: '#ffffff',
+                        color: theme.palette.common.white,
                         padding: '10px 14px',
                         fontSize: '0.9375rem',
                         outline: 'none',
@@ -372,20 +368,18 @@ export default function SuperAdminPanelPage() {
                       }}
                     />
                     <Button
-                      variant="contained"
+                      variant="primary"
                       disabled={savingFlag}
                       onClick={handleSavePrefix}
                       sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        background: 'linear-gradient(135deg, #00bfff 0%, #00e5ff 100%)',
-                        boxShadow: '0 0 15px rgba(0, 191, 255, 0.3)',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #0099cc 0%, #00bfff 100%)',
-                        },
                         px: 3,
                         fontWeight: 600,
-                        color: '#060b13',
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                        boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+                        '&:hover': {
+                          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                          transform: 'scale(1.02)',
+                        },
                       }}
                     >
                       Salva Prefisso
@@ -399,18 +393,18 @@ export default function SuperAdminPanelPage() {
           {/* RIGHT: Maintenance & Action Center */}
           <Grid size={{ xs: 12, md: 6 }}>
             <Card
+              variant="glass"
+              size="md"
               sx={{
-                p: 3,
                 height: '100%',
                 borderRadius: 3,
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'rgba(255, 255, 255, 0.02)',
+                background: alpha(theme.palette.common.white, 0.02),
                 backdropFilter: 'blur(20px)',
               }}
             >
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 3 }}>
-                <Settings2 color="#00bfff" size={22} />
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff' }}>
+                <Icon name="settings2" size={22} color={theme.palette.primary.main} />
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white' }}>
                   Strumenti di Manutenzione & Utility
                 </Typography>
               </Stack>
@@ -420,41 +414,45 @@ export default function SuperAdminPanelPage() {
 
               <Stack spacing={2}>
                 {/* Reset Cache Tool */}
-                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: alpha(theme.palette.common.white, 0.02), border: `1px solid ${alpha(theme.palette.common.white, 0.04)}` }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
-                      <Typography sx={{ fontWeight: 600, color: '#ffffff', fontSize: '0.9375rem' }}>🧹 Svuota Cache di Sessione</Typography>
+                      <Typography sx={{ fontWeight: 600, color: 'common.white', fontSize: '0.9375rem' }}>🧹 Svuota Cache di Sessione</Typography>
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Forza la pulizia delle risposte memorizzate per evitare rallentamenti.</Typography>
                     </Box>
                     <Button
-                      variant="outlined"
-                      size="small"
+                      variant="secondary"
+                      size="sm"
                       disabled={cleaningCache}
                       onClick={handleCleanCache}
-                      startIcon={cleaningCache ? <CircularProgress size={12} color="inherit" /> : <RefreshCw size={12} />}
-                      sx={{ borderRadius: 1.5, textTransform: 'none', borderColor: 'rgba(0,191,255,0.3)', color: '#00bfff' }}
+                      icon={<Icon name="refreshCw" size={12} />}
+                      isLoading={cleaningCache}
+                      loadingLabel="Svuotando..."
+                      sx={{ borderRadius: 1.5, borderColor: alpha(theme.palette.primary.main, 0.3), color: 'primary.main' }}
                     >
-                      {cleaningCache ? 'Svuotando...' : 'Esegui'}
+                      Esegui
                     </Button>
                   </Stack>
                 </Box>
 
                 {/* Database Backup Tool */}
-                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: alpha(theme.palette.common.white, 0.02), border: `1px solid ${alpha(theme.palette.common.white, 0.04)}` }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
-                      <Typography sx={{ fontWeight: 600, color: '#ffffff', fontSize: '0.9375rem' }}>💾 Backup Database Struttura</Typography>
+                      <Typography sx={{ fontWeight: 600, color: 'common.white', fontSize: '0.9375rem' }}>💾 Backup Database Struttura</Typography>
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Scarica un dump istantaneo della struttura relazionale del DB.</Typography>
                     </Box>
                     <Button
-                      variant="outlined"
-                      size="small"
+                      variant="secondary"
+                      size="sm"
                       disabled={backingUp}
                       onClick={handleBackupDb}
-                      startIcon={backingUp ? <CircularProgress size={12} color="inherit" /> : <Database size={12} />}
-                      sx={{ borderRadius: 1.5, textTransform: 'none', borderColor: 'rgba(0,229,102,0.3)', color: '#00ff66' }}
+                      icon={<Icon name="database" size={12} />}
+                      isLoading={backingUp}
+                      loadingLabel="Creando backup..."
+                      sx={{ borderRadius: 1.5, borderColor: alpha(theme.palette.success.main, 0.3), color: 'success.main' }}
                     >
-                      {backingUp ? 'Creando backup...' : 'Backup'}
+                      Backup
                     </Button>
                   </Stack>
                   {backingUp && (
@@ -465,21 +463,23 @@ export default function SuperAdminPanelPage() {
                 </Box>
 
                 {/* Gateway Reboot Tool */}
-                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <Box sx={{ p: 2, borderRadius: 2, backgroundColor: alpha(theme.palette.common.white, 0.02), border: `1px solid ${alpha(theme.palette.common.white, 0.04)}` }}>
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
-                      <Typography sx={{ fontWeight: 600, color: '#ffffff', fontSize: '0.9375rem' }}>🔌 Riavvia Gateway WhatsApp</Typography>
+                      <Typography sx={{ fontWeight: 600, color: 'common.white', fontSize: '0.9375rem' }}>🔌 Riavvia Gateway WhatsApp</Typography>
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Risolvi problemi di invio manuale riallineando il broker di messaggistica.</Typography>
                     </Box>
                     <Button
-                      variant="outlined"
-                      size="small"
+                      variant="secondary"
+                      size="sm"
                       disabled={gatewayRebooting}
                       onClick={handleRebootGateway}
-                      startIcon={gatewayRebooting ? <CircularProgress size={12} color="inherit" /> : <Network size={12} />}
-                      sx={{ borderRadius: 1.5, textTransform: 'none', borderColor: 'rgba(255,170,0,0.3)', color: '#ffaa00' }}
+                      icon={<Icon name="network" size={12} />}
+                      isLoading={gatewayRebooting}
+                      loadingLabel="Riavvio..."
+                      sx={{ borderRadius: 1.5, borderColor: alpha(theme.palette.warning.main, 0.3), color: 'warning.main' }}
                     >
-                      {gatewayRebooting ? 'Riavvio...' : 'Riavvia'}
+                      Riavvia
                     </Button>
                   </Stack>
                 </Box>
@@ -490,17 +490,17 @@ export default function SuperAdminPanelPage() {
           {/* BOTTOM: System Diagnostics & Health Status */}
           <Grid size={{ xs: 12 }}>
             <Card
+              variant="glass"
+              size="lg"
               sx={{
-                p: 3.5,
                 borderRadius: 3,
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'rgba(255, 255, 255, 0.02)',
+                background: alpha(theme.palette.common.white, 0.02),
                 backdropFilter: 'blur(20px)',
               }}
             >
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 4 }}>
-                <Cpu color="#00bfff" size={22} />
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff' }}>
+                <Icon name="cpu" size={22} color={theme.palette.primary.main} />
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white' }}>
                   Stato dei Servizi & Diagnostica Real-Time
                 </Typography>
               </Stack>
@@ -512,17 +512,17 @@ export default function SuperAdminPanelPage() {
                     sx={{
                       p: 2.5,
                       borderRadius: 2,
-                      backgroundColor: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                      backgroundColor: alpha(theme.palette.common.white, 0.01),
+                      border: `1px solid ${alpha(theme.palette.common.white, 0.04)}`,
                     }}
                   >
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-                      <Database size={18} color="#00ff66" />
+                      <Icon name="database" size={18} color={theme.palette.success.main} />
                       <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase' }}>Database</Typography>
                     </Stack>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff', mb: 0.5 }}>ONLINE</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white', mb: 0.5 }}>ONLINE</Typography>
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#00ff66', boxShadow: '0 0 8px #00ff66' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'success.main', boxShadow: `0 0 8px ${theme.palette.success.main}` }} />
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Latenza: 4ms (Ottimale)</Typography>
                     </Stack>
                   </Box>
@@ -534,17 +534,17 @@ export default function SuperAdminPanelPage() {
                     sx={{
                       p: 2.5,
                       borderRadius: 2,
-                      backgroundColor: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                      backgroundColor: alpha(theme.palette.common.white, 0.01),
+                      border: `1px solid ${alpha(theme.palette.common.white, 0.04)}`,
                     }}
                   >
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-                      <Network size={18} color="#00ff66" />
+                      <Icon name="network" size={18} color={theme.palette.success.main} />
                       <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase' }}>WhatsApp Gateway</Typography>
                     </Stack>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff', mb: 0.5 }}>CONNESSO</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white', mb: 0.5 }}>CONNESSO</Typography>
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#00ff66', boxShadow: '0 0 8px #00ff66' }} />
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'success.main', boxShadow: `0 0 8px ${theme.palette.success.main}` }} />
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Broker MQTT: Connesso</Typography>
                     </Stack>
                   </Box>
@@ -556,15 +556,15 @@ export default function SuperAdminPanelPage() {
                     sx={{
                       p: 2.5,
                       borderRadius: 2,
-                      backgroundColor: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                      backgroundColor: alpha(theme.palette.common.white, 0.01),
+                      border: `1px solid ${alpha(theme.palette.common.white, 0.04)}`,
                     }}
                   >
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-                      <HardDrive size={18} color="#00bfff" />
+                      <Icon name="hardDrive" size={18} color={theme.palette.primary.main} />
                       <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase' }}>Spazio Allegati</Typography>
                     </Stack>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff', mb: 0.5 }}>14.2% Usato</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white', mb: 0.5 }}>14.2% Usato</Typography>
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>1.42 GB / 10 GB totali</Typography>
                     </Stack>
@@ -577,15 +577,15 @@ export default function SuperAdminPanelPage() {
                     sx={{
                       p: 2.5,
                       borderRadius: 2,
-                      backgroundColor: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                      backgroundColor: alpha(theme.palette.common.white, 0.01),
+                      border: `1px solid ${alpha(theme.palette.common.white, 0.04)}`,
                     }}
                   >
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1.5 }}>
-                      <Shield size={18} color="#ffaa00" />
+                      <Icon name="shield" size={18} color={theme.palette.warning.main} />
                       <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase' }}>Sessioni & Sicurezza</Typography>
                     </Stack>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff', mb: 0.5 }}>8 Ore (Scadenza)</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white', mb: 0.5 }}>8 Ore (Scadenza)</Typography>
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                       <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>JWT salt rounds: 10</Typography>
                     </Stack>

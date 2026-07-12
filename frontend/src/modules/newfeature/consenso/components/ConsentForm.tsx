@@ -3,20 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
-  Card,
-  CardContent,
-  Checkbox,
   CircularProgress,
   Collapse,
-  FormControlLabel,
   FormGroup,
   Stack,
-  TextField,
   Typography,
   Divider,
+  useTheme,
 } from '@mui/material';
-import { ShieldCheck, Heart, AlertCircle, FileText, CheckCircle } from 'lucide-react';
+import Button from '@/common/components/ui/Button';
+import Card from '@/common/components/ui/Card';
+import CheckboxInput from '@/common/components/forms/CheckboxInput';
+import FormInput from '@/common/components/forms/FormInput';
+import Icon from '@/common/components/ui/Icon';
 import { consensoService } from '../service/consenso.service';
 import { PublicBookingData, MedicalAnswers } from '../model/consenso.model';
 import ConsentCanvas from './ConsentCanvas';
@@ -26,6 +25,7 @@ interface ConsentFormProps {
 }
 
 export default function ConsentForm({ bookingId }: ConsentFormProps) {
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState<PublicBookingData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +124,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
   if (loading) {
     return (
       <Stack sx={{ minHeight: '60vh', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress size={45} sx={{ color: '#9155FD' }} />
+        <CircularProgress size={45} sx={{ color: 'custom.purple' }} />
         <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 600 }}>
           Caricamento della scheda di consenso...
         </Typography>
@@ -135,8 +135,8 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
   if (error) {
     return (
       <Stack sx={{ minHeight: '60vh', justifyContent: 'center', alignItems: 'center', p: 3, textAlign: 'center' }} spacing={2}>
-        <AlertCircle size={48} className="text-[#EF4444]" />
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#EF4444' }}>
+        <Icon name="alertCircle" size={48} className="text-[#EF4444]" />
+        <Typography variant="h5" sx={{ fontWeight: 700, color: 'error.main' }}>
           Attenzione
         </Typography>
         <Typography sx={{ color: 'text.secondary', maxWidth: 400 }}>
@@ -149,7 +149,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
   if (submitted) {
     return (
       <Stack sx={{ minHeight: '80vh', justifyContent: 'center', alignItems: 'center', p: 3, textAlign: 'center' }} spacing={3}>
-        <CheckCircle size={64} className="text-[#10B981] animate-bounce" />
+        <Icon name="checkCircle" size={64} className="text-[#10B981] animate-bounce" />
         <Typography variant="h4" sx={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>
           Grazie, {bookingData?.customerName}!
         </Typography>
@@ -168,11 +168,10 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
     <Box component="form" onSubmit={handleSubmit} sx={{ py: 4, px: 2, maxWidth: 640, mx: 'auto' }}>
       
       {/* HEADER CARD */}
-      <Card sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
+      <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <ShieldCheck size={28} className="text-[#9155FD]" />
+              <Icon name="shieldCheck" size={28} className="text-[#9155FD]" />
               <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: -0.5 }}>
                 Consenso Informato
               </Typography>
@@ -183,7 +182,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
 
             <Divider sx={{ my: 1 }} />
 
-            <Stack spacing={0.5} sx={{ pl: 1, borderLeft: '3px solid #9155FD' }}>
+            <Stack spacing={0.5} sx={(theme) => ({ pl: 1, borderLeft: `3px solid ${theme.palette.custom.purple}` })}>
               <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
                 Cliente: <strong className="text-white">{bookingData?.customerName}</strong>
               </Typography>
@@ -195,42 +194,32 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
               </Typography>
             </Stack>
           </Stack>
-        </CardContent>
       </Card>
 
       {/* STEP 1: IDENTITY DOCUMENT */}
-      <Card sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
+      <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <FileText size={18} className="text-[#9155FD]" />
+              <Icon name="fileText" size={18} className="text-[#9155FD]" />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 1. Documento d'Identità
               </Typography>
             </Stack>
-            <TextField
+            <FormInput
               required
-              fullWidth
               label="Numero Carta d'Identità / Passaporto"
               placeholder="es: CA12345AB"
               value={documentId}
-              onChange={(e) => setDocumentId(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                }
-              }}
+              onChange={setDocumentId}
             />
           </Stack>
-        </CardContent>
       </Card>
 
       {/* STEP 2: HEALTH DECLARATIONS */}
-      <Card sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
-        <CardContent sx={{ p: 3 }}>
+      <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Heart size={18} className="text-[#9155FD]" />
+              <Icon name="heart" size={18} className="text-[#9155FD]" />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 2. Dichiarazioni Sanitarie
               </Typography>
@@ -242,191 +231,123 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
             <Divider />
 
             <FormGroup sx={{ gap: 1.5 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.maggiorenne}
-                    onChange={handleCheckboxChange('maggiorenne')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>Dichiaro di essere maggiorenne</Typography>}
+              <CheckboxInput
+                label="Dichiaro di essere maggiorenne"
+                checked={medicalAnswers.maggiorenne}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, maggiorenne: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.gravidanza}
-                    onChange={handleCheckboxChange('gravidanza')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem' }}>Ti trovi in stato di gravidanza o allattamento?</Typography>}
+              <CheckboxInput
+                label="Ti trovi in stato di gravidanza o allattamento?"
+                checked={medicalAnswers.gravidanza}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, gravidanza: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <Box>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={medicalAnswers.allergie}
-                      onChange={handleCheckboxChange('allergie')}
-                      sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                    />
-                  }
-                  label={<Typography sx={{ fontSize: '0.85rem' }}>Soffri di allergie? (Nichel, Metalli, Lattice, Disinfettanti, ecc.)</Typography>}
+                <CheckboxInput
+                  label="Soffri di allergie? (Nichel, Metalli, Lattice, Disinfettanti, ecc.)"
+                  checked={medicalAnswers.allergie}
+                  onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, allergie: checked }))}
+                  sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
                 />
                 <Collapse in={medicalAnswers.allergie}>
                   <Box sx={{ pl: 4, pt: 1, pb: 0.5 }}>
-                    <TextField
-                      fullWidth
-                      size="small"
+                    <FormInput
+                      size="sm"
                       label="Specifica le tue allergie"
                       placeholder="es: Allergico al Nichel e al Lattice"
-                      value={medicalAnswers.allergieDettagli}
-                      onChange={handleDetailChange}
-                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '6px' } }}
+                      value={medicalAnswers.allergieDettagli ?? ''}
+                      onChange={(v) => setMedicalAnswers(prev => ({ ...prev, allergieDettagli: String(v) }))}
                     />
                   </Box>
                 </Collapse>
               </Box>
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.anticoagulanti}
-                    onChange={handleCheckboxChange('anticoagulanti')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem' }}>Assumi farmaci anticoagulanti (cardioaspirina, ecc.)?</Typography>}
+              <CheckboxInput
+                label="Assumi farmaci anticoagulanti (cardioaspirina, ecc.)?"
+                checked={medicalAnswers.anticoagulanti}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, anticoagulanti: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.cardiopatie}
-                    onChange={handleCheckboxChange('cardiopatie')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem' }}>Soffri di cardiopatie o patologie cardiovascolari?</Typography>}
+              <CheckboxInput
+                label="Soffri di cardiopatie o patologie cardiovascolari?"
+                checked={medicalAnswers.cardiopatie}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, cardiopatie: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.epilessia}
-                    onChange={handleCheckboxChange('epilessia')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem' }}>Soffri di epilessia?</Typography>}
+              <CheckboxInput
+                label="Soffri di epilessia?"
+                checked={medicalAnswers.epilessia}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, epilessia: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.diabete}
-                    onChange={handleCheckboxChange('diabete')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem' }}>Soffri di diabete?</Typography>}
+              <CheckboxInput
+                label="Soffri di diabete?"
+                checked={medicalAnswers.diabete}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, diabete: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.malattieInfettive}
-                    onChange={handleCheckboxChange('malattieInfettive')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem' }}>Soffri di malattie infettive trasmissibili (Epatite, HIV)?</Typography>}
+              <CheckboxInput
+                label="Soffri di malattie infettive trasmissibili (Epatite, HIV)?"
+                checked={medicalAnswers.malattieInfettive}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, malattieInfettive: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <Divider sx={{ my: 1 }} />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.accettaPermanenza}
-                    onChange={handleCheckboxChange('accettaPermanenza')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>Dichiaro di essere a conoscenza della permanenza del tatuaggio</Typography>}
+              <CheckboxInput
+                label="Dichiaro di essere a conoscenza della permanenza del tatuaggio"
+                checked={medicalAnswers.accettaPermanenza}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, accettaPermanenza: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={medicalAnswers.accettaPrivacy}
-                    onChange={handleCheckboxChange('accettaPrivacy')}
-                    sx={{ color: '#9155FD', '&.Mui-checked': { color: '#9155FD' } }}
-                  />
-                }
-                label={
-                  <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-                    Acconsento al trattamento dei dati personali sensibili ai sensi del GDPR 2016/679 per scopi sanitari ed archivistici.
-                  </Typography>
-                }
+              <CheckboxInput
+                label="Acconsento al trattamento dei dati personali sensibili ai sensi del GDPR 2016/679 per scopi sanitari ed archivistici."
+                checked={medicalAnswers.accettaPrivacy}
+                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, accettaPrivacy: checked }))}
+                sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
             </FormGroup>
           </Stack>
-        </CardContent>
       </Card>
 
       {/* STEP 3: SIGNATURE */}
-      <Card sx={{ border: '1px solid var(--color-surface-border)', mb: 4 }}>
-        <CardContent sx={{ p: 3 }}>
+      <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 4 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <FileText size={18} className="text-[#9155FD]" />
+              <Icon name="fileText" size={18} className="text-[#9155FD]" />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 3. Firma Grafica
               </Typography>
             </Stack>
             <ConsentCanvas onSignatureChange={setSignatureB64} />
           </Stack>
-        </CardContent>
       </Card>
 
       {/* SUBMIT BUTTON */}
       <Button
-        fullWidth
+        variant="primary"
+        size="lg"
         type="submit"
-        size="large"
-        variant="contained"
+        fullWidth
         disabled={submitting}
+        loadingLabel="Elaborazione e firma del documento in corso..."
+        isLoading={submitting}
         sx={{
-          py: 1.8,
           borderRadius: '10px',
-          backgroundColor: '#9155FD',
-          color: 'white',
           fontWeight: 700,
           fontSize: '0.95rem',
-          letterSpacing: 0.5,
-          boxShadow: '0 4px 14px 0 rgba(145, 85, 253, 0.4)',
-          textTransform: 'none',
-          '&:hover': {
-            backgroundColor: '#8040E6',
-            boxShadow: '0 6px 20px 0 rgba(145, 85, 253, 0.5)',
-          },
-          '&.Mui-disabled': {
-            backgroundColor: '#2D3748',
-            color: 'var(--color-text-secondary)',
-          }
         }}
       >
-        {submitting ? (
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            <CircularProgress size={18} sx={{ color: 'white' }} />
-            <span>Elaborazione e firma del documento in corso...</span>
-          </Stack>
-        ) : (
-          "Sottoscrivi e Firma il Consenso"
-        )}
+        {submitting ? '' : "Sottoscrivi e Firma il Consenso"}
       </Button>
     </Box>
   );

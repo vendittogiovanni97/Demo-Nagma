@@ -2,20 +2,16 @@
 
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Box,
   Stack,
   Typography,
-  IconButton,
-  Card,
-  CardContent,
   Divider,
+  useTheme,
 } from '@mui/material';
-import { X, Copy, ExternalLink, CheckCircle, AlertTriangle, FileText, UserCheck } from 'lucide-react';
+import Button from '@/common/components/ui/Button';
+import Card from '@/common/components/ui/Card';
+import SmartModal from '@/common/components/common/SmartModal';
+import Icon from '@/common/components/ui/Icon';
 
 import type { Booking } from '@/modules/booking/model/booking.types';
 
@@ -26,17 +22,16 @@ interface ConsentModalProps {
 }
 
 export default function ConsentModal({ open, onClose, booking }: ConsentModalProps) {
+  const theme = useTheme();
   const [copied, setCopied] = useState(false);
 
   if (!booking) return null;
 
-  // Read consent data from the JSON column formData
   const consent = (booking.formData as any)?.consent;
   const isSigned = !!consent?.signed;
   const hasAlerts = !!consent?.hasMedicalAlerts;
   const alertsDetails = consent?.medicalAlertsDetails || '';
 
-  // Construct the public signing URL
   const publicUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/consenso/${booking.id}`
     : `/consenso/${booking.id}`;
@@ -66,202 +61,158 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
   const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`;
 
   return (
-    <Dialog
-      open={open}
+    <SmartModal
+      isOpen={open}
       onClose={onClose}
+      title="Consenso Informato"
       maxWidth="xs"
-      fullWidth
-      sx={{
-        '& .MuiPaper-root': {
-          borderRadius: '16px',
-          backgroundImage: 'none',
-          backgroundColor: '#0F172A', // Premium Dark Slate
-          border: '1px solid var(--color-surface-border)',
-          boxShadow: '0 10px 30px -10px rgba(0,0,0,0.7)',
-        },
-      }}
+      showFooter={false}
+      headerAction={<Icon name="fileText" size={20} color={theme.palette.custom.purple} />}
     >
-      <DialogTitle sx={{ p: 2.5, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <FileText size={20} className="text-[#9155FD]" />
-          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: -0.3, color: 'white' }}>
-            Consenso Informato
+      <Stack spacing={2.5}>
+        
+        {/* CLIENT QUICK INFO */}
+        <Box sx={{ p: 2, borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+            CLIENTE ASSOCIATO
           </Typography>
-        </Stack>
-        <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'white' } }}>
-          <X size={18} />
-        </IconButton>
-      </DialogTitle>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'common.white', mt: 0.5 }}>
+            {customerName}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
+            Identificativo Prenotazione: #{booking.id}
+          </Typography>
+        </Box>
 
-      <DialogContent sx={{ p: 2.5, pt: 1 }}>
-        <Stack spacing={2.5}>
-          
-          {/* CLIENT QUICK INFO */}
-          <Box sx={{ p: 2, borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-              CLIENTE ASSOCIATO
-            </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'white', mt: 0.5 }}>
-              {customerName}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
-              Identificativo Prenotazione: #{booking.id}
-            </Typography>
-          </Box>
+        {/* STATUS BLOCK */}
+        {isSigned ? (
+          <Stack spacing={2}>
+            <Card size="sm" variant="minimal" sx={{ border: `1px solid ${theme.palette.custom.emerald}`, backgroundColor: `${theme.palette.custom.emerald}0a`, borderRadius: '10px' }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                <Icon name="checkCircle" size={22} color={theme.palette.custom.emerald} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'custom.emerald' }}>
+                    Documento Sottoscritto!
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
+                    Firmato digitalmente il {new Date(consent.signedAt).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.2, display: 'block' }}>
+                    Doc. d'Identità: {consent.documentId}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Card>
 
-          {/* STATUS BLOCK */}
-          {isSigned ? (
-            /* CASE A: SIGNED CONSENT */
-            <Stack spacing={2}>
-              <Card sx={{ border: '1px solid #10B981', backgroundColor: 'rgba(16, 185, 129, 0.04)', borderRadius: '10px' }}>
-                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-                    <CheckCircle size={22} className="text-[#10B981] shrink-0" />
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#10B981' }}>
-                        Documento Sottoscritto!
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
-                        Firmato digitalmente il {new Date(consent.signedAt).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.2, display: 'block' }}>
-                        Doc. d'Identità: {consent.documentId}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </CardContent>
+            {hasAlerts && (
+              <Card size="sm" variant="minimal" sx={{ border: `1.5px solid ${theme.palette.error.main}`, backgroundColor: `${theme.palette.error.main}0d`, borderRadius: '10px', boxShadow: `0 4px 12px ${theme.palette.error.main}26` }}>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                  <Icon name="alertTriangle" size={24} color={theme.palette.error.main} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main', letterSpacing: -0.2 }}>
+                      🚨 ATTENZIONE: ALLERTE MEDICHE
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'white', mt: 0.8, fontWeight: 600, fontSize: '0.8rem', lineHeight: 1.4 }}>
+                      {alertsDetails}
+                    </Typography>
+                  </Box>
+                </Stack>
               </Card>
+            )}
 
-              {/* MEDICAL ALERTS IF PRESENT */}
-              {hasAlerts && (
-                <Card sx={{ border: '1.5px solid #EF4444', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
-                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-                      <AlertTriangle size={24} className="text-[#EF4444] shrink-0 animate-pulse" />
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#EF4444', letterSpacing: -0.2 }}>
-                          🚨 ATTENZIONE: ALLERTE MEDICHE
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'white', mt: 0.8, fontWeight: 600, fontSize: '0.8rem', lineHeight: 1.4 }}>
-                          {alertsDetails}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              )}
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={handleDownloadPdf}
+              icon={<Icon name="userCheck" size={16} />}
+              sx={{
+                py: 1.2,
+                borderRadius: '8px',
+                border: `1px solid ${theme.palette.custom.purple}4d`,
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                '&:hover': {
+                  borderColor: 'custom.purple',
+                  backgroundColor: (t) => `${t.palette.custom.purple}0d`,
+                },
+              }}
+            >
+              Visualizza / Scarica PDF Firmato
+            </Button>
+          </Stack>
+        ) : (
+          <Stack spacing={2}>
+            <Card size="sm" variant="minimal" sx={{ border: 1, borderColor: 'divider', backgroundColor: 'rgba(255,255,255,0.01)', borderRadius: '10px' }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                <Icon name="alertTriangle" size={20} color={theme.palette.text.secondary} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                    Consenso non ancora firmato
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.3 }}>
+                    Il cliente deve compilare e firmare il questionario prima di avviare il tatuaggio.
+                  </Typography>
+                </Box>
+              </Stack>
+            </Card>
 
+            <Divider />
+
+            <Stack direction="row" spacing={1.5}>
               <Button
+                variant="ghost"
                 fullWidth
-                variant="outlined"
-                color="primary"
-                onClick={handleDownloadPdf}
-                startIcon={<UserCheck size={16} />}
+                onClick={handleCopyLink}
+                icon={<Icon name="copy" size={14} />}
                 sx={{
                   py: 1.2,
                   borderRadius: '8px',
-                  borderColor: 'rgba(145, 85, 253, 0.3)',
-                  textTransform: 'none',
+                  border: '1px solid var(--color-surface-border)',
                   fontWeight: 600,
-                  fontSize: '0.85rem',
+                  fontSize: '0.8rem',
                   '&:hover': {
-                    borderColor: '#9155FD',
-                    backgroundColor: 'rgba(145, 85, 253, 0.05)',
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(255,255,255,0.02)',
                   },
                 }}
               >
-                Visualizza / Scarica PDF Firmato
+                {copied ? "Copiato!" : "Copia Link"}
+              </Button>
+
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={handleOpenPublicForm}
+                icon={<Icon name="externalLink" size={14} />}
+                sx={{
+                  py: 1.2,
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '0.8rem',
+                }}
+              >
+                Firma in Studio
               </Button>
             </Stack>
-          ) : (
-            /* CASE B: PENDING SIGNATURE */
-            <Stack spacing={2}>
-              <Card sx={{ border: '1px solid #E2E8F0', borderColor: 'var(--color-surface-border)', backgroundColor: 'rgba(255,255,255,0.01)', borderRadius: '10px' }}>
-                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <AlertTriangle size={20} className="text-[#E2E8F0] opacity-60" />
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                        Consenso non ancora firmato
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.3 }}>
-                        Il cliente deve compilare e firmare il questionario prima di avviare il tatuaggio.
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
+          </Stack>
+        )}
 
-              <Divider />
-
-              <Stack direction="row" spacing={1.5}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={handleCopyLink}
-                  startIcon={<Copy size={14} />}
-                  sx={{
-                    py: 1.2,
-                    borderRadius: '8px',
-                    borderColor: 'var(--color-surface-border)',
-                    color: 'text.secondary',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '0.8rem',
-                    '&:hover': {
-                      borderColor: 'white',
-                      backgroundColor: 'rgba(255,255,255,0.02)',
-                    },
-                  }}
-                >
-                  {copied ? "Copiato!" : "Copia Link"}
-                </Button>
-
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleOpenPublicForm}
-                  startIcon={<ExternalLink size={14} />}
-                  sx={{
-                    py: 1.2,
-                    borderRadius: '8px',
-                    backgroundColor: '#9155FD',
-                    color: 'white',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                    boxShadow: '0 4px 10px rgba(145, 85, 253, 0.2)',
-                    '&:hover': {
-                      backgroundColor: '#8040E6',
-                      boxShadow: '0 6px 14px rgba(145, 85, 253, 0.3)',
-                    },
-                  }}
-                >
-                  Firma in Studio
-                </Button>
-              </Stack>
-            </Stack>
-          )}
-
-        </Stack>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2, pt: 1, justifyContent: 'center' }}>
-        <Button
-          size="small"
-          onClick={onClose}
-          sx={{
-            color: 'text.secondary',
-            textTransform: 'uppercase',
-            fontWeight: 700,
-            fontSize: '0.7rem',
-            letterSpacing: 0.5,
-            '&:hover': { color: 'white' },
-          }}
-        >
-          Chiudi
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <Box sx={{ textAlign: 'center' }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onClose}
+            sx={{
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              letterSpacing: 0.5,
+            }}
+          >
+            Chiudi
+          </Button>
+        </Box>
+      </Stack>
+    </SmartModal>
   );
 }

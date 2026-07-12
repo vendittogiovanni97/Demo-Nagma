@@ -1,12 +1,12 @@
 "use client";
 
-import SmartTable from '@/components/common/SmartTable';
-import Button from '@/components/ui/Button';
-import { formatPrice } from '@/shared/utils/format';
+import SmartTable from '@/common/components/common/SmartTable';
+import Button from '@/common/components/ui/Button';
+import { formatPrice } from '@/common/shared/utils/format';
 import { Box, Typography, useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Trash2 } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import type { SpesaLibera } from '../model/spese.types';
 
 interface SpesaDataTableProps {
@@ -63,7 +63,7 @@ export default function SpesaDataTable({
             variant="icon"
             size="sm"
             onClick={() => onDelete(spesa.id)}
-            icon={<Trash2 size={16} />}
+            icon={<Icon name="trash2" size={16} />}
             title="Elimina"
             sx={{
               color: 'rgba(244,67,54,0.6)',

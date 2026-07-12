@@ -1,6 +1,6 @@
-import type { ExportFilter } from '@/components/modals/ExportModal';
-import { DEBOUNCE_SEARCH_DELAY } from '@/config/env';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import type { ExportFilter } from '@/common/components/modals/ExportModal';
+import { DEBOUNCE_SEARCH_DELAY } from '@/common/config/env';
+import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { useMemo, useState } from 'react';
 

@@ -2,11 +2,12 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
-  Box, CircularProgress, Dialog, DialogContent, DialogTitle,
-  IconButton, useTheme, SxProps, Theme
+  Box, CircularProgress, useTheme, SxProps, Theme
 } from '@mui/material';
-import { Cloud, X } from 'lucide-react';
-import { useAttachments } from '@/hooks/domain/useAttachments';
+import Button from '@/common/components/ui/Button';
+import SmartModal from '@/common/components/common/SmartModal';
+import { Cloud } from 'lucide-react';
+import { useAttachments } from '@/common/hooks/domain/useAttachments';
 
 interface AttachmentUploadModalProps {
   bookingId: string;
@@ -70,18 +71,14 @@ export default function AttachmentUploadModal({
   };
 
   return (
-    <Dialog
-      open={open} onClose={onClose} maxWidth="sm" fullWidth
-      slotProps={{ paper: { sx: styles.paper }, backdrop: { sx: styles.backdrop } }}
+    <SmartModal
+      isOpen={open}
+      onClose={onClose}
+      title="Carica allegati"
+      maxWidth="sm"
+      showFooter={false}
     >
-      <DialogTitle sx={styles.title}>
-        <Box sx={{ flex: 1 }}>Carica allegati</Box>
-        <IconButton onClick={onClose} disabled={uploading} size="small" sx={styles.closeButton}>
-          <X size={18} />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={styles.content}>
+      <Box sx={styles.content}>
         <Box
           onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
           onClick={!uploading ? () => fileInputRef.current?.click() : undefined}
@@ -111,8 +108,8 @@ export default function AttachmentUploadModal({
         <Box sx={styles.infoBox}>
           L'upload avviene automaticamente. Una volta completato, il file sarà disponibile nella lista allegati.
         </Box>
-      </DialogContent>
-    </Dialog>
+      </Box>
+    </SmartModal>
   );
 }
 

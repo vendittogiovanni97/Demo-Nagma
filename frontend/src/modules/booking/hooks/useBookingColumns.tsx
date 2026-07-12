@@ -1,29 +1,21 @@
 "use client";
 
-import type { Column } from '@/components/data-display/DataTable';
-import type { ExportFilter } from '@/components/modals/ExportModal';
-import type { Booking, BookingStatus } from '@/modules/booking/model/booking.types';
-import { Badge, Box, Chip, Stack, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import type { Column } from '@/common/components/data-display/DataTable';
+import type { ExportFilter } from '@/common/components/modals/ExportModal';
+import type { Booking } from '@/modules/booking/model/booking.types';
+import { Badge as MuiBadge, Box, Stack, Typography } from '@mui/material';
+import Badge from '@/common/components/ui/Badge';
+import { useTheme, alpha } from '@mui/material/styles';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Clock, Paperclip, Phone, Timer } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useMemo } from 'react';
+import { BOOKING_STATUS_CONFIG, getBookingStatusLabel, getBookingStatusBadgeVariant } from '@/common/config/status-config';
 
 // Consensus Integration
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/common/context/AuthContext';
 import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
 import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
-
-const STATUS_CONFIG: Record<BookingStatus, { label: string; color: 'error' | 'primary' | 'success' | 'warning' | 'info' | 'default' | 'secondary' }> = {
-  CREATO: { label: 'Creato', color: 'info' },
-  CONFERMATO: { label: 'Confermato', color: 'primary' },
-  COMPLETATO: { label: 'Completato', color: 'success' },
-  MODIFICATO: { label: 'Modificato', color: 'warning' },
-  ANNULLATO: { label: 'Annullato', color: 'error' },
-  SPOSTATO: { label: 'Spostato', color: 'warning' },
-  CANCELLATO: { label: 'Cancellato', color: 'default' },
-};
 
 interface UseBookingColumnsOptions {
   onAttachmentClick?: (booking: Booking) => void;
@@ -96,7 +88,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
         <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
           {booking.customer?.phone ? (
             <>
-              <Phone size={12} color={theme.palette.primary.main} />
+              <Icon name="phone" size={12} color={theme.palette.primary.main} />
               <Typography
                 variant="caption"
                 sx={{
@@ -122,7 +114,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       render: (booking) => (
         <Stack useFlexGap sx={{ gap: 0.25 }}>
           <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
-            <Clock size={13} color={theme.palette.primary.main} />
+            <Icon name="clock" size={13} color={theme.palette.primary.main} />
             <Typography
               variant="caption"
               sx={{
@@ -135,7 +127,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
             </Typography>
           </Stack>
           <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
-            <Clock size={11} />
+            <Icon name="clock" size={11} />
             <Typography
               variant="caption"
               sx={{
@@ -156,7 +148,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       width: '110px',
       render: (booking) => (
         <Stack direction="row" useFlexGap sx={{ gap: 0.75, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-          <Timer size={12} color={theme.palette.primary.main} />
+          <Icon name="timer" size={12} color={theme.palette.primary.main} />
           <Typography
             variant="caption"
             sx={{
@@ -203,11 +195,10 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       label: 'Stato',
       width: '120px',
       render: (booking) => (
-        <Chip
-          label={STATUS_CONFIG[booking.status]?.label ?? booking.status}
-          color={STATUS_CONFIG[booking.status]?.color ?? 'default'}
-          variant="filled"
-          size="small"
+        <Badge
+          label={getBookingStatusLabel(booking.status)}
+          variant={getBookingStatusBadgeVariant(booking.status)}
+          size="sm"
         />
       ),
     },
@@ -347,14 +338,14 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
         const count = booking.attachments?.length ?? 0;
         return (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Badge
+            <MuiBadge
               badgeContent={count}
               color="primary"
               overlap="circular"
               sx={{
                 '& .MuiBadge-badge': {
                   backgroundColor: theme.palette.primary.main,
-                  color: '#0a1a26',
+                  color: theme.palette.background.default,
                   fontWeight: 600,
                   fontSize: '0.65rem',
                 },
@@ -378,11 +369,11 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    backgroundColor: 'rgba(0, 191, 255, 0.2)',
+                    backgroundColor: alpha(theme.palette.primary.main, 0.2),
                   },
                   '&:focus-visible': {
                     outline: `2px solid ${theme.palette.primary.main}`,
@@ -390,9 +381,9 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
                   },
                 }}
               >
-                <Paperclip size={16} color={theme.palette.primary.main} />
+                <Icon name="paperclip" size={16} color={theme.palette.primary.main} />
               </Box>
-            </Badge>
+            </MuiBadge>
           </Box>
         );
       },
@@ -438,7 +429,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     { label: 'Artista', value: (b: Booking) => b.artist?.name ?? '-' },
     { label: 'Data', value: (b: Booking) => format(new Date(b.date), 'dd/MM/yyyy HH:mm', { locale: it }) },
     { label: 'Durata (min)', value: (b: Booking) => b.duration },
-    { label: 'Stato', value: (b: Booking) => STATUS_CONFIG[b.status]?.label ?? b.status },
+    { label: 'Stato', value: (b: Booking) => getBookingStatusLabel(b.status) },
     { label: 'Prezzo (€)', value: (b: Booking) => b.price ?? '' },
     { label: 'Acconto (€)', value: (b: Booking) => b.deposit ?? '' },
     { label: 'Note', value: (b: Booking) => b.notes ?? '' },
@@ -503,5 +494,5 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     },
   ], []);
 
-  return { bookingColumns, exportColumns, exportFilters, STATUS_CONFIG };
+  return { bookingColumns, exportColumns, exportFilters, BOOKING_STATUS_CONFIG };
 }

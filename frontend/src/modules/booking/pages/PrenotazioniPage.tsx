@@ -1,16 +1,16 @@
 "use client";
 
-import PageHeader from '@/components/common/PageHeader';
+import PageHeader from '@/common/components/common/PageHeader';
 import BookingModal from '../components/modals/BookingModal';
-import ExportModal from '@/components/modals/ExportModal';
-import PasswordConfirmModal from '@/components/modals/PasswordConfirmModal';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { useAuth } from '@/context/AuthContext';
+import ExportModal from '@/common/components/modals/ExportModal';
+import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import { useAuth } from '@/common/context/AuthContext';
 import { useBookings } from '../hooks/useBooking';
-import { useDeleteConfirm } from '@/hooks/useDeleteConfirm';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import { Box } from '@mui/material';
-import { Plus } from 'lucide-react';
+import Icon from '@/common/components/ui/Icon';
 import { useMemo, useState, Suspense, useCallback } from 'react';
 import BookingAttachmentsModal from '../components/modals/BookingAttachmentsModal';
 import BookingDataTable from '../components/BookingDataTable';
@@ -106,7 +106,7 @@ function PrenotazioniPageContent() {
         }
         showButton
         buttonLabel="Nuova Prenotazione"
-        buttonIcon={<Plus size={18} />}
+        buttonIcon={<Icon name="plus" size={18} />}
         buttonRequiresAdmin
         onButtonClick={handleOpenNewModal}
         filters={

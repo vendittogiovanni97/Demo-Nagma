@@ -1,8 +1,10 @@
 "use client";
 
 import React from 'react';
-import { Box, Chip, Tooltip } from '@mui/material';
-import { ShieldCheck, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Box, Tooltip } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
+import Badge from '@/common/components/ui/Badge';
+import Icon, { AlertTriangle, HelpCircle, ShieldCheck } from '@/common/components/ui/Icon';
 
 interface ConsentStatusBadgeProps {
   booking: {
@@ -14,6 +16,7 @@ interface ConsentStatusBadgeProps {
 }
 
 export default function ConsentStatusBadge({ booking, onClick, iconOnly = false }: ConsentStatusBadgeProps) {
+  const theme = useTheme();
   if (!booking) return null;
 
   const consent = booking.formData?.consent;
@@ -24,26 +27,19 @@ export default function ConsentStatusBadge({ booking, onClick, iconOnly = false 
   // 1. Signed with Medical Alerts (High Warning)
   if (isSigned && hasAlerts) {
     const content = iconOnly ? (
-      <IconButtonWithPulse onClick={onClick} color="#EF4444" tooltip={`ATTENZIONE SANITARIA: ${alertsDetails}`}>
-        <AlertTriangle size={15} />
+      <IconButtonWithPulse onClick={onClick} paletteKey="error.main" tooltip={`ATTENZIONE SANITARIA: ${alertsDetails}`}>
+        <Icon name="alertTriangle" size={15} />
       </IconButtonWithPulse>
     ) : (
-      <Chip
-        icon={<AlertTriangle size={13} className="text-[#EF4444] animate-pulse" />}
+      <Badge
+        icon={AlertTriangle}
         label="ALLERTA SANITARIA"
-        size="small"
+        variant="error"
         onClick={onClick}
         sx={{
-          fontSize: '0.65rem',
-          fontWeight: 800,
-          backgroundColor: 'rgba(239, 68, 68, 0.08)',
-          color: '#EF4444',
-          border: '1.2px solid #EF4444',
-          borderRadius: '5px',
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.2s',
           '&:hover': onClick ? {
-            backgroundColor: 'rgba(239, 68, 68, 0.16)',
             transform: 'scale(1.02)',
           } : {},
         }}
@@ -62,35 +58,28 @@ export default function ConsentStatusBadge({ booking, onClick, iconOnly = false 
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#10B981',
+            color: 'success.main',
             cursor: onClick ? 'pointer' : 'default',
             p: 0.5,
             borderRadius: '50%',
-            backgroundColor: 'rgba(16, 185, 129, 0.08)',
-            '&:hover': onClick ? { backgroundColor: 'rgba(16, 185, 129, 0.16)' } : {}
+            backgroundColor: alpha(theme.palette.success.main, 0.08),
+            '&:hover': onClick ? { backgroundColor: alpha(theme.palette.success.main, 0.16) } : {}
           }}
         >
-          <ShieldCheck size={14} />
+          <Icon name="shieldCheck" size={14} />
         </Box>
       </Tooltip>
     ) : (
-      <Chip
-        icon={<ShieldCheck size={12} className="text-[#10B981]" />}
+      <Badge
+        icon={ShieldCheck}
         label="Consenso Firmato"
-        size="small"
+        variant="success"
         onClick={onClick}
         sx={{
-          fontSize: '0.65rem',
-          fontWeight: 700,
-          backgroundColor: 'rgba(16, 185, 129, 0.06)',
-          color: '#10B981',
-          border: '1px solid rgba(16, 185, 129, 0.2)',
-          borderRadius: '5px',
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.2s',
           '&:hover': onClick ? {
-            borderColor: '#10B981',
-            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+            transform: 'scale(1.02)',
           } : {},
         }}
       />
@@ -111,31 +100,24 @@ export default function ConsentStatusBadge({ booking, onClick, iconOnly = false 
           cursor: onClick ? 'pointer' : 'default',
           p: 0.5,
           borderRadius: '50%',
-          backgroundColor: 'rgba(255, 255, 255, 0.03)',
-          '&:hover': onClick ? { backgroundColor: 'rgba(255, 255, 255, 0.08)' } : {}
+          backgroundColor: alpha(theme.palette.common.white, 0.03),
+          '&:hover': onClick ? { backgroundColor: alpha(theme.palette.common.white, 0.08) } : {}
         }}
       >
-        <HelpCircle size={14} />
+        <Icon name="helpCircle" size={14} />
       </Box>
     </Tooltip>
   ) : (
-    <Chip
-      icon={<HelpCircle size={12} className="text-gray-400" />}
+    <Badge
+        icon={HelpCircle}
       label="Consenso Mancante"
-      size="small"
+      variant="default"
       onClick={onClick}
       sx={{
-        fontSize: '0.65rem',
-        fontWeight: 600,
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        color: 'text.secondary',
-        border: '1px dashed var(--color-surface-border)',
-        borderRadius: '5px',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s',
         '&:hover': onClick ? {
-          borderColor: 'white',
-          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+          transform: 'scale(1.02)',
         } : {},
       }}
     />
@@ -146,12 +128,15 @@ export default function ConsentStatusBadge({ booking, onClick, iconOnly = false 
 // Internal Helper for Pulsing Icons (Medical Warnings)
 interface IconButtonPulseProps {
   children: React.ReactNode;
-  color: string;
+  paletteKey: string;
   tooltip: string;
   onClick?: (e: React.MouseEvent) => void;
 }
 
-function IconButtonWithPulse({ children, color, tooltip, onClick }: IconButtonPulseProps) {
+function IconButtonWithPulse({ children, paletteKey, tooltip, onClick }: IconButtonPulseProps) {
+  const theme = useTheme();
+  const resolvedColor = paletteKey.split('.').reduce((obj: any, key) => obj[key], theme.palette);
+
   return (
     <Tooltip title={tooltip} arrow>
       <Box
@@ -164,14 +149,14 @@ function IconButtonWithPulse({ children, color, tooltip, onClick }: IconButtonPu
           cursor: onClick ? 'pointer' : 'default',
           p: 0.5,
           borderRadius: '50%',
-          color,
-          backgroundColor: `${color}15`,
+          color: resolvedColor,
+          backgroundColor: alpha(resolvedColor, 0.08),
           animation: 'pulse 2s infinite',
-          '&:hover': onClick ? { backgroundColor: `${color}25` } : {},
+          '&:hover': onClick ? { backgroundColor: alpha(resolvedColor, 0.15) } : {},
           '@keyframes pulse': {
-            '0%': { boxShadow: `0 0 0 0 ${color}40` },
-            '70%': { boxShadow: `0 0 0 6px ${color}00` },
-            '100%': { boxShadow: `0 0 0 0 ${color}00` },
+            '0%': { boxShadow: `0 0 0 0 ${alpha(resolvedColor, 0.25)}` },
+            '70%': { boxShadow: `0 0 0 6px ${alpha(resolvedColor, 0)}` },
+            '100%': { boxShadow: `0 0 0 0 ${alpha(resolvedColor, 0)}` },
           },
         }}
       >

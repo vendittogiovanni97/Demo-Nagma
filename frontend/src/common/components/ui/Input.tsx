@@ -27,6 +27,7 @@ interface InputProps {
   pattern?: string;
   autoComplete?: string;
   hideLabel?: boolean;
+  name?: string;
   sx?: SxProps<Theme>;
 }
 
@@ -50,6 +51,7 @@ export default function Input({
   pattern,
   autoComplete,
   hideLabel = false,
+  name,
   sx,
   ...props
 }: InputProps) {
@@ -62,7 +64,7 @@ export default function Input({
 
   const renderEndAdornment = () => {
     if (endAdornment) return endAdornment;
-    
+
     if (isPassword) {
       return (
         <InputAdornment position="end">
@@ -77,7 +79,7 @@ export default function Input({
         </InputAdornment>
       );
     }
-    
+
     return undefined;
   };
 
@@ -115,6 +117,7 @@ export default function Input({
         className={className}
         autoComplete={autoComplete}
         fullWidth
+        name={name}
         slotProps={{
           input: {
             startAdornment: Icon ? (

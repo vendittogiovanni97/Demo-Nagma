@@ -14,15 +14,12 @@ import dynamic from 'next/dynamic';
 import AuthGuard from '@/common/components/auth/AuthGuard';
 
 const Navbar = dynamic(() => import('@/common/components/layout/Navbar'), { ssr: false });
-const ClientCssBaseline = dynamic(() => import('@mui/material/CssBaseline'), { ssr: false });
-
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isStandalonePage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/consenso');
 
   return (
     <DynamicThemeProvider>
-      <ClientCssBaseline />
       <CustomBreakpointProvider>
         <AuthProvider>
           <GlobalErrorBoundary>

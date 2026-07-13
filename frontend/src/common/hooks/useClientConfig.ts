@@ -26,7 +26,7 @@ export interface ClientConfig {
   updatedAt: string;
 }
 
-const DEFAULT_CLIENT_CONFIG: ClientConfig = {
+export const DEFAULT_CLIENT_CONFIG: ClientConfig = {
   id: 'default',
   clientName: 'Demo Nagma',
   clientTimeZone: 'Europe/Rome',

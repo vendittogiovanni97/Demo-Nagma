@@ -3,10 +3,10 @@
 import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
 import { Box } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import DataTable, { FetchParams } from '@/common/components/data-display/DataTable';
+import DataTable, { FetchParams, DataTableRef } from '@/common/components/data-display/DataTable';
 import { useToast } from '@/common/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
 import { staffApi } from '@/modules/staff/api/staff.api';
@@ -37,7 +37,7 @@ export default function CreamsPage() {
     setEndDate,
   } = usePaginationFilters();
   const [artistFilter, setArtistFilter] = useState<number | ''>('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const tableRef = useRef<DataTableRef>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [creamData, setCreamData] = useState<CreamInfo | null>(null);
@@ -74,9 +74,9 @@ export default function CreamsPage() {
     try {
       await creamService.createSale({ creamId: creamData.id, artistId, quantity });
       toast.success('Vendita registrata!');
-      setRefreshTrigger((prev) => prev + 1);
     } catch {
       toast.error('Errore nella registrazione');
+      throw new Error('Errore nella registrazione');
     }
   };
 
@@ -113,7 +113,7 @@ export default function CreamsPage() {
         showButton
         buttonLabel="Nuova Vendita"
         buttonIcon={<Icon name="plus" size={18} />}
-        onButtonClick={() => setIsModalOpen(true)}
+        onButtonClick={() => tableRef.current?.openCreateModal()}
       />
 
       {creamData && (
@@ -125,6 +125,7 @@ export default function CreamsPage() {
 
       <Box sx={{ flex: 1 }}>
         <DataTable
+          ref={tableRef}
           fetchData={fetchSales}
           queryKey="creamSales"
           refreshKey={refreshKey as any}
@@ -133,16 +134,20 @@ export default function CreamsPage() {
           emptyDescription={hasFilters ? "Prova a cambiare i filtri impostati." : "Clicca su \"Nuova Vendita\" per registrare la prima transazione."}
           keyExtractor={(row) => row.id}
           pageSize={7}
+          openEntityModal={(action, row, onClose, onSuccess) => (
+            <SaleModal
+              isOpen
+              cream={creamData}
+              teamMembers={teamMembers}
+              onClose={onClose || (() => {})}
+              onSubmit={async (artistId, quantity) => {
+                await handleCreateSale(artistId, quantity);
+                onSuccess?.();
+              }}
+            />
+          )}
         />
       </Box>
-
-      <SaleModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        cream={creamData}
-        teamMembers={teamMembers}
-        onSubmit={handleCreateSale}
-      />
     </Box>
   );
 }

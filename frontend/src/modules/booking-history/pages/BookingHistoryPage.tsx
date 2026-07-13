@@ -30,18 +30,8 @@ export default function BookingHistoryPage() {
   const [artistId, setArtistId] = useState<string>('');
   
   const { data: artists } = useStaffForSelect();
-  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
   const columns = useBookingHistoryColumns();
-
-  const handleRowClick = (entry: BookingHistoryEntry) => {
-    if (entry.booking) {
-      setSelectedBooking({
-        ...entry.booking,
-        status: entry.booking.status as BookingAction
-      });
-    }
-  };
 
   const artistOptions = useMemo(() => [
     { label: 'Tutti gli artisti', value: '' },
@@ -128,24 +118,30 @@ export default function BookingHistoryPage() {
           queryKey="bookingHistory"
           refreshKey={refreshKey as any}
           keyExtractor={(entry) => entry.id}
-          onRowClick={handleRowClick}
           emptyTitle="Nessuna modifica"
           emptyDescription="Nessuna modifica trovata per i filtri selezionati."
-          renderCard={(entry) => <BookingHistoryCard entry={entry} onClick={() => handleRowClick(entry)} />}
+          renderCard={(entry) => <BookingHistoryCard entry={entry} />}
           getRowStyle={() => ({ cursor: 'pointer' })}
           toolbarFilters={toolbarFilters}
           extraToolbarActions={extraToolbarActions}
           exportFileName="storico-prenotazioni"
           pageSize={10}
+          openEntityModal={(action, entry, onClose, onSuccess) => {
+            if (!entry?.booking) return null;
+            return (
+              <BookingModal
+                isOpen
+                booking={{
+                  ...entry.booking,
+                  status: entry.booking.status as BookingAction
+                } as any}
+                onClose={onClose || (() => {})}
+                onSuccess={onSuccess}
+              />
+            );
+          }}
         />
       </Box>
-
-      <BookingModal
-        isOpen={!!selectedBooking}
-        onClose={() => setSelectedBooking(null)}
-        booking={selectedBooking}
-        onSuccess={() => setRefreshTrigger((prev) => prev + 1)}
-      />
     </Stack>
   );
 }

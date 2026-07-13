@@ -17,7 +17,7 @@ test.describe('Happy Path - Full User Journey', () => {
     await page.click('button[type="submit"]');
     await loginPromise;
 
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await expect(page).toHaveURL('/', { timeout: 10000 });
     await expect(page.locator('body')).not.toContainText('errore', { timeout: 5000 });
   });
 
@@ -32,7 +32,7 @@ test.describe('Happy Path - Full User Journey', () => {
     await page.click('button[type="submit"]');
     await loginPromise;
 
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\//, { timeout: 10000 });
 
     // Navigate to admin panel
     await page.goto('/admin-panel');
@@ -68,7 +68,7 @@ test.describe('Happy Path - Full User Journey', () => {
     await page.click('button[type="submit"]');
     await loginPromise;
 
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\//, { timeout: 10000 });
 
     // Navigate to settings
     await page.goto('/admin-panel/settings');
@@ -114,30 +114,30 @@ test.describe('Happy Path - Full User Journey', () => {
     await page.click('button[type="submit"]');
     await loginPromise;
 
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\//, { timeout: 10000 });
 
-    // Disable Cream feature
+    // Disable Archivio Consensi feature
     await page.goto('/admin-panel');
-    const creamToggle = page.getByText('Creme').locator('..').getByRole('switch');
-    const initialState = await creamToggle.getAttribute('aria-checked');
+    const consensiToggle = page.getByText('Archivio Consensi').locator('..').getByRole('switch');
+    const initialState = await consensiToggle.getAttribute('aria-checked');
     if (initialState === 'true') {
-      await creamToggle.click();
+      await consensiToggle.click();
       await expect(page.getByText('Configurazione aggiornata con successo')).toBeVisible();
     }
 
-    // Verify cream module is hidden in navbar
-    await page.goto('/dashboard');
-    await expect(page.getByText('Creme')).not.toBeVisible();
+    // Verify consensi module is hidden in navbar
+    await page.goto('/');
+    await expect(page.getByText('Consensi')).not.toBeVisible();
 
-    // Re-enable cream feature
+    // Re-enable consensi feature
     await page.goto('/admin-panel');
-    const creamToggle2 = page.getByText('Creme').locator('..').getByRole('switch');
-    await creamToggle2.click();
+    const consensiToggle2 = page.getByText('Archivio Consensi').locator('..').getByRole('switch');
+    await consensiToggle2.click();
     await expect(page.getByText('Configurazione aggiornata con successo')).toBeVisible();
 
-    // Verify cream module is visible again
-    await page.goto('/dashboard');
-    await expect(page.getByText('Creme')).toBeVisible();
+    // Verify consensi module is visible again
+    await page.goto('/');
+    await expect(page.getByText('Consensi')).toBeVisible();
   });
 });
 
@@ -147,7 +147,7 @@ test.describe('Client Settings Page', () => {
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\//, { timeout: 10000 });
   });
 
   test('superadmin can configure branding', async ({ page }) => {
@@ -200,7 +200,7 @@ test.describe('Custom Fields', () => {
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\//, { timeout: 10000 });
   });
 
   test('superadmin can create custom field for customers', async ({ page }) => {

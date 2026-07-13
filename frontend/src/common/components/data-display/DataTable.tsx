@@ -124,54 +124,75 @@ function getStatusBadgeVariant(status?: string): string {
   return 'default';
 }
 
-export default function DataTable<T extends object>({
-  title,
-  subtitle,
-  columns,
-  baseColumns = [],
-  data = [],
-  fetchData,
-  queryKey,
-  refreshKey = 0,
-  isLoading = false,
-  hasError = false,
-  keyExtractor,
-  
-  actions,
-  onRowClick,
-  onEdit,
-  onDelete,
-  onView,
-  openEntityModal,
-  createLabel,
-  onCreateClick,
-  deleteConfirmMessage,
-  
-  emptyTitle,
-  emptyDescription = 'Prova a cambiare i filtri o la ricerca.',
-  emptyMessage,
-  errorTitle = 'Errore di caricamento',
-  errorDescription = 'Si è verificato un problema durante il recupero dei dati.',
-  
-  pageSize = 10,
-  getRowStyle,
-  footer,
-  
-  renderCard,
-  
-  exportable = true,
-  exportFileName,
-  
-  hideState = false,
-  statusFilter,
-  statusFilterOptions,
-  onStatusFilterChange,
-  toolbarFilters,
-  extraToolbarActions,
-  searchPlaceholder,
-}: DataTableProps<T>) {
+export interface DataTableRef {
+  openCreateModal: () => void;
+  openEditModal: (item: any) => void;
+  openReadModal: (item: any) => void;
+}
+
+const DataTableInner = <T extends object>(
+  {
+    title,
+    subtitle,
+    columns,
+    baseColumns = [],
+    data = [],
+    fetchData,
+    queryKey,
+    refreshKey = 0,
+    isLoading = false,
+    hasError = false,
+    keyExtractor,
+    
+    actions,
+    onRowClick,
+    onEdit,
+    onDelete,
+    onView,
+    openEntityModal,
+    createLabel,
+    onCreateClick,
+    deleteConfirmMessage,
+    
+    emptyTitle,
+    emptyDescription = 'Prova a cambiare i filtri o la ricerca.',
+    emptyMessage,
+    errorTitle = 'Errore di caricamento',
+    errorDescription = 'Si è verificato un problema durante il recupero dei dati.',
+    
+    pageSize = 10,
+    getRowStyle,
+    footer,
+    
+    renderCard,
+    
+    exportable = true,
+    exportFileName,
+    
+    hideState = false,
+    statusFilter,
+    statusFilterOptions,
+    onStatusFilterChange,
+    toolbarFilters,
+    extraToolbarActions,
+    searchPlaceholder,
+  }: DataTableProps<T>,
+  ref: React.Ref<DataTableRef>
+) => {
   const { isSmall, isMedium } = useBreakpointContext();
   const theme = useTheme();
+
+  React.useImperativeHandle(ref, () => ({
+    openCreateModal: () => {
+      setActiveModalAction({ action: 'Create' });
+    },
+    openEditModal: (item: any) => {
+      setActiveModalAction({ action: 'Edit', item });
+    },
+    openReadModal: (item: any) => {
+      setActiveModalAction({ action: 'Read', item });
+    }
+  }));
 
   // Internal grid state for managed mode
   const isManaged = !!fetchData;
@@ -730,9 +751,19 @@ export default function DataTable<T extends object>({
             rowData={rawRows}
             columnDefs={colDefs}
             getRowId={(p) => String(keyExtractor(p.data!))}
-            getRowStyle={(p) => getRowStyle && p.data ? getRowStyle(p.data) : undefined}
+            getRowStyle={(p) => {
+              if (getRowStyle && p.data) return getRowStyle(p.data);
+              if ((onRowClick || openEntityModal) && p.data) return { cursor: 'pointer' };
+              return undefined;
+            }}
             loading={effectiveLoading}
-            onRowClicked={(p) => onRowClick && p.data && onRowClick(p.data)}
+            onRowClicked={(p) => {
+              if (onRowClick && p.data) {
+                onRowClick(p.data);
+              } else if (openEntityModal && p.data) {
+                setActiveModalAction({ action: 'Read', item: p.data });
+              }
+            }}
             onSortChanged={handleSortChanged}
             overlayNoRowsTemplate={`<span class="nagma-grid-empty">${finalEmptyTitle}</span>`}
             rowHeight={ROW_HEIGHT}
@@ -808,7 +839,13 @@ export default function DataTable<T extends object>({
       )}
     </Box>
   );
-}
+};
+
+const DataTable = React.forwardRef(DataTableInner);
+
+export default DataTable as <T extends object>(
+  props: DataTableProps<T> & { ref?: React.Ref<DataTableRef> }
+) => React.ReactElement;
 
 const styles = {
   container: (theme: Theme) => ({

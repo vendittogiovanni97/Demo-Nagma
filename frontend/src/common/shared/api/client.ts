@@ -92,10 +92,16 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(url.toString(), {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      ...init,
+      headers,
+    });
+  } catch (error) {
+    console.error('Errore di rete/connessione:', error);
+    throw new Error('Impossibile connettersi al server. Verifica la tua connessione.');
+  }
 
   if (response.status === 401) {
     const isRefreshEndpoint = endpoint === ENDPOINTS.AUTH.REFRESH;

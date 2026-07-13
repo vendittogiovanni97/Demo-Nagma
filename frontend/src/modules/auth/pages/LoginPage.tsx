@@ -140,6 +140,7 @@ export default function LoginPage() {
               onChange={setEmail}
               icon={Mail}
               autoComplete="email"
+              name="email"
             />
 
             <FormInput
@@ -150,6 +151,7 @@ export default function LoginPage() {
               onChange={setPassword}
               icon={Lock}
               autoComplete="current-password"
+              name="password"
             />
 
             <Button

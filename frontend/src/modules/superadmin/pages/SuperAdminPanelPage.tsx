@@ -35,7 +35,17 @@ function CustomSwitch({ checked, onChange, disabled, activeColor }: CustomSwitch
 
   return (
     <Box
+      role="switch"
+      aria-checked={checked}
+      aria-disabled={disabled}
+      tabIndex={disabled ? -1 : 0}
       onClick={() => !disabled && onChange()}
+      onKeyDown={(e) => {
+        if (!disabled && (e.key === ' ' || e.key === 'Enter')) {
+          e.preventDefault();
+          onChange();
+        }
+      }}
       sx={{
         width: 52,
         height: 28,

@@ -8,7 +8,7 @@ import {
   Stack,
   useTheme,
 } from '@mui/material';
-import Avatar from '@/common/components/data-display/Avatar';
+import Avatar from '@/common/components/ui/Avatar';
 import Badge from '@/common/components/ui/Badge';
 import Button from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';

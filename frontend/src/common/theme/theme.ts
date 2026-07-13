@@ -55,7 +55,7 @@ const darkPalette = {
     contrastText: '#ffffff',
   },
   background: {
-    default: '#0a1a26',
+    default: '#0d1a28',
     paper: '#1a2332',
   },
   text: {
@@ -687,7 +687,7 @@ const themeOptions: ThemeOptions = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#0a1a26',
+          backgroundColor: '#0d1a28',
           borderBottom: '1px solid rgba(0, 191, 255, 0.12)',
           boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
         },

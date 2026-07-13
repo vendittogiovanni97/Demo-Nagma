@@ -1,10 +1,11 @@
 "use client";
 
-import type { DatesSetArg, DayCellContentArg, EventContentArg } from '@fullcalendar/core';
+import type { DatesSetArg, DayCellContentArg, EventContentArg, MoreLinkArg } from '@fullcalendar/core';
 import { Box } from '@mui/material';
 import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { useCallback, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useCallback, useMemo, useState } from 'react';
 
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
@@ -15,7 +16,9 @@ import type { BookingModel } from '@/modules/booking/model/booking.model';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 
 import CalendarEvent from '../components/CalendarEvent';
-import AgendaCalendar from '../components/AgendaCalendar';
+// bundle-dynamic-imports (CRITICAL): FullCalendar is ~200KB+ and not needed for SSR.
+// Loading it dynamically removes it from the initial bundle entirely.
+const AgendaCalendar = dynamic(() => import('../components/AgendaCalendar'), { ssr: false });
 import DayBookingsModal from '../components/DayBookingsModal';
 import { useAgendaBookings } from '../hooks/useAgendaBookings';
 import { useCalendarEvents } from '../hooks/useCalendarEvents';
@@ -52,6 +55,22 @@ export default function AgendaPage() {
   const bookingsList = bookings || [];
   const { events } = useCalendarEvents(bookingsList);
 
+  // js-index-maps (LOW-MEDIUM): pre-index bookings by date string for O(1) lookup
+  // in handleMoreLinkClick instead of O(n) .filter() on every click.
+  const bookingsByDate = useMemo(() => {
+    const map = new Map<string, BookingModel[]>();
+    for (const b of bookingsList) {
+      const key = format(new Date(b.date), 'yyyy-MM-dd');
+      const existing = map.get(key);
+      if (existing) {
+        existing.push(b as BookingModel);
+      } else {
+        map.set(key, [b as BookingModel]);
+      }
+    }
+    return map;
+  }, [bookingsList]);
+
   const renderEventContent = useCallback((arg: EventContentArg) => (
     <CalendarEvent
       booking={arg.event.extendedProps.booking as BookingModel}
@@ -74,21 +93,19 @@ export default function AgendaPage() {
     }
   }, [setCurrentMonth]);
 
-  const handleMoreLinkClick = useCallback((info: any) => {
+  const handleMoreLinkClick = useCallback((info: MoreLinkArg) => {
     if (info.jsEvent) {
       info.jsEvent.preventDefault();
     }
     const clickedDateStr = format(info.date, 'yyyy-MM-dd');
-    const dayBookings = bookingsList.filter(b => {
-      const bDateStr = format(new Date(b.date), 'yyyy-MM-dd');
-      return bDateStr === clickedDateStr;
-    });
+    // O(1) Map lookup instead of O(n) .filter()
+    const dayBookings = bookingsByDate.get(clickedDateStr) ?? [];
     setDayBookingsData({
       date: info.date,
-      bookings: dayBookings as BookingModel[],
+      bookings: dayBookings,
     });
     return 'none';
-  }, [bookingsList]);
+  }, [bookingsByDate]);
 
   return (
     <Box
@@ -157,14 +174,15 @@ export default function AgendaPage() {
         booking={whatsAppBooking}
       />
       <ConfirmDialog {...confirmDialogProps} />
-      {!isSuperAdmin && (
+      {/* rendering-conditional-render (MEDIUM): explicit ternary is safer than && on boolean */}
+      {!isSuperAdmin ? (
         <PasswordConfirmModal
           isOpen={showDeletePasswordModal}
           onClose={() => { setShowDeletePasswordModal(false); setPendingDeleteId(null); }}
           onConfirm={handlePasswordDelete}
           loading={deletePasswordLoading}
         />
-      )}
+      ) : null}
     </Box>
   );
 }

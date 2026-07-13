@@ -15,20 +15,47 @@ export interface Transaction {
   updatedAt: string;
 }
 
+/** Query params per la lista transazioni paginata */
+export interface TransactionParams {
+  page?: number;
+  limit?: number;
+  type?: 'INCOME' | 'EXPENSE';
+  category?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  [key: string]: string | number | undefined; // campi aggiuntivi del filtro
+}
+
+/** Dati storici di audit — struttura variabile per design */
+export type TransactionAuditData = Record<string, unknown>;
+
 export interface TransactionHistory {
   id: number;
   transactionId: number;
   action: string;
-  oldData: any;
-  newData: any;
+  oldData: TransactionAuditData;
+  newData: TransactionAuditData;
   changedById: number;
   changedAt: string;
   changedBy?: { id: number; name: string };
   transaction?: { id: number; description: string; type: string };
 }
 
+export interface CreateTransactionData {
+  type: 'INCOME' | 'EXPENSE';
+  category: string;
+  description: string;
+  amount: number;
+  date: string;
+  sourceId?: number;
+  sourceType?: string;
+}
+
+export type UpdateTransactionData = Partial<CreateTransactionData>;
+
 export const financeApi = {
-  getAll: (params: any) =>
+  getAll: (params: TransactionParams) =>
     apiClient.get<PaginatedResponse<Transaction>>(ENDPOINTS.TRANSACTIONS.BASE, params),
 
   getSummary: (month?: string) =>
@@ -37,16 +64,15 @@ export const financeApi = {
   getTrends: (months: number = 6) =>
     apiClient.get<Array<{ month: string; income: number; expense: number }>>(ENDPOINTS.TRANSACTIONS.TRENDS, { months }),
 
-  getHistory: (params: any) =>
+  getHistory: (params: TransactionParams) =>
     apiClient.get<PaginatedResponse<TransactionHistory>>(ENDPOINTS.TRANSACTIONS.HISTORY, params),
 
-  create: (data: any) =>
+  create: (data: CreateTransactionData) =>
     apiClient.post<Transaction>(ENDPOINTS.TRANSACTIONS.BASE, data),
 
-  update: (id: number, data: any) =>
+  update: (id: number, data: UpdateTransactionData) =>
     apiClient.patch<Transaction>(ENDPOINTS.TRANSACTIONS.BY_ID(id), data),
 
   delete: (id: number) =>
     apiClient.delete(ENDPOINTS.TRANSACTIONS.BY_ID(id)),
 };
-

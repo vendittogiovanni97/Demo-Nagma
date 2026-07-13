@@ -1,5 +1,6 @@
 import { createTheme, alpha, type Shadows, type ThemeOptions } from '@mui/material/styles';
 import { ClientConfig } from '@/common/hooks/useClientConfig';
+import theme from './theme';
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -73,7 +74,7 @@ export function createDynamicTheme(clientConfig?: ClientConfig) {
       contrastText: '#ffffff',
     },
     background: {
-      default: '#0a1a26',
+      default: '#0d1a28',
       paper: '#1a2332',
     },
     text: {
@@ -182,6 +183,7 @@ export function createDynamicTheme(clientConfig?: ClientConfig) {
       borderRadius: 8,
     },
     components: {
+      ...theme.components,
       MuiButton: {
         defaultProps: {
           disableElevation: false,
@@ -237,8 +239,134 @@ export function createDynamicTheme(clientConfig?: ClientConfig) {
           },
         },
       },
-      // Mantieni tutti gli altri component style override dal tema statico
-      // (MuiTextField, MuiCard, ecc.)
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            '&.Mui-focused': {
+              color: primaryColor,
+            },
+          },
+        },
+      },
+      MuiCheckbox: {
+        styleOverrides: {
+          root: {
+            '&.Mui-checked': {
+              color: primaryColor,
+            },
+          },
+        },
+      },
+      MuiRadio: {
+        styleOverrides: {
+          root: {
+            '&.Mui-checked': {
+              color: primaryColor,
+            },
+          },
+        },
+      },
+      MuiSwitch: {
+        styleOverrides: {
+          switchBase: {
+            '&.Mui-checked': {
+              color: primaryColor,
+              '& + .MuiSwitch-track': {
+                backgroundColor: hexToRgba(primaryColor, 0.3),
+              },
+            },
+          },
+        },
+      },
+      MuiSlider: {
+        styleOverrides: {
+          root: {
+            color: primaryColor,
+          },
+          track: {
+            backgroundColor: primaryColor,
+          },
+          rail: {
+            backgroundColor: hexToRgba(primaryColor, 0.12),
+          },
+          thumb: {
+            backgroundColor: primaryColor,
+            boxShadow: `0px 2px 8px ${hexToRgba(primaryColor, 0.3)}`,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundColor: hexToRgba(secondaryColor, 0.35),
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            borderRadius: 12,
+            border: `1px solid ${hexToRgba(primaryColor, 0.15)}`,
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              boxShadow: `0 8px 32px 0 ${hexToRgba(primaryColor, 0.12)}`,
+              borderColor: hexToRgba(primaryColor, 0.4),
+            },
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            border: `1px solid ${hexToRgba(primaryColor, 0.2)}`,
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: 'transparent',
+            backgroundImage: 'none',
+            boxShadow: 'none',
+          },
+        },
+      },
+      MuiTableHead: {
+        styleOverrides: {
+          root: {
+            '& th': {
+              color: primaryColor,
+            },
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          head: {
+            color: primaryColor,
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            '&.Mui-selected': {
+              color: primaryColor,
+            },
+          },
+        },
+      },
+      MuiPagination: {
+        styleOverrides: {
+          root: {
+            '& .MuiPaginationItem-root': {
+              '&.Mui-selected': {
+                backgroundColor: primaryColor,
+                '&:hover': {
+                  backgroundColor: hexToRgba(primaryColor, 0.8),
+                },
+              },
+            },
+          },
+        },
+      },
     },
   };
 

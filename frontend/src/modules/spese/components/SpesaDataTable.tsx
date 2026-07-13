@@ -1,6 +1,6 @@
 "use client";
 
-import DataTable from '@/common/components/data-display/DataTable';
+import DataTable from '@/common/components/table/DataTable';
 import Button from '@/common/components/ui/Button';
 import { formatPrice } from '@/common/shared/utils/format';
 import { Box, Typography, useTheme } from '@mui/material';
@@ -58,7 +58,7 @@ export default function SpesaDataTable({
         keyExtractor={(s) => s.id}
         emptyTitle={`Nessuna spesa per ${monthLabel}`}
         emptyDescription="Registra la tua prima spesa per questo mese."
-        actions={(spesa) => (
+        actions={(spesa: SpesaLibera) => (
           <Button
             variant="icon"
             size="sm"

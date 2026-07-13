@@ -41,6 +41,40 @@ const FIELD_TYPE_OPTIONS = [
   { value: 'multiselect', label: 'Scelta Multipla (Multiselect)' },
 ] as const;
 
+// ─── Typed state interfaces ──────────────────────────────────────────────────
+interface FieldFormData {
+  fieldLabel: string;
+  fieldName: string;
+  fieldType: string;
+  isRequired: boolean;
+  optionsString: string;
+  defaultValue: string;
+}
+
+interface ModalUiState {
+  open: boolean;
+  editing: CustomField | null;
+  saving: boolean;
+}
+
+interface DeleteState {
+  id: string | null;
+  confirmOpen: boolean;
+}
+
+const FIELD_FORM_INITIAL: FieldFormData = {
+  fieldLabel: '',
+  fieldName: '',
+  fieldType: 'string',
+  isRequired: false,
+  optionsString: '',
+  defaultValue: '',
+};
+
+const MODAL_INITIAL: ModalUiState = { open: false, editing: null, saving: false };
+const DELETE_INITIAL: DeleteState = { id: null, confirmOpen: false };
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function CustomFieldsManager() {
   const theme = useTheme();
   const toast = useToast();
@@ -49,28 +83,18 @@ export default function CustomFieldsManager() {
   const [loading, setLoading] = useState(true);
   const [entityFilter, setEntityFilter] = useState<string>('customer');
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingField, setEditingField] = useState<CustomField | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [fieldForm, setFieldForm] = useState<FieldFormData>(FIELD_FORM_INITIAL);
+  const [modal, setModal] = useState<ModalUiState>(MODAL_INITIAL);
+  const [deleteState, setDeleteState] = useState<DeleteState>(DELETE_INITIAL);
 
-  // Form State
-  const [fieldLabel, setFieldLabel] = useState('');
-  const [fieldName, setFieldName] = useState('');
-  const [fieldType, setFieldType] = useState('string');
-  const [isRequired, setIsRequired] = useState(false);
-  const [optionsString, setOptionsString] = useState('');
-  const [defaultValue, setDefaultValue] = useState('');
-
-  // Delete Confirm State
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const setFormField = <K extends keyof FieldFormData>(k: K, v: FieldFormData[K]) =>
+    setFieldForm((prev) => ({ ...prev, [k]: v }));
 
   const fetchFields = async () => {
     setLoading(true);
     try {
-      const fields = await customFieldService.getAll(entityFilter);
-      setFields(fields);
+      const data = await customFieldService.getAll(entityFilter);
+      setFields(data);
     } catch (err) {
       toast.error('Errore di caricamento.');
     } finally {
@@ -83,115 +107,106 @@ export default function CustomFieldsManager() {
   }, [entityFilter]);
 
   const handleOpenAddModal = () => {
-    setEditingField(null);
-    setFieldLabel('');
-    setFieldName('');
-    setFieldType('string');
-    setIsRequired(false);
-    setOptionsString('');
-    setDefaultValue('');
-    setIsModalOpen(true);
+    setModal({ open: true, editing: null, saving: false });
+    setFieldForm(FIELD_FORM_INITIAL);
   };
 
   const handleOpenEditModal = (field: CustomField) => {
-    setEditingField(field);
-    setFieldLabel(field.fieldLabel);
-    setFieldName(field.fieldName);
-    setFieldType(field.fieldType);
-    setIsRequired(field.isRequired);
-
-    // Parse options if object (Record<string, string>)
+    let optionsString = '';
     if (field.options && typeof field.options === 'object' && !Array.isArray(field.options)) {
-      setOptionsString(Object.values(field.options).join(', '));
+      optionsString = Object.values(field.options).join(', ');
     } else if (field.options && Array.isArray(field.options)) {
-      setOptionsString(field.options.join(', '));
-    } else {
-      setOptionsString('');
+      optionsString = field.options.join(', ');
     }
 
-    setDefaultValue(field.defaultValue ? String(field.defaultValue) : '');
-    setIsModalOpen(true);
+    setFieldForm({
+      fieldLabel: field.fieldLabel,
+      fieldName: field.fieldName,
+      fieldType: field.fieldType,
+      isRequired: field.isRequired,
+      optionsString,
+      defaultValue: field.defaultValue ? String(field.defaultValue) : '',
+    });
+    setModal({ open: true, editing: field, saving: false });
   };
 
   const handleSave = async () => {
-    if (!fieldLabel.trim() || !fieldName.trim()) {
+    if (!fieldForm.fieldLabel.trim() || !fieldForm.fieldName.trim()) {
       toast.error('Nome e Etichetta sono obbligatori.');
       return;
     }
 
-    // Alphanumeric lowercase camelCase check for fieldName
-    if (!/^[a-z][a-zA-Z0-9]*$/.test(fieldName)) {
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(fieldForm.fieldName)) {
       toast.error('Il Nome del campo deve iniziare con una minuscola ed essere in formato camelCase (es. stilePreferito).');
       return;
     }
 
-    setSaving(true);
+    setModal((prev) => ({ ...prev, saving: true }));
     try {
       let parsedOptions: Record<string, string> | undefined = undefined;
-      if (fieldType === 'select' || fieldType === 'multiselect') {
-        const opts = optionsString
+      if (fieldForm.fieldType === 'select' || fieldForm.fieldType === 'multiselect') {
+        const opts = fieldForm.optionsString
           .split(',')
           .map((opt) => opt.trim())
           .filter(Boolean);
 
         if (opts.length === 0) {
-          toast.error('Fornisci almeno un\'opzione per i campi di tipo select/multiselect.');
-          setSaving(false);
+          toast.error("Fornisci almeno un'opzione per i campi di tipo select/multiselect.");
+          setModal((prev) => ({ ...prev, saving: false }));
           return;
         }
 
-        // Convert array to object with value->label mapping
         parsedOptions = opts.reduce((acc, opt) => {
           acc[opt.toLowerCase().replace(/\s+/g, '_')] = opt;
           return acc;
         }, {} as Record<string, string>);
       }
 
-      let parsedDefault: any = defaultValue.trim();
-      if (fieldType === 'boolean') {
-        parsedDefault = defaultValue.toLowerCase() === 'true';
-      } else if (fieldType === 'number') {
-        parsedDefault = defaultValue ? Number(defaultValue) : undefined;
+      // Typed union instead of `any`
+      let parsedDefault: string | number | boolean | undefined = fieldForm.defaultValue.trim() || undefined;
+      if (fieldForm.fieldType === 'boolean') {
+        parsedDefault = fieldForm.defaultValue.toLowerCase() === 'true';
+      } else if (fieldForm.fieldType === 'number') {
+        parsedDefault = fieldForm.defaultValue ? Number(fieldForm.defaultValue) : undefined;
       }
 
       const payload = {
         entityType: entityFilter,
-        fieldName,
-        fieldType: fieldType as CustomField['fieldType'],
-        fieldLabel,
-        isRequired,
+        fieldName: fieldForm.fieldName,
+        fieldType: fieldForm.fieldType as CustomField['fieldType'],
+        fieldLabel: fieldForm.fieldLabel,
+        isRequired: fieldForm.isRequired,
         options: parsedOptions,
-        defaultValue: parsedDefault || null,
+        defaultValue: parsedDefault ?? null,
       };
 
-      let res;
-      if (editingField) {
-        res = await customFieldService.update(editingField.id, payload);
+      if (modal.editing) {
+        await customFieldService.update(modal.editing.id, payload);
       } else {
-        res = await customFieldService.create(payload);
+        await customFieldService.create(payload);
       }
 
-      toast.success(editingField ? 'Campo aggiornato!' : 'Nuovo campo creato!');
-      setIsModalOpen(false);
+      toast.success(modal.editing ? 'Campo aggiornato!' : 'Nuovo campo creato!');
+      setModal(MODAL_INITIAL);
       fetchFields();
-    } catch (err: any) {
-      toast.error(err.message || 'Errore nel salvataggio.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Errore nel salvataggio.';
+      toast.error(message);
     } finally {
-      setSaving(false);
+      setModal((prev) => ({ ...prev, saving: false }));
     }
   };
 
   const handleOpenDeleteConfirm = (id: string) => {
-    setDeletingId(id);
-    setIsConfirmOpen(true);
+    setDeleteState({ id, confirmOpen: true });
   };
 
   const handleDelete = async () => {
-    if (!deletingId) return;
+    if (!deleteState.id) return;
     try {
-      await customFieldService.delete(deletingId);
+      await customFieldService.delete(deleteState.id);
       toast.success('Campo eliminato con successo!');
-      setIsConfirmOpen(false);
+      setDeleteState(DELETE_INITIAL);
       fetchFields();
     } catch (err) {
       toast.error('Errore di connessione.');
@@ -369,86 +384,86 @@ export default function CustomFieldsManager() {
       </Card>
 
       {/* CREATE / EDIT MODAL */}
-      <Modal open={isModalOpen} onClose={() => !saving && setIsModalOpen(false)}>
+      <Modal open={modal.open} onClose={() => !modal.saving && setModal(MODAL_INITIAL)}>
         <ModalHeader
-          title={editingField ? 'Modifica Campo Personalizzato' : 'Nuovo Campo Personalizzato'}
-          onClose={() => !saving && setIsModalOpen(false)}
-          subtitle={editingField ? `ID: ${editingField.id}` : `Aggiungi una configurazione dinamica per ${ENTITY_OPTIONS.find(e => e.value === entityFilter)?.label}`}
+          title={modal.editing ? 'Modifica Campo Personalizzato' : 'Nuovo Campo Personalizzato'}
+          onClose={() => !modal.saving && setModal(MODAL_INITIAL)}
+          subtitle={modal.editing ? `ID: ${modal.editing.id}` : `Aggiungi una configurazione dinamica per ${ENTITY_OPTIONS.find(e => e.value === entityFilter)?.label}`}
         />
         <ModalBody>
           <Stack spacing={3} sx={{ mt: 1 }}>
             <FormInput
               label="Etichetta Visualizzata (Label)"
-              value={fieldLabel}
-              onChange={(val) => {
-                setFieldLabel(val);
+              value={fieldForm.fieldLabel}
+              onChange={(val: string) => {
+                setFormField('fieldLabel', val);
                 // Auto generate fieldName from label if creating
-                if (!editingField) {
+                if (!modal.editing) {
                   const camel = val
                     .toLowerCase()
                     .replace(/[^a-zA-Z0-9\s]/g, '')
                     .split(' ')
                     .map((word, i) => i === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
                     .join('');
-                  setFieldName(camel);
+                  setFormField('fieldName', camel);
                 }
               }}
               required
               placeholder="Es. Codice Fiscale, Allergie..."
-              disabled={saving}
+              disabled={modal.saving}
             />
 
             <FormInput
               label="Nome della Chiave (DB)"
-              value={fieldName}
-              onChange={setFieldName}
+              value={fieldForm.fieldName}
+              onChange={(v: string) => setFormField('fieldName', v)}
               required
               placeholder="Es. codiceFiscale, allergie"
-              disabled={saving || !!editingField} // Do not allow renaming key once created
+              disabled={modal.saving || !!modal.editing} // Do not allow renaming key once created
               sx={{ fontFamily: 'monospace' }}
             />
 
             <FormSelect
               label="Tipo di Dato"
-              value={fieldType}
-              onChange={setFieldType}
+              value={fieldForm.fieldType}
+              onChange={(v: string) => setFormField('fieldType', v)}
               options={FIELD_TYPE_OPTIONS}
               required
-              disabled={saving}
+              disabled={modal.saving}
             />
 
             <SwitchInput
               label="Campo Obbligatorio (isRequired)"
-              checked={isRequired}
-              onChange={setIsRequired}
-              disabled={saving}
+              checked={fieldForm.isRequired}
+              onChange={(v: boolean) => setFormField('isRequired', v)}
+              disabled={modal.saving}
             />
 
-            {(fieldType === 'select' || fieldType === 'multiselect') && (
+            {(fieldForm.fieldType === 'select' || fieldForm.fieldType === 'multiselect') && (
               <FormInput
                 label="Opzioni del menu (Separate da virgola)"
-                value={optionsString}
-                onChange={setOptionsString}
+                value={fieldForm.optionsString}
+                onChange={(v: string) => setFormField('optionsString', v)}
                 required
                 placeholder="Es. Opzione 1, Opzione 2, Opzione 3"
-                disabled={saving}
+                disabled={modal.saving}
               />
             )}
 
             <FormInput
               label="Valore Predefinito (Opzionale)"
-              value={defaultValue}
-              onChange={setDefaultValue}
-              placeholder={fieldType === 'boolean' ? 'true / false' : "Es. Nessuna"}
-              disabled={saving}
+              value={fieldForm.defaultValue}
+              onChange={(v: string) => setFormField('defaultValue', v)}
+              placeholder={fieldForm.fieldType === 'boolean' ? 'true / false' : 'Es. Nessuna'}
+              disabled={modal.saving}
             />
           </Stack>
         </ModalBody>
         <ModalFooter>
-          <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={saving}>
+          <Button variant="ghost" onClick={() => setModal(MODAL_INITIAL)} disabled={modal.saving}>
             Annulla
           </Button>
-          <Button variant="primary" onClick={handleSave} isLoading={saving} loadingLabel="Salvataggio...">
+          <Button variant="primary" onClick={handleSave} isLoading={modal.saving} loadingLabel="Salvataggio...">
             Salva
           </Button>
         </ModalFooter>
@@ -456,14 +471,14 @@ export default function CustomFieldsManager() {
 
       {/* DELETE CONFIRM DIALOG */}
       <ConfirmDialog
-        open={isConfirmOpen}
+        open={deleteState.confirmOpen}
         title="Elimina Campo Personalizzato"
         message="Sei sicuro di voler eliminare questo campo? Tutti i valori salvati in questo campo per i singoli record non saranno più associati o visualizzati correttamente."
         confirmText="Elimina"
         cancelText="Annulla"
         isDangerous
         onConfirm={handleDelete}
-        onCancel={() => setIsConfirmOpen(false)}
+        onCancel={() => setDeleteState(DELETE_INITIAL)}
       />
     </Box>
   );

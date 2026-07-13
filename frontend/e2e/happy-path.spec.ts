@@ -45,8 +45,9 @@ test.describe('Happy Path - Full User Journey', () => {
     await expect(page.getByText('Archivio Consensi')).toBeVisible();
     await expect(page.getByText('Mappa Corporea')).toBeVisible();
 
-    // Test toggling a feature flag
-    const consensiToggle = page.getByText('Archivio Consensi').locator('..').getByRole('switch');
+    // Test toggling a feature flag - find the switch near "Archivio Consensi"
+    const consensiBox = page.getByText('Archivio Consensi').locator('..').locator('..');
+    const consensiToggle = consensiBox.getByRole('switch');
     const initialState = await consensiToggle.getAttribute('aria-checked');
 
     await consensiToggle.click();
@@ -81,7 +82,7 @@ test.describe('Happy Path - Full User Journey', () => {
 
     // Test color pickers
     const primaryColorInput = page.locator('input[type="color"]').first();
-    await primaryColorInput.fill('#ff0000');
+    await primaryColorInput.fill('#00bfff');
 
     // Test feature flags
     await expect(page.getByText('Feature Flags')).toBeVisible();
@@ -118,7 +119,8 @@ test.describe('Happy Path - Full User Journey', () => {
 
     // Disable Archivio Consensi feature
     await page.goto('/admin-panel');
-    const consensiToggle = page.getByText('Archivio Consensi').locator('..').getByRole('switch');
+    const consensiBox = page.getByText('Archivio Consensi').locator('..').locator('..');
+    const consensiToggle = consensiBox.getByRole('switch');
     const initialState = await consensiToggle.getAttribute('aria-checked');
     if (initialState === 'true') {
       await consensiToggle.click();
@@ -131,13 +133,13 @@ test.describe('Happy Path - Full User Journey', () => {
 
     // Re-enable consensi feature
     await page.goto('/admin-panel');
-    const consensiToggle2 = page.getByText('Archivio Consensi').locator('..').getByRole('switch');
+    const consensiToggle2 = page.getByText('Archivio Consensi').locator('..').locator('..').getByRole('switch');
     await consensiToggle2.click();
     await expect(page.getByText('Configurazione aggiornata con successo')).toBeVisible();
 
     // Verify consensi module is visible again
     await page.goto('/');
-    await expect(page.getByText('Consensi')).toBeVisible();
+    await expect(page.getByText('Archivio Consensi')).toBeVisible();
   });
 });
 
@@ -154,12 +156,12 @@ test.describe('Client Settings Page', () => {
     await page.goto('/admin-panel/settings');
 
     // Update client name
-    await page.fill('input[label="Nome Client"]', 'Test Studio');
-    await page.fill('input[label="Logo URL"]', '/logo-test.svg');
+    await page.fill('input[aria-label="Nome Client"]', 'Test Studio');
+    await page.fill('input[aria-label="Logo URL"]', '/logo-test.svg');
 
     // Update colors
     const primaryColorInput = page.locator('input[type="color"]').first();
-    await primaryColorInput.fill('#ff0000');
+    await primaryColorInput.fill('#00bfff');
 
     const secondaryColorInput = page.locator('input[type="color"]').nth(1);
     await secondaryColorInput.fill('#00ff00');
@@ -186,8 +188,8 @@ test.describe('Client Settings Page', () => {
   test('superadmin can set limits', async ({ page }) => {
     await page.goto('/admin-panel/settings');
 
-    await page.fill('input[label="Max Utenti"]', '25');
-    await page.fill('input[label="Max Prenotazioni"]', '5000');
+    await page.fill('input[aria-label="Max Utenti"]', '25');
+    await page.fill('input[aria-label="Max Prenotazioni"]', '5000');
 
     await page.click('button:has-text("Salva Configurazione")');
     await expect(page.getByText('Configurazione salvata con successo')).toBeVisible();

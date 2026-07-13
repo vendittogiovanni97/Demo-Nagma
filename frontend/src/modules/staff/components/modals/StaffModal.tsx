@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SmartModal from '@/common/components/common/SmartModal';
-import Avatar from '@/common/components/data-display/Avatar';
+import Avatar from '@/common/components/ui/Avatar';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import Icon from '@/common/components/ui/Icon';

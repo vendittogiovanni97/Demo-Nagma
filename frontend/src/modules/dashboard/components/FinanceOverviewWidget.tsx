@@ -51,22 +51,25 @@ export default function FinanceOverviewWidget({
   return (
     <Card
       className={className}
-      variant="minimal"
+      variant="glass"
       size="md"
       sx={{
-        bgcolor: theme.palette.background.paper,
-        border: `1px solid ${theme.palette.primary.main}20`,
+        bgcolor: alpha(theme.palette.background.default, 0.5),
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+        boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`,
         transition: theme.transitions.create(['all'], { duration: 300 }),
         '&:hover': {
-          borderColor: theme.palette.primary.main,
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
         },
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${theme.palette.primary.main}12` }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
           <Box
             sx={{
@@ -160,6 +163,7 @@ export default function FinanceOverviewWidget({
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const data = payload[0].payload;
+                        const actualValue = data.name === 'Entrate' ? totalIncome : totalExpense;
                         return (
                           <Box
                             sx={{
@@ -175,7 +179,7 @@ export default function FinanceOverviewWidget({
                               {data.name}
                             </Typography>
                             <Typography variant="body1" sx={{ color: data.color, fontWeight: 800 }}>
-                              {formatPrice(Number(payload[0].value))}
+                              {formatPrice(actualValue)}
                             </Typography>
                           </Box>
                         );
@@ -185,154 +189,89 @@ export default function FinanceOverviewWidget({
                   />
                 </PieChart>
               </ResponsiveContainer>
-            </Box>
-
-            <Stack useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, justifyContent: 'center', minWidth: { xs: 140, md: 180 } }}>
-              {/* Entrate Card */}
               <Box
                 sx={{
-                  position: 'relative',
-                  flex: 1,
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
+                  alignItems: 'center',
                   justifyContent: 'center',
-                  p: { xs: 2, md: 2.5 },
-                  borderRadius: 3,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}12 0%, ${theme.palette.primary.main}06 100%)`,
-                  border: `1px solid ${theme.palette.primary.main}25`,
-                  backdropFilter: 'blur(12px)',
-                  overflow: 'hidden',
-                  transition: theme.transitions.create(['transform', 'box-shadow', 'border-color'], { duration: 300 }),
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 8px 24px ${theme.palette.primary.main}15`,
-                    borderColor: `${theme.palette.primary.main}40`,
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: 80,
-                    height: 80,
-                    background: `radial-gradient(circle, ${theme.palette.primary.main}15 0%, transparent 70%)`,
-                    borderRadius: '50%',
-                    transform: 'translate(20px, -20px)',
-                  },
+                  pointerEvents: 'none',
                 }}
               >
-                <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mb: 1.5 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    textTransform: 'uppercase',
+                    color: theme.palette.text.secondary,
+                    fontWeight: 700,
+                    fontSize: '0.625rem',
+                    letterSpacing: '0.08em',
+                    mb: 0.25,
+                  }}
+                >
+                  Bilancio
+                </Typography>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '1.25rem',
+                    fontFamily: 'Outfit, sans-serif',
+                    color: totalIncome - totalExpense >= 0 ? theme.palette.success.main : theme.palette.error.main,
+                  }}
+                >
+                  {showData ? formatPrice(totalIncome - totalExpense) : '€ ••••••'}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Stack useFlexGap sx={{ gap: 2.5, justifyContent: 'center', flex: 1, minWidth: { xs: 160, md: 200 }, px: 1 }}>
+              {/* Entrate Row */}
+              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+                <Stack direction="row" useFlexGap sx={{ alignItems: 'center', gap: 1 }}>
                   <Box
                     sx={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 1.5,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}30, ${theme.palette.primary.main}15)`,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: theme.palette.primary.main,
+                      boxShadow: `0 0 10px ${theme.palette.primary.main}`,
                     }}
-                  >
-                    <Icon name="trendingUp" size={14} color={theme.palette.primary.main} />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      textTransform: 'uppercase',
-                      color: theme.palette.text.secondary,
-                      fontWeight: 700,
-                      fontSize: '0.65rem',
-                      letterSpacing: '0.08em',
-                    }}
-                  >
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
                     Entrate
                   </Typography>
                 </Stack>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: { xs: '1.2rem', md: '1.4rem' },
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light || theme.palette.primary.main})`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
-                >
+                <Typography variant="body1" sx={{ fontWeight: 800, color: theme.palette.primary.main }}>
                   {showData ? formatPrice(totalIncome) : '€ ••••••'}
                 </Typography>
-              </Box>
+              </Stack>
 
-              {/* Uscite Card */}
-              <Box
-                sx={{
-                  position: 'relative',
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  p: { xs: 2, md: 2.5 },
-                  borderRadius: 3,
-                  background: `linear-gradient(135deg, ${theme.palette.error.main}12 0%, ${theme.palette.error.main}06 100%)`,
-                  border: `1px solid ${theme.palette.error.main}25`,
-                  backdropFilter: 'blur(12px)',
-                  overflow: 'hidden',
-                  transition: theme.transitions.create(['transform', 'box-shadow', 'border-color'], { duration: 300 }),
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 8px 24px ${theme.palette.error.main}15`,
-                    borderColor: `${theme.palette.error.main}40`,
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: 80,
-                    height: 80,
-                    background: `radial-gradient(circle, ${theme.palette.error.main}15 0%, transparent 70%)`,
-                    borderRadius: '50%',
-                    transform: 'translate(20px, -20px)',
-                  },
-                }}
-              >
-                <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mb: 1.5 }}>
+              {/* Uscite Row */}
+              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+                <Stack direction="row" useFlexGap sx={{ alignItems: 'center', gap: 1 }}>
                   <Box
                     sx={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 1.5,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: `linear-gradient(135deg, ${theme.palette.error.main}30, ${theme.palette.error.main}15)`,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: theme.palette.error.main,
+                      boxShadow: `0 0 10px ${theme.palette.error.main}`,
                     }}
-                  >
-                    <Icon name="trendingDown" size={14} color={theme.palette.error.main} />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      textTransform: 'uppercase',
-                      color: theme.palette.text.secondary,
-                      fontWeight: 700,
-                      fontSize: '0.65rem',
-                      letterSpacing: '0.08em',
-                    }}
-                  >
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
                     Uscite
                   </Typography>
                 </Stack>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: { xs: '1.2rem', md: '1.4rem' },
-                    color: theme.palette.error.main,
-                  }}
-                >
+                <Typography variant="body1" sx={{ fontWeight: 800, color: theme.palette.error.main }}>
                   {showData ? formatPrice(totalExpense) : '€ ••••••'}
                 </Typography>
-              </Box>
+              </Stack>
             </Stack>
           </Stack>
         )}

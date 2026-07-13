@@ -4,7 +4,7 @@ import { Box, Stack } from '@mui/material';
 import { useCallback, useState, useMemo } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import DataTable from '@/common/components/data-display/DataTable';
+import DataTable from '@/common/components/table/DataTable';
 import FormInput from '@/common/components/forms/FormInput';
 import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
 import { useAuth } from '@/common/context/AuthContext';
@@ -13,7 +13,7 @@ import BookingHistoryCard from '../components/BookingHistoryCard';
 import { useBookingHistoryColumns } from '../hooks/useBookingHistoryColumns';
 import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
-import type { FetchParams, ToolbarFilter } from '@/common/components/data-display/DataTable';
+import type { FetchParams, ToolbarFilter } from '@/common/components/table/DataTable';
 
 export default function BookingHistoryPage() {
   const { user } = useAuth();

@@ -1,6 +1,6 @@
 "use client";
 
-import DataTable, { Column } from '@/common/components/data-display/DataTable';
+import DataTable, { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import { formatPrice } from '@/common/shared/utils/format';
 import {
   Box,

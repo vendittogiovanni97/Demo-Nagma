@@ -1,7 +1,7 @@
 "use client";
 
 import PermissionGate from '@/common/components/auth/PermissionGate';
-import Avatar from '@/common/components/data-display/Avatar';
+import Avatar from '@/common/components/ui/Avatar';
 import Badge from '@/common/components/ui/Badge';
 import { DAYS_OF_WEEK } from '@/common/config/staff-config';
 import type { Shift, Staff } from '../model/staff.types';

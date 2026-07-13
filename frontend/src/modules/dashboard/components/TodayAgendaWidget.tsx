@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import Avatar from '@/common/components/data-display/Avatar';
+import Avatar from '@/common/components/ui/Avatar';
 import { Skeleton } from '@/common/components/feedback/Skeleton';
 import Badge from '@/common/components/ui/Badge';
 import Button from '@/common/components/ui/Button';

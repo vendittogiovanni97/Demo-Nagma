@@ -5,7 +5,7 @@ import Icon from '@/common/components/ui/Icon';
 import { Stack, Typography, useTheme, Box } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Badge from '@/common/components/ui/Badge';
-import type { Column } from '@/common/components/data-display/DataTable';
+import type { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { BookingAction, BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';

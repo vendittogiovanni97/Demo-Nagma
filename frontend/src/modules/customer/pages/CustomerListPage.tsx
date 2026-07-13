@@ -1,8 +1,8 @@
 "use client";
 
 import PageHeader from '@/common/components/common/PageHeader';
-import type { FetchParams } from '@/common/components/data-display/DataTable';
-import DataTable, { DataTableRef } from '@/common/components/data-display/DataTable';
+import type { FetchParams } from '@/common/components/table/DataTable';
+import DataTable, { DataTableRef } from '@/common/components/table/DataTable';
 import Icon from '@/common/components/ui/Icon';
 import { useAuth } from '@/common/context/AuthContext';
 import { Box } from '@mui/material';

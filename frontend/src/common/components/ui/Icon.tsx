@@ -3,7 +3,7 @@
 import {
   AlertCircle, AlertTriangle, ArrowLeft, ArrowRight,
   Calendar, CalendarDays, Check, CheckCircle, CheckCircle2,
-  ChevronLeft, ChevronRight, Clock, Cloud, Copy,
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Clock, Cloud, Copy,
   DollarSign, Download, Edit, Edit2, Edit3, ExternalLink,
   Eye, EyeOff, FileDown, FileSpreadsheet, FileText,
   Hash, Heart, HelpCircle, Home, Inbox, Info, Loader2,
@@ -83,6 +83,17 @@ const icons: Record<string, LucideIcon> = {
   x: X,
   xCircle: XCircle,
   zap: Zap,
+  chevronDown: ChevronDown,
+  chevronUp: ChevronUp,
+  refresh: RefreshCw,
+  colonne: SlidersHorizontal,
+  esporta: Download,
+  cerca: Search,
+  chiudi: X,
+  cestino: Trash2,
+  modifica: Pencil,
+  vedi: Eye,
+  piu: Plus,
 };
 
 interface IconProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import PermissionGate from '@/common/components/auth/PermissionGate';
-import DataTable, { type Column } from '@/common/components/data-display/DataTable';
+import DataTable, { type ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import Button from '@/common/components/ui/Button';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
@@ -65,7 +65,8 @@ function BookingDataTable({
         keyExtractor={(b) => b.id}
         getRowStyle={getRowStyle}
         pageSize={9}
-        renderCard={(booking) => (
+        hideToolbar
+        renderCard={(booking: Booking) => (
           <BookingCard
             booking={booking}
             onEdit={onEdit}
@@ -75,7 +76,7 @@ function BookingDataTable({
             onWhatsApp={() => handleOpenWhatsAppModal(booking)}
           />
         )}
-        actions={(booking) => (
+        actions={(booking: Booking) => (
           <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
             <PermissionGate requireAdmin>
               <>

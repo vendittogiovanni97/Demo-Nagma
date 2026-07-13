@@ -1,7 +1,7 @@
 "use client";
 
 import SmartModal from '@/common/components/common/SmartModal';
-import DataTable, { Column } from '@/common/components/data-display/DataTable';
+import DataTable, { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import {
   Box,
   Stack,
@@ -9,7 +9,7 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
-import Avatar from '@/common/components/data-display/Avatar';
+import Avatar from '@/common/components/ui/Avatar';
 import Badge from '@/common/components/ui/Badge';
 import Button from '@/common/components/ui/Button';
 import { format } from 'date-fns';

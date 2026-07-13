@@ -6,7 +6,7 @@ import Icon from '@/common/components/ui/Icon';
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import DataTable, { FetchParams, DataTableRef } from '@/common/components/data-display/DataTable';
+import DataTable, { FetchParams, DataTableRef } from '@/common/components/table/DataTable';
 import { useToast } from '@/common/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
 import { staffApi } from '@/modules/staff/api/staff.api';

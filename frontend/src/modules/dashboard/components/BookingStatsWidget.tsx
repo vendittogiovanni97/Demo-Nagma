@@ -3,6 +3,7 @@
 import Icon from '@/common/components/ui/Icon';
 
 import MonthPicker from '@/common/components/ui/MonthPicker';
+import { alpha } from '@mui/material/styles';
 import {
     Box,
     Grid,
@@ -37,22 +38,25 @@ export default function BookingStatsWidget({
   return (
     <Card
       className={className}
-      variant="minimal"
+      variant="glass"
       size="md"
       sx={{
-        bgcolor: theme.palette.background.paper,
-        border: `1px solid ${theme.palette.primary.main}20`,
+        bgcolor: alpha(theme.palette.background.default, 0.5),
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+        boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`,
         transition: theme.transitions.create(['all'], { duration: 300 }),
         '&:hover': {
-          borderColor: theme.palette.primary.main,
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
         },
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${theme.palette.primary.main}12` }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
           <Box
             sx={{

@@ -20,7 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "zod": ["./node_modules/zod"]
+      "zod": ["./node_modules/zod"],
+      "react-i18next": ["./src/common/utils/react-i18next-mock.ts"]
     }
   },
   "include": [

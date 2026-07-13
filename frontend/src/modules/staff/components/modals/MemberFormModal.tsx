@@ -9,7 +9,7 @@ import { useFormModal } from '@/common/hooks/useFormModal';
 import { staffApi } from '@/modules/staff/api/staff.api';
 import type { Staff } from '@/modules/staff/model/staff.types';
 import StatePanel from '@/common/components/feedback/StatePanel';
-import Avatar from '@/common/components/data-display/Avatar';
+import Avatar from '@/common/components/ui/Avatar';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';

@@ -1,6 +1,8 @@
 "use client";
 
-import type { DatesSetArg, DayCellContentArg, EventContentArg } from '@fullcalendar/core';
+import type { DateClickArg } from '@fullcalendar/interaction';
+import type { DatesSetArg, DayCellContentArg, EventClickArg, EventContentArg, EventInput, MoreLinkArg } from '@fullcalendar/core';
+
 import itLocale from '@fullcalendar/core/locales/it';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
@@ -15,13 +17,13 @@ import { useBreakpoint } from '@/common/hooks/useBreakpoint';
 interface AgendaCalendarProps {
   isLoading: boolean;
   error: unknown;
-  events: any[];
+  events: EventInput[];
   renderEventContent: (arg: EventContentArg) => React.ReactNode;
-  renderDayCellContent: (arg: DayCellContentArg) => any;
-  handleDateClick: (arg: any) => void;
-  handleEventClick: (arg: any) => void;
+  renderDayCellContent: (arg: DayCellContentArg) => { html: string } | React.ReactNode;
+  handleDateClick: (arg: DateClickArg) => void;
+  handleEventClick: (arg: EventClickArg) => void;
   handleDatesSet: (arg: DatesSetArg) => void;
-  handleMoreLinkClick: (arg: any) => void;
+  handleMoreLinkClick: (arg: MoreLinkArg) => void;
 }
 
 export default function AgendaCalendar({
@@ -52,7 +54,7 @@ export default function AgendaCalendar({
         <StatePanel
           variant="loading"
           fullPage
-          icon={(props: any) => <Icon name="clock" {...props} />}
+          icon={(props: React.SVGProps<SVGSVGElement>) => <Icon name="clock" {...props} />}
           title="Carico l'agenda"
           description="Sto recuperando gli appuntamenti."
         />

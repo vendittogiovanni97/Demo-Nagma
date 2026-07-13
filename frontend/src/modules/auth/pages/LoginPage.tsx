@@ -11,13 +11,22 @@ import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import FormInput from '@/common/components/forms/FormInput';
 
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+const LOGIN_INITIAL: LoginFormData = { email: '', password: '' };
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState<LoginFormData>(LOGIN_INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  const setField = <K extends keyof LoginFormData>(k: K, v: LoginFormData[K]) =>
+    setForm((prev) => ({ ...prev, [k]: v }));
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,7 +40,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await login({ email, password });
+      await login({ email: form.email, password: form.password });
       router.push('/');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Email o password non validi';
@@ -136,8 +145,8 @@ export default function LoginPage() {
               type="email"
               placeholder="Email"
               required
-              value={email}
-              onChange={setEmail}
+              value={form.email}
+              onChange={(v: string) => setField('email', v)}
               icon={Mail}
               autoComplete="email"
               name="email"
@@ -147,8 +156,8 @@ export default function LoginPage() {
               type="password"
               placeholder="Password"
               required
-              value={password}
-              onChange={setPassword}
+              value={form.password}
+              onChange={(v: string) => setField('password', v)}
               icon={Lock}
               autoComplete="current-password"
               name="password"

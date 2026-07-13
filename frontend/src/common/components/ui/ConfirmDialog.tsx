@@ -1,158 +1,81 @@
-"use client";
-import Button from "@/common/components/ui/Button";
-import {
-  Box,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  SxProps,
-  Theme,
-  Typography,
-  useTheme,
-} from "@mui/material";
-import { alpha } from '@mui/material/styles';
-import { AlertCircle, HelpCircle } from "lucide-react";
-import { useEffect } from "react";
+'use client';
+import React from 'react';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useTranslation } from 'react-i18next';
 
-interface ConfirmDialogProps {
+export interface ConfirmDialogProps {
   open?: boolean;
   isOpen?: boolean;
+  onClose?: () => void;
+  onCancel?: () => void;
+  onConfirm: () => void;
   title?: string;
   message: string;
   confirmText?: string;
   cancelText?: string;
+  severity?: 'primary' | 'error' | 'warning';
   isDangerous?: boolean;
-  onConfirm: () => void | Promise<void>;
-  onCancel: () => void;
+  loading?: boolean;
+  children?: React.ReactNode;
 }
 
-export default function ConfirmDialog({
+export const ConfirmDialog = ({
   open,
-  isOpen: isOpenFromProps,
-  title = "Conferma",
-  message,
-  confirmText = "Conferma",
-  cancelText = "Annulla",
-  isDangerous = false,
-  onConfirm,
+  isOpen,
+  onClose,
   onCancel,
-}: ConfirmDialogProps) {
-  const theme = useTheme();
-  const isDialogOpen = open ?? isOpenFromProps ?? false;
-
-  useEffect(() => {
-    if (!isDialogOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isDialogOpen, onCancel]);
-
-  const iconWrapper = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 36,
-    height: 36,
-    borderRadius: '10px',
-    bgcolor: isDangerous ? alpha(theme.palette.error.main, 0.15) : alpha(theme.palette.primary.main, 0.15),
-    color: isDangerous ? theme.palette.error.main : theme.palette.primary.main,
-  };
-
-  const paperStyles = {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: alpha(theme.palette.background.paper, 0.95),
-    backdropFilter: "blur(20px)",
-    border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-    borderRadius: '20px',
-    boxShadow: `0px 24px 48px ${alpha(theme.palette.common.black, 0.5)}`,
-    overflow: 'hidden',
-    backgroundImage: 'none',
-  } as SxProps<Theme>;
-
-  const backdropStyles = {
-    backgroundColor: alpha(theme.palette.common.black, 0.8),
-    backdropFilter: "blur(4px)",
-  } as SxProps<Theme>;
-
-  const actionsStyles = {
-    px: 3,
-    py: 2.5,
-    gap: 1.5,
-    justifyContent: 'flex-end',
-    bgcolor: alpha(theme.palette.common.white, 0.02),
-    borderTop: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
-  } as SxProps<Theme>;
-
+  onConfirm,
+  title,
+  message,
+  confirmText,
+  cancelText,
+  severity = 'primary',
+  isDangerous = false,
+  loading = false,
+  children,
+}: ConfirmDialogProps) => {
+  const { t } = useTranslation();
+  const resolvedOpen = !!(open ?? isOpen);
+  const resolvedClose = onClose ?? onCancel ?? (() => {});
+  const resolvedTitle = title ?? t('Conferma') ?? 'Conferma';
+  const resolvedConfirmText = confirmText ?? t('Conferma');
+  const resolvedCancelText = cancelText ?? t('Annulla');
+  const resolvedSeverity = severity === 'primary' && isDangerous ? 'error' : severity;
   return (
     <Dialog
-      open={isDialogOpen}
-      onClose={onCancel}
+      open={resolvedOpen}
+      onClose={resolvedClose}
       aria-labelledby="confirm-dialog-title"
-      slotProps={{
-        paper: {
-          sx: paperStyles,
-        },
-        backdrop: {
-          sx: backdropStyles,
-        },
-      }}
+      aria-describedby="confirm-dialog-description"
     >
-      <DialogTitle id="confirm-dialog-title" sx={titleStyles}>
-        <Box sx={iconWrapper}>
-          {isDangerous ? <AlertCircle size={20} /> : <HelpCircle size={20} />}
-        </Box>
-        <Typography sx={titleTextStyles}>{title}</Typography>
-      </DialogTitle>
-
-      <DialogContent sx={{ pb: 1, px: 3 }}>
-        <Typography sx={messageStyles}>
-          {message}
-        </Typography>
+      <DialogTitle id="confirm-dialog-title">{resolvedTitle}</DialogTitle>
+      <DialogContent>
+        <DialogContentText id="confirm-dialog-description">{message}</DialogContentText>
+        {children}
       </DialogContent>
-
-      <DialogActions sx={actionsStyles}>
-        <Button
-          variant="ghost"
-          onClick={onCancel}
-          sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
-        >
-          {cancelText}
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+        <Button onClick={resolvedClose} color="inherit" variant="outlined" disabled={loading}>
+          {resolvedCancelText}
         </Button>
         <Button
-          variant={isDangerous ? 'danger' : 'primary'}
           onClick={onConfirm}
-          sx={{ minWidth: 100 }}
+          color={resolvedSeverity === 'error' ? 'error' : resolvedSeverity === 'warning' ? 'warning' : 'primary'}
+          variant="contained"
+          autoFocus
+          disabled={loading}
+          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
         >
-          {confirmText}
+          {resolvedConfirmText}
         </Button>
       </DialogActions>
     </Dialog>
   );
-}
+};
 
-const titleStyles = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 1.5,
-  pt: 3,
-  pb: 1.5,
-  px: 3,
-} as SxProps<Theme>;
-
-const titleTextStyles = {
-  fontSize: '1.125rem',
-  fontWeight: 700,
-  color: 'text.primary',
-  fontFamily: 'Outfit, sans-serif',
-} as SxProps<Theme>;
-
-const messageStyles = {
-  color: "text.secondary",
-  fontSize: "0.9375rem",
-  lineHeight: 1.6,
-  fontFamily: 'Inter, sans-serif',
-} as SxProps<Theme>;
+export default ConfirmDialog;

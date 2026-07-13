@@ -1,6 +1,6 @@
 "use client";
 
-import type { Column } from '@/common/components/data-display/DataTable';
+import type { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import type { ExportFilter } from '@/common/components/modals/ExportModal';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import { Badge as MuiBadge, Box, Stack, Typography } from '@mui/material';

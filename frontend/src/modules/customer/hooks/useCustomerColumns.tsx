@@ -1,4 +1,4 @@
-import type { Column } from '@/common/components/data-display/DataTable';
+import type { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';

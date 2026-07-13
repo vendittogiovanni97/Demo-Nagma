@@ -217,7 +217,7 @@ export default function SuperAdminPanelPage() {
 
   return (
     <PageTransition>
-      <Box sx={{ py: 4, px: 0, maxWidth: '1400px', margin: '0 auto' }}>
+      <Box sx={{ py: 4, px: 0, width: '100%' }}>
         {/* Header section with Glowing Shield */}
         <Box
           sx={{

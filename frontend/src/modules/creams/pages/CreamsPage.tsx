@@ -6,7 +6,7 @@ import Icon from '@/common/components/ui/Icon';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import DataTable from '@/common/components/data-display/DataTable';
+import SmartTable from '@/common/components/common/SmartTable';
 import { useToast } from '@/common/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
 import { staffApi } from '@/modules/staff/api/staff.api';
@@ -142,11 +142,12 @@ export default function CreamsPage() {
       )}
 
       <Box sx={{ flex: 1 }}>
-        <DataTable
+        <SmartTable
           data={salesData?.data ?? []}
           columns={columns}
           isLoading={salesLoading}
-          emptyMessage={hasFilters ? "Nessuna vendita trovata." : "Nessuna vendita registrata."}
+          emptyTitle={hasFilters ? "Nessuna vendita trovata." : "Nessuna vendita registrata."}
+          emptyDescription={hasFilters ? "Prova a cambiare i filtri impostati." : "Clicca su \"Nuova Vendita\" per registrare la prima transazione."}
           keyExtractor={(row) => row.id}
           pageSize={7}
         />

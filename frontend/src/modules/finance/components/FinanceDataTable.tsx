@@ -1,7 +1,6 @@
 "use client";
 
-import SmartTable from '@/common/components/common/SmartTable';
-import { Column } from '@/common/components/data-display/DataTable';
+import DataTable, { Column } from '@/common/components/data-display/DataTable';
 import { formatPrice } from '@/common/shared/utils/format';
 import {
   Box,
@@ -122,7 +121,7 @@ export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: 
   );
 
   return (
-    <SmartTable
+    <DataTable
       columns={columns}
       data={data}
       isLoading={isLoading}

@@ -1,8 +1,7 @@
 "use client";
 
 import PermissionGate from '@/common/components/auth/PermissionGate';
-import SmartTable from '@/common/components/common/SmartTable';
-import type { Column } from '@/common/components/data-display/DataTable';
+import DataTable, { type Column } from '@/common/components/data-display/DataTable';
 import PaginationControls from '@/common/components/feedback/PaginationControls';
 import Button from '@/common/components/ui/Button';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
@@ -44,7 +43,7 @@ export default function CustomerDataTable({
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <SmartTable<Customer>
+      <DataTable<Customer>
         columns={columns}
         data={customers}
         isLoading={isLoading}

@@ -53,6 +53,7 @@ function FormInput({
   pattern,
   autoComplete,
   hideLabel = false,
+  name,
   sx,
 }: FormInputProps) {
   return (
@@ -76,6 +77,7 @@ function FormInput({
       pattern={pattern}
       autoComplete={autoComplete}
       hideLabel={hideLabel}
+      name={name}
       sx={sx}
     />
   );

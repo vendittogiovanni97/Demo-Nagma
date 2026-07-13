@@ -4,7 +4,7 @@ import { Stack } from '@mui/material';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import SmartTable from '@/common/components/common/SmartTable';
+import DataTable from '@/common/components/data-display/DataTable';
 import PaginationControls from '@/common/components/feedback/PaginationControls';
 import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
 import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
@@ -141,7 +141,7 @@ export default function BookingHistoryPage() {
         }
       />
 
-      <SmartTable
+      <DataTable
         columns={columns}
         data={data?.data ?? []}
         isLoading={isLoading}

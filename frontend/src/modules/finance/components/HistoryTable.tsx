@@ -1,8 +1,7 @@
 "use client";
 
 import SmartModal from '@/common/components/common/SmartModal';
-import SmartTable from '@/common/components/common/SmartTable';
-import { Column } from '@/common/components/data-display/DataTable';
+import DataTable, { Column } from '@/common/components/data-display/DataTable';
 import {
   Box,
   Stack,
@@ -119,7 +118,7 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
 
   return (
     <>
-      <SmartTable
+      <DataTable
         columns={columns}
         data={data}
         isLoading={isLoading}

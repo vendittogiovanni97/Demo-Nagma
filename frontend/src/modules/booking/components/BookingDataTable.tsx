@@ -1,8 +1,7 @@
 "use client";
 
 import PermissionGate from '@/common/components/auth/PermissionGate';
-import SmartTable from '@/common/components/common/SmartTable';
-import type { Column } from '@/common/components/data-display/DataTable';
+import DataTable, { type Column } from '@/common/components/data-display/DataTable';
 import Button from '@/common/components/ui/Button';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
@@ -58,7 +57,7 @@ function BookingDataTable({
 
   return (
     <>
-      <SmartTable<Booking>
+      <DataTable<Booking>
         columns={columns}
         data={data}
         isLoading={isLoading}

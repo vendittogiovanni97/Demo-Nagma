@@ -1,6 +1,6 @@
 "use client";
 
-import SmartTable from '@/common/components/common/SmartTable';
+import DataTable from '@/common/components/data-display/DataTable';
 import Button from '@/common/components/ui/Button';
 import { formatPrice } from '@/common/shared/utils/format';
 import { Box, Typography, useTheme } from '@mui/material';
@@ -51,7 +51,7 @@ export default function SpesaDataTable({
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <SmartTable<SpesaLibera>
+      <DataTable<SpesaLibera>
         columns={columns}
         data={spese}
         isLoading={isLoading}

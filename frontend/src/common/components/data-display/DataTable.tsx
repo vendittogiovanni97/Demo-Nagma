@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
 import React, { ReactNode, useMemo } from 'react';
 import { alpha } from '@mui/material/styles';
-import { Box, SxProps, Theme, useTheme } from '@mui/material';
+import { Box, CircularProgress, Stack, SxProps, Theme, useTheme } from '@mui/material';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, ICellRendererParams, RowStyle } from 'ag-grid-community';
 import { useBreakpointContext } from '@/common/context/BreakpointContext';
+import StatePanel from '@/common/components/feedback/StatePanel';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -25,19 +26,34 @@ export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   isLoading?: boolean;
-  emptyMessage?: string;
-  actions?: (item: T) => ReactNode;
+  hasError?: boolean;
   keyExtractor: (item: T) => string | number;
-  footer?: ReactNode;
-  pageSize?: number;
+  /** Mobile card renderer */
+  renderCard?: (item: T) => ReactNode;
+  /** Actions for each row (desktop) */
+  actions?: (item: T) => ReactNode;
+  /** Row styling logic */
   getRowStyle?: (item: T) => RowStyle | undefined;
+  /** Custom empty state titles */
+  emptyTitle?: string;
+  emptyDescription?: string;
+  emptyMessage?: string; // Backward compatibility with old DataTable
+  /** Custom error state */
+  errorTitle?: string;
+  errorDescription?: string;
+  /** Pagination */
+  pageSize?: number;
   onRowClick?: (item: T) => void;
+  footer?: ReactNode;
 }
 
 const PAGINATION_HEIGHT = 48;
 
 const CELL_WRAP_BASE: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', width: '100%', overflow: 'visible',
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  overflow: 'visible',
 };
 
 function parsePxWidth(width?: string): number | undefined {
@@ -50,22 +66,26 @@ export default function DataTable<T extends object>({
   columns,
   data,
   isLoading = false,
-  emptyMessage = 'Nessun dato trovato',
-  actions,
+  hasError = false,
   keyExtractor,
-  footer,
-  pageSize = 10,
+  renderCard,
+  actions,
   getRowStyle,
+  emptyTitle,
+  emptyDescription = 'Prova a cambiare i filtri o la ricerca.',
+  emptyMessage,
+  errorTitle = 'Errore di caricamento',
+  errorDescription = 'Si è verificato un problema durante il recupero dei dati.',
+  pageSize = 10,
   onRowClick,
+  footer,
 }: DataTableProps<T>) {
   const { isSmall, isMedium } = useBreakpointContext();
   const theme = useTheme();
 
-  const ROW_HEIGHT = isSmall ? 48 : isMedium ? 56 : 64;
-  const HEADER_HEIGHT = isSmall ? 40 : 44;
-  const responsivePageSize = isSmall ? 4 : isMedium ? 6 : pageSize;
-  const gridHeight = HEADER_HEIGHT + ROW_HEIGHT * responsivePageSize + PAGINATION_HEIGHT;
+  const finalEmptyTitle = emptyTitle || emptyMessage || 'Nessun dato trovato';
 
+  // Build colDefs first (before early returns) to adhere to React rules-of-hooks
   const colDefs = useMemo<ColDef<T>[]>(() => {
     const safeColumns = columns.length > 0 ? columns : [{ key: '_empty', label: 'Nessun dato' }];
     
@@ -78,7 +98,9 @@ export default function DataTable<T extends object>({
 
       const def: ColDef<T> = {
         headerName: col.label,
-        sortable: col.sortable !== false, resizable: true, suppressMovable: true,
+        sortable: col.sortable !== false,
+        resizable: true,
+        suppressMovable: true,
         ...(pxWidth ? { width: pxWidth } : { flex: 1 }),
         ...(col.minWidth ? { minWidth: parsePxWidth(col.minWidth) } : { minWidth: pxWidth ? undefined : 200 }),
       };
@@ -146,13 +168,80 @@ export default function DataTable<T extends object>({
     if (actions) {
       cols.push({
         headerName: 'Azioni',
-        sortable: false, resizable: false, suppressMovable: true, width: 200,
+        sortable: false,
+        resizable: false,
+        suppressMovable: true,
+        width: 200,
         cellRenderer: (params: ICellRendererParams<T>) =>
           params.data ? <div style={{ ...CELL_WRAP_BASE, justifyContent: 'center' }}>{actions(params.data)}</div> : null,
       });
     }
     return cols;
   }, [columns, actions]);
+
+  // 1. Error State
+  if (hasError) {
+    return (
+      <Box sx={{ py: 8 }}>
+        <StatePanel
+          variant="error"
+          title={errorTitle}
+          description={errorDescription}
+        />
+      </Box>
+    );
+  }
+
+  // 2. Loading State (Full overlay for initial load)
+  if (isLoading && data.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 12 }}>
+        <Stack spacing={2} sx={{ alignItems: 'center' }}>
+          <CircularProgress size={48} sx={{ color: theme.palette.primary.main, opacity: 0.8 }} />
+          <Box sx={{ color: theme.palette.text.secondary, fontSize: '0.875rem', fontWeight: 500 }}>
+            Caricamento in corso...
+          </Box>
+        </Stack>
+      </Box>
+    );
+  }
+
+  // 3. Empty State
+  if (!isLoading && data.length === 0) {
+    return (
+      <Box sx={{ py: 8 }}>
+        <StatePanel
+          variant="empty"
+          title={finalEmptyTitle}
+          description={emptyDescription}
+        />
+      </Box>
+    );
+  }
+
+  // 4. Responsive Layouts (Mobile card view)
+  if (isSmall && renderCard) {
+    return (
+      <Stack spacing={2} sx={{ pb: 4 }}>
+        {data.map((item) => (
+          <Box key={keyExtractor(item)}>
+            {renderCard(item)}
+          </Box>
+        ))}
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
+      </Stack>
+    );
+  }
+
+  // 5. Desktop Grid Layout (Ag-Grid)
+  const ROW_HEIGHT = isSmall ? 48 : isMedium ? 56 : 64;
+  const HEADER_HEIGHT = isSmall ? 40 : 44;
+  const responsivePageSize = isSmall ? 4 : isMedium ? 6 : pageSize;
+  const gridHeight = HEADER_HEIGHT + ROW_HEIGHT * responsivePageSize + PAGINATION_HEIGHT;
 
   return (
     <Box sx={(t) => styles.container(t)}>
@@ -167,7 +256,7 @@ export default function DataTable<T extends object>({
           getRowStyle={(p) => getRowStyle && p.data ? getRowStyle(p.data) : undefined}
           loading={isLoading}
           onRowClicked={(p) => onRowClick && p.data && onRowClick(p.data)}
-          overlayNoRowsTemplate={`<span class="nagma-grid-empty">${emptyMessage}</span>`}
+          overlayNoRowsTemplate={`<span class="nagma-grid-empty">${finalEmptyTitle}</span>`}
           rowHeight={ROW_HEIGHT}
           headerHeight={HEADER_HEIGHT}
           pagination
@@ -193,11 +282,16 @@ export default function DataTable<T extends object>({
 
 const styles = {
   container: (theme: Theme) => ({
-    bgcolor: alpha(theme.palette.common.white, 0.05), borderRadius: 3,
-    overflow: 'hidden', display: 'flex', flexDirection: 'column',
-    border: '1px solid', borderColor: 'divider'
+    bgcolor: alpha(theme.palette.common.white, 0.05),
+    borderRadius: 3,
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    border: '1px solid',
+    borderColor: 'divider'
   }),
   footer: {
-    borderTop: '1px solid', borderColor: 'divider'
+    borderTop: '1px solid',
+    borderColor: 'divider'
   } as SxProps<Theme>,
 };

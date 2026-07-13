@@ -1,6 +1,6 @@
 "use client";
 
-import Button from '@/common/components/ui/Button';
+import { DeleteButton } from '@/common/components/ui/Button';
 import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
@@ -70,7 +70,7 @@ export default function FieldEditor({ field, onChange, onRemove }: FieldEditorPr
           '.MuiBox-root:hover &': { opacity: 1 },
         }}
       >
-        <Button
+        <DeleteButton
           variant="danger"
           size="sm"
           type="button"

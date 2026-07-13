@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Card from '@/common/components/ui/Card';
 import Badge from '@/common/components/ui/Badge';
-import Button from '@/common/components/ui/Button';
+import Button, { DeleteButton } from '@/common/components/ui/Button';
 import PermissionGate from '@/common/components/auth/PermissionGate';
 import type { Booking, BookingStatus } from '@/modules/booking/model/booking.types';
 import { getBookingStatusLabel, getBookingStatusBadgeVariant } from '@/common/config/status-config';
@@ -249,7 +249,7 @@ export default function BookingCard({
                   title="Modifica"
                   onClick={() => onEdit(booking)}
                 />
-                <Button
+                <DeleteButton
                   variant="icon"
                   icon={<Icon name="trash2" size={18} />}
                   sx={{

@@ -19,10 +19,22 @@ Formato libero, chiaro e in italiano.
 - Handler factory obbligatoria (no try/catch nei controller)
 - Dati seed solo in JSON, mai in .env
 - Colori solo dal tema MUI, mai hardcoded
+- Pulsanti semantici: `SaveButton`, `CancelButton`, `DeleteButton`, `OkButton`, `CloseButton` — mai `<Button>` generico per azioni standard
 
 ## Test
 ```bash
-cd backend && npx jest --forceExit   # unit test
-cd frontend && npx playwright test    # E2E
-cd backend && k6 run test/load/scenario.k6.js  # load test
+# Backend unit (130+ test)
+cd backend && npx jest --forceExit
+
+# Backend security audit OWASP (21 test)
+cd backend && npx jest test/security/ --forceExit
+
+# Frontend E2E (10 test, richiede backend + frontend attivi)
+cd frontend && npx playwright test --project=chromium
+
+# Frontend unit
+cd frontend && npx jest
+
+# Load test (richiede k6 installato + backend attivo)
+k6 run backend/test/load/scenario.k6.js
 ```

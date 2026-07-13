@@ -194,4 +194,82 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
+// ─── Semantic Wrappers ────────────────────────────────────────────────────────
+// Pattern da platform-starter: default opinionati, tutto override-able via props.
+
+/**
+ * OkButton — conferma/salva azione primaria.
+ * Default: variant="primary", label="Conferma"
+ */
+export const OkButton = ({
+  children = 'Conferma',
+  variant = 'primary',
+  ...props
+}: ButtonProps) => (
+  <Button variant={variant} {...props}>
+    {children}
+  </Button>
+);
+OkButton.displayName = 'OkButton';
+
+/**
+ * CancelButton — annulla/torna indietro senza azione distruttiva.
+ * Default: variant="ghost", label="Annulla"
+ */
+export const CancelButton = ({
+  children = 'Annulla',
+  variant = 'ghost',
+  ...props
+}: ButtonProps) => (
+  <Button variant={variant} {...props}>
+    {children}
+  </Button>
+);
+CancelButton.displayName = 'CancelButton';
+
+/**
+ * CloseButton — chiude modal/panel senza alcuna azione.
+ * Default: variant="ghost", label="Chiudi"
+ */
+export const CloseButton = ({
+  children = 'Chiudi',
+  variant = 'ghost',
+  ...props
+}: ButtonProps) => (
+  <Button variant={variant} {...props}>
+    {children}
+  </Button>
+);
+CloseButton.displayName = 'CloseButton';
+
+/**
+ * DeleteButton — azione distruttiva (elimina, cancella).
+ * Default: variant="danger", label="Elimina"
+ */
+export const DeleteButton = ({
+  children = 'Elimina',
+  variant = 'danger',
+  ...props
+}: ButtonProps) => (
+  <Button variant={variant} {...props}>
+    {children}
+  </Button>
+);
+DeleteButton.displayName = 'DeleteButton';
+
+/**
+ * SaveButton — salva form/modifiche.
+ * Default: variant="primary", label="Salva"
+ */
+export const SaveButton = ({
+  children = 'Salva',
+  variant = 'primary',
+  ...props
+}: ButtonProps) => (
+  <Button variant={variant} {...props}>
+    {children}
+  </Button>
+);
+SaveButton.displayName = 'SaveButton';
+
 export default Button;

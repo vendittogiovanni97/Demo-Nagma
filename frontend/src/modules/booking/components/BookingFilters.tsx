@@ -4,7 +4,7 @@ import SmartFilters from '@/common/components/common/SmartFilters';
 import type { BookingStatus } from '@/modules/booking/model/booking.types';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { useBreakpointContext } from '@/common/context/BreakpointContext';
-import Button from '@/common/components/ui/Button';
+import { CancelButton } from '@/common/components/ui/Button';
 import FormSelect from '@/common/components/forms/FormSelect';
 import Icon from '@/common/components/ui/Icon';
 
@@ -95,7 +95,7 @@ export default function BookingFilters({
 
       {/* Reset button if dates are filtered */}
       {(startDate || endDate) && (
-        <Button
+        <CancelButton
           variant="ghost"
           size="sm"
           onClick={onResetDateRange}
@@ -103,7 +103,7 @@ export default function BookingFilters({
           sx={{ fontSize: '0.75rem', px: 1 }}
         >
           Reset
-        </Button>
+        </CancelButton>
       )}
     </SmartFilters>
   );

@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import Button from '@/common/components/ui/Button';
+import Button, { CancelButton, SaveButton } from '@/common/components/ui/Button';
 import Card from '@/common/components/ui/Card';
 import Icon from '@/common/components/ui/Icon';
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '@/common/components/ui/Modal/Modal';
@@ -460,12 +460,8 @@ export default function CustomFieldsManager() {
           </Stack>
         </ModalBody>
         <ModalFooter>
-          <Button variant="ghost" onClick={() => setModal(MODAL_INITIAL)} disabled={modal.saving}>
-            Annulla
-          </Button>
-          <Button variant="primary" onClick={handleSave} isLoading={modal.saving} loadingLabel="Salvataggio...">
-            Salva
-          </Button>
+          <CancelButton onClick={() => setModal(MODAL_INITIAL)} disabled={modal.saving} />
+          <SaveButton onClick={handleSave} isLoading={modal.saving} loadingLabel="Salvataggio..." />
         </ModalFooter>
       </Modal>
 

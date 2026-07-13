@@ -1,6 +1,6 @@
 "use client";
 
-import Button from '@/common/components/ui/Button';
+import Button, { CloseButton, SaveButton, OkButton } from '@/common/components/ui/Button';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 import Box from '@mui/material/Box';
 import { useTheme, alpha } from '@mui/material/styles';
@@ -92,7 +92,12 @@ export default function TemplateEditorPanel({
                 </Box>
                 <Icon name="edit3" size={12} />
               </Box>
-              <Button variant="ghost" icon={<Icon name="x" size={20} />} onClick={onClose} sx={{ p: 0.25 }} />
+              <CloseButton
+              variant="ghost"
+              icon={<Icon name="x" size={20} />}
+              onClick={onClose}
+              sx={{ p: 0.25 }}
+            />
             </Box>
             <Box
               component="input"

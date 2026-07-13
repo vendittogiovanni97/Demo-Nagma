@@ -1,7 +1,7 @@
 'use client';
 
 import PermissionGate from '@/common/components/auth/PermissionGate';
-import Button from '@/common/components/ui/Button';
+import Button, { DeleteButton } from '@/common/components/ui/Button';
 import Card from '@/common/components/ui/Card';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
@@ -187,15 +187,14 @@ export default function CustomerCard({
           </PermissionGate>
 
           <PermissionGate requireAdmin>
-            <Button
-              variant="danger"
+            <DeleteButton
               size="sm"
               icon={<Icon name="trash2" size={16} />}
               fullWidth
               onClick={() => onDelete(customer.id)}
             >
               Elimina
-            </Button>
+            </DeleteButton>
           </PermissionGate>
         </Box>
       </Stack>

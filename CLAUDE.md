@@ -72,8 +72,11 @@ cd backend && npm run db:reset     # ATTENZIONE: reset completo + re-seed
 SEED_PROFILE=nagma cd backend && npx prisma db seed   # seed con profilo
 
 # Test
-cd backend && npx jest --forceExit # 13 suite, 130+ test
-cd frontend && npx jest            # hook + unit test
+cd backend && npx jest --forceExit                    # 13 suite, 130+ test
+cd backend && npx jest test/security/ --forceExit     # OWASP security audit (21 test)
+cd frontend && npx jest                                # hook + unit test
+cd frontend && npx playwright test --project=chromium  # E2E happy path (10 test)
+k6 run backend/test/load/scenario.k6.js               # load test (smoke + ramp + spike)
 
 # Docker
 docker compose up -d               # avvia tutto
@@ -140,7 +143,7 @@ DI container in `core/container/`, handler factory in `core/utils/handler.ts`.
 ## Ruoli e Autenticazione
 
 4 ruoli: `SUPER_ADMIN`, `ADMIN`, `USER`, `ARTIST`.
-JWT in cookie (`nagma_auth_token`), refresh automatico su 401.
+JWT via Bearer token in header `Authorization`. Refresh automatico su 401.
 
 ## Frontend — Data Fetching
 

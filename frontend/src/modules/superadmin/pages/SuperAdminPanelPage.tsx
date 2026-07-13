@@ -13,7 +13,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import Button from '@/common/components/ui/Button';
+import Button, { SaveButton } from '@/common/components/ui/Button';
 import Card from '@/common/components/ui/Card';
 import Icon from '@/common/components/ui/Icon';
 import CustomFieldsManager from '../components/CustomFieldsManager';
@@ -452,8 +452,7 @@ export default function SuperAdminPanelPage() {
                         fontFamily: 'inherit',
                       }}
                     />
-                    <Button
-                      variant="primary"
+                    <SaveButton
                       disabled={savingFlag}
                       onClick={handleSavePrefix}
                       sx={{
@@ -468,7 +467,7 @@ export default function SuperAdminPanelPage() {
                       }}
                     >
                       Salva Prefisso
-                    </Button>
+                    </SaveButton>
                   </Stack>
                 </Box>
               </Stack>

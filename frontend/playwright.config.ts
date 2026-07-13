@@ -32,5 +32,5 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
-  testIgnore: ['**/node_modules/**', '**/backend/**', '**/test/**', '**/*.test.ts', '**/*.test.tsx', '**/backend/**/*.ts', '**/backend/**/*.tsx'],
+  testIgnore: ['**/node_modules/**', '**/backend/**', '**/test/**', '**/*.test.ts', '**/*.test.tsx', '**/backend/**/*.ts', '**/backend/**/*.tsx', '**/backend/**/*.test.ts', '**/backend/**/*.test.tsx', '**/backend/**/test/**', '**/backend/test/**', '**/backend/src/**/*.test.ts', '**/backend/src/**/*.test.tsx'],
 });

@@ -3,7 +3,7 @@
 import { Skeleton } from '@/common/components/feedback/Skeleton';
 import StatePanel from '@/common/components/feedback/StatePanel';
 import Badge from '@/common/components/ui/Badge';
-import Button from '@/common/components/ui/Button';
+import Button, { CancelButton, DeleteButton } from '@/common/components/ui/Button';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import { BOOKING_STATUS_CONFIG, getBookingStatusBadgeVariant } from '@/common/config/status-config';
 import { useAuth } from '@/common/context/AuthContext';
@@ -95,15 +95,14 @@ export default function CustomerDetail({ id }: Props) {
           variant="error"
           title="Cliente non trovato"
           description="Il cliente potrebbe essere stato eliminato o non esiste."
-          action={
-            <Button
-              variant="primary"
-              onClick={() => router.push('/clienti')}
-              sx={{ mt: 2 }}
-            >
-              Torna alla lista
-            </Button>
-          }
+action={
+              <CancelButton
+                onClick={() => router.push('/clienti')}
+                sx={{ mt: 2 }}
+              >
+                Torna alla lista
+              </CancelButton>
+            }
         />
       </Box>
     );
@@ -111,14 +110,14 @@ export default function CustomerDetail({ id }: Props) {
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, overflow: 'hidden' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/clienti')}
-          icon={<Icon name="arrowLeft" size={20} />}
-          sx={{ p: 1 }}
-        />
+<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <CancelButton
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/clienti')}
+            icon={<Icon name="arrowLeft" size={20} />}
+            sx={{ p: 1 }}
+          />
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {isLoadingCustomer ? (
@@ -131,16 +130,16 @@ export default function CustomerDetail({ id }: Props) {
             Scheda cliente
           </Typography>
         </Box>
-        {isAdmin && (
-          <>
-            <Button variant="secondary" icon={(props: any) => <Icon name="edit" {...props} />} onClick={handleEdit}>
-              Modifica
-            </Button>
-            <Button variant="primary" onClick={handleDelete}>
-              Elimina
-            </Button>
-          </>
-        )}
+{isAdmin && (
+            <>
+              <Button variant="secondary" icon={(props: any) => <Icon name="edit" {...props} />} onClick={handleEdit}>
+                Modifica
+              </Button>
+              <DeleteButton onClick={handleDelete}>
+                Elimina
+              </DeleteButton>
+            </>
+          )}
       </Box>
 
       {isLoadingCustomer ? (

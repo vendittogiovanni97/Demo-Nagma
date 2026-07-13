@@ -11,6 +11,33 @@ sx={{ color: theme => theme.palette.primary.main }}
 sx={{ color: '#00bfff', bgcolor: '#0a1a26', border: '1px solid rgba(255,255,255,0.1)' }}
 ```
 
+## Pulsanti Semantici (OBBLIGATORIO)
+NON usare `<Button>` generico per azioni standard. Usa i wrapper dedicati da `@/common/components/ui/Button`:
+
+| Wrapper | Azione | Default variant | Default label |
+|---------|--------|----------------|---------------|
+| `SaveButton` | Salva form/modifiche | `primary` | "Salva" |
+| `OkButton` | Conferma azione | `primary` | "Conferma" |
+| `CancelButton` | Annulla/torna indietro | `ghost` | "Annulla" |
+| `CloseButton` | Chiudi modal/panel | `ghost` | "Chiudi" |
+| `DeleteButton` | Elimina/cancella | `danger` | "Elimina" |
+
+```tsx
+// ✅ corretto
+import Button, { SaveButton, CancelButton } from '@/common/components/ui/Button';
+<SaveButton onClick={handleSave} isLoading={saving} />
+<CancelButton onClick={onClose} />
+<Button variant="icon" icon={<Icon name="edit" />} /> // icon button → rimane Button
+
+// ❌ vietato
+<Button variant="primary" onClick={handleSave}>Salva</Button>
+<Button variant="ghost" onClick={onClose}>Annulla</Button>
+```
+
+`Button` generico rimane valido per: tab switcher, azioni specifiche (Esegui, Backup, Riavvia), pulsanti icon, e casi dove nessun wrapper semantico si applica.
+
+Import: `Button` è default export, i wrapper sono named export → `import Button, { SaveButton } from '...'`.
+
 ## Stack UI
 Il progetto usa MUI come libreria primaria con Radix per alcuni primitivi (Dialog, Popover, Select).
 Quando esiste un componente in `components/ui/` (Button, Badge, Card, Modal, Toast), usare quello.

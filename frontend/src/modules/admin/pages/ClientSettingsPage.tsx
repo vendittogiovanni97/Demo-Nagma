@@ -8,7 +8,6 @@ import {
   CardHeader,
   Stack,
   TextField,
-  Button,
   Switch,
   FormControlLabel,
   Typography,
@@ -16,6 +15,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import { SaveButton } from '@/common/components/ui/Button';
 import { useClientConfig, useUpdateClientConfig, ClientConfig } from '@/common/hooks/useClientConfig';
 import { useToast } from '@/common/hooks/useToast';
 import { useAuth } from '@/common/context/AuthContext';
@@ -310,14 +310,14 @@ export default function ClientSettingsPage() {
         {/* Save Button */}
         <Grid size={{ xs: 12 }}>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
+            <SaveButton
               onClick={handleSave}
               disabled={isSaving}
+              isLoading={isSaving}
+              loadingLabel="Salvataggio..."
             >
-              {isSaving ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
               Salva Configurazione
-            </Button>
+            </SaveButton>
           </Box>
         </Grid>
       </Grid>

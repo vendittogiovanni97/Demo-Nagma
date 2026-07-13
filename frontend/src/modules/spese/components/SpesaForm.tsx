@@ -1,6 +1,6 @@
 "use client";
 
-import Button from '@/common/components/ui/Button';
+import { SaveButton } from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
 import { useRef, useState } from 'react';
 import Box from '@mui/material/Box';
@@ -101,7 +101,7 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
         required
         sx={{ width: { xs: '100%', sm: 140 }, ...inputSx }}
       />
-      <Button
+      <SaveButton
         type="submit"
         variant="secondary"
         disabled={isAdding}
@@ -117,7 +117,7 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
         }}
       >
         Aggiungi
-      </Button>
+      </SaveButton>
     </Box>
   );
 }

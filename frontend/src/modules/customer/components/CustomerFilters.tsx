@@ -1,7 +1,7 @@
 "use client";
 
 import SmartFilters from '@/common/components/common/SmartFilters';
-import Button from '@/common/components/ui/Button';
+import { CancelButton } from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
 
 interface Props {
@@ -37,7 +37,7 @@ export default function CustomerFilters({
       }}
     >
       {(startDate || endDate) && (
-        <Button
+        <CancelButton
           variant="ghost"
           size="sm"
           onClick={onResetDates}
@@ -45,7 +45,7 @@ export default function CustomerFilters({
           sx={{ fontSize: '0.75rem', px: 1 }}
         >
           Reset
-        </Button>
+        </CancelButton>
       )}
     </SmartFilters>
   );

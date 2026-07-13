@@ -1,7 +1,7 @@
 "use client";
 
 import DataTable from '@/common/components/table/DataTable';
-import Button from '@/common/components/ui/Button';
+import { DeleteButton } from '@/common/components/ui/Button';
 import { formatPrice } from '@/common/shared/utils/format';
 import { Box, Typography, useTheme } from '@mui/material';
 import { format } from 'date-fns';
@@ -58,22 +58,22 @@ export default function SpesaDataTable({
         keyExtractor={(s) => s.id}
         emptyTitle={`Nessuna spesa per ${monthLabel}`}
         emptyDescription="Registra la tua prima spesa per questo mese."
-        actions={(spesa: SpesaLibera) => (
-          <Button
-            variant="icon"
-            size="sm"
-            onClick={() => onDelete(spesa.id)}
-            icon={<Icon name="trash2" size={16} />}
-            title="Elimina"
-            sx={{
-              color: 'rgba(244,67,54,0.6)',
-              '&:hover': {
-                color: theme.palette.error.main,
-                backgroundColor: 'rgba(244,67,54,0.1)',
-              },
-            }}
-          />
-        )}
+actions={(spesa: SpesaLibera) => (
+            <DeleteButton
+              variant="icon"
+              size="sm"
+              onClick={() => onDelete(spesa.id)}
+              icon={<Icon name="trash2" size={16} />}
+              title="Elimina"
+              sx={{
+                color: 'rgba(244,67,54,0.6)',
+                '&:hover': {
+                  color: theme.palette.error.main,
+                  backgroundColor: 'rgba(244,67,54,0.1)',
+                },
+              }}
+            />
+          )}
         pageSize={pageSize}
       />
 

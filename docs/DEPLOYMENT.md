@@ -38,8 +38,8 @@ Ensure the host system has:
 git clone https://github.com/yourusername/demo-nagma.git
 cd demo-nagma
 
-# 2. Copy production environment template
-cp .env.example .env.production
+# 2. Configura gli .env di produzione
+#    backend/.env.production e frontend/.env.production sono già template pronti
 
 # 3. Edit .env.production with your values
 #    - Set strong passwords for JWT_SECRET, DB passwords, etc.
@@ -106,12 +106,12 @@ cp .env.production /path/to/secure/backup/env_$(date +"%Y%m%d").backup
 2. **Build and Push Images**:
 ```bash
 # Build backend
-docker build -t demo-nagma-backend:latest -f ./infrastructure/docker/backend.Dockerfile .
+docker build -t demo-nagma-backend:latest -f ./backend/Dockerfile .
 docker tag demo-nagma-backend:latest [ACCOUNT_ID].dkr.ecr.[REGION].amazonaws.com/demo-nagma-backend:latest
 docker push [ACCOUNT_ID].dkr.ecr.[REGION].amazonaws.com/demo-nagma-backend:latest
 
 # Build frontend
-docker build -t demo-nagma-frontend:latest -f ./infrastructure/docker/frontend.Dockerfile .
+docker build -t demo-nagma-frontend:latest -f ./frontend/Dockerfile .
 docker tag demo-nagma-frontend:latest [ACCOUNT_ID].dkr.ecr.[REGION].amazonaws.com/demo-nagma-frontend:latest
 docker push [ACCOUNT_ID].dkr.ecr.[REGION].amazonaws.com/demo-nagma-frontend:latest
 ```
@@ -125,12 +125,12 @@ docker push [ACCOUNT_ID].dkr.ecr.[REGION].amazonaws.com/demo-nagma-frontend:late
 ### Render.com
 1. **Create Services**:
    - **Backend Service**:
-     - Dockerfile: `./infrastructure/docker/backend.Dockerfile`
+     - Dockerfile: `./backend/Dockerfile`
      - Build Command: Empty (uses Dockerfile)
      - Start Command: Empty (uses Dockerfile ENTRYPOINT)
      - Environment Variables: Set from dashboard
    - **Frontend Service**:
-     - Dockerfile: `./infrastructure/docker/frontend.Dockerfile`
+     - Dockerfile: `./frontend/Dockerfile`
      - Same configuration as backend
 
 2. **Database**:
@@ -152,7 +152,7 @@ docker push [ACCOUNT_ID].dkr.ecr.[REGION].amazonaws.com/demo-nagma-frontend:late
      - Dockerfile path: `./infrastructure/docker/backend.Dockerfile`
      - Set environment variables (including DATABASE_URL from PostgreSQL plugin)
    - **Frontend Service**:
-     - Dockerfile: `./infrastructure/docker/frontend.Dockerfile`
+     - Dockerfile: `./frontend/Dockerfile`
      - Set NEXT_PUBLIC_API_BASE_URL to backend service URL
 
 3. **Domains**:
@@ -285,4 +285,4 @@ After deployment, verify:
 
 ---
 
-*Last updated: July 12, 2026*
+*Ultimo aggiornamento: 13 Luglio 2026*

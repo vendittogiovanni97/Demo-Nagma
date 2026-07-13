@@ -1,6 +1,7 @@
 import prisma from '../../../core/shared/utils/prisma';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
 import type { IPaginatedResponse } from '../../../core/shared/kernel/interfaces';
+import { AppError } from '../../../core/shared/errors/AppError';
 
 export class CustomerService {
   async search(params: Record<string, unknown>): Promise<IPaginatedResponse<any>> {
@@ -82,7 +83,7 @@ export class CustomerService {
       where: { phone: data.phone, deletedAt: null },
     });
     if (existingByPhone) {
-      throw new Error(`Un cliente con questo numero di telefono (${data.phone}) esiste già.`);
+      throw new AppError(`Un cliente con questo numero di telefono (${data.phone}) esiste già.`, 409, 'DUPLICATE_PHONE');
     }
 
     const existingByName = await prisma.customer.findFirst({
@@ -93,7 +94,7 @@ export class CustomerService {
       },
     });
     if (existingByName) {
-      throw new Error(`Un cliente con nome "${data.firstName} ${data.lastName}" esiste già.`);
+      throw new AppError(`Un cliente con nome "${data.firstName} ${data.lastName}" esiste già.`, 409, 'DUPLICATE_NAME');
     }
 
     const created = await prisma.customer.create({
@@ -115,7 +116,7 @@ export class CustomerService {
         where: { phone: data.phone, deletedAt: null },
       });
       if (existingByPhone && existingByPhone.id !== id) {
-        throw new Error(`Un altro cliente possiede già questo numero di telefono (${data.phone}).`);
+        throw new AppError(`Un altro cliente possiede già questo numero di telefono (${data.phone}).`, 409, 'DUPLICATE_PHONE');
       }
     }
 
@@ -135,7 +136,7 @@ export class CustomerService {
           },
         });
         if (existingByName && existingByName.id !== id) {
-          throw new Error(`Un altro cliente si chiama già "${newFirstName} ${newLastName}".`);
+          throw new AppError(`Un altro cliente si chiama già "${newFirstName} ${newLastName}".`, 409, 'DUPLICATE_NAME');
         }
       }
     }

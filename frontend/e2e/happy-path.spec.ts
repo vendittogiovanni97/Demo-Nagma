@@ -6,12 +6,11 @@ test.describe('Happy Path - Full User Journey', () => {
   });
 
   test('login as superadmin and access dashboard', async ({ page }) => {
-    await expect(page.getByRole('heading')).toContainText(/accedi|login|nagma/i);
+    await expect(page.getByRole('heading')).toContainText(/benvenuto|welcome/i);
 
     await page.fill('input[name="email"]', 'superadmin@nagma.it');
     await page.fill('input[name="password"]', 'superadmin123');
 
-    // Wait for login request to complete
     const loginPromise = page.waitForResponse(response =>
       response.url().includes('/api/auth/login') && response.status() === 200
     );

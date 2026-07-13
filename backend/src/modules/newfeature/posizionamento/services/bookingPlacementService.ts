@@ -1,4 +1,5 @@
 import prisma from '../../../../core/shared/utils/prisma';
+import { AppError } from '../../../../core/shared/errors/AppError';
 
 export class BookingPlacementService {
   async getPlacementByBookingId(bookingId: number) {
@@ -19,6 +20,13 @@ export class BookingPlacementService {
     sizeHeight?: number | null;
     notes?: string | null;
   }) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: props.bookingId, deletedAt: null },
+    });
+    if (!booking) {
+      throw new AppError('Prenotazione non trovata.', 404, 'BOOKING_NOT_FOUND');
+    }
+
     const raw = await prisma.bookingPlacement.upsert({
       where: { bookingId: props.bookingId },
       update: {

@@ -1,6 +1,7 @@
 import prisma from '../../../../core/shared/utils/prisma';
 import { PdfGenerator } from '../infrastructure/PdfGenerator';
 import { logger } from '../../../../core/shared/utils/logger';
+import { AppError } from '../../../../core/shared/errors/AppError';
 
 export interface MedicalAnswers {
   maggiorenne: boolean;
@@ -60,7 +61,7 @@ export class ConsentService {
       where: { id: bookingId },
     });
     if (!booking) {
-      throw new Error('Prenotazione non trovata durante il salvataggio del consenso');
+      throw new AppError('Prenotazione non trovata durante il salvataggio del consenso', 404, 'BOOKING_NOT_FOUND');
     }
 
     const currentFormData = (booking.formData as Record<string, any>) || {};

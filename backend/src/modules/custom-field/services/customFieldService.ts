@@ -1,4 +1,5 @@
 import prisma from '../../../core/shared/utils/prisma';
+import { AppError } from '../../../core/shared/errors/AppError';
 
 export interface CustomFieldData {
   entityType: string;
@@ -41,7 +42,7 @@ export class CustomFieldService {
   async update(id: string, clientId: number, data: Partial<CustomFieldData>) {
     const existing = await this.getById(id, clientId);
     if (!existing) {
-      throw new Error('Custom field not found');
+      throw new AppError('Custom field not found', 404, 'CUSTOM_FIELD_NOT_FOUND');
     }
 
     return prisma.customField.update({
@@ -53,7 +54,7 @@ export class CustomFieldService {
   async delete(id: string, clientId: number) {
     const existing = await this.getById(id, clientId);
     if (!existing) {
-      throw new Error('Custom field not found');
+      throw new AppError('Custom field not found', 404, 'CUSTOM_FIELD_NOT_FOUND');
     }
 
     return prisma.customField.update({

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Outfit } from 'next/font/google';
 import './globals.css';
 import { AppProviders } from './providers';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -30,7 +31,9 @@ export default function RootLayout({
         className={`${outfit.variable} ${outfit.className} antialiased`}
         suppressHydrationWarning
       >
-        <AppProviders>{children}</AppProviders>
+        <AppRouterCacheProvider>
+          <AppProviders>{children}</AppProviders>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

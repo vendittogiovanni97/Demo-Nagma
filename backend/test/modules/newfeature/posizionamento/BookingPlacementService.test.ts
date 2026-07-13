@@ -3,6 +3,9 @@ const createMockPrisma = () => ({
     findFirst: jest.fn(),
     upsert: jest.fn(),
   },
+  booking: {
+    findUnique: jest.fn(),
+  },
   $connect: jest.fn(),
   $disconnect: jest.fn(),
 });
@@ -15,7 +18,7 @@ jest.mock('../../../../src/core/shared/utils/prisma', () => ({
 import prisma from '../../../../src/core/shared/utils/prisma';
 import { BookingPlacementService } from '../../../../src/modules/newfeature/posizionamento/services/bookingPlacementService';
 
-const mockPrisma = prisma as unknown as ReturnType<typeof createMockPrisma>;
+const mockPrisma = prisma as unknown as any;
 
 describe('BookingPlacementService', () => {
   let service: BookingPlacementService;
@@ -23,6 +26,7 @@ describe('BookingPlacementService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new BookingPlacementService();
+    mockPrisma.booking.findUnique.mockResolvedValue({ id: 1, deletedAt: null });
   });
 
   describe('getPlacementByBookingId', () => {

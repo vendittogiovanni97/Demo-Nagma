@@ -1,22 +1,20 @@
 "use client";
 
-import StatePanel from '@/common/components/feedback/StatePanel';
 import { useAuth } from '@/common/context/AuthContext';
-import { useFormModal } from '@/common/hooks/useFormModal';
 import { useToast } from '@/common/hooks/useToast';
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import SmartModal from '@/common/components/common/SmartModal';
+import StatePanel from '@/common/components/feedback/StatePanel';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import { Box } from '@mui/material';
-import { financeApi, Transaction } from '@/modules/finance/api/finance.api';
+import { financeApi, Transaction, CreateTransactionData } from '@/modules/finance/api/finance.api';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  transaction?: Transaction | null;
+  transaction: Transaction | null;
 }
 
 const CATEGORIES = {
@@ -24,71 +22,73 @@ const CATEGORIES = {
   EXPENSE: ['Affitto', 'Forniture', 'Marketing', 'Utenze', 'Pulizie', 'Stipendi', 'Tasse', 'Altro']
 };
 
+interface TransactionFormData {
+  description: string;
+  amount: string;
+  type: 'INCOME' | 'EXPENSE';
+  category: string;
+  date: string;
+}
+
 export default function TransactionModal({ isOpen, onClose, onSuccess, transaction }: Props) {
-  const isEdit = Boolean(transaction);
-  const toast = useToast();
   const { isAdmin } = useAuth();
-  
-  const [desc, setDesc] = useState(transaction?.description ?? '');
-  const [amount, setAmount] = useState(transaction?.amount?.toString() ?? '');
-  const [type, setType] = useState<'INCOME' | 'EXPENSE'>(transaction?.type ?? 'EXPENSE');
-  const [category, setCategory] = useState(transaction?.category ?? 'Altro');
-  const [date, setDate] = useState(transaction?.date ? format(new Date(transaction.date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
+  const isEdit = Boolean(transaction);
 
-  useEffect(() => {
-    if (transaction) {
-      setDesc(transaction.description);
-      setAmount(transaction.amount.toString());
-      setType(transaction.type);
-      setCategory(transaction.category);
-      setDate(format(new Date(transaction.date), 'yyyy-MM-dd'));
+  const initial = (entity: Transaction | null): TransactionFormData => ({
+    description: entity?.description ?? '',
+    amount: entity?.amount?.toString() ?? '',
+    type: entity?.type ?? 'EXPENSE',
+    category: entity?.category ?? 'Altro',
+    date: entity?.date ? entity.date.split('T')[0] : new Date().toISOString().split('T')[0],
+  });
+
+  const buildPayload = (formData: TransactionFormData): CreateTransactionData => ({
+    description: formData.description,
+    amount: Number(formData.amount),
+    type: formData.type,
+    category: formData.category,
+    date: new Date(formData.date).toISOString(),
+  });
+
+  const persist = async (payload: CreateTransactionData, entity: Transaction | null) => {
+    if (entity) {
+      await financeApi.update(entity.id, payload);
     } else {
-      setDesc('');
-      setAmount('');
-      setType('EXPENSE');
-      setCategory('Altro');
-      setDate(format(new Date(), 'yyyy-MM-dd'));
+      await financeApi.create(payload);
     }
-  }, [transaction, isOpen]);
+  };
 
-  const { isLoading: loading, handleSubmit: submitForm } = useFormModal<any>({
-    onSubmit: async (data) => { 
-      if (isEdit && transaction) {
-        await financeApi.update(transaction.id, data);
-      } else {
-        await financeApi.create(data);
-      }
-      onSuccess?.();
-    },
+  const validate = (formData: TransactionFormData): string | null => {
+    if (!formData.description.trim()) return 'Descrizione obbligatoria';
+    const amount = Number(formData.amount);
+    if (isNaN(amount) || amount <= 0) return 'Importo deve essere maggiore di 0';
+    return null;
+  };
+
+  const form = useEntityForm<Transaction, TransactionFormData>({
+    entity: transaction,
+    open: isOpen,
+    initial,
+    buildPayload,
+    persist,
+    successMessage: (isEdit) => (isEdit ? 'Transazione aggiornata!' : 'Transazione registrata!'),
+    onSuccess,
     onClose,
-    successMessage: isEdit ? 'Transazione aggiornata!' : 'Transazione registrata!',
+    validate,
     errorMessage: 'Errore nel salvare la transazione',
   });
 
-  const handleSave = async () => {
-    const data = {
-      description: desc,
-      amount: Number(amount),
-      type,
-      category,
-      date: new Date(date).toISOString(),
-    };
-
-    if (!desc || !amount || Number(amount) <= 0) {
-      toast.error('Compila tutti i campi obbligatori');
-      return;
-    }
-
-    await submitForm(data);
+  const handleTypeChange = (newType: 'INCOME' | 'EXPENSE') => {
+    form.setFields({ type: newType, category: CATEGORIES[newType][0] });
   };
 
   return (
     <SmartModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={form.handleClose}
       title={isEdit ? 'Modifica Transazione' : 'Nuova Voce Spesa / Entrata'}
-      onSave={handleSave}
-      isSaving={loading}
+      onSave={form.handleSubmit}
+      isSaving={form.isLoading}
       saveLabel={isEdit ? 'Salva Modifiche' : 'Registra Transazione'}
       maxWidth="sm"
     >
@@ -103,8 +103,8 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
           <FormInput
             label="Descrizione"
             required
-            value={desc}
-            onChange={setDesc}
+            value={form.formData.description}
+            onChange={form.handleChange('description')}
             placeholder="Es. Affitto, Colori, Acconto Cliente..."
           />
 
@@ -113,20 +113,16 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
               label="Importo (€)"
               type="number"
               required
-              value={amount}
-              onChange={setAmount}
+              value={form.formData.amount}
+              onChange={form.handleChange('amount')}
               placeholder="0.00"
               step="0.01"
               min={0}
             />
             <FormSelect
               label="Tipo"
-              value={type}
-              onChange={(v) => {
-                const newType = v as 'INCOME' | 'EXPENSE';
-                setType(newType);
-                setCategory(CATEGORIES[newType][0]);
-              }}
+              value={form.formData.type}
+              onChange={(v) => handleTypeChange(v as 'INCOME' | 'EXPENSE')}
               options={[
                 { value: 'EXPENSE', label: 'Spesa (Uscita)' },
                 { value: 'INCOME', label: 'Entrata' },
@@ -137,16 +133,16 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
             <FormSelect
               label="Categoria"
-              value={category}
-              onChange={(v) => setCategory(v as string)}
-              options={CATEGORIES[type].map(c => ({ value: c, label: c }))}
+              value={form.formData.category}
+              onChange={(v) => form.setField('category', v as string)}
+              options={CATEGORIES[form.formData.type].map((c) => ({ value: c, label: c }))}
             />
             <FormInput
               label="Data"
               type="date"
               required
-              value={date}
-              onChange={setDate}
+              value={form.formData.date}
+              onChange={form.handleChange('date')}
             />
           </Box>
         </Box>
@@ -154,4 +150,3 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
     </SmartModal>
   );
 }
-

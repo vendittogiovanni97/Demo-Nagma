@@ -3,7 +3,7 @@
 import SmartModal from '@/common/components/common/SmartModal';
 import StatePanel from '@/common/components/feedback/StatePanel';
 import { useAuth } from '@/common/context/AuthContext';
-import { useFormModal } from '@/common/hooks/useFormModal';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import { useToast } from '@/common/hooks/useToast';
 import { createCustomerSchema } from '@/modules/customer/model/customer.schema';
 import { customerApi as customerService } from '@/modules/customer/api/customer.api';
@@ -29,38 +29,35 @@ interface Props {
 export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: Props) {
   const toast = useToast();
   const { isAdmin } = useAuth();
-  const [formData, setFormData] = useState<CreateCustomerData>({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    notes: ''
-  });
 
-  const submitCustomer = async (data: CreateCustomerData) => {
-    if (customer) {
-      await customerService.update(customer.id, data);
-    } else {
-      await customerService.create(data);
-    }
-  };
-
-  const { isLoading: loading, handleSubmit: submitForm } = useFormModal<CreateCustomerData>({
-    onSubmit: submitCustomer,
+  const form = useEntityForm<Customer | null, CreateCustomerData>({
+    entity: customer ?? null,
+    open: isOpen,
+    initial: (entity) =>
+      entity
+        ? {
+            firstName: entity.firstName,
+            lastName: entity.lastName,
+            phone: entity.phone,
+            email: entity.email ?? '',
+            notes: entity.notes ?? '',
+          }
+        : { firstName: '', lastName: '', phone: '', email: '', notes: '' },
+    buildPayload: (data) => data,
+    persist: async (payload, entity) => {
+      if (entity) {
+        await customerService.update(entity.id, payload);
+      } else {
+        await customerService.create(payload);
+      }
+    },
+    successMessage: customer ? 'Cliente aggiornato' : 'Cliente creato',
     onSuccess,
     onClose,
-    successMessage: customer ? 'Cliente aggiornato' : 'Cliente creato',
   });
 
-  useEffect(() => {
-    setFormData(customer
-      ? { firstName: customer.firstName, lastName: customer.lastName, phone: customer.phone, email: customer.email ?? '', notes: customer.notes ?? '' }
-      : { firstName: '', lastName: '', phone: '', email: '', notes: '' }
-    );
-  }, [customer, isOpen]);
-
   const handleSave = async () => {
-    let cleanPhone = formData.phone.trim().replace(/\s+/g, '');
+    let cleanPhone = form.formData.phone.trim().replace(/\s+/g, '');
     if (cleanPhone && !cleanPhone.startsWith('+') && !cleanPhone.startsWith('00')) {
       try {
         const res = await configService.getConfig();
@@ -72,7 +69,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     }
 
     const updatedData = {
-      ...formData,
+      ...form.formData,
       phone: cleanPhone,
     };
 
@@ -81,7 +78,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
       toast.error(extractErrorMessage(new Error(validationError), validationError));
       return;
     }
-    await submitForm(updatedData);
+    await form.handleSubmit(updatedData);
   };
 
   return (
@@ -90,7 +87,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
       onClose={onClose}
       title={customer ? 'Modifica Cliente' : 'Nuovo Cliente'}
       onSave={handleSave}
-      isSaving={loading}
+      isSaving={form.isLoading}
       saveLabel={customer ? 'Salva Modifiche' : 'Crea Cliente'}
       maxWidth="sm"
     >
@@ -111,8 +108,8 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
           >
             <FormInput
               label="Nome"
-              value={formData.firstName}
-              onChange={(v) => setFormData({ ...formData, firstName: v })}
+              value={form.formData.firstName}
+              onChange={(v) => form.setField('firstName', v)}
               placeholder="Nome"
               icon={User}
               required
@@ -120,8 +117,8 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
 
             <FormInput
               label="Cognome"
-              value={formData.lastName}
-              onChange={(v) => setFormData({ ...formData, lastName: v })}
+              value={form.formData.lastName}
+              onChange={(v) => form.setField('lastName', v)}
               placeholder="Cognome"
               icon={User}
               required
@@ -130,26 +127,26 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
 
           <FormInput
             label="Telefono"
-            value={formData.phone}
-            onChange={(v) => setFormData({ ...formData, phone: v })}
+            value={form.formData.phone}
+            onChange={(v) => form.setField('phone', v)}
             placeholder="Telefono"
-              icon={Phone}
+            icon={Phone}
             required
           />
 
           <FormInput
             label="Email"
             type="email"
-            value={formData.email || ''}
-            onChange={(v) => setFormData({ ...formData, email: v })}
+            value={form.formData.email || ''}
+            onChange={(v) => form.setField('email', v)}
             placeholder="Email opzionale"
             icon={Mail}
           />
 
           <FormTextarea
             label="Note"
-            value={formData.notes || ''}
-            onChange={(v) => setFormData({ ...formData, notes: v })}
+            value={form.formData.notes || ''}
+            onChange={(v) => form.setField('notes', v)}
             placeholder="Note, allergie, consensi..."
             rows={4}
           />

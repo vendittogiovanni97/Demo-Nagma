@@ -89,7 +89,7 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
       case 'text':
         return <Box component="iframe" src={previewUrl!} sx={styles.iframePreview} onError={() => setPreviewError(true)} />;
       case 'video':
-        return <Box component="video" src={previewUrl!} controls sx={{ ...styles.mediaPreview, bgcolor: '#000' }} onError={() => setPreviewError(true)} />;
+        return <Box component="video" src={previewUrl!} controls sx={{ ...styles.mediaPreview, bgcolor: 'common.black' }} onError={() => setPreviewError(true)} />;
       case 'audio':
         return (
           <Box sx={styles.audioContainer}>

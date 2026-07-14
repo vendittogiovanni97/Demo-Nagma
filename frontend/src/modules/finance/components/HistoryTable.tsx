@@ -7,7 +7,8 @@ import {
   Stack,
   Tooltip,
   Typography,
-  useTheme
+  useTheme,
+  alpha,
 } from '@mui/material';
 import Avatar from '@/common/components/ui/Avatar';
 import Badge from '@/common/components/ui/Badge';
@@ -29,28 +30,40 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'CREATED': return theme.palette.success.main;
-      case 'UPDATED': return theme.palette.info.main;
-      case 'DELETED': return theme.palette.error.main;
-      default: return theme.palette.text.secondary;
+      case 'CREATED':
+        return theme.palette.success.main;
+      case 'UPDATED':
+        return theme.palette.info.main;
+      case 'DELETED':
+        return theme.palette.error.main;
+      default:
+        return theme.palette.text.secondary;
     }
   };
 
   const getActionIcon = (action: string) => {
     switch (action) {
-      case 'CREATED': return PlusCircle;
-      case 'UPDATED': return Info;
-      case 'DELETED': return Trash2;
-      default: return Info;
+      case 'CREATED':
+        return PlusCircle;
+      case 'UPDATED':
+        return Info;
+      case 'DELETED':
+        return Trash2;
+      default:
+        return Info;
     }
   };
 
   const getActionLabel = (action: string) => {
     switch (action) {
-      case 'CREATED': return 'Creazione';
-      case 'UPDATED': return 'Modifica';
-      case 'DELETED': return 'Eliminazione';
-      default: return action;
+      case 'CREATED':
+        return 'Creazione';
+      case 'UPDATED':
+        return 'Modifica';
+      case 'DELETED':
+        return 'Eliminazione';
+      default:
+        return action;
     }
   };
 
@@ -92,9 +105,9 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
           icon={getActionIcon(row.action)}
           label={getActionLabel(row.action)}
           sx={{
-            bgcolor: `${getActionColor(row.action)}15`,
+            bgcolor: alpha(getActionColor(row.action), 0.09),
             color: getActionColor(row.action),
-            border: `1px solid ${getActionColor(row.action)}30`
+            border: `1px solid ${alpha(getActionColor(row.action), 0.19)}`
           }}
         />
       )
@@ -142,7 +155,7 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
               {selectedLog.oldData && (
                 <Box>
                   <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', opacity: 0.6 }}>Stato Precedente</Typography>
-                  <Box component="pre" sx={{ fontSize: '0.75rem', p: 1.5, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1.5, mt: 0.5, overflow: 'auto', maxHeight: 300 }}>
+                  <Box component="pre" sx={{ fontSize: '0.75rem', p: 1.5, bgcolor: alpha(theme.palette.common.white, 0.03), borderRadius: 1.5, mt: 0.5, overflow: 'auto', maxHeight: 300 }}>
                     {JSON.stringify(selectedLog.oldData, null, 2)}
                   </Box>
                 </Box>
@@ -150,7 +163,7 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
               {selectedLog.newData && (
                 <Box>
                   <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', opacity: 0.6 }}>Nuovo Stato</Typography>
-                  <Box component="pre" sx={{ fontSize: '0.75rem', p: 1.5, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1.5, mt: 0.5, overflow: 'auto', maxHeight: 300 }}>
+                  <Box component="pre" sx={{ fontSize: '0.75rem', p: 1.5, bgcolor: alpha(theme.palette.common.white, 0.03), borderRadius: 1.5, mt: 0.5, overflow: 'auto', maxHeight: 300 }}>
                     {JSON.stringify(selectedLog.newData, null, 2)}
                   </Box>
                 </Box>
@@ -162,4 +175,3 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
     </>
   );
 }
-

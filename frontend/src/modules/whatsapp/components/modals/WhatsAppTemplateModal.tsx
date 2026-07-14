@@ -50,13 +50,14 @@ export default function WhatsAppTemplateModal({
     setIsActive(template?.isActive ?? true);
   }, [isOpen, template]);
 
-  const { isLoading, handleSubmit } = useFormModal({
-    onSubmit: async () => {
+  const form = useFormModal({
+    initial: { name: '', category: '', body: '', isActive: true },
+    onSubmit: async (data) => {
       const payload: CreateWhatsAppTemplateData = {
-        name,
-        category: category || undefined,
-        body,
-        isActive,
+        name: data.name,
+        category: data.category || undefined,
+        body: data.body,
+        isActive: data.isActive,
       };
       if (template) {
         await whatsappService.updateTemplate(template.id, payload);
@@ -69,6 +70,8 @@ export default function WhatsAppTemplateModal({
     successMessage: template ? 'Template aggiornato' : 'Template creato',
     errorMessage: 'Errore durante il salvataggio del template',
   });
+
+  const { isLoading } = form;
 
   const insertVariable = (variableVal: string) => {
     const textarea = document.getElementById('whatsapp-template-body') as HTMLTextAreaElement;
@@ -104,7 +107,7 @@ export default function WhatsAppTemplateModal({
       toast.error(validationError);
       return;
     }
-    await handleSubmit();
+    await form.handleSubmit();
   };
 
   return (

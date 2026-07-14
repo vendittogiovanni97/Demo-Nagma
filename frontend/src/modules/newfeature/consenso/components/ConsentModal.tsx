@@ -7,6 +7,7 @@ import {
   Typography,
   Divider,
   useTheme,
+  alpha,
 } from '@mui/material';
 import Button from '@/common/components/ui/Button';
 import Card from '@/common/components/ui/Card';
@@ -70,9 +71,9 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
       headerAction={<Icon name="fileText" size={20} color={theme.palette.custom.purple} />}
     >
       <Stack spacing={2.5}>
-        
+
         {/* CLIENT QUICK INFO */}
-        <Box sx={{ p: 2, borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <Box sx={{ p: 2, borderRadius: '10px', backgroundColor: alpha(theme.palette.common.white, 0.02), border: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
             CLIENTE ASSOCIATO
           </Typography>
@@ -87,7 +88,7 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
         {/* STATUS BLOCK */}
         {isSigned ? (
           <Stack spacing={2}>
-            <Card size="sm" variant="minimal" sx={{ border: `1px solid ${theme.palette.custom.emerald}`, backgroundColor: `${theme.palette.custom.emerald}0a`, borderRadius: '10px' }}>
+            <Card size="sm" variant="minimal" sx={{ border: `1px solid ${theme.palette.custom.emerald}`, backgroundColor: alpha(theme.palette.custom.emerald, 0.04), borderRadius: '10px' }}>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
                 <Icon name="checkCircle" size={22} color={theme.palette.custom.emerald} />
                 <Box>
@@ -105,14 +106,14 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
             </Card>
 
             {hasAlerts && (
-              <Card size="sm" variant="minimal" sx={{ border: `1.5px solid ${theme.palette.error.main}`, backgroundColor: `${theme.palette.error.main}0d`, borderRadius: '10px', boxShadow: `0 4px 12px ${theme.palette.error.main}26` }}>
+              <Card size="sm" variant="minimal" sx={{ border: `1.5px solid ${theme.palette.error.main}`, backgroundColor: alpha(theme.palette.error.main, 0.05), borderRadius: '10px', boxShadow: `0 4px 12px ${alpha(theme.palette.error.main, 0.15)}` }}>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
                   <Icon name="alertTriangle" size={24} color={theme.palette.error.main} />
                   <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main', letterSpacing: -0.2 }}>
                       🚨 ATTENZIONE: ALLERTE MEDICHE
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'white', mt: 0.8, fontWeight: 600, fontSize: '0.8rem', lineHeight: 1.4 }}>
+                    <Typography variant="body2" sx={{ color: 'text.primary', mt: 0.8, fontWeight: 600, fontSize: '0.8rem', lineHeight: 1.4 }}>
                       {alertsDetails}
                     </Typography>
                   </Box>
@@ -128,12 +129,12 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
               sx={{
                 py: 1.2,
                 borderRadius: '8px',
-                border: `1px solid ${theme.palette.custom.purple}4d`,
+                border: `1px solid ${alpha(theme.palette.custom.purple, 0.3)}`,
                 fontWeight: 600,
                 fontSize: '0.85rem',
                 '&:hover': {
                   borderColor: 'custom.purple',
-                  backgroundColor: (t) => `${t.palette.custom.purple}0d`,
+                  backgroundColor: alpha(theme.palette.custom.purple, 0.05),
                 },
               }}
             >
@@ -142,7 +143,7 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
           </Stack>
         ) : (
           <Stack spacing={2}>
-            <Card size="sm" variant="minimal" sx={{ border: 1, borderColor: 'divider', backgroundColor: 'rgba(255,255,255,0.01)', borderRadius: '10px' }}>
+            <Card size="sm" variant="minimal" sx={{ border: 1, borderColor: 'divider', backgroundColor: alpha(theme.palette.common.white, 0.01), borderRadius: '10px' }}>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                 <Icon name="alertTriangle" size={20} color={theme.palette.text.secondary} />
                 <Box>
@@ -171,8 +172,8 @@ export default function ConsentModal({ open, onClose, booking }: ConsentModalPro
                   fontWeight: 600,
                   fontSize: '0.8rem',
                   '&:hover': {
-                    borderColor: 'white',
-                    backgroundColor: 'rgba(255,255,255,0.02)',
+                    borderColor: 'common.white',
+                    backgroundColor: alpha(theme.palette.common.white, 0.02),
                   },
                 }}
               >

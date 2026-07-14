@@ -48,6 +48,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
   const [label, setLabel] = useState('Mattina');
 
   const { isLoading, handleSubmit } = useFormModal({
+    initial: { staffId, dayOfWeek, label },
     onSubmit: async () => {
       const data: CreateShiftData = {
         staffId: Number(staffId),

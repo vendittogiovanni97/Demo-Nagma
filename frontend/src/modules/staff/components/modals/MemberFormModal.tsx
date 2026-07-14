@@ -49,6 +49,7 @@ export default function MemberFormModal({ isOpen, onClose, onSuccess, member }: 
   }, [isOpen, member]);
 
   const { isLoading, handleSubmit } = useFormModal({
+    initial: { name, type, color },
     onSubmit: async () => {
       const payload = { name, type, color };
       if (isEditing) {

@@ -32,25 +32,20 @@ export default function StaffModal({ isOpen, onClose }: Props) {
   const toast = useToast();
   const { isAdmin } = useAuth();
   const theme = useTheme();
-  const [name, setName] = useState('');
-  const [type, setType] = useState('COLLABORATORE');
-  const [color, setColor] = useState(() => theme.palette.primary.main);
 
-  const { isLoading, handleSubmit } = useFormModal({
-    onSubmit: async () => {
-      const payload = { name, type, color };
+  const { isLoading, handleSubmit, handleChange, formData } = useFormModal({
+    initial: { name: '', type: 'COLLABORATORE', color: theme.palette.primary.main },
+    onSubmit: async (data) => {
+      const payload = { name: data.name, type: data.type, color: data.color };
       await staffApi.create(payload);
-      setName('');
-      setType('COLLABORATORE');
-      setColor(theme.palette.primary.main);
     },
     onClose,
-    successMessage: `${name} aggiunto al team!`,
+    successMessage: 'Staff aggiunto al team!',
     errorMessage: "Errore durante l'inserimento",
   });
 
   const handleSave = async () => {
-    const payload = { name, type, color };
+    const payload = { name: formData.name, type: formData.type, color: formData.color };
     const validationError = validateData(createStaffSchema, payload);
     if (validationError) {
       toast.error(validationError);
@@ -89,58 +84,58 @@ export default function StaffModal({ isOpen, onClose }: Props) {
             }}
           >
             <Avatar
-              name={name || 'S'}
-              color={color}
+              name={formData.name || 'S'}
+              color={formData.color}
               size="lg"
               sx={{ cursor: 'default', '&:hover': { transform: 'none' } }}
             />
             <Box sx={{ minWidth: 0 }}>
               <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600, color: theme.palette.text.primary }}>
-                {name.trim() || 'Nuovo membro staff'}
+                {formData.name.trim() || 'Nuovo membro staff'}
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
-                {STAFF_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? 'Collaboratore'}
+                {STAFF_TYPE_OPTIONS.find((option) => option.value === formData.type)?.label ?? 'Collaboratore'}
               </Typography>
             </Box>
           </Box>
 
           <FormInput
             label="Nome"
-            value={name}
-            onChange={setName}
+            value={formData.name}
+            onChange={handleChange('name')}
             placeholder="Nome del collaboratore..."
             required
           />
 
           <FormSelect
             label="Tipo"
-            value={type}
-            onChange={setType}
+            value={formData.type}
+            onChange={handleChange('type')}
             options={STAFF_TYPE_OPTIONS}
             required
           />
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Typography sx={{ 
-              fontSize: '0.75rem', 
-              fontWeight: 600, 
+            <Typography sx={{
+              fontSize: '0.75rem',
+              fontWeight: 600,
               color: theme.palette.primary.main,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              px: 0.5 
+              px: 0.5
             }}>
               Colore Calendario
             </Typography>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {STAFF_COLOR_PRESETS.map((preset) => {
-                const isSelected = color.toUpperCase() === preset.toUpperCase();
+                const isSelected = formData.color.toUpperCase() === preset.toUpperCase();
                 return (
                   <Box
                     key={preset}
                     component="button"
                     type="button"
-                    onClick={() => setColor(preset)}
+                    onClick={() => handleChange('color')(preset)}
                     aria-label={`Seleziona colore ${preset}`}
                     sx={{
                       width: 32,
@@ -175,15 +170,15 @@ export default function StaffModal({ isOpen, onClose }: Props) {
                 overflow: 'hidden',
                 '&:hover': {
                   backgroundColor: alpha(theme.palette.common.white, 0.05),
-                  borderColor: color,
-                  boxShadow: `0 0 15px ${color}1a`,
+                  borderColor: formData.color,
+                  boxShadow: `0 0 15px ${formData.color}1a`,
                 }
               }}
             >
               <input
                 type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
+                value={formData.color}
+                onChange={(e) => handleChange('color')(e.target.value)}
                 style={{
                   position: 'absolute',
                   width: 0,
@@ -198,12 +193,12 @@ export default function StaffModal({ isOpen, onClose }: Props) {
                   width: 44,
                   height: 44,
                   borderRadius: '12px',
-                  backgroundColor: color,
+                  backgroundColor: formData.color,
                   border: `2px solid ${alpha(theme.palette.common.white, 0.2)}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: `0 4px 12px ${color}4d`,
+                  boxShadow: `0 4px 12px ${formData.color}4d`,
                   flexShrink: 0,
                   transition: 'transform 0.2s',
                 }}
@@ -215,7 +210,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
 
               <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: theme.palette.text.primary, fontFamily: 'Outfit', mb: 0.25 }}>
-                  Colore Personalizzato: <span style={{ color: color, fontFamily: 'monospace', fontWeight: 900 }}>{color.toUpperCase()}</span>
+                  Colore Personalizzato: <span style={{ color: formData.color, fontFamily: 'monospace', fontWeight: 900 }}>{formData.color.toUpperCase()}</span>
                 </Typography>
                 <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
                   Clicca qui per aprire la tavolozza dei colori completa

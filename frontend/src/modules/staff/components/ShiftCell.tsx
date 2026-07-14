@@ -2,7 +2,7 @@
 
 import Button from '@/common/components/ui/Button';
 import type { Shift } from '../model/staff.types';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, alpha } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
 
 interface ShiftCellProps {
@@ -42,7 +42,7 @@ export default function ShiftCell({
         flexDirection: 'column',
         justifyContent: 'center',
         minHeight: '72px',
-        '&:hover': { bgcolor: 'rgba(255,255,255,0.01)' },
+        '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.01) },
       }}
     >
       {shift ? (
@@ -54,18 +54,18 @@ export default function ShiftCell({
             p: 1,
             textAlign: 'center',
             border: '1px solid',
-            borderColor: shift.isOff ? 'rgba(239, 68, 68, 0.3)' : `${memberColor}40`,
-            backgroundColor: shift.isOff ? 'rgba(239, 68, 68, 0.1)' : `${memberColor}15`,
-            boxShadow: isUpdating ? 'none' : `0 4px 12px ${memberColor}10`,
+            borderColor: shift.isOff ? alpha(theme.palette.error.main, 0.3) : alpha(memberColor, 0.25),
+            backgroundColor: shift.isOff ? alpha(theme.palette.error.main, 0.1) : alpha(memberColor, 0.08),
+            boxShadow: isUpdating ? 'none' : `0 4px 12px ${alpha(memberColor, 0.06)}`,
             transition: 'all 0.3s',
             opacity: isUpdating ? 0.5 : 1,
             cursor: isUpdating ? 'wait' : 'pointer',
-            '&:hover': !isUpdating ? { transform: 'scale(1.02)', boxShadow: `0 4px 12px ${memberColor}20` } : {},
+            '&:hover': !isUpdating ? { transform: 'scale(1.02)', boxShadow: `0 4px 12px ${alpha(memberColor, 0.12)}` } : {},
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '28px' }}>
             {isUpdating ? (
-              <Box component="span" sx={{ animation: 'spin 1s linear infinite', display: 'inline-flex', color: 'rgba(255,255,255,0.5)' }}>
+              <Box component="span" sx={{ animation: 'spin 1s linear infinite', display: 'inline-flex', color: alpha(theme.palette.text.secondary, 0.5) }}>
                 <Icon name="loader2" size={14} />
               </Box>
             ) : (
@@ -85,7 +85,7 @@ export default function ShiftCell({
       ) : (
         <Box sx={{ position: 'absolute', inset: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {isAdding ? (
-            <Box component="span" sx={{ animation: 'spin 1s linear infinite', display: 'inline-flex', color: 'rgba(255,255,255,0.2)' }}>
+            <Box component="span" sx={{ animation: 'spin 1s linear infinite', display: 'inline-flex', color: alpha(theme.palette.text.secondary, 0.2) }}>
               <Icon name="loader2" size={16} />
             </Box>
           ) : canManageShiftData ? (
@@ -103,7 +103,7 @@ export default function ShiftCell({
                   '&:hover + button': { opacity: 1 },
                 }}
               >
-                <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                <Typography sx={{ fontSize: '0.625rem', fontWeight: 600, color: alpha(theme.palette.text.secondary, 0.2), textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                   Riposo
                 </Typography>
               </Box>
@@ -117,7 +117,7 @@ export default function ShiftCell({
                   width: '100%',
                   height: '100%',
                   borderRadius: '8px',
-                  border: '2px dashed rgba(255,255,255,0.1)',
+                  border: `2px dashed ${alpha(theme.palette.common.white, 0.1)}`,
                   opacity: 0,
                   transition: 'opacity 0.15s',
                 }}
@@ -129,7 +129,7 @@ export default function ShiftCell({
               </Button>
             </>
           ) : (
-            <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.1em', userSelect: 'none' }}>
+            <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: alpha(theme.palette.text.secondary, 0.2), textTransform: 'uppercase', letterSpacing: '0.1em', userSelect: 'none' }}>
               Riposo
             </Typography>
           )}

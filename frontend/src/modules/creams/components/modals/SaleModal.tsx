@@ -42,6 +42,7 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
   };
 
   const { isLoading, handleSubmit } = useFormModal({
+    initial: {},
     onSubmit: async () => {
       await onSubmit(selectedArtistId, quantity);
       setSelectedArtistId(0);

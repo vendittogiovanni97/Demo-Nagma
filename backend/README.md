@@ -113,8 +113,8 @@ docker compose logs -f postgres
 # Genera Prisma Client
 npx prisma generate
 
-# Spinge schema al database
-npx prisma db push
+# Crea e applica migrazione (sviluppo)
+npm run db:migrate
 
 # Popola con dati iniziali
 npm run db:seed
@@ -332,14 +332,11 @@ export const prisma = new PrismaClient({ adapter });
 # Genera client TypeScript
 npx prisma generate
 
-# Spinge schema direttamente al DB (dev rapido)
-npx prisma db push
-
-# Crea migrazione (per produzione)
-npx prisma migrate dev --name nome_migrazione
+# Crea migrazione (per sviluppo)
+npm run db:migrate
 
 # Applica migrazioni in prod
-npx prisma migrate deploy
+npm run db:migrate:prod
 
 # Popola DB
 npm run db:seed
@@ -363,7 +360,6 @@ npm run db:seed          # Esegui seed (dati iniziali)
 npm run db:migrate       # Crea migrazione
 npm run db:migrate:prod  # Applica migrazioni in prod
 npm run db:reset         # ⚠️ Reset DB + seed
-npm run db:push          # Sincronizza schema
 npm run db:studio        # Apri Prisma Studio UI
 npm run lint             # ESLint (opzionale)
 ```

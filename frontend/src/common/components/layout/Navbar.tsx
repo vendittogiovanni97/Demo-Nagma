@@ -199,7 +199,7 @@ export default function Navbar() {
               />
             </Toolbar>
           </AppBar>
-          <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+          <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} booking={null} />
         </>
       )}
     </nav>

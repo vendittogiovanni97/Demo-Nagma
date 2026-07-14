@@ -5,6 +5,7 @@ import Button from '@/common/components/ui/Button';
 import type { FormTemplate } from '@/modules/form-templates/model/form-template.types';
 import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import Icon from '@/common/components/ui/Icon';
 
 function decodeFieldCount(schemaB64: string): number {
@@ -33,7 +34,7 @@ export default function TemplateListPanel({
   return (
     <Box
       sx={{
-        backgroundColor: 'rgba(26,35,50,0.8)',
+        backgroundColor: alpha(theme.palette.background.default, 0.8),
         backdropFilter: 'blur(10px)',
         width: { xs: '100%', lg: '33.333%' },
         display: 'flex',
@@ -49,7 +50,7 @@ export default function TemplateListPanel({
           sx={{
             fontSize: '1.125rem',
             fontWeight: 700,
-            color: 'white',
+            color: 'text.primary',
             fontFamily: 'Outfit, sans-serif',
           }}
         >
@@ -81,7 +82,7 @@ export default function TemplateListPanel({
               textAlign: 'center',
             }}
           >
-            <Box sx={{ color: 'rgba(255,255,255,0.2)', mb: 1.5 }}>
+            <Box sx={{ color: 'text.disabled', mb: 1.5 }}>
               <Icon name="fileText" size={32} />
             </Box>
             <Box
@@ -110,13 +111,13 @@ export default function TemplateListPanel({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
-                backgroundColor: isSelected ? 'rgba(0,191,255,0.1)' : 'rgba(255,255,255,0.05)',
+                backgroundColor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.05),
                 borderColor: isSelected ? 'primary.main' : 'divider',
-                boxShadow: isSelected ? '0 0 15px rgba(0,191,255,0.1)' : 'none',
+                boxShadow: isSelected ? `0 0 15px ${alpha(theme.palette.primary.main, 0.1)}` : 'none',
                 '&:hover': {
                   backgroundColor: isSelected
-                    ? 'rgba(0,191,255,0.1)'
-                    : 'rgba(255,255,255,0.1)',
+                    ? alpha(theme.palette.primary.main, 0.1)
+                    : alpha(theme.palette.common.white, 0.1),
                 },
               }}
             >
@@ -175,10 +176,10 @@ export default function TemplateListPanel({
                   variant="icon"
                   icon={<Icon name="trash2" size={18} />}
                   sx={{
-                    color: 'rgba(244,67,54,0.6)',
+                    color: theme => theme.palette.error.main,
                     '&:hover': {
-                      color: 'error.main',
-                      backgroundColor: 'rgba(244,67,54,0.1)',
+                      color: theme => theme.palette.error.main,
+                      backgroundColor: theme => alpha(theme.palette.error.main, 0.1),
                     },
                   }}
                   onClick={(e) => {

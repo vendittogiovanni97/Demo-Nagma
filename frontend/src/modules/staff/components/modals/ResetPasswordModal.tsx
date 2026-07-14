@@ -18,6 +18,11 @@ interface ResetPasswordModalProps {
   userName: string;
 }
 
+interface ResetPasswordFormData {
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export default function ResetPasswordModal({
   isOpen,
   onClose,
@@ -25,15 +30,12 @@ export default function ResetPasswordModal({
   memberId,
   userName,
 }: ResetPasswordModalProps) {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const toast = useToast();
 
-  const { isLoading, handleSubmit } = useFormModal({
-    onSubmit: async () => {
-      await staffApi.resetMemberPassword(memberId, newPassword);
-      setNewPassword('');
-      setConfirmPassword('');
+  const form = useFormModal<ResetPasswordFormData>({
+    initial: { newPassword: '', confirmPassword: '' },
+    onSubmit: async (data) => {
+      await staffApi.resetMemberPassword(memberId, data.newPassword);
       onSuccess();
     },
     onClose,
@@ -42,11 +44,11 @@ export default function ResetPasswordModal({
   });
 
   const handleSave = async () => {
-    if (newPassword !== confirmPassword) {
+    if (form.formData.newPassword !== form.formData.confirmPassword) {
       toast.error('Le password inserite non sono uguali');
       return;
     }
-    await handleSubmit();
+    await form.handleSubmit();
   };
 
   return (
@@ -55,7 +57,7 @@ export default function ResetPasswordModal({
       onClose={onClose}
       title={`Reset Password - ${userName}`}
       onSave={handleSave}
-      isSaving={isLoading}
+      isSaving={form.isLoading}
       saveLabel="Resetta Password"
       maxWidth="sm"
     >
@@ -63,8 +65,8 @@ export default function ResetPasswordModal({
         <FormInput
           label="Nuova Password"
           type="password"
-          value={newPassword}
-          onChange={setNewPassword}
+          value={form.formData.newPassword}
+          onChange={form.handleChange('newPassword')}
           placeholder="••••••••"
           icon={Lock}
           required
@@ -73,8 +75,8 @@ export default function ResetPasswordModal({
         <FormInput
           label="Conferma Password"
           type="password"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
+          value={form.formData.confirmPassword}
+          onChange={form.handleChange('confirmPassword')}
           placeholder="••••••••"
           icon={Lock}
           required

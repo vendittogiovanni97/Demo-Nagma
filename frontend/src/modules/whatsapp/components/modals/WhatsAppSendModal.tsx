@@ -28,6 +28,23 @@ interface WhatsAppSendModalProps {
   booking?: Booking | null;
 }
 
+interface WhatsAppFormData {
+  templateId: string;
+  customerId: string;
+  recipientName: string;
+  recipientPhone: string;
+  message: string;
+  variables: Record<string, string>;
+}
+
+const QUICK_VARIABLES = [
+  { label: '👤 Nome Cliente', value: '{{nome}}', color: '#00e5ff' },
+  { label: '📅 Data Appt.', value: '{{data}}', color: '#ff007f' },
+  { label: '⏰ Ora Appt.', value: '{{ora}}', color: '#7000ff' },
+  { label: '🎨 Artista', value: '{{artista}}', color: '#ffaa00' },
+  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}', color: '#00ff66' },
+];
+
 export default function WhatsAppSendModal({
   isOpen,
   onClose,
@@ -116,16 +133,24 @@ export default function WhatsAppSendModal({
     mode: 'modal',
   });
 
-  const { isLoading, handleSubmit } = useFormModal({
-    onSubmit: async () => {
+  const { isLoading, handleSubmit, handleChange, formData } = useFormModal<WhatsAppFormData>({
+    initial: {
+      templateId: '',
+      customerId: '',
+      recipientName: '',
+      recipientPhone: '',
+      message: '',
+      variables: {},
+    },
+    onSubmit: async (data) => {
       const response = await whatsappService.sendManualMessage({
-        templateId: selectedTemplate!.id,
-        customerId: selectedCustomerId ? Number(selectedCustomerId) : (customer?.id || booking?.customer?.id || undefined),
-        bookingId: booking?.id || undefined,
-        recipientName: recipientName || undefined,
-        recipientPhone,
-        message: messageDraft,
-        variables,
+        templateId: Number(data.templateId),
+        customerId: Number(data.customerId),
+        bookingId: booking?.id,
+        recipientName: data.recipientName || undefined,
+        recipientPhone: data.recipientPhone,
+        message: data.message,
+        variables: data.variables,
       });
       window.open(response.whatsappUrl, '_blank', 'noopener,noreferrer');
       onSuccess?.();
@@ -156,6 +181,14 @@ export default function WhatsAppSendModal({
       toast.error(validationError);
       return;
     }
+
+    // Update form data before submit
+    handleChange('templateId')(selectedTemplate.id.toString());
+    handleChange('customerId')(selectedCustomerId);
+    handleChange('recipientName')(recipientName);
+    handleChange('recipientPhone')(recipientPhone);
+    handleChange('message')(messageDraft);
+    handleChange('variables')(variables);
 
     await handleSubmit();
   };
@@ -239,13 +272,13 @@ export default function WhatsAppSendModal({
             }}
           >
             <Typography
-              sx={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 700, 
-                color: theme.palette.primary.main, 
-                textTransform: 'uppercase', 
+              sx={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: theme.palette.primary.main,
+                textTransform: 'uppercase',
                 letterSpacing: '0.12em',
-                mb: 2 
+                mb: 2,
               }}
             >
               Anteprima messaggio
@@ -256,16 +289,16 @@ export default function WhatsAppSendModal({
                 border: '1px solid rgba(0, 191, 255, 0.1)',
                 backgroundColor: 'rgba(10, 26, 38, 0.5)',
                 p: 2.5,
-                minHeight: '80px'
+                minHeight: '80px',
               }}
             >
               <Typography
                 variant="body2"
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.85)', 
-                  lineHeight: 1.6, 
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.85)',
+                  lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
-                  fontFamily: 'Inter, sans-serif'
+                  fontFamily: 'Inter, sans-serif',
                 }}
               >
                 {selectedTemplate ? previewMessage : 'Seleziona un template per vedere l\'anteprima.'}

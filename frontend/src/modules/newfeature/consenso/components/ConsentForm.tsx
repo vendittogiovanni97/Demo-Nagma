@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   CircularProgress,
@@ -17,108 +17,121 @@ import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import FormInput from '@/common/components/forms/FormInput';
 import Icon from '@/common/components/ui/Icon';
 import { consensoService } from '../service/consenso.service';
-import { PublicBookingData, MedicalAnswers } from '../model/consenso.model';
+import { PublicBookingData, MedicalAnswers, ConsentSubmission } from '../model/consenso.model';
 import ConsentCanvas from './ConsentCanvas';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
+import { useToast } from '@/common/hooks/useToast';
 
 interface ConsentFormProps {
   bookingId: number;
 }
 
+interface ConsentFormData {
+  documentId: string;
+  medicalAnswers: MedicalAnswers;
+  signatureB64: string | null;
+}
+
+const INITIAL_MEDICAL_ANSWERS: MedicalAnswers = {
+  maggiorenne: false,
+  gravidanza: false,
+  allergie: false,
+  allergieDettagli: '',
+  anticoagulanti: false,
+  cardiopatie: false,
+  epilessia: false,
+  malattieInfettive: false,
+  diabete: false,
+  accettaPermanenza: false,
+  accettaPrivacy: false,
+};
+
+const INITIAL_FORM_DATA: ConsentFormData = {
+  documentId: '',
+  medicalAnswers: INITIAL_MEDICAL_ANSWERS,
+  signatureB64: null,
+};
+
 export default function ConsentForm({ bookingId }: ConsentFormProps) {
   const theme = useTheme();
+  const toast = useToast();
+
+  // Loading state for initial data fetch
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState<PublicBookingData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Form Fields
-  const [documentId, setDocumentId] = useState('');
-  const [medicalAnswers, setMedicalAnswers] = useState<MedicalAnswers>({
-    maggiorenne: false,
-    gravidanza: false,
-    allergie: false,
-    allergieDettagli: '',
-    anticoagulanti: false,
-    cardiopatie: false,
-    epilessia: false,
-    malattieInfettive: false,
-    diabete: false,
-    accettaPermanenza: false,
-    accettaPrivacy: false,
-  });
-  const [signatureB64, setSignatureB64] = useState<string | null>(null);
-
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  // Load Booking public details
+  // Fetch booking data
   useEffect(() => {
+    let cancelled = false;
     const fetchBooking = async () => {
       try {
         const res = await consensoService.getBookingPublic(bookingId);
-        if (res.success) {
-          setBookingData(res.data);
-        } else {
-          setError((res as any).message || 'Impossibile caricare i dati della prenotazione.');
+        if (!cancelled) {
+          if (res.success) {
+            setBookingData(res.data);
+          } else {
+            setFetchError((res as any).message || 'Impossibile caricare i dati della prenotazione.');
+          }
         }
       } catch (err: any) {
-        setError(err?.message || 'Errore di connessione al server.');
+        if (!cancelled) {
+          setFetchError(err?.message || 'Errore di connessione al server.');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchBooking();
+    return () => { cancelled = true; };
   }, [bookingId]);
 
-  const handleCheckboxChange = (key: keyof MedicalAnswers) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMedicalAnswers(prev => ({
-      ...prev,
-      [key]: e.target.checked
-    }));
+  // Form with useEntityForm (entity = bookingData for initial values)
+  const form = useEntityForm<PublicBookingData | null, ConsentFormData>({
+    entity: bookingData,
+    open: !loading && !fetchError,
+    initial: () => INITIAL_FORM_DATA,
+    buildPayload: (formData): ConsentSubmission => ({
+      documentId: formData.documentId,
+      medicalAnswers: formData.medicalAnswers,
+      signatureB64: formData.signatureB64 || '',
+    }),
+    persist: async (payload) => {
+      const res = await consensoService.submitConsent(bookingId, payload);
+      if (!res.success) throw new Error(res.message || 'Errore durante la registrazione del consenso.');
+    },
+    successMessage: 'Consenso registrato con successo!',
+    errorMessage: 'Errore nel salvare il consenso',
+    validate: (formData) => {
+      if (!formData.documentId.trim()) return "Il numero del documento d'identità è obbligatorio.";
+      if (!formData.medicalAnswers.maggiorenne) return "Devi dichiarare di essere maggiorenne (o legalmente autorizzato) per procedere.";
+      if (!formData.medicalAnswers.accettaPermanenza) return "Devi dichiarare di essere a conoscenza della permanenza del tatuaggio.";
+      if (!formData.medicalAnswers.accettaPrivacy) return "È necessario acconsentire al trattamento dei dati personali (GDPR).";
+      if (formData.medicalAnswers.allergie && !formData.medicalAnswers.allergieDettagli?.trim()) return "Inserisci i dettagli delle tue allergie.";
+      if (!formData.signatureB64) return "La firma grafica è obbligatoria per convalidare il documento.";
+      return null;
+    },
+    onSuccess: () => {
+      toast.success('Consenso registrato con successo!');
+    },
+    onClose: () => {},
+  });
+
+  // Helper handlers for checkboxes
+  const handleCheckboxChange = (key: keyof MedicalAnswers) => (checked: boolean) => {
+    form.setField('medicalAnswers', { ...form.formData.medicalAnswers, [key]: checked });
   };
 
-  const handleDetailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMedicalAnswers(prev => ({
-      ...prev,
-      allergieDettagli: e.target.value
-    }));
+  const handleDetailChange = (value: string) => {
+    form.setField('medicalAnswers', { ...form.formData.medicalAnswers, allergieDettagli: value });
   };
 
-  const validateForm = (): string | null => {
-    if (!documentId.trim()) return "Il numero del documento d'identità è obbligatorio.";
-    if (!medicalAnswers.maggiorenne) return "Devi dichiarare di essere maggiorenne (o legalmente autorizzato) per procedere.";
-    if (!medicalAnswers.accettaPermanenza) return "Devi dichiarare di essere a conoscenza della permanenza del tatuaggio.";
-    if (!medicalAnswers.accettaPrivacy) return "È necessario acconsentire al trattamento dei dati personali (GDPR).";
-    if (medicalAnswers.allergie && !medicalAnswers.allergieDettagli?.trim()) return "Inserisci i dettagli delle tue allergie.";
-    if (!signatureB64) return "La firma grafica è obbligatoria per convalidare il documento.";
-    return null;
+  const handleDocumentIdChange = (value: string) => {
+    form.setField('documentId', value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationError = validateForm();
-    if (validationError) {
-      alert(validationError);
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await consensoService.submitConsent(bookingId, {
-        documentId,
-        medicalAnswers,
-        signatureB64: signatureB64 || '',
-      });
-
-      if (res.success) {
-        setSubmitted(true);
-      } else {
-        alert(res.message || 'Errore durante la registrazione del consenso.');
-      }
-    } catch (err: any) {
-      alert(err?.message || 'Errore imprevisto durante l\'invio del consenso.');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleSignatureChange = (signatureB64: string | null) => {
+    form.setField('signatureB64', signatureB64);
   };
 
   if (loading) {
@@ -132,29 +145,29 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
     );
   }
 
-  if (error) {
+  if (fetchError) {
     return (
       <Stack sx={{ minHeight: '60vh', justifyContent: 'center', alignItems: 'center', p: 3, textAlign: 'center' }} spacing={2}>
-        <Icon name="alertCircle" size={48} className="text-[#EF4444]" />
+        <Icon name="alertCircle" size={48} color="error.main" />
         <Typography variant="h5" sx={{ fontWeight: 700, color: 'error.main' }}>
           Attenzione
         </Typography>
         <Typography sx={{ color: 'text.secondary', maxWidth: 400 }}>
-          {error}
+          {fetchError}
         </Typography>
       </Stack>
     );
   }
 
-  if (submitted) {
+  if (form.isSubmitted) {
     return (
       <Stack sx={{ minHeight: '80vh', justifyContent: 'center', alignItems: 'center', p: 3, textAlign: 'center' }} spacing={3}>
-        <Icon name="checkCircle" size={64} className="text-[#10B981] animate-bounce" />
-        <Typography variant="h4" sx={{ fontWeight: 800, color: 'var(--color-text-primary)' }}>
+        <Icon name="checkCircle" size={64} color="success.main" />
+        <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
           Grazie, {bookingData?.customerName}!
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 450, fontSize: '0.95rem' }}>
-          Il tuo Consenso Informato è stato registrato ed associato con successo alla tua prenotazione con l'artista <strong>{bookingData?.artistName}</strong>. 
+          Il tuo Consenso Informato è stato registrato ed associato con successo alla tua prenotazione con l'artista <strong>{bookingData?.artistName}</strong>.
         </Typography>
         <Divider sx={{ width: '100%', maxWidth: 200, my: 1 }} />
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
@@ -165,13 +178,13 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ py: 4, px: 2, maxWidth: 640, mx: 'auto' }}>
-      
+    <Box component="form" onSubmit={form.handleSubmit} sx={{ py: 4, px: 2, maxWidth: 640, mx: 'auto' }}>
+
       {/* HEADER CARD */}
       <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <Icon name="shieldCheck" size={28} className="text-[#9155FD]" />
+              <Icon name="shieldCheck" size={28} color="custom.purple" />
               <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: -0.5 }}>
                 Consenso Informato
               </Typography>
@@ -182,15 +195,15 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
 
             <Divider sx={{ my: 1 }} />
 
-            <Stack spacing={0.5} sx={(theme) => ({ pl: 1, borderLeft: `3px solid ${theme.palette.custom.purple}` })}>
+            <Stack spacing={0.5} sx={{ pl: 1, borderLeft: `3px solid ${theme.palette.custom.purple}` }}>
               <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-                Cliente: <strong className="text-white">{bookingData?.customerName}</strong>
+                Cliente: <Typography component="strong" sx={{ color: 'text.primary' }}>{bookingData?.customerName}</Typography>
               </Typography>
               <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-                Artista: <strong className="text-white">{bookingData?.artistName}</strong>
+                Artista: <Typography component="strong" sx={{ color: 'text.primary' }}>{bookingData?.artistName}</Typography>
               </Typography>
               <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-                Data Sessione: <strong className="text-white">{bookingData?.date ? new Date(bookingData.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</strong>
+                Data Sessione: <Typography component="strong" sx={{ color: 'text.primary' }}>{bookingData?.date ? new Date(bookingData.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</Typography>
               </Typography>
             </Stack>
           </Stack>
@@ -200,7 +213,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
       <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Icon name="fileText" size={18} className="text-[#9155FD]" />
+              <Icon name="fileText" size={18} color="custom.purple" />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 1. Documento d'Identità
               </Typography>
@@ -209,8 +222,8 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
               required
               label="Numero Carta d'Identità / Passaporto"
               placeholder="es: CA12345AB"
-              value={documentId}
-              onChange={setDocumentId}
+              value={form.formData.documentId}
+              onChange={handleDocumentIdChange}
             />
           </Stack>
       </Card>
@@ -219,7 +232,7 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
       <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 3 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Icon name="heart" size={18} className="text-[#9155FD]" />
+              <Icon name="heart" size={18} color="custom.purple" />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 2. Dichiarazioni Sanitarie
               </Typography>
@@ -233,33 +246,33 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
             <FormGroup sx={{ gap: 1.5 }}>
               <CheckboxInput
                 label="Dichiaro di essere maggiorenne"
-                checked={medicalAnswers.maggiorenne}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, maggiorenne: checked }))}
+                checked={form.formData.medicalAnswers.maggiorenne}
+                onChange={handleCheckboxChange('maggiorenne')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <CheckboxInput
                 label="Ti trovi in stato di gravidanza o allattamento?"
-                checked={medicalAnswers.gravidanza}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, gravidanza: checked }))}
+                checked={form.formData.medicalAnswers.gravidanza}
+                onChange={handleCheckboxChange('gravidanza')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <Box>
                 <CheckboxInput
                   label="Soffri di allergie? (Nichel, Metalli, Lattice, Disinfettanti, ecc.)"
-                  checked={medicalAnswers.allergie}
-                  onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, allergie: checked }))}
+                  checked={form.formData.medicalAnswers.allergie}
+                  onChange={handleCheckboxChange('allergie')}
                   sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
                 />
-                <Collapse in={medicalAnswers.allergie}>
+                <Collapse in={form.formData.medicalAnswers.allergie}>
                   <Box sx={{ pl: 4, pt: 1, pb: 0.5 }}>
                     <FormInput
                       size="sm"
                       label="Specifica le tue allergie"
                       placeholder="es: Allergico al Nichel e al Lattice"
-                      value={medicalAnswers.allergieDettagli ?? ''}
-                      onChange={(v) => setMedicalAnswers(prev => ({ ...prev, allergieDettagli: String(v) }))}
+                      value={form.formData.medicalAnswers.allergieDettagli ?? ''}
+                      onChange={handleDetailChange}
                     />
                   </Box>
                 </Collapse>
@@ -267,36 +280,36 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
 
               <CheckboxInput
                 label="Assumi farmaci anticoagulanti (cardioaspirina, ecc.)?"
-                checked={medicalAnswers.anticoagulanti}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, anticoagulanti: checked }))}
+                checked={form.formData.medicalAnswers.anticoagulanti}
+                onChange={handleCheckboxChange('anticoagulanti')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <CheckboxInput
                 label="Soffri di cardiopatie o patologie cardiovascolari?"
-                checked={medicalAnswers.cardiopatie}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, cardiopatie: checked }))}
+                checked={form.formData.medicalAnswers.cardiopatie}
+                onChange={handleCheckboxChange('cardiopatie')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <CheckboxInput
                 label="Soffri di epilessia?"
-                checked={medicalAnswers.epilessia}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, epilessia: checked }))}
+                checked={form.formData.medicalAnswers.epilessia}
+                onChange={handleCheckboxChange('epilessia')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <CheckboxInput
                 label="Soffri di diabete?"
-                checked={medicalAnswers.diabete}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, diabete: checked }))}
+                checked={form.formData.medicalAnswers.diabete}
+                onChange={handleCheckboxChange('diabete')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <CheckboxInput
                 label="Soffri di malattie infettive trasmissibili (Epatite, HIV)?"
-                checked={medicalAnswers.malattieInfettive}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, malattieInfettive: checked }))}
+                checked={form.formData.medicalAnswers.malattieInfettive}
+                onChange={handleCheckboxChange('malattieInfettive')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
@@ -304,15 +317,15 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
 
               <CheckboxInput
                 label="Dichiaro di essere a conoscenza della permanenza del tatuaggio"
-                checked={medicalAnswers.accettaPermanenza}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, accettaPermanenza: checked }))}
+                checked={form.formData.medicalAnswers.accettaPermanenza}
+                onChange={handleCheckboxChange('accettaPermanenza')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
 
               <CheckboxInput
                 label="Acconsento al trattamento dei dati personali sensibili ai sensi del GDPR 2016/679 per scopi sanitari ed archivistici."
-                checked={medicalAnswers.accettaPrivacy}
-                onChange={(checked) => setMedicalAnswers(prev => ({ ...prev, accettaPrivacy: checked }))}
+                checked={form.formData.medicalAnswers.accettaPrivacy}
+                onChange={handleCheckboxChange('accettaPrivacy')}
                 sx={{ color: 'custom.purple', '&.Mui-checked': { color: 'custom.purple' } }}
               />
             </FormGroup>
@@ -323,12 +336,12 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
       <Card variant="minimal" size="md" sx={{ border: '1px solid var(--color-surface-border)', mb: 4 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Icon name="fileText" size={18} className="text-[#9155FD]" />
+              <Icon name="fileText" size={18} color="custom.purple" />
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                 3. Firma Grafica
               </Typography>
             </Stack>
-            <ConsentCanvas onSignatureChange={setSignatureB64} />
+            <ConsentCanvas onSignatureChange={handleSignatureChange} />
           </Stack>
       </Card>
 
@@ -338,16 +351,16 @@ export default function ConsentForm({ bookingId }: ConsentFormProps) {
         size="lg"
         type="submit"
         fullWidth
-        disabled={submitting}
+        disabled={form.isLoading}
         loadingLabel="Elaborazione e firma del documento in corso..."
-        isLoading={submitting}
+        isLoading={form.isLoading}
         sx={{
           borderRadius: '10px',
           fontWeight: 700,
           fontSize: '0.95rem',
         }}
       >
-        {submitting ? '' : "Sottoscrivi e Firma il Consenso"}
+        {form.isLoading ? '' : "Sottoscrivi e Firma il Consenso"}
       </Button>
     </Box>
   );

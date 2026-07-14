@@ -5,11 +5,12 @@ import { useAuth } from '@/common/context/AuthContext';
 import Icon, { Lock, Mail } from '@/common/components/ui/Icon';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import FormInput from '@/common/components/forms/FormInput';
+import { useFormModal } from '@/common/hooks/useFormModal';
 
 interface LoginFormData {
   email: string;
@@ -19,14 +20,21 @@ interface LoginFormData {
 const LOGIN_INITIAL: LoginFormData = { email: '', password: '' };
 
 export default function LoginPage() {
-  const [form, setForm] = useState<LoginFormData>(LOGIN_INITIAL);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  const setField = <K extends keyof LoginFormData>(k: K, v: LoginFormData[K]) =>
-    setForm((prev) => ({ ...prev, [k]: v }));
+  const form = useFormModal<LoginFormData>({
+    initial: LOGIN_INITIAL,
+    onSubmit: async (data) => {
+      await login({ email: data.email, password: data.password });
+    },
+    onSuccess: () => {
+      router.push('/');
+    },
+    successMessage: 'Accesso effettuato!',
+    errorMessage: 'Email o password non validi',
+    onClose: () => {},
+  });
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -34,20 +42,9 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      await login({ email: form.email, password: form.password });
-      router.push('/');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Email o password non validi';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+    form.handleSubmit(form.formData);
   };
 
   return (
@@ -132,7 +129,7 @@ export default function LoginPage() {
 
           <Box
             component="form"
-            onSubmit={handleLogin}
+            onSubmit={handleSubmit}
             sx={{
               width: '100%',
               display: 'flex',
@@ -145,8 +142,8 @@ export default function LoginPage() {
               type="email"
               placeholder="Email"
               required
-              value={form.email}
-              onChange={(v: string) => setField('email', v)}
+              value={form.formData.email}
+              onChange={(v: string) => form.setField('email', v)}
               icon={Mail}
               autoComplete="email"
               name="email"
@@ -156,8 +153,8 @@ export default function LoginPage() {
               type="password"
               placeholder="Password"
               required
-              value={form.password}
-              onChange={(v: string) => setField('password', v)}
+              value={form.formData.password}
+              onChange={(v: string) => form.setField('password', v)}
               icon={Lock}
               autoComplete="current-password"
               name="password"
@@ -167,8 +164,8 @@ export default function LoginPage() {
               type="submit"
               variant="primary"
               size="lg"
-              disabled={loading}
-              isLoading={loading}
+              disabled={form.isLoading}
+              isLoading={form.isLoading}
               fullWidth
               loadingLabel="Accesso in corso..."
               sx={{ mt: 1 }}
@@ -176,9 +173,9 @@ export default function LoginPage() {
               Accedi
             </Button>
 
-            {error && (
+            {form.error && (
               <Typography variant="body2" sx={{ color: 'error.main', textAlign: 'center', mt: 1 }}>
-                {error}
+                {form.error}
               </Typography>
             )}
           </Box>

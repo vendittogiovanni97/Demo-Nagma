@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Divider,
   useTheme,
+  alpha,
 } from '@mui/material';
 import Card from '@/common/components/ui/Card';
 import Badge from '@/common/components/ui/Badge';
@@ -40,9 +41,9 @@ export default function ConsentListPage() {
 
     // Apply tab filters
     if (filter === 'alerts') {
-      result = result.filter(c => c.hasMedicalAlerts);
+      result = result.filter((c) => c.hasMedicalAlerts);
     } else if (filter === 'clean') {
-      result = result.filter(c => !c.hasMedicalAlerts);
+      result = result.filter((c) => !c.hasMedicalAlerts);
     }
 
     // Apply text search
@@ -104,7 +105,7 @@ export default function ConsentListPage() {
             mb: 4,
             p: 2,
             borderRadius: 4,
-            background: (t) => `${t.palette.background.default}66`,
+            background: alpha(theme.palette.background.default, 0.4),
             border: 1,
             borderColor: 'divider',
             backdropFilter: 'blur(10px)',
@@ -118,7 +119,7 @@ export default function ConsentListPage() {
             px: 2,
             py: 1.25,
             borderRadius: 3,
-            bgcolor: 'rgba(0,0,0,0.2)',
+            bgcolor: alpha(theme.palette.common.black, 0.2),
             border: 1,
             borderColor: 'divider',
             flexGrow: 1,
@@ -126,11 +127,11 @@ export default function ConsentListPage() {
             transition: 'all 0.2s',
             '&:focus-within': {
               borderColor: 'primary.main',
-              boxShadow: (t) => `0 0 10px ${t.palette.primary.main}26`,
+              boxShadow: alpha(theme.palette.primary.main, 0.15),
             }
           }}>
             <Box component="span" sx={{ display: 'inline-flex', flexShrink: 0 }}>
-              <Icon name="search" size={16} color={`${theme.palette.primary.main}99`} />
+              <Icon name="search" size={16} color={alpha(theme.palette.primary.main, 0.6)} />
             </Box>
             <Box
               component="input"
@@ -145,7 +146,7 @@ export default function ConsentListPage() {
                 color: 'common.white',
                 fontSize: '0.85rem',
                 fontFamily: 'Outfit',
-                '&::placeholder': { color: (t) => `${t.palette.common.white}4d` },
+                '&::placeholder': { color: alpha(theme.palette.common.white, 0.3) },
               }}
             />
           </Box>
@@ -154,8 +155,8 @@ export default function ConsentListPage() {
           <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: { xs: 1, md: 0 } }}>
             {[
               { id: 'all', label: 'Tutti i Consensi', count: consents.length },
-              { id: 'alerts', label: 'Con Alert Medici', count: consents.filter(c => c.hasMedicalAlerts).length },
-              { id: 'clean', label: 'Senza Alert', count: consents.filter(c => !c.hasMedicalAlerts).length },
+              { id: 'alerts', label: 'Con Alert Medici', count: consents.filter((c) => c.hasMedicalAlerts).length },
+              { id: 'clean', label: 'Senza Alert', count: consents.filter((c) => !c.hasMedicalAlerts).length },
             ].map((btn) => {
               const isActive = filter === btn.id;
               return (
@@ -171,13 +172,13 @@ export default function ConsentListPage() {
                     fontFamily: 'Outfit',
                     fontSize: '0.8rem',
                     fontWeight: isActive ? 800 : 500,
-                    bgcolor: isActive ? (t) => `${t.palette.primary.main}1f` : 'rgba(255,255,255,0.02)',
-                    border: isActive ? 1 : '1px solid rgba(255,255,255,0.05)',
+                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.12) : alpha(theme.palette.common.white, 0.02),
+                    border: isActive ? 1 : '1px solid transparent',
                     borderColor: isActive ? 'primary.main' : 'transparent',
-                    color: isActive ? 'primary.main' : 'rgba(255,255,255,0.6)',
+                    color: isActive ? 'primary.main' : alpha(theme.palette.common.white, 0.6),
                     whiteSpace: 'nowrap',
                     '&:hover': {
-                      bgcolor: isActive ? (t) => `${t.palette.primary.main}2e` : 'rgba(255,255,255,0.06)',
+                      bgcolor: isActive ? alpha(theme.palette.primary.main, 0.18) : alpha(theme.palette.common.white, 0.06),
                     }
                   }}
                 >
@@ -194,33 +195,33 @@ export default function ConsentListPage() {
             <CircularProgress size={50} sx={{ color: 'primary.main' }} />
           </Box>
         ) : error ? (
-          <Box sx={{ textAlign: 'center', py: 8,             bgcolor: (t) => `${t.palette.error.main}0d`, border: 1, borderColor: 'error.main', borderOpacity: 0.15, borderRadius: 4, p: 4 }}>
-          <Box sx={{ mx: 'auto', mb: 2 }}>
-            <Icon name="alertTriangle" size={48} color={theme.palette.error.main} />
-          </Box>
+          <Box sx={{ textAlign: 'center', py: 8, bgcolor: alpha(theme.palette.error.main, 0.05), border: 1, borderColor: 'error.main', borderOpacity: 0.15, borderRadius: 4, p: 4 }}>
+            <Box sx={{ mx: 'auto', mb: 2 }}>
+              <Icon name="alertTriangle" size={48} color={theme.palette.error.main} />
+            </Box>
             <Typography variant="h6" sx={{ color: 'common.white', mb: 1, fontWeight: 700 }}>
               Errore nel caricamento dell'archivio
             </Typography>
-            <Typography variant="body2" sx={{ color: (t) => `${t.palette.common.white}80` }}>
+            <Typography variant="body2" sx={{ color: alpha(theme.palette.common.white, 0.5) }}>
               Non è stato possibile caricare i dati dei consensi. Riprova più tardi.
             </Typography>
           </Box>
         ) : filtered.length === 0 ? (
           <Card variant="minimal" sx={(t) => ({
-            background: `${t.palette.background.default}4d`,
+            background: alpha(t.palette.background.default, 0.3),
             border: 1,
             borderColor: 'divider',
             borderRadius: 5,
             p: 8,
             textAlign: 'center'
           })}>
-            <Box sx={{ color: `${theme.palette.primary.main}40`, mb: 2.5 }}>
+            <Box sx={{ color: alpha(theme.palette.primary.main, 0.25), mb: 2.5 }}>
               <Icon name="fileText" size={64} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 800, color: 'common.white', mb: 1, fontFamily: 'Outfit' }}>
               Nessun consenso trovato
             </Typography>
-            <Typography variant="body2" sx={{ color: (t) => `${t.palette.common.white}66`, maxWidth: 400, mx: 'auto' }}>
+            <Typography variant="body2" sx={{ color: alpha(theme.palette.common.white, 0.4), maxWidth: 400, mx: 'auto' }}>
               Nessun documento corrisponde ai criteri di ricerca impostati. Prova a cambiare parole chiave o filtri.
             </Typography>
           </Card>
@@ -237,9 +238,8 @@ export default function ConsentListPage() {
                       height: '100%',
                       background: 'linear-gradient(135deg, rgba(10, 26, 40, 0.8) 0%, rgba(6, 15, 25, 0.9) 100%)',
                       backdropFilter: 'blur(20px)',
-                      border: c.hasMedicalAlerts 
-                        ? 1 : 1,
-                        borderColor: c.hasMedicalAlerts ? 'warning.main' : 'divider',
+                      border: c.hasMedicalAlerts ? 1 : 1,
+                      borderColor: c.hasMedicalAlerts ? 'warning.main' : 'divider',
                       borderRadius: 4,
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -250,11 +250,9 @@ export default function ConsentListPage() {
                       '&:hover': {
                         transform: 'translateY(-6px)',
                         boxShadow: c.hasMedicalAlerts
-                          ? (t) => `0 12px 30px ${t.palette.warning.main}1f`
-                          : (t) => `0 12px 30px ${t.palette.primary.main}26`,
-                        borderColor: c.hasMedicalAlerts 
-                          ? 'warning.main' 
-                          : 'primary.main',
+                          ? (t) => `0 12px 30px ${alpha(t.palette.warning.main, 0.12)}`
+                          : (t) => `0 12px 30px ${alpha(t.palette.primary.main, 0.15)}`,
+                        borderColor: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
                       },
                     }}
                   >
@@ -277,7 +275,7 @@ export default function ConsentListPage() {
                           <Typography variant="h6" sx={{ fontWeight: 800, color: 'common.white', fontFamily: 'Outfit', mb: 0.5 }}>
                             {c.customerName}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'rgba(255,255,255,0.4)' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: alpha(theme.palette.common.white, 0.4) }}>
                             <Icon name="phone" size={12} />
                             <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
                               {c.phone || 'Nessun telefono'}
@@ -285,118 +283,96 @@ export default function ConsentListPage() {
                           </Box>
                         </Box>
                         <Badge
-                          variant="success"
-                          icon={CheckCircle}
-                          label="Firmato"
+                          variant={c.hasMedicalAlerts ? 'warning' : 'success'}
                           size="sm"
-                        />
+                          sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}
+                        >
+                          {c.hasMedicalAlerts ? '⚠ Alert Medici' : '✓ Pulito'}
+                        </Badge>
                       </Box>
 
-                      <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)', my: 1.5 }} />
-
-                      {/* Info Rows */}
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mb: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: 'rgba(255,255,255,0.7)' }}>
-                            <Icon name="user" size={14} color={theme.palette.primary.main} />
-                          <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                            Artista: <strong style={{ color: '#fff' }}>{c.artistName ?? 'N/D'}</strong>
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: 'rgba(255,255,255,0.7)' }}>
-                          <Icon name="calendar" size={14} color={theme.palette.custom.purple} />
-                          <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                            Data: <strong style={{ color: '#fff' }}>{format(new Date(c.date), 'dd MMMM yyyy, HH:mm', { locale: it })}</strong>
-                          </Typography>
-                        </Box>
+                      {/* Artist & Date */}
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="body2" sx={{ color: alpha(theme.palette.common.white, 0.5), mb: 0.5, fontFamily: 'Outfit', fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.1em' }}>
+                          ARTISTA
+                        </Typography>
+                        <Typography variant="subtitle2" sx={{ color: 'common.white', fontWeight: 600, fontFamily: 'Outfit' }}>
+                          {c.artistName || 'Non assegnato'}
+                        </Typography>
                       </Box>
 
-                      {/* Medical Alert warning block */}
-                      {c.hasMedicalAlerts ? (
-                        <Box sx={{
-                          bgcolor: (t) => `${t.palette.warning.main}0d`,
-                          border: 1,
-                          borderColor: (t) => `${t.palette.warning.main}26`,
-                          borderRadius: 2.5,
-                          p: 1.5,
-                          mt: 'auto',
-                          mb: 2,
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            <Icon name="alertTriangle" size={14} color={theme.palette.warning.main} />
-                            <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                              Alert Medici Rilevati
-                            </Typography>
-                          </Box>
-                          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', display: 'block', lineHeight: 1.5 }}>
-                            {c.medicalAlertsDetails || 'Allergie o patologie segnalate dal cliente.'}
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="body2" sx={{ color: alpha(theme.palette.common.white, 0.5), mb: 0.5, fontFamily: 'Outfit', fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.1em' }}>
+                          DATA SESSIONE
+                        </Typography>
+                        <Typography variant="subtitle2" sx={{ color: 'common.white', fontWeight: 500 }}>
+                          {c.date ? format(new Date(c.date), 'dd MMM yyyy, HH:mm', { locale: it }) : 'N/D'}
+                        </Typography>
+                      </Box>
+
+                      {/* Medical Alerts Details */}
+                      {c.hasMedicalAlerts && c.medicalAlertsDetails && (
+                        <Box sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: alpha(theme.palette.error.main, 0.08), border: `1px solid ${alpha(theme.palette.error.main, 0.2)}` }}>
+                          <Typography variant="caption" sx={{ color: theme.palette.error.main, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 0.5 }}>
+                            Dettagli Alert
                           </Typography>
-                        </Box>
-                      ) : (
-                        <Box sx={{
-                          bgcolor: (t) => `${t.palette.success.main}08`,
-                          border: 1,
-                          borderColor: (t) => `${t.palette.success.main}14`,
-                          borderRadius: 2.5,
-                          p: 1.5,
-                          mt: 'auto',
-                          mb: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}>
-                          <Icon name="shield" size={14} color={theme.palette.success.main} />
-                          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)' }}>
-                            Nessuna anomalia o allergia dichiarata.
+                          <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
+                            {c.medicalAlertsDetails}
                           </Typography>
                         </Box>
                       )}
 
-                      {/* Download Button */}
-                      {pdfUrl ? (
-                        <Button
-                          variant="ghost"
-                          fullWidth
-                          icon={<Icon name="externalLink" size={14} />}
-                          onClick={() => window.open(pdfUrl, '_blank')}
-                          sx={{
-                            borderRadius: 3,
-                            bgcolor: c.hasMedicalAlerts ? (t) => `${t.palette.warning.main}26` : (t) => `${t.palette.primary.main}1f`,
-                            border: 1,
-                            borderColor: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
-                            color: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
-                            fontWeight: 800,
-                            textTransform: 'none',
-                            fontSize: '0.8rem',
-                            py: 1,
-                            boxShadow: 'none',
-                            transition: 'all 0.25s',
-                            '&:hover': {
-                              bgcolor: c.hasMedicalAlerts ? 'warning.main' : 'primary.main',
-                              color: (t) => t.palette.background.default,
-                              boxShadow: c.hasMedicalAlerts 
-                                ? (t) => `0 6px 16px ${t.palette.warning.main}4d`
-                                : (t) => `0 6px 16px ${t.palette.primary.main}4d`,
-                              borderColor: 'transparent'
-                            },
-                          }}
-                        >
-                          Apri PDF Firmato
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          disabled
-                          fullWidth
-                          sx={{
-                            borderRadius: 3,
-                            textTransform: 'none',
-                            fontSize: '0.8rem',
-                            py: 1,
-                          }}
-                        >
-                          PDF Non Disponibile
-                        </Button>
-                      )}
+                      {/* Actions */}
+                      <Box sx={{ mt: 'auto', pt: 2, borderTop: `1px solid ${alpha(theme.palette.divider, 0.3)}` }}>
+                        <Box sx={{ display: 'flex', gap: 1.5 }}>
+                          {pdfUrl && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              fullWidth
+                              onClick={() => window.open(pdfUrl, '_blank')}
+                              icon={<Icon name="fileText" size={14} />}
+                              sx={{
+                                px: 2,
+                                py: 0.75,
+                                borderRadius: 2,
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                fontFamily: 'Outfit',
+                                '&:hover': {
+                                  borderColor: alpha(theme.palette.primary.main, 0.5),
+                                  bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                },
+                              }}
+                            >
+                              PDF
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            fullWidth
+                            onClick={() => navigator.clipboard.writeText(`${window.location.origin}/consenso/${c.bookingId}`)}
+                            icon={<Icon name="copy" size={14} />}
+                            sx={{
+                              px: 2,
+                              py: 0.75,
+                              borderRadius: 2,
+                              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              fontFamily: 'Outfit',
+                              '&:hover': {
+                                borderColor: alpha(theme.palette.common.white, 0.3),
+                                bgcolor: alpha(theme.palette.common.white, 0.02),
+                              },
+                            }}
+                          >
+                            Link
+                          </Button>
+                        </Box>
+                      </Box>
                     </Box>
                   </Card>
                 </Grid>

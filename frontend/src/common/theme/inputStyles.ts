@@ -8,7 +8,9 @@ import { alpha } from '@mui/material/styles';
  */
 export function inputRootSx(theme: Theme) {
   return {
-    backgroundColor: alpha(theme.palette.common.white, 0.05),
+    backgroundColor: theme.palette.mode === 'light'
+      ? 'rgba(0, 0, 0, 0.03)'
+      : alpha(theme.palette.common.white, 0.05),
     borderRadius: '8px',
     fontSize: '0.875rem',
     transition: 'all 0.2s ease-in-out',

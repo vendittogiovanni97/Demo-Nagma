@@ -38,8 +38,8 @@ export function getMonthRange(monthStr: string): { gte: Date; lt: Date } {
  */
 export function parsePageQuery(query: Record<string, unknown>) {
   return {
-    page: query.page ? Number(query.page) : 1,
-    limit: query.limit ? Number(query.limit) : 20,
+    page: query.page ? Math.max(1, Number(query.page)) : 1,
+    limit: query.limit ? Math.min(100, Math.max(1, Number(query.limit))) : 25,
     search: (query.search as string | undefined)?.trim(),
     month: query.month as string | undefined,
     startDate: query.startDate as string | undefined,
@@ -51,13 +51,15 @@ export function parsePageQuery(query: Record<string, unknown>) {
 /**
  * Crea un oggetto di risposta paginata standardizzato.
  */
-export function paginate<T>(data: T[], total: number, page: number, limit: number) {
+export function paginate<T>(data: T[], total: number, page: number = 1, limit: number = 25) {
+  const calcPages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
   return {
     data,
     total,
-    page,
-    limit,
-    totalPages: Math.max(1, Math.ceil(total / limit)),
+    page: Math.max(1, page),
+    limit: Math.max(1, limit),
+    pages: calcPages,
+    totalPages: calcPages,
   };
 }
 

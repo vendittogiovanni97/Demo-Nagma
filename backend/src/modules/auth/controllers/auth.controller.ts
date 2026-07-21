@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { AuthService } from '../services/authService';
 import { validate } from '../../../core/shared/utils/validation';
-import { loginSchema, registerSchema, updateMeSchema, changePasswordSchema } from './auth.schemas';
+import { loginSchema, registerSchema, updateMeSchema, changePasswordSchema, updateThemeSchema } from './auth.schemas';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 
@@ -34,6 +34,13 @@ export class AuthController {
     if (!req.user) throw new AppError('Utente non autenticato', 401, 'UNAUTHENTICATED');
     const data = validate(updateMeSchema, req.body);
     const result = await this.authService.updateMe(req.user.id, data);
+    res.json(result.toJSON());
+  });
+
+  updateTheme = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) throw new AppError('Utente non autenticato', 401, 'UNAUTHENTICATED');
+    const data = validate(updateThemeSchema, req.body);
+    const result = await this.authService.updateTheme(req.user.id, data.theme);
     res.json(result.toJSON());
   });
 

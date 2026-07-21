@@ -9,9 +9,12 @@ import { registerFormTemplateRoutes } from './modules/form-template/routes';
 import { registerCreamRoutes } from './modules/cream/routes';
 import { registerConfigRoutes } from './modules/config/routes';
 import { registerAttachmentRoutes } from './modules/attachment/routes';
-import { registerConsentRoutes } from './modules/newfeature/consenso/routes';
-import { registerBookingPlacementRoutes } from './modules/newfeature/posizionamento/routes';
 import { registerCustomFieldRoutes } from './modules/custom-field/routes/customField.routes';
+import { registerReportRoutes } from './modules/reports/routes';
+import { registerExportRoutes } from './modules/export/routes';
+import { registerUserPreferencesRoutes } from './modules/user/routes';
+import { registerMetricsRoutes } from './modules/metrics/routes';
+import { registerSavedViewRoutes } from './modules/saved-views/routes';
 
 export function registerRoutes(app: Express): void {
   registerAuthRoutes(app);
@@ -24,7 +27,10 @@ export function registerRoutes(app: Express): void {
   registerCreamRoutes(app);
   registerConfigRoutes(app);
   registerAttachmentRoutes(app);
-  registerConsentRoutes(app);
-  registerBookingPlacementRoutes(app);
   registerCustomFieldRoutes(app);
+  registerReportRoutes(app);
+  registerExportRoutes(app);
+  registerUserPreferencesRoutes(app);
+  registerMetricsRoutes(app);
+  registerSavedViewRoutes(app);
 }

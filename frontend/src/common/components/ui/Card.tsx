@@ -38,24 +38,36 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     const theme = useTheme();
     const padding = sizeMap[size];
 
-    // Build sx prop based on variant
+    // Build sx prop based on variant & mode
+    const isLight = theme.palette.mode === 'light';
+
     const getVariantSx = () => {
       switch (variant) {
         case 'glass':
           return {
-            backgroundColor: alpha(theme.palette.common.white, 0.05),
-            backdropFilter: 'blur(10px)',
-            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: isLight
+              ? 'rgba(255, 255, 255, 0.9)'
+              : alpha(theme.palette.common.white, 0.04),
+            backdropFilter: 'blur(12px)',
+            border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : theme.palette.divider}`,
+            boxShadow: isLight
+              ? '0 2px 12px rgba(0, 0, 0, 0.04)'
+              : '0 8px 32px rgba(0, 0, 0, 0.25)',
           };
         case 'primary':
           return {
-            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            border: `1px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+            backgroundColor: isLight
+              ? alpha(theme.palette.primary.main, 0.06)
+              : alpha(theme.palette.primary.main, 0.1),
+            border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.25 : 0.4)}`,
           };
         case 'elevated':
           return {
-            backgroundColor: alpha(theme.palette.common.white, 0.1),
-            border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
+            backgroundColor: isLight ? '#ffffff' : alpha(theme.palette.common.white, 0.08),
+            border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : alpha(theme.palette.common.white, 0.15)}`,
+            boxShadow: isLight
+              ? '0 4px 20px rgba(0, 0, 0, 0.06)'
+              : '0 8px 32px rgba(0, 0, 0, 0.3)',
           };
         case 'minimal':
           return {

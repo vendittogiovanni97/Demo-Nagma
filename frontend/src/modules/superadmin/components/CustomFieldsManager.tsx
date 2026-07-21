@@ -213,6 +213,8 @@ export default function CustomFieldsManager() {
     }
   };
 
+  const isLight = theme.palette.mode === 'light';
+
   return (
     <Box sx={{ mt: 1 }}>
       <Card
@@ -220,7 +222,7 @@ export default function CustomFieldsManager() {
         size="lg"
         sx={{
           borderRadius: 3,
-          background: alpha(theme.palette.common.white, 0.02),
+          backgroundColor: isLight ? 'background.paper' : alpha(theme.palette.common.white, 0.02),
           backdropFilter: 'blur(20px)',
           border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
         }}
@@ -229,7 +231,7 @@ export default function CustomFieldsManager() {
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Icon name="slidersHorizontal" size={22} color={theme.palette.primary.main} />
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'common.white' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 Gestione Campi Personalizzati
               </Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
@@ -252,8 +254,8 @@ export default function CustomFieldsManager() {
               onClick={handleOpenAddModal}
               icon={<Icon name="plus" size={16} />}
               sx={{
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-                boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.3)}`,
               }}
             >
               Nuovo Campo
@@ -273,9 +275,9 @@ export default function CustomFieldsManager() {
               alignItems: 'center',
               justifyContent: 'center',
               py: 8,
-              border: `1px dashed ${alpha(theme.palette.common.white, 0.15)}`,
+              border: `1px dashed ${alpha(theme.palette.primary.main, isLight ? 0.25 : 0.15)}`,
               borderRadius: 2,
-              backgroundColor: alpha(theme.palette.common.white, 0.01),
+              backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.03) : alpha(theme.palette.common.white, 0.01),
             }}
           >
             <Icon name="info" size={32} color={theme.palette.text.secondary} className="mb-2" />
@@ -287,14 +289,14 @@ export default function CustomFieldsManager() {
         ) : (
           <TableContainer
             sx={{
-              backgroundColor: alpha(theme.palette.common.black, 0.2),
+              backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.02) : alpha(theme.palette.common.black, 0.2),
               borderRadius: 2,
-              border: `1px solid ${alpha(theme.palette.common.white, 0.06)}`,
+              border: `1px solid ${theme.palette.divider}`,
             }}
           >
             <Table size="medium">
               <TableHead>
-                <TableRow sx={{ borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+                <TableRow sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
                   <TableCell sx={{ color: 'text.secondary', fontWeight: 700 }}>Nome Chiave</TableCell>
                   <TableCell sx={{ color: 'text.secondary', fontWeight: 700 }}>Etichetta (UI)</TableCell>
                   <TableCell sx={{ color: 'text.secondary', fontWeight: 700 }}>Tipo di Dato</TableCell>
@@ -308,12 +310,12 @@ export default function CustomFieldsManager() {
                   <TableRow
                     key={field.id}
                     sx={{
-                      '&:hover': { backgroundColor: alpha(theme.palette.common.white, 0.02) },
-                      borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
+                      '&:hover': { backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.05) : alpha(theme.palette.common.white, 0.02) },
+                      borderBottom: `1px solid ${theme.palette.divider}`,
                     }}
                   >
-                    <TableCell sx={{ color: 'common.white', fontFamily: 'monospace' }}>{field.fieldName}</TableCell>
-                    <TableCell sx={{ color: 'common.white', fontWeight: 600 }}>{field.fieldLabel}</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontFamily: 'monospace' }}>{field.fieldName}</TableCell>
+                    <TableCell sx={{ color: 'text.primary', fontWeight: 600 }}>{field.fieldLabel}</TableCell>
                     <TableCell sx={{ color: 'text.secondary' }}>
                       {FIELD_TYPE_OPTIONS.find((t) => t.value === field.fieldType)?.label || field.fieldType}
                     </TableCell>
@@ -327,7 +329,9 @@ export default function CustomFieldsManager() {
                           borderRadius: 1,
                           fontSize: '0.6875rem',
                           fontWeight: 700,
-                          backgroundColor: field.isRequired ? alpha(theme.palette.error.main, 0.15) : alpha(theme.palette.common.white, 0.05),
+                          backgroundColor: field.isRequired
+                            ? alpha(theme.palette.error.main, 0.15)
+                            : (isLight ? alpha(theme.palette.text.primary, 0.06) : alpha(theme.palette.common.white, 0.05)),
                           color: field.isRequired ? theme.palette.error.main : theme.palette.text.secondary,
                         }}
                       >

@@ -98,27 +98,47 @@ const styles = {
     textTransform: 'uppercase', letterSpacing: '0.08em', px: 0.5,
     display: 'flex', alignItems: 'center', gap: 1
   } as SxProps<Theme>,
-  paper: (theme: Theme) => ({
-    mt: 1, bgcolor: alpha(theme.palette.background.default, 0.95), backdropFilter: 'blur(12px)',
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`, boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
-    borderRadius: '12px', '& .MuiAutocomplete-listbox': { padding: '8px' }
-  }),
-  input: (theme: Theme) => ({
-    '& .MuiOutlinedInput-root': {
-      ...inputRootSx(theme),
-      backgroundColor: alpha(theme.palette.common.white, 0.05),
-      borderRadius: '12px', fontSize: '0.9375rem',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      padding: '0 12px !important', minHeight: '44px',
-      '&:hover': { backgroundColor: alpha(theme.palette.common.white, 0.08) },
-      '&.Mui-focused': { backgroundColor: alpha(theme.palette.common.white, 0.1), borderColor: 'primary.main' }
-    },
-    '& .MuiAutocomplete-input': { padding: '8px 4px !important' },
-    '& .MuiAutocomplete-endAdornment': { top: '50%', transform: 'translateY(-50%)', right: '8px' },
-    '& .MuiAutocomplete-popupIndicator': { color: 'primary.main', '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) } },
-    '& .MuiAutocomplete-clearIndicator': { color: 'text.secondary', '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.05) } },
-    '& .Mui-error fieldset': { borderColor: 'error.main' },
-  }),
+  paper: (theme: Theme) => {
+    const isLight = theme.palette.mode === 'light';
+    return {
+      mt: 1,
+      bgcolor: isLight ? 'rgba(255, 255, 255, 0.98)' : alpha(theme.palette.background.default, 0.95),
+      backdropFilter: 'blur(12px)',
+      border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : alpha(theme.palette.primary.main, 0.2)}`,
+      boxShadow: isLight ? '0 4px 20px rgba(0, 0, 0, 0.1)' : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
+      borderRadius: '12px',
+      '& .MuiAutocomplete-listbox': { padding: '8px' },
+    };
+  },
+  input: (theme: Theme) => {
+    const isLight = theme.palette.mode === 'light';
+    return {
+      '& .MuiOutlinedInput-root': {
+        ...inputRootSx(theme),
+        backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : alpha(theme.palette.common.white, 0.05),
+        borderRadius: '12px',
+        fontSize: '0.9375rem',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        padding: '0 12px !important',
+        minHeight: '44px',
+        '&:hover': {
+          backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : alpha(theme.palette.common.white, 0.08),
+        },
+        '&.Mui-focused': {
+          backgroundColor: isLight ? 'rgba(0, 0, 0, 0.06)' : alpha(theme.palette.common.white, 0.1),
+          borderColor: 'primary.main',
+        },
+      },
+      '& .MuiAutocomplete-input': { padding: '8px 4px !important' },
+      '& .MuiAutocomplete-endAdornment': { top: '50%', transform: 'translateY(-50%)', right: '8px' },
+      '& .MuiAutocomplete-popupIndicator': { color: 'primary.main', '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.1) } },
+      '& .MuiAutocomplete-clearIndicator': {
+        color: 'text.secondary',
+        '&:hover': { bgcolor: isLight ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.05) },
+      },
+      '& .Mui-error fieldset': { borderColor: 'error.main' },
+    };
+  },
   option: (theme: Theme) => ({
     borderRadius: '8px', mb: 0.5, fontSize: '0.875rem', fontWeight: 500, color: 'text.primary',
     '&:last-child': { mb: 0 }, transition: 'all 0.2s ease',

@@ -39,6 +39,8 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
 
   const opacity = statusCfg?.dimmed ? (isCompleted ? 0.72 : 0.52) : 1;
 
+  const isLight = theme.palette.mode === 'light';
+
   // ─── MONTH VIEW ────────────────────────────────────────────────────────────
   if (isMonthView) {
     return (
@@ -55,15 +57,15 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
           borderRadius: '4px',
           borderLeft: `3px solid ${color}`,
           background: isCompleted
-            ? `linear-gradient(135deg, rgba(0,0,0,0.3) 0%, ${color}10 100%)`
-            : `linear-gradient(135deg, ${color}20 0%, ${color}08 100%)`,
+            ? isLight ? alpha(theme.palette.success.main, 0.1) : `linear-gradient(135deg, rgba(0,0,0,0.3) 0%, ${color}10 100%)`
+            : isLight ? alpha(color, 0.12) : `linear-gradient(135deg, ${color}20 0%, ${color}08 100%)`,
           backdropFilter: 'blur(8px)',
           opacity,
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: isCompleted ? 'default' : 'pointer',
           userSelect: 'none',
           '&:hover': isCompleted ? {} : {
-            background: `linear-gradient(135deg, ${color}30 0%, ${color}14 100%)`,
+            background: isLight ? alpha(color, 0.2) : `linear-gradient(135deg, ${color}30 0%, ${color}14 100%)`,
             borderLeftWidth: '4px',
           },
         }}
@@ -84,9 +86,9 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Typography
           component="span"
           sx={{
-            fontSize: '0.5rem',
-            fontWeight: 700,
-            color: `${color}E0`,
+            fontSize: '0.62rem',
+            fontWeight: 800,
+            color: isLight ? theme.palette.primary.dark : `${color}E0`,
             fontFamily: 'monospace',
             lineHeight: 1,
             flexShrink: 0,
@@ -99,15 +101,15 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Typography
           component="span"
           sx={{
-            fontSize: '0.68rem',
+            fontSize: '0.72rem',
             fontWeight: 700,
-            color: 'common.white',
+            color: 'text.primary',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             lineHeight: 1.1,
             flex: 1,
-            textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+            textShadow: isLight ? 'none' : '0 1px 3px rgba(0,0,0,0.6)',
           }}
         >
           {booking.customerName}
@@ -254,13 +256,13 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
       <Typography
         sx={{
           fontWeight: 700,
-          color: 'common.white',
+          color: 'text.primary',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
           lineHeight: 1.2,
           fontSize: isShort ? '0.75rem' : '0.8rem',
-          textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+          textShadow: isLight ? 'none' : '0 1px 3px rgba(0,0,0,0.5)',
           letterSpacing: '-0.1px',
         }}
       >

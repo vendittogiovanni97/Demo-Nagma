@@ -245,7 +245,7 @@ export default function BookingCard({
                 />
                 <Button
                   variant="icon"
-                  icon={<Icon name="edit" size={18} />}
+                  icon={<Icon name="pencil" size={17} color={theme.palette.primary.main} />}
                   title="Modifica"
                   onClick={() => onEdit(booking)}
                 />

@@ -11,6 +11,14 @@ const outfit = Outfit({
   weight: ['300', '400', '500', '600', '700', '900'],
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#0F172A',
+};
+
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_PORTAL_NAME || 'Nagma Tattoo CRM',
   description:

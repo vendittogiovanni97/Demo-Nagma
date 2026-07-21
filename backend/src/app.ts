@@ -14,6 +14,8 @@ import { registerRoutes } from './routes';
 import { isDebugHttpEnabled, logger, sanitizeForLog } from './core/shared/utils/logger';
 import prisma from './core/shared/utils/prisma';
 
+import { MetricsService } from './modules/metrics/services/metrics.service';
+
 bootstrapContainer();
 
 const configService = container.get(ConfigService);
@@ -86,6 +88,12 @@ export function createApp() {
 
     res.on('finish', () => {
       const durationMs = Date.now() - startedAt;
+
+      try {
+        const metricsService = container.get(MetricsService);
+        metricsService.recordRequest(req.method, req.originalUrl, res.statusCode, durationMs, req.user?.id);
+      } catch {}
+
       const baseMeta = {
         requestId,
         method: req.method,

@@ -113,6 +113,7 @@ export default function LoginPage() {
               width={48}
               height={48}
               priority
+              unoptimized
               style={{ height: 48, width: 48, objectFit: 'contain' }}
             />
           </Box>

@@ -70,6 +70,7 @@ export default function CustomerListPage() {
           ref={tableRef}
           columns={columns}
           baseColumns={['id']}
+          hideState={true}
           fetchData={fetchCustomers}
           queryKey="customers"
           refreshKey={refreshKey as any}

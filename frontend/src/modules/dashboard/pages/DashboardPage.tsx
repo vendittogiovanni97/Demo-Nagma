@@ -23,7 +23,10 @@ function DashboardContent() {
 
   const bookingMonthStr = format(bookingDate, 'yyyy-MM');
   const { data: bookingStats, isLoading: isStatsLoading } = useBookingStats(bookingMonthStr);
-  const { data: dailyResult, isLoading: isDailyLoading } = useBookings({ month: bookingMonthStr });
+  
+  // Today's bookings for TodayAgendaWidget: fixed to current month
+  const currentMonthStr = format(new Date(), 'yyyy-MM');
+  const { data: dailyResult, isLoading: isDailyLoading } = useBookings({ month: currentMonthStr });
   const dailyBookings = dailyResult?.data;
 
   const totalIncome = financeSummary?.totalIncome ?? 0;

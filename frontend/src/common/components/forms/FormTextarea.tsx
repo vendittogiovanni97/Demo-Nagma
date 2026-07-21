@@ -66,7 +66,9 @@ export default function FormTextarea({
         sx={{
           '& .MuiOutlinedInput-root': {
             ...inputRootSx(theme),
-            backgroundColor: alpha(theme.palette.common.white, 0.05),
+            backgroundColor: theme.palette.mode === 'light'
+              ? 'rgba(0, 0, 0, 0.03)'
+              : alpha(theme.palette.common.white, 0.05),
             borderRadius: 1.5,
             fontSize: '0.9375rem',
           },

@@ -132,8 +132,6 @@ interface UseBookingFormReturn extends UseEntityFormReturn<BookingFormData> {
   setPendingData: (data: (CreateBookingData & { status?: BookingStatus }) | null) => void;
   showSuccess: boolean;
   setShowSuccess: (show: boolean) => void;
-  consentOpen: boolean;
-  setConsentOpen: (open: boolean) => void;
 
   // Extra state for artists
   artists: ArtistOption[];
@@ -166,7 +164,6 @@ export function useBookingForm({
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [pendingData, setPendingData] = useState<(CreateBookingData & { status?: BookingStatus }) | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [consentOpen, setConsentOpen] = useState(false);
 
   // Computed data
   const customers = customerResult?.data || [];
@@ -442,7 +439,6 @@ export function useBookingForm({
     setShowPasswordModal(false);
     setPendingData(null);
     setShowSuccess(false);
-    setConsentOpen(false);
   }, [form]);
 
   return {
@@ -473,8 +469,6 @@ export function useBookingForm({
     setPendingData,
     showSuccess,
     setShowSuccess,
-    consentOpen,
-    setConsentOpen,
     // Expose artists for sync
     artists,
     setArtists,

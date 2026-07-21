@@ -68,6 +68,8 @@ function CalendarToolbar({
 }: CalendarToolbarProps) {
   const theme = useTheme();
 
+  const isLight = theme.palette.mode === 'light';
+
   return (
     <Box
       sx={{
@@ -76,8 +78,8 @@ function CalendarToolbar({
         justifyContent: 'space-between',
         px: { xs: 1.5, md: 2 },
         py: 1.25,
-        borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.07)}`,
-        background: alpha(theme.palette.background.default, 0.6),
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        background: isLight ? alpha(theme.palette.background.paper, 0.8) : alpha(theme.palette.background.default, 0.6),
         backdropFilter: 'blur(12px)',
         flexWrap: 'wrap',
         gap: 1,
@@ -94,13 +96,13 @@ function CalendarToolbar({
             width: 32,
             height: 32,
             borderRadius: '8px',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-            backgroundColor: alpha(theme.palette.common.white, 0.04),
+            border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.2 : 0.1)}`,
+            backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.04),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: theme.palette.text.secondary,
+            color: theme.palette.text.primary,
             transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.12),
@@ -115,12 +117,12 @@ function CalendarToolbar({
         {/* Title */}
         <Typography
           sx={{
-            fontWeight: 700,
-            fontSize: { xs: '0.85rem', md: '1rem' },
-            color: 'common.white',
+            fontWeight: 800,
+            fontSize: { xs: '0.9rem', md: '1.05rem' },
+            color: 'text.primary',
             letterSpacing: '-0.2px',
             fontFamily: 'Outfit, sans-serif',
-            minWidth: { xs: 100, md: 160 },
+            minWidth: { xs: 110, md: 170 },
             textAlign: 'center',
             textTransform: 'capitalize',
             px: 0.5,
@@ -138,13 +140,13 @@ function CalendarToolbar({
             width: 32,
             height: 32,
             borderRadius: '8px',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-            backgroundColor: alpha(theme.palette.common.white, 0.04),
+            border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.2 : 0.1)}`,
+            backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.04),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: theme.palette.text.secondary,
+            color: theme.palette.text.primary,
             transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.12),
@@ -188,8 +190,8 @@ function CalendarToolbar({
             alignItems: 'center',
             p: 0.4,
             borderRadius: '10px',
-            backgroundColor: alpha(theme.palette.common.white, 0.05),
-            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+            backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.06) : alpha(theme.palette.common.white, 0.05),
+            border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.15 : 0.08)}`,
             gap: 0.25,
           }}
         >
@@ -206,22 +208,24 @@ function CalendarToolbar({
                   px: { xs: 0.75, md: 1.25 },
                   py: 0.5,
                   borderRadius: '7px',
-                  fontSize: '0.72rem',
+                  fontSize: '0.75rem',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? theme.palette.primary.contrastText : theme.palette.text.secondary,
+                  color: isActive ? '#ffffff' : 'text.secondary',
                   backgroundColor: isActive
                     ? theme.palette.primary.main
                     : 'transparent',
                   boxShadow: isActive
-                    ? `0 2px 10px ${alpha(theme.palette.primary.main, 0.4)}`
+                    ? `0 2px 10px ${alpha(theme.palette.primary.main, 0.3)}`
                     : 'none',
                   border: 'none',
                   cursor: 'pointer',
                   transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
                   letterSpacing: '0.01em',
                   '&:hover': isActive ? {} : {
-                    backgroundColor: alpha(theme.palette.common.white, 0.06),
-                    color: 'common.white',
+                    backgroundColor: isLight
+                      ? alpha(theme.palette.primary.main, 0.1)
+                      : alpha(theme.palette.common.white, 0.06),
+                    color: 'text.primary',
                   },
                 }}
               >

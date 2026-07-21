@@ -91,6 +91,19 @@ export class AuthService {
     };
   }
 
+  async updateTheme(userId: number, theme: string) {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { theme: theme.toUpperCase() as any },
+    });
+    return {
+      ...sanitizeUser(updated),
+      toJSON() {
+        return sanitizeUser(updated);
+      },
+    };
+  }
+
   async changePassword(userId: number, data: { currentPassword: string; newPassword: string }) {
     const user = await prisma.user.findFirst({
       where: { id: userId, deletedAt: null },

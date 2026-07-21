@@ -48,18 +48,20 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
     };
 
+    const isLight = theme.palette.mode === 'light';
+
     // Get variant-specific sx styling
     const getVariantSx = () => {
       switch (variant) {
         case 'primary':
           return {
             backgroundColor: theme.palette.primary.main,
-            color: theme.palette.common.black,
+            color: isLight ? '#ffffff' : '#0a1a26',
             fontWeight: 600,
-            boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+            boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.25)}`,
             '&:hover': {
               backgroundColor: theme.palette.primary.dark,
-              boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.5)}`,
+              boxShadow: `0 4px 16px ${alpha(theme.palette.primary.main, 0.4)}`,
               transform: 'scale(1.02)',
             },
             '&:active': {
@@ -68,22 +70,30 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           };
         case 'secondary':
           return {
-            backgroundColor: alpha(theme.palette.common.white, 0.1),
+            backgroundColor: isLight
+              ? alpha(theme.palette.primary.main, 0.08)
+              : alpha(theme.palette.common.white, 0.1),
             color: theme.palette.text.primary,
-            border: `1px solid ${theme.palette.divider}`,
+            border: `1px solid ${isLight ? alpha(theme.palette.primary.main, 0.2) : theme.palette.divider}`,
             '&:hover': {
-              backgroundColor: alpha(theme.palette.common.white, 0.15),
+              backgroundColor: isLight
+                ? alpha(theme.palette.primary.main, 0.14)
+                : alpha(theme.palette.common.white, 0.15),
               borderColor: theme.palette.primary.main,
             },
           };
         case 'glass':
           return {
-            backgroundColor: alpha(theme.palette.common.white, 0.05),
+            backgroundColor: isLight
+              ? 'rgba(255, 255, 255, 0.85)'
+              : alpha(theme.palette.common.white, 0.05),
             color: theme.palette.text.primary,
-            border: `1px solid ${theme.palette.divider}`,
+            border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : theme.palette.divider}`,
             backdropFilter: 'blur(10px)',
             '&:hover': {
-              backgroundColor: alpha(theme.palette.common.white, 0.1),
+              backgroundColor: isLight
+                ? 'rgba(255, 255, 255, 1)'
+                : alpha(theme.palette.common.white, 0.1),
               borderColor: theme.palette.primary.main,
             },
           };

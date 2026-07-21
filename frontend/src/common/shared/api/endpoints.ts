@@ -6,6 +6,7 @@ export const ENDPOINTS = {
     REGISTER: '/api/auth/register',
     ME: '/api/auth/me',
     REFRESH: '/api/auth/refresh',
+    THEME: '/api/auth/me/theme',
   },
   CUSTOMERS: {
     BASE: '/api/customers',
@@ -60,13 +61,6 @@ export const ENDPOINTS = {
     SALES: '/api/cream/sales',
     SUMMARY: '/api/cream/summary',
   },
-  NEW_FEATURE: {
-    BOOKING_PUBLIC: (id: string | number) => `/api/newfeature/booking/${id}`,
-    SUBMIT_CONSENT: (id: string | number) => `/api/newfeature/booking/${id}/consent`,
-    GET_PLACEMENT: (id: string | number) => `/api/newfeature/booking/${id}/placement`,
-    SAVE_PLACEMENT: (id: string | number) => `/api/newfeature/booking/${id}/placement`,
-    GET_CONSENTS: '/api/newfeature/consents',
-  },
   CONFIG: {
     BASE: '/api/config',
     BACKUP: '/api/config/backup',
@@ -79,5 +73,26 @@ export const ENDPOINTS = {
   },
   ATTACHMENTS: {
     DOWNLOAD: (id: string | number) => `/api/attachments/${id}/download`,
+  },
+  USER_PREFERENCES: {
+    BASE: '/api/user/preferences',
+  },
+  METRICS: {
+    SUMMARY: '/api/metrics/summary',
+    VITALS: '/api/metrics/vitals',
+    RESET: '/api/metrics/reset',
+  },
+  SAVED_VIEWS: {
+    BASE: '/api/saved-views',
+    BY_ID: (id: string | number) => `/api/saved-views/${id}`,
+    SET_DEFAULT: (id: string | number) => `/api/saved-views/${id}/set-default`,
+  },
+  EXPORT: {
+    BASE: '/api/export',
+  },
+  REPORTS: {
+    SUMMARY: '/api/reports/summary',
+    DETAILS: '/api/reports/details',
+    EXPORT: '/api/reports/export',
   },
 };

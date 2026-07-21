@@ -12,30 +12,24 @@ import Icon from '@/common/components/ui/Icon';
 import { useMemo } from 'react';
 import { BOOKING_STATUS_CONFIG, getBookingStatusLabel, getBookingStatusBadgeVariant } from '@/common/config/status-config';
 
-// Consensus Integration
-import { useAuth } from '@/common/context/AuthContext';
-import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
-import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
-
 interface UseBookingColumnsOptions {
   onAttachmentClick?: (booking: Booking) => void;
-  onConsentClick?: (booking: Booking) => void;
 }
 
 export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
   const theme = useTheme();
-  const { onAttachmentClick, onConsentClick } = options;
-  const { SHOW_CONSENSI } = useConsentConfig();
-  const { isSuperAdmin } = useAuth();
+  const { onAttachmentClick } = options;
 
   const staticColumns: Column<Booking>[] = [
     {
       key: 'cliente',
       label: 'Cliente',
+      minWidth: 170,
+      width: '180px',
       render: (booking) => (
         booking.customer ? (
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {booking.customer.firstName} {booking.customer.lastName}
             </Typography>
             {booking.customer.phone && (
@@ -62,6 +56,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'artista',
       label: 'Artista',
+      minWidth: 140,
       width: '150px',
       render: (booking) => (
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
@@ -74,43 +69,17 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
               flexShrink: 0,
             }}
           />
-          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+          <Typography variant="body2" sx={{ color: theme.palette.text.secondary, whiteSpace: 'nowrap' }}>
             {booking.artist?.name ?? '—'}
           </Typography>
         </Stack>
       ),
     },
     {
-      key: 'telefono',
-      label: 'Telefono',
-      width: '150px',
-      render: (booking) => (
-        <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
-          {booking.customer?.phone ? (
-            <>
-              <Icon name="phone" size={12} color={theme.palette.primary.main} />
-              <Typography
-                variant="caption"
-                sx={{
-                  fontFamily: 'monospace',
-                  color: theme.palette.text.secondary,
-                }}
-              >
-                {booking.customer.phone}
-              </Typography>
-            </>
-          ) : (
-            <Typography variant="caption" sx={{ color: theme.palette.text.disabled }}>
-              —
-            </Typography>
-          )}
-        </Stack>
-      ),
-    },
-    {
       key: 'data_ora',
       label: 'Data & Ora',
-      width: '140px',
+      minWidth: 135,
+      width: '145px',
       render: (booking) => (
         <Stack useFlexGap sx={{ gap: 0.25 }}>
           <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
@@ -119,7 +88,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
               variant="caption"
               sx={{
                 color: theme.palette.text.primary,
-                fontWeight: 500,
+                fontWeight: 600,
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
@@ -145,7 +114,8 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       key: 'durata',
       label: 'Durata',
       align: 'center',
-      width: '110px',
+      minWidth: 95,
+      width: '105px',
       render: (booking) => (
         <Stack direction="row" useFlexGap sx={{ gap: 0.75, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           <Icon name="timer" size={12} color={theme.palette.primary.main} />
@@ -165,7 +135,8 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'prenotato_il',
       label: 'Prenotato il',
-      width: '125px',
+      minWidth: 125,
+      width: '135px',
       render: (booking) => (
         <Stack useFlexGap sx={{ gap: 0.25 }}>
           <Typography
@@ -193,7 +164,9 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     {
       key: 'stato',
       label: 'Stato',
-      width: '120px',
+      align: 'center',
+      minWidth: 140,
+      width: '145px',
       render: (booking) => (
         <Badge
           label={getBookingStatusLabel(booking.status)}
@@ -390,38 +363,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     },
   ];
 
-  const bookingColumns = useMemo(() => {
-    const cols = [...staticColumns];
-    if (SHOW_CONSENSI && isSuperAdmin) {
-      const statusIdx = cols.findIndex(c => c.key === 'stato');
-      if (statusIdx !== -1) {
-        cols.splice(statusIdx, 0, {
-          key: 'consenso',
-          label: 'Consenso',
-          width: '140px',
-          render: (booking) => (
-            <ConsentStatusBadge booking={booking} onClick={(e) => {
-              e.stopPropagation();
-              onConsentClick?.(booking);
-            }} />
-          ),
-        });
-      } else {
-        cols.push({
-          key: 'consenso',
-          label: 'Consenso',
-          width: '140px',
-          render: (booking) => (
-            <ConsentStatusBadge booking={booking} onClick={(e) => {
-              e.stopPropagation();
-              onConsentClick?.(booking);
-            }} />
-          ),
-        });
-      }
-    }
-    return cols;
-  }, [theme, onAttachmentClick, onConsentClick, SHOW_CONSENSI, isSuperAdmin]);
+  const bookingColumns = useMemo(() => staticColumns, [staticColumns]);
 
 
   const exportColumns = useMemo(() => [

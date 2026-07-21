@@ -35,13 +35,56 @@ export default function Badge({
   const theme = useTheme();
 
   const getColors = () => {
+    const isLight = theme.palette.mode === 'light';
     switch (variant) {
-      case 'primary': return { bg: alpha(theme.palette.primary.main, 0.1), text: theme.palette.primary.main, border: alpha(theme.palette.primary.main, 0.2) };
-      case 'success': return { bg: alpha(theme.palette.success.main, 0.1), text: theme.palette.success.main, border: alpha(theme.palette.success.main, 0.2) };
-      case 'warning': return { bg: alpha(theme.palette.warning.main, 0.1), text: theme.palette.warning.main, border: alpha(theme.palette.warning.main, 0.2) };
-      case 'error': return { bg: alpha(theme.palette.error.main, 0.1), text: theme.palette.error.main, border: alpha(theme.palette.error.main, 0.2) };
-      case 'info': return { bg: alpha(theme.palette.info.main, 0.1), text: theme.palette.info.main, border: alpha(theme.palette.info.main, 0.2) };
-      default: return { bg: alpha(theme.palette.common.white, 0.05), text: alpha(theme.palette.common.white, 0.7), border: alpha(theme.palette.common.white, 0.1) };
+      case 'primary':
+      case 'status-confirmed':
+        return {
+          bg: alpha(theme.palette.primary.main, isLight ? 0.12 : 0.22),
+          text: isLight ? theme.palette.primary.dark : theme.palette.primary.light,
+          border: alpha(theme.palette.primary.main, 0.35),
+        };
+
+      case 'info':
+      case 'status-created':
+        return {
+          bg: alpha(theme.palette.info.main, isLight ? 0.12 : 0.2),
+          text: isLight ? theme.palette.info.dark : theme.palette.info.light,
+          border: alpha(theme.palette.info.main, 0.3),
+        };
+
+      case 'success':
+      case 'status-completed':
+        return {
+          bg: alpha(theme.palette.success.main, isLight ? 0.12 : 0.2),
+          text: isLight ? '#047857' : theme.palette.success.light,
+          border: alpha(theme.palette.success.main, 0.3),
+        };
+
+      case 'warning':
+      case 'status-updated':
+      case 'status-rescheduled':
+        return {
+          bg: alpha(theme.palette.warning.main, isLight ? 0.14 : 0.22),
+          text: isLight ? '#b45309' : theme.palette.warning.light,
+          border: alpha(theme.palette.warning.main, 0.35),
+        };
+
+      case 'error':
+      case 'status-cancelled':
+      case 'status-deleted':
+        return {
+          bg: alpha(theme.palette.error.main, isLight ? 0.12 : 0.22),
+          text: isLight ? '#c53030' : theme.palette.error.light,
+          border: alpha(theme.palette.error.main, 0.3),
+        };
+
+      default:
+        return {
+          bg: isLight ? alpha(theme.palette.text.primary, 0.06) : alpha(theme.palette.common.white, 0.05),
+          text: theme.palette.text.secondary,
+          border: isLight ? alpha(theme.palette.text.primary, 0.12) : alpha(theme.palette.common.white, 0.1),
+        };
     }
   };
 

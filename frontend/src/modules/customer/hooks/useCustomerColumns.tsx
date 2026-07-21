@@ -15,9 +15,11 @@ export function useCustomerColumns(): Column<Customer>[] {
       {
         key: 'cliente',
         label: 'Cliente',
+        minWidth: 180,
+        width: '200px',
         render: (customer) => (
-          <Box>
-            <Box sx={{ fontWeight: 600, lineHeight: 1.25, color: theme.palette.text.primary }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Box sx={{ fontWeight: 600, lineHeight: 1.25, color: theme.palette.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {customer.firstName} {customer.lastName}
             </Box>
             {customer.notes && (
@@ -27,8 +29,9 @@ export function useCustomerColumns(): Column<Customer>[] {
                   color: theme.palette.text.secondary,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: '220px',
+                  maxWidth: '260px',
                   mt: 0.5,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {customer.notes}
@@ -40,6 +43,7 @@ export function useCustomerColumns(): Column<Customer>[] {
       {
         key: 'phone',
         label: 'Telefono',
+        minWidth: 150,
         width: '160px',
         render: (customer) => (
           <Box
@@ -61,6 +65,8 @@ export function useCustomerColumns(): Column<Customer>[] {
       {
         key: 'email',
         label: 'Email',
+        minWidth: 200,
+        width: '220px',
         render: (customer) =>
           customer.email ? (
             <Box
@@ -75,7 +81,7 @@ export function useCustomerColumns(): Column<Customer>[] {
               <Icon name="mail" size={13} color={theme.palette.primary.main} />
               <Box
                 component="span"
-                sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}
+                sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '220px', whiteSpace: 'nowrap' }}
               >
                 {customer.email}
               </Box>
@@ -89,7 +95,8 @@ export function useCustomerColumns(): Column<Customer>[] {
       {
         key: 'createdAt',
         label: 'Iscritto il',
-        width: '130px',
+        minWidth: 130,
+        width: '140px',
         render: (customer) => (
           <Box
             component="span"
@@ -109,7 +116,8 @@ export function useCustomerColumns(): Column<Customer>[] {
         key: 'bookings',
         label: 'Prenotazioni',
         align: 'center',
-        width: '110px',
+        minWidth: 120,
+        width: '130px',
         render: (customer) => (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Box

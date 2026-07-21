@@ -79,6 +79,30 @@ export async function exportXlsx(
   XLSX.writeFile(workbook, `${filename}.xlsx`, { bookType: 'xlsx' });
 }
 
+export async function exportPdf(
+  filename: string,
+  headers: string[],
+  data: string[][]
+): Promise<void> {
+  const { exportApi } = await import('@/modules/export/api/exportApi');
+  const columns = headers.map((h, i) => ({ key: `col_${i}`, label: h }));
+  const rows = data.map((row) => {
+    const obj: Record<string, any> = {};
+    headers.forEach((h, i) => {
+      obj[`col_${i}`] = row[i];
+    });
+    return obj;
+  });
+
+  await exportApi.download({
+    format: 'pdf',
+    title: filename.replace(/-/g, ' ').toUpperCase(),
+    filename,
+    columns,
+    data: rows,
+  });
+}
+
 export function slugifyFileName(input: string): string {
   return (
     input

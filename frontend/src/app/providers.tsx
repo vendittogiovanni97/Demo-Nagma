@@ -6,6 +6,7 @@ import GlobalErrorBoundary from '@/common/components/feedback/GlobalErrorBoundar
 import LayoutContainer from '@/common/components/layout/LayoutContainer';
 
 import { AuthProvider } from '@/common/context/AuthContext';
+import { PreferencesProvider } from '@/common/context/PreferencesContext';
 import { BreakpointProvider as CustomBreakpointProvider } from '@/common/context/BreakpointContext';
 import { ToastContainer } from '@/common/components/ui/Toast/ToastContainer';
 import DynamicThemeProvider from '@/common/providers/ThemeProvider';
@@ -22,20 +23,22 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <DynamicThemeProvider>
       <CustomBreakpointProvider>
         <AuthProvider>
-          <GlobalErrorBoundary>
-            <div className="flex flex-col min-h-screen">
-              {!isStandalonePage && <Navbar />}
-              {isStandalonePage ? (
-                children
-              ) : (
-                <AuthGuard>
-                  <LayoutContainer maxWidth="full">
-                    {children}
-                  </LayoutContainer>
-                </AuthGuard>
-              )}
-            </div>
-          </GlobalErrorBoundary>
+          <PreferencesProvider>
+            <GlobalErrorBoundary>
+              <div className="flex flex-col min-h-screen">
+                {!isStandalonePage && <Navbar />}
+                {isStandalonePage ? (
+                  children
+                ) : (
+                  <AuthGuard>
+                    <LayoutContainer maxWidth="full">
+                      {children}
+                    </LayoutContainer>
+                  </AuthGuard>
+                )}
+              </div>
+            </GlobalErrorBoundary>
+          </PreferencesProvider>
         </AuthProvider>
       </CustomBreakpointProvider>
       <ToastContainer />

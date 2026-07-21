@@ -86,19 +86,23 @@ export default function TodayAgendaWidget({
     );
   };
 
+  const isLight = theme.palette.mode === 'light';
+
   return (
     <Card
       className={className}
       variant="glass"
       size="md"
       sx={{
-        bgcolor: alpha(theme.palette.background.default, 0.5),
+        bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.5),
         border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
-        boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`,
+        boxShadow: isLight
+          ? `0 2px 12px ${alpha(theme.palette.common.black, 0.08)}`
+          : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
         transition: theme.transitions.create(['all'], { duration: 300 }),
         '&:hover': {
           borderColor: alpha(theme.palette.primary.main, 0.3),
-          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
+          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}`,
         },
         height: '100%',
         display: 'flex',
@@ -125,7 +129,7 @@ export default function TodayAgendaWidget({
             <Icon name="calendar" size={18} />
           </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'common.white', fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', letterSpacing: '-0.3px' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', letterSpacing: '-0.3px' }}>
               Appuntamenti Oggi
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize', fontWeight: 500 }}>
@@ -134,11 +138,30 @@ export default function TodayAgendaWidget({
           </Box>
         </Stack>
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mt: 0.5, mr: 0.5 }}>
-          <Badge
-            label={String(todayBookings.length)}
-            variant="primary"
-            size="sm"
-          />
+          <Box
+            sx={{
+              px: 2.5,
+              py: 1,
+              borderRadius: '12px',
+              backgroundColor: alpha(theme.palette.primary.main, isLight ? 0.15 : 0.25),
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.45)}`,
+              boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.15)}`,
+              display: 'inline-flex',
+              alignItems: 'center',
+            }}
+          >
+            <Typography
+              sx={{
+                color: theme.palette.primary.main,
+                fontWeight: 900,
+                fontSize: '1.125rem',
+                lineHeight: 1,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {todayBookings.length} {todayBookings.length === 1 ? 'prenotazione' : 'prenotazioni'}
+            </Typography>
+          </Box>
           <Tooltip title="Vedi tutte le prenotazioni">
             <Button
               variant="icon"
@@ -153,7 +176,7 @@ export default function TodayAgendaWidget({
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
                 '&:hover': {
                   bgcolor: alpha(theme.palette.primary.main, 0.15),
-                  color: 'common.white',
+                  color: isLight ? 'primary.dark' : 'common.white',
                   borderColor: 'primary.main'
                 },
               }}
@@ -183,9 +206,9 @@ export default function TodayAgendaWidget({
       >
         {isLoading ? (
           <Stack useFlexGap sx={{ gap: 1.5 }}>
-            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.common.white, 0.03) }} />
-            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.common.white, 0.03) }} />
-            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.common.white, 0.03) }} />
+            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.text.primary, 0.05) }} />
+            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.text.primary, 0.05) }} />
+            <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.text.primary, 0.05) }} />
           </Stack>
         ) : todayBookings.length === 0 ? (
           <Stack
@@ -208,7 +231,7 @@ export default function TodayAgendaWidget({
             >
               <Icon name="calendar" size={24} color={theme.palette.primary.main} />
             </Box>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: 'common.white' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
               Nessun appuntamento oggi
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -223,18 +246,17 @@ export default function TodayAgendaWidget({
                 flex: 1,
                 p: 1.2,
                 borderRadius: '10px',
-                backgroundColor: alpha(theme.palette.common.white, 0.02),
+                backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.02),
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 0.2,
-                boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`
               }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Prenotati
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: 'common.white', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
+                <Typography variant="body1" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
                   {todayBookings.length}
                 </Typography>
               </Box>
@@ -243,13 +265,12 @@ export default function TodayAgendaWidget({
                 flex: 1,
                 p: 1.2,
                 borderRadius: '10px',
-                backgroundColor: alpha(theme.palette.common.white, 0.02),
+                backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.02),
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 0.2,
-                boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`
               }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Ore Totali
@@ -263,13 +284,12 @@ export default function TodayAgendaWidget({
                 flex: 1,
                 p: 1.2,
                 borderRadius: '10px',
-                backgroundColor: alpha(theme.palette.common.white, 0.02),
+                backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.02),
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: 0.2,
-                boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`
               }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Valore
@@ -299,10 +319,12 @@ export default function TodayAgendaWidget({
                   sx={{
                     p: 2,
                     borderRadius: '14px',
-                    backgroundColor: alpha(theme.palette.common.white, 0.03),
+                    backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.03) : alpha(theme.palette.common.white, 0.03),
                     border: `1px solid ${artistColor}18`,
                     borderLeft: `4px solid ${artistColor}`,
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, 0.15)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.04)}`,
+                    boxShadow: isLight
+                      ? `0 2px 8px ${alpha(theme.palette.common.black, 0.06)}`
+                      : `0 4px 12px ${alpha(theme.palette.common.black, 0.15)}`,
                     cursor: 'pointer',
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
@@ -312,9 +334,9 @@ export default function TodayAgendaWidget({
                     position: 'relative',
                     overflow: 'hidden',
                     '&:hover': {
-                      backgroundColor: alpha(theme.palette.common.white, 0.05),
+                      backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.06) : alpha(theme.palette.common.white, 0.05),
                       borderColor: artistColor,
-                      boxShadow: `0 8px 24px ${artistColor}15, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.08)}`,
+                      boxShadow: `0 8px 24px ${artistColor}15`,
                       transform: 'translateY(-2px)',
                       '& .arrow-icon': {
                         transform: 'translateX(4px)',
@@ -342,7 +364,7 @@ export default function TodayAgendaWidget({
                         border: `1px solid ${artistColor}25`,
                       }}>
                         <Icon name="clock" size={11} color={artistColor} />
-                        <Typography sx={{ fontWeight: 800, color: 'common.white', fontSize: '0.72rem', fontFamily: 'monospace', lineHeight: 1 }}>
+                        <Typography sx={{ fontWeight: 800, color: isLight ? 'text.primary' : 'common.white', fontSize: '0.72rem', fontFamily: 'monospace', lineHeight: 1 }}>
                           {bookingTime}
                         </Typography>
                       </Box>
@@ -374,7 +396,7 @@ export default function TodayAgendaWidget({
                             border: `1px solid ${artistColor}30`,
                           }}
                         />
-                        <Typography sx={{ fontWeight: 700, color: 'common.white', fontSize: '0.82rem', letterSpacing: '-0.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.82rem', letterSpacing: '-0.1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {customerFullName}
                         </Typography>
                       </Stack>
@@ -387,9 +409,9 @@ export default function TodayAgendaWidget({
                           borderRadius: '50%',
                           backgroundColor: artistColor,
                           boxShadow: `0 0 6px ${artistColor}`,
-                          ml: 1 // Aligns dot beautifully under text
+                          ml: 1
                         }} />
-                        <Typography sx={{ color: alpha(theme.palette.common.white, 0.55), fontSize: '0.75rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {booking.artist?.name || 'Non assegnato'}
                         </Typography>
                       </Stack>
@@ -407,7 +429,7 @@ export default function TodayAgendaWidget({
                       opacity: 0.3,
                     }}
                   >
-                    <Icon name="arrowRight" size={16} color={theme.palette.common.white} />
+                    <Icon name="arrowRight" size={16} color={theme.palette.text.secondary} />
                   </Box>
 
                   {/* QUICK ACTION BAR (FADES IN ON HOVER) */}
@@ -424,7 +446,7 @@ export default function TodayAgendaWidget({
                       right: 16,
                       zIndex: 2,
                     }}
-                    onClick={(e) => e.stopPropagation()} // Prevent card redirection on action click
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {booking.customer?.phone && (
                       <Tooltip title="Invia WhatsApp">

@@ -13,10 +13,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Icon from '@/common/components/ui/Icon';
 import { useEffect, useMemo } from 'react';
 
-// Consensus Integration
-import ConsentModal from '@/modules/newfeature/consenso/components/ConsentModal';
-import ConsentStatusBadge from '@/modules/newfeature/consenso/components/ConsentStatusBadge';
-import { useConsentConfig } from '@/modules/newfeature/consenso/hooks/useConsentConfig';
 import { configService } from '@/common/shared/services/config.service';
 // Components
 import SmartModal from '@/common/components/common/SmartModal';
@@ -66,7 +62,6 @@ export default function BookingModal({
   const toast = useToast();
   const theme = useTheme();
   const { isSuperAdmin } = useAuth();
-  const { SHOW_CONSENSI, SHOW_POSIZIONAMENTO } = useConsentConfig();
 
   const form = useBookingForm({
     isOpen,
@@ -124,32 +119,6 @@ export default function BookingModal({
                   <Grid size={{ xs: 12, sm: 3 }}>
                     <FormInput label="Email" value={booking.customer?.email || '—'} disabled size="sm" onChange={() => {}} />
                   </Grid>
-
-                  {/* Informed Consent Status Row (Conditional Feature Flag check) */}
-                  {SHOW_CONSENSI && isSuperAdmin && (
-                    <Grid size={12}>
-                      <Box sx={{
-                        mt: 1.5,
-                        p: 2,
-                        borderRadius: '12px',
-                        backgroundColor: alpha(theme.palette.common.white, 0.02),
-                        border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'common.white', fontSize: '0.8rem' }}>
-                            Consenso Informato Digitale
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.68rem' }}>
-                            Modulo sanitario e firma grafica per l'inizio del tatuaggio
-                          </Typography>
-                        </Box>
-                        <ConsentStatusBadge booking={booking} onClick={() => form.setConsentOpen(true)} />
-                      </Box>
-                    </Grid>
-                  )}
                 </Grid>
               </Grid>
             )}
@@ -421,12 +390,6 @@ export default function BookingModal({
           )}
         </AnimatePresence>
       </SmartModal>
-
-      <ConsentModal
-        open={form.consentOpen}
-        onClose={() => form.setConsentOpen(false)}
-        booking={booking}
-      />
     </>
   );
 }

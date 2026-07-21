@@ -105,7 +105,7 @@ export const ModalHeader = ({ title, onClose, subtitle }: ModalHeaderProps) => {
         justifyContent: "space-between",
         padding: "24px",
         borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-        color: theme.palette.common.white,
+        color: theme.palette.text.primary,
         fontWeight: 700,
         fontSize: "1.25rem",
         fontFamily: '"Outfit", sans-serif',

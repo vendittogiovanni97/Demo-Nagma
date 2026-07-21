@@ -37,6 +37,7 @@ export default function FinanceOverviewWidget({
   onMonthChange,
 }: FinanceOverviewWidgetProps) {
   const theme = useTheme();
+  const isLight = theme.palette.mode === 'light';
   const [showData, setShowData] = useState(true);
 
   // Memoize financeData to prevent Recharts remount on parent re-render
@@ -54,13 +55,15 @@ export default function FinanceOverviewWidget({
       variant="glass"
       size="md"
       sx={{
-        bgcolor: alpha(theme.palette.background.default, 0.5),
+        bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.5),
         border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
-        boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.03)}`,
+        boxShadow: isLight
+          ? `0 2px 12px ${alpha(theme.palette.common.black, 0.08)}`
+          : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
         transition: theme.transitions.create(['all'], { duration: 300 }),
         '&:hover': {
           borderColor: alpha(theme.palette.primary.main, 0.3),
-          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
+          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}`,
         },
         height: '100%',
         display: 'flex',
@@ -84,7 +87,7 @@ export default function FinanceOverviewWidget({
           >
             <Icon name="dollarSign" size={18} />
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
             Panoramica Finanziaria
           </Typography>
         </Stack>
@@ -122,14 +125,9 @@ export default function FinanceOverviewWidget({
       </Box>
 
       {/* Content */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {isLoading ? (
-          <Stack useFlexGap sx={{ gap: 2 }}>
-            <Skeleton variant="rect" height={200} />
-          </Stack>
-        ) : (
-          <Stack direction={{ xs: 'column', sm: 'row' }} useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, alignItems: 'stretch', flex: 1 }}>
-            <Box sx={{ flex: 1, minWidth: { xs: 160, md: 240 }, minHeight: { xs: 160, md: 240 }, position: 'relative' }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', opacity: isLoading ? 0.65 : 1, transition: 'opacity 0.2s ease-in-out' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, alignItems: 'stretch', flex: 1 }}>
+          <Box sx={{ flex: 1, minWidth: { xs: 160, md: 240 }, minHeight: { xs: 160, md: 240 }, position: 'relative' }}>
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <defs>
@@ -167,15 +165,17 @@ export default function FinanceOverviewWidget({
                         return (
                           <Box
                             sx={{
-                              bgcolor: alpha(theme.palette.background.default, 0.95),
+                              bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.95),
                               backdropFilter: 'blur(8px)',
                               border: `1px solid ${data.color}33`,
                               borderRadius: 2,
                               p: 1.5,
-                              boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
+                              boxShadow: isLight
+                                ? `0 4px 16px ${alpha(theme.palette.common.black, 0.12)}`
+                                : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
                             }}
                           >
-                            <Typography variant="caption" sx={{ color: alpha(theme.palette.common.white, 0.5), textTransform: 'uppercase', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '0.1em', display: 'block', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '0.1em', display: 'block', mb: 0.5 }}>
                               {data.name}
                             </Typography>
                             <Typography variant="body1" sx={{ color: data.color, fontWeight: 800 }}>
@@ -232,7 +232,7 @@ export default function FinanceOverviewWidget({
 
             <Stack useFlexGap sx={{ gap: 2.5, justifyContent: 'center', flex: 1, minWidth: { xs: 160, md: 200 }, px: 1 }}>
               {/* Entrate Row */}
-              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
                 <Stack direction="row" useFlexGap sx={{ alignItems: 'center', gap: 1 }}>
                   <Box
                     sx={{
@@ -253,7 +253,7 @@ export default function FinanceOverviewWidget({
               </Stack>
 
               {/* Uscite Row */}
-              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+              <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
                 <Stack direction="row" useFlexGap sx={{ alignItems: 'center', gap: 1 }}>
                   <Box
                     sx={{
@@ -274,7 +274,6 @@ export default function FinanceOverviewWidget({
               </Stack>
             </Stack>
           </Stack>
-        )}
       </Box>
     </Card>
   );

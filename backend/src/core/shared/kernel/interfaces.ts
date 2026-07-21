@@ -3,5 +3,6 @@ export interface IPaginatedResponse<T> {
   total: number;
   page: number;
   limit: number;
+  pages: number;
   totalPages: number;
 }

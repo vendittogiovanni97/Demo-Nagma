@@ -45,7 +45,7 @@ interface DataTableToolbarProps {
   exportAnchor: HTMLButtonElement | null;
   onExportClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onExportClose: () => void;
-  onRunExport: (scope: 'current' | 'all', format: 'csv' | 'xlsx') => void;
+  onRunExport: (scope: 'current' | 'all', format: 'csv' | 'xlsx' | 'pdf') => void;
   isManaged: boolean;
 }
 
@@ -85,7 +85,7 @@ export function DataTableToolbar({
     >
       {onRefresh && (
         <Tooltip title={t('Aggiorna')} arrow>
-          <IconButton onClick={onRefresh} className="table-refresh-btn" size="small">
+          <IconButton onClick={onRefresh} className="table-refresh-btn" size="small" sx={{ minWidth: 44, minHeight: 44 }}>
             <Icon name="refresh" />
           </IconButton>
         </Tooltip>
@@ -148,7 +148,7 @@ export function DataTableToolbar({
       </Box>
 
       <Tooltip title={t('Colonne')} arrow>
-        <IconButton ref={colBtnRef} size="small" onClick={onOpenColMenu} className="table-icon-btn">
+        <IconButton ref={colBtnRef} size="small" onClick={onOpenColMenu} className="table-icon-btn" sx={{ minWidth: 44, minHeight: 44 }}>
           <Icon name="colonne" />
         </IconButton>
       </Tooltip>
@@ -192,6 +192,7 @@ export function DataTableToolbar({
                 onClick={onExportClick}
                 disabled={exporting}
                 className={`table-export-btn ${exporting ? 'exporting' : ''}`}
+                sx={{ minWidth: 44, minHeight: 44 }}
               >
                 {exporting ? <CircularProgress size={20} /> : <Icon name="esporta" />}
               </IconButton>
@@ -207,12 +208,16 @@ export function DataTableToolbar({
             <ListSubheader sx={{ lineHeight: '32px' }}>{t('Pagina corrente')}</ListSubheader>
             <MenuItem onClick={() => onRunExport('current', 'csv')}>CSV (.csv)</MenuItem>
             <MenuItem onClick={() => onRunExport('current', 'xlsx')}>Excel (.xlsx)</MenuItem>
+            <MenuItem onClick={() => onRunExport('current', 'pdf')}>PDF (.pdf)</MenuItem>
             {isManaged && (
               <ListSubheader sx={{ lineHeight: '32px' }}>{t('Tutti i risultati')}</ListSubheader>
             )}
             {isManaged && <MenuItem onClick={() => onRunExport('all', 'csv')}>CSV (.csv)</MenuItem>}
             {isManaged && (
               <MenuItem onClick={() => onRunExport('all', 'xlsx')}>Excel (.xlsx)</MenuItem>
+            )}
+            {isManaged && (
+              <MenuItem onClick={() => onRunExport('all', 'pdf')}>PDF (.pdf)</MenuItem>
             )}
           </Menu>
         </>

@@ -23,7 +23,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // Role-based route authorization
-    const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/posizionamento', '/consensi', '/admin-panel'];
+    const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/admin-panel'];
     const isAdminPath = adminOnlyPaths.some(p => pathname === p || pathname?.startsWith(p + '/'));
 
     if (isAdminPath && !isAdmin) {
@@ -66,7 +66,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // Role check fallback to avoid content flash during redirect
-  const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/posizionamento', '/consensi', '/admin-panel'];
+  const adminOnlyPaths = ['/finance', '/creams', '/booking-history', '/form-templates', '/admin-panel'];
   const isAdminPath = adminOnlyPaths.some(p => pathname === p || pathname?.startsWith(p + '/'));
   if (isAdminPath && !isAdmin) {
     return null;

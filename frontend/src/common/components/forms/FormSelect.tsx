@@ -88,12 +88,14 @@ function FormSelect({
         sx={{
           '& .MuiOutlinedInput-root': {
             ...inputRootSx(theme),
-            backgroundColor: alpha(theme.palette.common.white, 0.05),
+            backgroundColor: theme.palette.mode === 'light'
+              ? 'rgba(0, 0, 0, 0.03)'
+              : alpha(theme.palette.common.white, 0.05),
             borderRadius: 1.5,
             fontSize: '0.9375rem',
           },
           '& .MuiSelect-select.MuiSelect-select': {
-            color: displayValue === '' ? alpha(theme.palette.common.white, 0.4) : 'inherit',
+            color: displayValue === '' ? theme.palette.text.secondary : 'inherit',
           },
           '& .MuiSelect-icon': { color: theme.palette.text.secondary },
           '& .Mui-error fieldset': { borderColor: theme.palette.error.main },

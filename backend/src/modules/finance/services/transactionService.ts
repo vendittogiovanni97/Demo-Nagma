@@ -100,7 +100,7 @@ export class TransactionService {
     const result = rows.reduce(
       (acc, row) => {
         const sum = row._sum.amount ? Number(row._sum.amount) : 0;
-        if (row.type === 'INCOME') acc.totalIncome += sum;
+        if (row.type === 'ENTRATA') acc.totalIncome += sum;
         else acc.totalExpense += sum;
         return acc;
       },
@@ -135,7 +135,7 @@ export class TransactionService {
       const monthStr = t.date.toISOString().substring(0, 7);
       if (!map[monthStr]) map[monthStr] = { income: 0, expense: 0 };
       const amount = Number(t.amount);
-      if (t.type === 'INCOME') map[monthStr].income += amount;
+      if (t.type === 'ENTRATA') map[monthStr].income += amount;
       else map[monthStr].expense += amount;
     });
 

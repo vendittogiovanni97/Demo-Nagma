@@ -128,12 +128,21 @@ async function seedClientConfig(cfg: SeedData['clientConfig']): Promise<void> {
   if (!existing) {
     await prisma.clientConfig.create({ data: cfg as any });
     console.log(`  ClientConfig "${cfg.clientName}"`);
-  } else if (cfg.bookingUpdatePassword && !existing.bookingUpdatePassword) {
+  } else {
+    // Aggiorna sempre i campi di branding per non lasciare valori stale
     await prisma.clientConfig.update({
       where: { id: existing.id },
-      data: { bookingUpdatePassword: cfg.bookingUpdatePassword },
+      data: {
+        clientLogoUrl: cfg.clientLogoUrl,
+        primaryColor: cfg.primaryColor,
+        secondaryColor: cfg.secondaryColor,
+        clientName: cfg.clientName,
+        ...(cfg.bookingUpdatePassword && !existing.bookingUpdatePassword
+          ? { bookingUpdatePassword: cfg.bookingUpdatePassword }
+          : {}),
+      },
     });
-    console.log('  Booking password aggiornata');
+    console.log('  ClientConfig aggiornata (logo + colori)');
   }
 }
 
@@ -165,6 +174,104 @@ async function seedShifts(staffCount: number): Promise<void> {
   console.log(`  ${count} turni (${allStaff.length} staff x 90gg)`);
 }
 
+async function seedUserPreferences(): Promise<void> {
+  const users = await prisma.user.findMany({ where: { deletedAt: null } });
+  let count = 0;
+  for (const user of users) {
+    await prisma.userPreference.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        userId: user.id,
+        language: 'it',
+        timezone: 'Europe/Rome',
+        dateFormat: 'DD/MM/YYYY',
+        itemsPerPage: 25,
+        emailNotifications: true,
+        inAppNotifications: true,
+      },
+    });
+    count++;
+  }
+  console.log(`  ${count} preferenze utente`);
+}
+
+async function seedSavedViews(): Promise<void> {
+  const users = await prisma.user.findMany({ where: { deletedAt: null } });
+  if (users.length === 0) return;
+
+  // Viste di esempio per il superadmin (primo utente)
+  const superAdmin = users.find((u) => u.role === 'SUPER_ADMIN') || users[0];
+
+  const defaultViews = [
+    {
+      userId: superAdmin.id,
+      module: 'customer',
+      name: 'Tutti i Clienti',
+      filters: [],
+      columns: ['firstName', 'lastName', 'phone', 'email', 'createdAt'],
+      sort: { field: 'lastName', direction: 'asc' },
+      isDefault: true,
+      isPublic: true,
+    },
+    {
+      userId: superAdmin.id,
+      module: 'customer',
+      name: 'Clienti Recenti (30gg)',
+      filters: [{ field: 'createdAt', operator: 'greaterThan', value: '30days', logic: 'AND' }],
+      columns: ['firstName', 'lastName', 'phone', 'createdAt'],
+      sort: { field: 'createdAt', direction: 'desc' },
+      isDefault: false,
+      isPublic: true,
+    },
+    {
+      userId: superAdmin.id,
+      module: 'booking',
+      name: 'Prenotazioni di Oggi',
+      filters: [{ field: 'date', operator: 'equals', value: 'today', logic: 'AND' }],
+      columns: ['date', 'time', 'customer', 'artist', 'status', 'price'],
+      sort: { field: 'date', direction: 'asc' },
+      isDefault: true,
+      isPublic: true,
+    },
+    {
+      userId: superAdmin.id,
+      module: 'booking',
+      name: 'Da Completare',
+      filters: [{ field: 'status', operator: 'equals', value: 'IN_ATTESA', logic: 'AND' }],
+      columns: ['date', 'time', 'customer', 'artist', 'status'],
+      sort: { field: 'date', direction: 'asc' },
+      isDefault: false,
+      isPublic: false,
+    },
+    {
+      userId: superAdmin.id,
+      module: 'finance',
+      name: 'Entrate del Mese',
+      filters: [
+        { field: 'type', operator: 'equals', value: 'INCOME', logic: 'AND' },
+        { field: 'date', operator: 'greaterThan', value: 'startOfMonth', logic: 'AND' },
+      ],
+      columns: ['date', 'description', 'amount', 'category'],
+      sort: { field: 'date', direction: 'desc' },
+      isDefault: false,
+      isPublic: false,
+    },
+  ];
+
+  let count = 0;
+  for (const view of defaultViews) {
+    const existing = await prisma.savedView.findFirst({
+      where: { userId: view.userId, module: view.module, name: view.name },
+    });
+    if (!existing) {
+      await prisma.savedView.create({ data: view as any });
+      count++;
+    }
+  }
+  console.log(`  ${count} viste salvate`);
+}
+
 async function main(): Promise<void> {
   console.log(`\nSeed [${SEED_PROFILE}]\n`);
 
@@ -178,6 +285,8 @@ async function main(): Promise<void> {
   await seedCreamTattoo(data.creamTattoo);
   await seedClientConfig(data.clientConfig);
   await seedShifts(data.staff.length);
+  await seedUserPreferences();
+  await seedSavedViews();
 
   console.log(`\nDone: ${data.clientConfig.clientName}`);
   console.log(`Staff: ${data.staff.length}, Account: ${data.accounts.length}`);
@@ -192,3 +301,4 @@ main()
     await pool.end();
     await prisma.$disconnect();
   });
+

@@ -17,6 +17,7 @@ import {
   buildMatrix,
   exportCsv,
   exportXlsx,
+  exportPdf,
   slugifyFileName,
 } from '../utils/exportTable';
 import {
@@ -142,8 +143,31 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
     [columnVisibility, internalColumnVisibility]
   );
 
-  const [mPage, setMPage] = useState(0);
-  const [mLimit, setMLimit] = useState(10);
+  const [mPage, setMPageInternal] = useState(0);
+  const [mLimit, setMLimitState] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('nagma_items_per_page');
+      if (saved) {
+        const num = parseInt(saved, 10);
+        if ([10, 25, 50, 100].includes(num)) return num;
+      }
+    }
+    return 25;
+  });
+
+  const setMLimit = useCallback((newLimit: number) => {
+    setMLimitState(newLimit);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nagma_items_per_page', String(newLimit));
+    }
+  }, []);
+
+  const setMPage = useCallback((newPage: number) => {
+    setMPageInternal(newPage);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
   const [mSortKey, setMSortKey] = useState<string | null>(null);
   const [mSortOrder, setMSortOrder] = useState<'asc' | 'desc'>('asc');
   const [mData, setMData] = useState<E[]>([]);
@@ -587,7 +611,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
   }, [fetchData, rawData, activeStatusFilter, searchTerm, mSortKey, mSortOrder]);
 
   const runExport = useCallback(
-    async (scope: 'current' | 'all', format: 'csv' | 'xlsx') => {
+    async (scope: 'current' | 'all', format: 'csv' | 'xlsx' | 'pdf') => {
       setExportAnchor(null);
       setExporting(true);
       try {
@@ -596,7 +620,8 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
         const { headers, data: matrix } = buildMatrix(cols, rows);
         const fileName = exportFileName ?? (title ? slugifyFileName(title) : 'export');
         if (format === 'csv') exportCsv(fileName, headers, matrix);
-        else await exportXlsx(fileName, headers, matrix);
+        else if (format === 'xlsx') await exportXlsx(fileName, headers, matrix);
+        else if (format === 'pdf') await exportPdf(fileName, headers, matrix);
       } finally {
         setExporting(false);
       }

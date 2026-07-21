@@ -9,8 +9,11 @@ import { bootstrapFormTemplate } from '../../modules/form-template/formTemplate.
 import { bootstrapStaff } from '../../modules/staff/staff.bootstrap';
 import { bootstrapWhatsApp } from '../../modules/whatsapp/whatsapp.bootstrap';
 import { bootstrapAttachment } from '../../modules/attachment/attachment.bootstrap';
-import { bootstrapConsenso } from '../../modules/newfeature/consenso/consenso.bootstrap';
-import { bootstrapPosizionamento } from '../../modules/newfeature/posizionamento/posizionamento.bootstrap';
+import { bootstrapReports } from '../../modules/reports/reports.bootstrap';
+import { bootstrapExport } from '../../modules/export/export.bootstrap';
+import { bootstrapUserPreferences } from '../../modules/user/userPreferences.bootstrap';
+import { bootstrapMetrics } from '../../modules/metrics/metrics.bootstrap';
+import { bootstrapSavedView } from '../../modules/saved-views/savedView.bootstrap';
 
 export function bootstrapContainer(): void {
   bootstrapAttachment();
@@ -24,6 +27,9 @@ export function bootstrapContainer(): void {
   bootstrapFormTemplate();
   bootstrapStaff();
   bootstrapWhatsApp();
-  bootstrapConsenso();
-  bootstrapPosizionamento();
+  bootstrapReports();
+  bootstrapExport();
+  bootstrapUserPreferences();
+  bootstrapMetrics();
+  bootstrapSavedView();
 }

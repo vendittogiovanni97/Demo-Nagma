@@ -6,16 +6,19 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { useClientConfig, DEFAULT_CLIENT_CONFIG } from '@/common/hooks/useClientConfig';
 import { createDynamicTheme } from '@/common/theme/createDynamicTheme';
 import theme from '@/common/theme/theme'; // default theme
+import { ThemeModeProvider, useThemeMode } from '@/common/context/ThemeModeContext';
 
 /**
- * Inner component that uses useClientConfig - only renders after hydration
+ * Inner component che usa useClientConfig e useThemeMode.
+ * Rende il tema MUI reattivo al toggle dark/light/system.
  */
 function DynamicThemeProvider({ children }: { children: React.ReactNode }) {
   const { clientConfig, isLoading } = useClientConfig();
+  const { resolvedTheme } = useThemeMode();
 
   const currentTheme = useMemo(() => {
-    return createDynamicTheme(clientConfig);
-  }, [clientConfig]);
+    return createDynamicTheme(clientConfig, resolvedTheme);
+  }, [clientConfig, resolvedTheme]);
 
   if (isLoading) {
     return (
@@ -35,8 +38,9 @@ function DynamicThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Outer provider that handles SSR/hydration - renders static theme first,
- * then swaps to dynamic theme after hydration
+ * Outer provider che gestisce SSR/hydration:
+ * - Prima del mount: usa tema statico dark (default) per evitare flash
+ * - Dopo il mount: usa ThemeModeProvider + DynamicThemeProvider reattivi
  */
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
@@ -45,9 +49,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setMounted(true);
   }, []);
 
-  // During SSR and first client render (before hydration), use static default theme
+  // Durante SSR e primo render client usa il tema statico default
   if (!mounted) {
-    const defaultTheme = createDynamicTheme(DEFAULT_CLIENT_CONFIG);
+    const defaultTheme = createDynamicTheme(DEFAULT_CLIENT_CONFIG, 'dark');
     return (
       <MuiThemeProvider theme={defaultTheme}>
         <CssBaseline />
@@ -56,8 +60,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   }
 
-  // After hydration, render the dynamic theme provider
-  return <DynamicThemeProvider>{children}</DynamicThemeProvider>;
+  // Dopo l'hydration: ThemeModeProvider avvolge DynamicThemeProvider
+  return (
+    <ThemeModeProvider>
+      <DynamicThemeProvider>{children}</DynamicThemeProvider>
+    </ThemeModeProvider>
+  );
 };
 
 export default ThemeProvider;

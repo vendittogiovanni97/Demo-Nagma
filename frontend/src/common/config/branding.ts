@@ -4,7 +4,7 @@ const portalDescription =
   process.env.NEXT_PUBLIC_PORTAL_DESCRIPTION || 'Gestionale completo Nagma Tattoo Studio';
 const portalLoginTagline =
   process.env.NEXT_PUBLIC_PORTAL_LOGIN_TAGLINE || 'Nagma Tattoo Studio Management';
-const portalLogo = process.env.NEXT_PUBLIC_PORTAL_LOGO || '/favicon.ico';
+const portalLogo = process.env.NEXT_PUBLIC_PORTAL_LOGO || '/logo.svg';
 
 export const branding = {
   portalName,

@@ -119,7 +119,7 @@ export default function PageHeader({
             variant="body2"
             sx={{
               fontSize: '0.8125rem',
-              color: alpha(muiTheme.palette.common.white, 0.6),
+              color: muiTheme.palette.text.secondary,
               mt: 0.5
             }}
           >

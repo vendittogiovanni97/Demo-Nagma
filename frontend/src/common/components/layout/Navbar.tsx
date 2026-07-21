@@ -4,10 +4,8 @@ import { branding } from "@/common/config/branding";
 import { navItems } from "@/common/config/nav-links";
 import { useAuth } from "@/common/context/AuthContext";
 import { useBreakpointContext } from "@/common/context/BreakpointContext";
-import { useConsentConfig } from "@/modules/newfeature/consenso/hooks/useConsentConfig";
 import { useClientConfig } from "@/common/hooks/useClientConfig";
 import BookingModal from "@/modules/booking/components/modals/BookingModal";
-import { alpha } from "@mui/material/styles";
 import {
   AppBar,
   Box,
@@ -20,19 +18,26 @@ import {
   useTheme as useMuiTheme,
   type Theme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import {
+  ClipboardList,
   DollarSign,
   FileText,
   History,
   LogOut,
+  Map,
   MessageSquare,
   Package,
   Plus,
   Receipt,
-  Map,
-  ClipboardList,
-  Shield
+  Shield,
+  Menu as MenuIcon,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
+import { useThemeMode, ThemeMode } from '@/common/context/ThemeModeContext';
+import MobileDrawer from "./MobileDrawer";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -52,11 +57,12 @@ function getInitials(name?: string, email?: string) {
 export default function Navbar() {
   const pathname = usePathname();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
-  const { SHOW_POSIZIONAMENTO, SHOW_CONSENSI } = useConsentConfig();
   const { isSmall, isMedium, isLarge, isXLarge } = useBreakpointContext();
   const muiTheme = useMuiTheme() as unknown as Theme;
+  const { themeMode, resolvedTheme, setThemeMode } = useThemeMode();
 
   const filteredNavItems = useMemo(() => {
     const items = [...navItems];
@@ -120,13 +126,23 @@ export default function Navbar() {
               width: { xs: '100%', sm: 'fit-content' },
               maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
               right: 'auto',
-              backgroundColor: alpha(muiTheme.palette.background.default, 0.98),
+              backgroundColor: resolvedTheme === 'light'
+                ? 'rgba(255, 255, 255, 0.92)'
+                : alpha(muiTheme.palette.background.default, 0.98),
               backdropFilter: 'blur(30px)',
-              border: { xs: 'none', sm: `1px solid ${alpha(muiTheme.palette.primary.main, 0.15)}` },
+              border: {
+                xs: 'none',
+                sm: `1px solid ${resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : alpha(muiTheme.palette.primary.main, 0.15)}`,
+              },
               borderTop: 'none',
               borderRadius: { xs: 0, sm: '0 0 24px 24px' },
-              boxShadow: `0 10px 40px ${alpha(muiTheme.palette.common.black, 0.6)}`,
-              borderBottom: { xs: `1px solid ${alpha(muiTheme.palette.primary.main, 0.15)}`, sm: `1px solid ${alpha(muiTheme.palette.primary.main, 0.15)}` },
+              boxShadow: resolvedTheme === 'light'
+                ? '0 4px 20px rgba(0, 0, 0, 0.08)'
+                : `0 10px 40px ${alpha(muiTheme.palette.common.black, 0.6)}`,
+              borderBottom: {
+                xs: `1px solid ${resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : alpha(muiTheme.palette.primary.main, 0.15)}`,
+                sm: `1px solid ${resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : alpha(muiTheme.palette.primary.main, 0.15)}`,
+              },
             }}
           >
             <Toolbar
@@ -144,16 +160,35 @@ export default function Navbar() {
                 scrollbarWidth: 'none',
               }}
             >
+              {isSmall && (
+                <IconButton
+                  onClick={() => setIsMobileDrawerOpen(true)}
+                  aria-label="Menu di navigazione"
+                  title="Menu"
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    color: muiTheme.palette.primary.main,
+                    mr: 0.5,
+                  }}
+                >
+                  <MenuIcon size={22} />
+                </IconButton>
+              )}
               <NavbarLogo navConfig={navConfig} />
               <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'divider' }} />
-              <NavbarItems
-                items={filteredNavItems}
-                pathname={pathname}
-                navConfig={navConfig}
-                muiTheme={muiTheme}
-                isXLarge={isXLarge}
-              />
-              <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'divider' }} />
+              {!isSmall && (
+                <>
+                  <NavbarItems
+                    items={filteredNavItems}
+                    pathname={pathname}
+                    navConfig={navConfig}
+                    muiTheme={muiTheme}
+                    isXLarge={isXLarge}
+                  />
+                  <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'divider' }} />
+                </>
+              )}
               {isXLarge && (
                 <>
                   <IconButton
@@ -191,14 +226,25 @@ export default function Navbar() {
                 isAdmin={isAdmin}
                 isSuperAdmin={isSuperAdmin}
                 isLarge={isXLarge}
-                SHOW_POSIZIONAMENTO={SHOW_POSIZIONAMENTO}
-                SHOW_CONSENSI={SHOW_CONSENSI}
+                themeMode={themeMode}
+                resolvedTheme={resolvedTheme}
+                onThemeChange={setThemeMode}
                 onMenuOpen={handleUserMenuOpen}
                 onMenuClose={handleUserMenuClose}
                 onLogout={logout}
               />
             </Toolbar>
           </AppBar>
+          <MobileDrawer
+            open={isMobileDrawerOpen}
+            onClose={() => setIsMobileDrawerOpen(false)}
+            items={filteredNavItems}
+            pathname={pathname}
+            user={user}
+            initials={initials}
+            onNewBookingClick={() => setIsBookingOpen(true)}
+            onLogout={logout}
+          />
           <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} booking={null} />
         </>
       )}
@@ -263,8 +309,13 @@ function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
   const logoBoxSize = navConfig.logoBox + 26;
   const logoImgSize = navConfig.logoSize + 30;
 
-  // Usa logo da ClientConfig se disponibile, altrimenti fallback a branding
-  const logoUrl = clientConfig?.clientLogoUrl || branding.portalLogo;
+  const isLight = theme.palette.mode === 'light';
+
+  // Usa logo da ClientConfig se disponibile, altrimenti fallback a branding / logo adattivo al tema
+  let logoUrl = clientConfig?.clientLogoUrl || branding.portalLogo || '/logo.svg';
+  if (isLight && (logoUrl === '/logo.svg' || !clientConfig?.clientLogoUrl)) {
+    logoUrl = '/logo-dark-text.svg';
+  }
   const logoAlt = clientConfig?.clientName || branding.portalName;
 
   return (
@@ -274,8 +325,8 @@ function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
           width: logoBoxSize,
           height: logoBoxSize,
           borderRadius: '50%',
-          backgroundColor: alpha(theme.palette.common.white, 0.05),
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+          backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.common.white, 0.05),
+          border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.25 : 0.12)}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -288,6 +339,7 @@ function NavbarLogo({ navConfig }: { navConfig: NavConfigType }) {
           width={logoImgSize}
           height={logoImgSize}
           priority
+          unoptimized
           style={{ width: logoImgSize, height: logoImgSize, objectFit: 'contain' }}
         />
       </Box>
@@ -384,8 +436,11 @@ interface NavbarUserMenuProps {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isLarge: boolean;
-  SHOW_POSIZIONAMENTO: boolean;
-  SHOW_CONSENSI: boolean;
+  SHOW_POSIZIONAMENTO?: boolean;
+  SHOW_CONSENSI?: boolean;
+  themeMode?: ThemeMode;
+  resolvedTheme?: 'light' | 'dark';
+  onThemeChange?: (mode: ThemeMode) => void;
   onMenuOpen: (e: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
   onLogout: () => void;
@@ -402,6 +457,9 @@ function NavbarUserMenu({
   isLarge,
   SHOW_POSIZIONAMENTO,
   SHOW_CONSENSI,
+  themeMode,
+  resolvedTheme,
+  onThemeChange,
   onMenuOpen,
   onMenuClose,
   onLogout,
@@ -422,6 +480,7 @@ function NavbarUserMenu({
       { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
+      { href: '/settings', icon: FileText, label: 'Impostazioni Utente', show: true },
       { href: '/admin-panel/settings', icon: FileText, label: 'Impostazioni Client', show: isSuperAdmin },
     ],
     [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]
@@ -439,16 +498,17 @@ function NavbarUserMenu({
           height: navConfig.avatarBtn,
           padding: 0,
           borderRadius: '50%',
-          backgroundColor: alpha(muiTheme.palette.primary.main, 0.15),
+          backgroundColor: alpha(muiTheme.palette.primary.main, muiTheme.palette.mode === 'light' ? 0.12 : 0.25),
           border: `1px solid ${alpha(muiTheme.palette.primary.main, 0.4)}`,
-          color: 'inherit',
-          fontSize: '0.5rem',
-          fontWeight: 700,
+          color: muiTheme.palette.primary.main,
+          fontSize: '0.625rem',
+          fontWeight: 800,
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
           transition: 'all 0.3s ease',
           '&:hover': {
-            backgroundColor: alpha(muiTheme.palette.primary.main, 0.25),
+            backgroundColor: alpha(muiTheme.palette.primary.main, 0.3),
+            borderColor: muiTheme.palette.primary.main,
           },
         }}
       >
@@ -482,7 +542,7 @@ function NavbarUserMenu({
             sx={{
               fontSize: isLarge ? '0.9rem' : '0.75rem',
               fontWeight: 800,
-              color: 'common.white',
+              color: 'text.primary',
               lineHeight: 1.2,
               mb: 0.25,
             }}
@@ -550,6 +610,48 @@ function NavbarUserMenu({
               <span>{label}</span>
             </MenuItem>
           ))}
+
+        {/* Theme switcher */}
+        {onThemeChange && (
+          <Box sx={{ px: isLarge ? 2 : 1.5, py: isLarge ? 1 : 0.75, borderTop: `1px solid ${alpha(muiTheme.palette.divider, 0.5)}`, mt: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.75 }}>
+              <Box component="span" sx={{ fontSize: isLarge ? '0.75rem' : '0.625rem', fontWeight: 600, color: muiTheme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Tema
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              {([['light', Sun, 'Chiaro'], ['dark', Moon, 'Scuro'], ['system', Monitor, 'Sistema']] as const).map(([mode, Icon, label]) => (
+                <Box
+                  key={mode}
+                  component="button"
+                  onClick={() => onThemeChange(mode as ThemeMode)}
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 0.4,
+                    py: isLarge ? 0.75 : 0.5,
+                    border: `1px solid ${themeMode === mode ? muiTheme.palette.primary.main : alpha(muiTheme.palette.divider, 0.5)}`,
+                    borderRadius: 1.5,
+                    backgroundColor: themeMode === mode ? alpha(muiTheme.palette.primary.main, 0.12) : 'transparent',
+                    color: themeMode === mode ? muiTheme.palette.primary.main : muiTheme.palette.text.secondary,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: muiTheme.palette.primary.main,
+                      backgroundColor: alpha(muiTheme.palette.primary.main, 0.08),
+                      color: muiTheme.palette.primary.main,
+                    },
+                  }}
+                >
+                  <Icon size={isLarge ? 14 : 12} />
+                  <Box component="span" sx={{ fontSize: isLarge ? '0.6rem' : '0.55rem', fontWeight: 600 }}>{label}</Box>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
 
         {/* Logout item */}
         <MenuItem

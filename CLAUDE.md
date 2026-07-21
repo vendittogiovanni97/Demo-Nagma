@@ -122,7 +122,7 @@ backend/
       config/, container/, database/, middleware/, shared/, utils/
     modules/
       auth, customer, booking, staff, finance, form-template,
-      whatsapp, cream, attachment, config, newfeature/{consenso,posizionamento}
+      whatsapp, cream, attachment, config, reports
     routes.ts, app.ts, index.ts
   test/         # unit test (Jest)
   prisma/       # schema, migrations, seed, seed-data/
@@ -156,3 +156,30 @@ Axios solo per upload multipart (`useAttachments`).
 Prisma 7.8, schema in `backend/prisma/schema.prisma` + `prisma.config.ts`.
 17 modelli, 5 enum. Soft delete con `deletedAt` su tutti tranne audit log.
 `@@map` per snake_case. `onDelete` esplicito.
+
+## Master Prompt & Feature Guidelines
+
+Demo-Nagma is a showcase application demonstrating modern web architecture with 20+ feature modules, complex routing, and real-time data management.
+
+### Architectural Principles
+1. **Feature-Driven:** Each module is independent with clear boundaries.
+2. **Scalability:** Modules require clean organization, no circular dependencies.
+3. **Routing:** Nested routes, lazy loading, breadcrumb navigation.
+4. **Data Management:** PostgreSQL with Prisma / Mongoose for structure.
+5. **UI Consistency:** MUI as design system, AG-Grid for data tables.
+
+### Patterns for Scale
+1. **Module Scaffolding:** Each feature follows identical patterns for predictability.
+2. **Shared Context:** Global state for auth, settings, notifications.
+3. **API Client:** Centralized API calls with error handling via `apiClient`.
+4. **Caching:** SWR / React Query for server state, local storage for client state.
+
+### Checklist for Every New Feature
+- [ ] Backend: router, controller, service, types, bootstrap.
+- [ ] Schema with proper indexing and soft delete.
+- [ ] Frontend: page, components, API client, hooks.
+- [ ] Error handling + user feedback (toast).
+- [ ] Unit + integration tests.
+- [ ] Mobile-responsive UI with MUI components.
+- [ ] Documentation.
+

@@ -60,6 +60,7 @@ interface BookingCardProps {
 
 function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
   const theme = useTheme();
+  const isLight = theme.palette.mode === 'light';
   const artistColor = booking.artistColor || booking.artist?.color || theme.palette.primary.main;
   const bookingTime = format(new Date(booking.date), 'HH:mm');
 
@@ -75,7 +76,6 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
   const statusColor = theme.palette[statusCfg.palette]?.main ?? theme.palette.primary.main;
 
   const isCancelled = booking.status === 'ANNULLATO' || booking.status === 'CANCELLATO';
-  const isCompleted = booking.status === 'COMPLETATO';
 
   return (
     <Box
@@ -83,17 +83,19 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
       sx={{
         p: 2,
         borderRadius: '14px',
-        backgroundColor: alpha(theme.palette.common.white, 0.035),
-        border: `1px solid ${artistColor}28`,
+        backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.035),
+        border: `1px solid ${isLight ? alpha(artistColor, 0.35) : `${artistColor}28`}`,
         backdropFilter: 'blur(10px)',
-        boxShadow: `0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
+        boxShadow: isLight
+          ? `0 2px 10px ${alpha(theme.palette.common.black, 0.05)}`
+          : `0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
         cursor: 'pointer',
         transition: 'all 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
         opacity: isCancelled ? 0.55 : 1,
         '&:hover': {
-          backgroundColor: alpha(theme.palette.common.white, 0.055),
+          backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.common.white, 0.055),
           borderColor: artistColor,
-          boxShadow: `0 8px 28px ${artistColor}20, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.09)}`,
+          boxShadow: `0 8px 28px ${artistColor}20`,
           transform: 'translateY(-2px)',
           '& .arrow-icon': {
             transform: 'translateX(5px)',
@@ -129,15 +131,15 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
                 px: 1,
                 py: 0.3,
                 borderRadius: '20px',
-                backgroundColor: `${artistColor}14`,
-                border: `1px solid ${artistColor}28`,
+                backgroundColor: isLight ? alpha(artistColor, 0.12) : `${artistColor}14`,
+                border: `1px solid ${alpha(artistColor, 0.3)}`,
               }}
             >
               <Icon name="clock" size={11} color={artistColor} />
               <Typography
                 sx={{
                   fontWeight: 800,
-                  color: 'common.white',
+                  color: isLight ? theme.palette.text.primary : 'common.white',
                   fontSize: '0.75rem',
                   fontFamily: 'monospace',
                   lineHeight: 1,
@@ -151,7 +153,7 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
             <Typography
               sx={{
                 fontSize: '0.7rem',
-                color: alpha(theme.palette.common.white, 0.5),
+                color: 'text.secondary',
                 fontWeight: 500,
               }}
             >
@@ -167,7 +169,6 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
                 borderRadius: '6px',
                 backgroundColor: alpha(statusColor, 0.14),
                 border: `1px solid ${alpha(statusColor, 0.3)}`,
-                boxShadow: isCompleted ? `0 0 8px ${statusColor}30` : 'none',
               }}
             >
               <Typography
@@ -204,7 +205,7 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
             <Typography
               sx={{
                 fontWeight: 700,
-                color: 'common.white',
+                color: 'text.primary',
                 fontSize: '0.875rem',
                 letterSpacing: '-0.1px',
                 overflow: 'hidden',
@@ -230,7 +231,7 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
             />
             <Typography
               sx={{
-                color: alpha(theme.palette.common.white, 0.6),
+                color: 'text.secondary',
                 fontSize: '0.75rem',
                 fontWeight: 500,
               }}
@@ -241,10 +242,10 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
             {/* Price (if > 0) */}
             {booking.price > 0 && (
               <>
-                <Box sx={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: alpha(theme.palette.common.white, 0.2) }} />
+                <Box sx={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: theme.palette.divider }} />
                 <Typography
                   sx={{
-                    color: alpha(theme.palette.common.white, 0.45),
+                    color: 'text.secondary',
                     fontSize: '0.72rem',
                     fontWeight: 600,
                   }}
@@ -262,7 +263,7 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
             name="arrowRight"
             size={15}
             className="arrow-icon"
-            color={alpha(theme.palette.common.white, 0.3)}
+            color={theme.palette.text.secondary}
           />
         </Box>
       </Stack>
@@ -281,34 +282,38 @@ function EmptyState() {
         alignItems: 'center',
         justifyContent: 'center',
         py: 6,
+        px: 2,
         gap: 1.5,
+        textAlign: 'center',
       }}
     >
       <Box
         sx={{
           width: 52,
           height: 52,
-          borderRadius: '14px',
+          borderRadius: '16px',
+          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: alpha(theme.palette.common.white, 0.04),
-          border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+          color: theme.palette.primary.main,
+          mb: 0.5,
         }}
       >
-        <Icon name="calendar" size={24} color={alpha(theme.palette.common.white, 0.3)} />
+        <Icon name="calendar" size={24} />
       </Box>
-      <Typography sx={{ color: alpha(theme.palette.common.white, 0.5), fontWeight: 600, fontSize: '0.875rem' }}>
-        Nessun appuntamento
+      <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+        Nessun appuntamento per questa data
       </Typography>
-      <Typography sx={{ color: alpha(theme.palette.common.white, 0.3), fontSize: '0.78rem', textAlign: 'center' }}>
-        Non ci sono prenotazioni per questo giorno
+      <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 260 }}>
+        Non ci sono prenotazioni registrate nel giorno selezionato.
       </Typography>
     </Box>
   );
 }
 
-// ─── Main Modal ────────────────────────────────────────────────────────────
+// ─── Main Component ────────────────────────────────────────────────────────
 export default function DayBookingsModal({
   isOpen,
   onClose,
@@ -333,7 +338,7 @@ export default function DayBookingsModal({
           <Typography
             variant="caption"
             sx={{
-              color: alpha(theme.palette.common.white, 0.65),
+              color: 'text.secondary',
               textTransform: 'capitalize',
               fontSize: '0.82rem',
               fontWeight: 600,
@@ -395,7 +400,7 @@ export default function DayBookingsModal({
           justifyContent: 'flex-end',
           mt: 2.5,
           pt: 2,
-          borderTop: `1px solid ${alpha(theme.palette.common.white, 0.06)}`,
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
         <CloseButton onClick={onClose} size="sm" sx={{ px: 2.5, py: 0.8 }} />

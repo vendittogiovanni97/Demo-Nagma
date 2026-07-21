@@ -66,6 +66,7 @@ function BookingDataTable({
         getRowStyle={getRowStyle}
         pageSize={9}
         hideToolbar
+        hideState={true}
         renderCard={(booking: Booking) => (
           <BookingCard
             booking={booking}
@@ -110,8 +111,15 @@ function BookingDataTable({
                     />
                     <Button
                       variant="icon"
-                      icon={<Icon name="edit" size={18} />}
+                      icon={<Icon name="pencil" size={17} color={theme.palette.primary.main} />}
                       title="Modifica"
+                      sx={{
+                        color: theme.palette.primary.main,
+                        '&:hover': {
+                          color: theme.palette.primary.main,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        },
+                      }}
                       onClick={() => onEdit(booking)}
                     />
                     <Button

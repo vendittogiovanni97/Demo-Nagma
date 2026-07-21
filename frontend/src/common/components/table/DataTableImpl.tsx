@@ -108,7 +108,7 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
   } = props;
 
   const { t } = useTranslation();
-  const { mode } = useThemeMode();
+  const { resolvedTheme } = useThemeMode();
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const effectiveEmptyMessage = emptyMessage ?? (emptyTitle ? `${emptyTitle}${emptyDescription ? ` - ${emptyDescription}` : ''}` : undefined) ?? t('Nessun dato disponibile');
@@ -193,12 +193,17 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
           {showEdit && (
             <IconButton
               size="small"
-              color="primary"
               onClick={() =>
                 openEntityModal ? actionsRef.current.openModal(ActionMode.Edit, row) : onEdit!(row)
               }
+              sx={{
+                color: theme.palette.primary.main,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                },
+              }}
             >
-              <Icon name="modifica" size={16} />
+              <Icon name="pencil" size={17} color={theme.palette.primary.main} />
             </IconButton>
           )}
           {showDelete && (
@@ -440,15 +445,17 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
           </Box>
         ) : (
           <Box
-            className={`nagma-grid table-grid-wrapper ${mode === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}`}
+            className={`nagma-grid table-grid-wrapper ${resolvedTheme === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}`}
             sx={{
               width: '100%',
               flex: 1,
               minHeight: 0,
               position: 'relative',
               overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-x pan-y',
               '& > div': { height: '100%', minWidth: { xs: 480, md: 'auto' } },
-              bgcolor: (theme) => alpha(theme.palette.common.white, 0.02),
+              bgcolor: (theme) => theme.palette.mode === 'light' ? 'background.paper' : alpha(theme.palette.common.white, 0.02),
               borderRadius: '12px',
               border: '1px solid',
               borderColor: 'divider',
@@ -517,6 +524,7 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
             page={mPage}
             onPageChange={(event, newPage) => setMPage(newPage)}
             rowsPerPage={mLimit}
+            rowsPerPageOptions={[10, 25, 50, 100]}
             onRowsPerPageChange={(event) => {
               setMLimit(parseInt(event.target.value, 10));
               setMPage(0);

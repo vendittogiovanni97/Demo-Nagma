@@ -14,16 +14,25 @@ model User {
   role                  Role                 @default(ADMIN)
   phone                 String?
   color                 String?
+  theme                 ThemeMode            @default(SYSTEM)
   deletedAt             DateTime?
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt
   bookingHistories      BookingHistory[]
   transactionHistories  TransactionHistory[]
   whatsappLogs          WhatsAppMessageLog[]
+  preference            UserPreference?
+  savedViews            SavedView[]
 
   @@index([role])
   @@index([deletedAt])
   @@map("users")
+}
+
+enum ThemeMode {
+  LIGHT
+  DARK
+  SYSTEM
 }
 
 model Staff {
@@ -367,8 +376,8 @@ enum BookingStatus {
 }
 
 enum TransactionType {
-  INCOME
-  EXPENSE
+  ENTRATA
+  USCITA
 }
 
 enum WhatsAppMessageStatus {
@@ -394,4 +403,38 @@ model BookingPlacement {
   @@index([bookingId])
   @@index([deletedAt])
   @@map("booking_placements")
+}
+
+model UserPreference {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique
+  language           String   @default("it")
+  timezone           String   @default("Europe/Rome")
+  dateFormat         String   @default("DD/MM/YYYY")
+  itemsPerPage       Int      @default(25)
+  emailNotifications Boolean  @default(true)
+  inAppNotifications Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model SavedView {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  module    String
+  name      String
+  filters   Json
+  columns   Json?
+  sort      Json?
+  isDefault Boolean  @default(false)
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, module])
+  @@map("saved_views")
 }

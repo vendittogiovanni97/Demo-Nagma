@@ -11,6 +11,8 @@ export function registerAuthRoutes(app: Express): void {
   app.post('/api/auth/register', authRateLimiter, authMiddleware, adminOnly, controller.register);
   app.get('/api/auth/me', authMiddleware, controller.me);
   app.put('/api/auth/me', authMiddleware, controller.updateMe);
+  app.put('/api/auth/me/theme', authMiddleware, controller.updateTheme);
+  app.patch('/api/auth/theme', authMiddleware, controller.updateTheme);
   app.put('/api/auth/me/password', authRateLimiter, authMiddleware, controller.changePassword);
   app.post('/api/auth/refresh', authMiddleware, controller.refresh);
 }

@@ -59,9 +59,14 @@ export const resetPasswordSchema = z.object({
 export const updateMeSchema = z.object({
   name: nonEmptyString('Il nome è obbligatorio'),
   phone: z.string().optional(),
+  theme: z.enum(['LIGHT', 'DARK', 'SYSTEM']).optional(),
 });
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Password attuale obbligatoria'),
   newPassword: z.string().min(6, 'La password deve avere almeno 6 caratteri'),
+});
+
+export const updateThemeSchema = z.object({
+  theme: z.enum(['LIGHT', 'DARK', 'SYSTEM']),
 });

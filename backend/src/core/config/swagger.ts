@@ -92,7 +92,7 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'integer' },
-            type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
+            type: { type: 'string', enum: ['ENTRATA', 'USCITA'] },
             category: { type: 'string' },
             description: { type: 'string' },
             amount: { type: 'number' },

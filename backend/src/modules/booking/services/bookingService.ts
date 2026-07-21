@@ -256,7 +256,7 @@ export class BookingService {
 
         await tx.transaction.create({
           data: {
-            type: 'INCOME',
+            type: 'ENTRATA',
             category: 'Acconto',
             description: `Acconto prenotazione #${booking.id} - ${customerName}`,
             amount: booking.deposit,
@@ -360,7 +360,7 @@ export class BookingService {
 
           await tx.transaction.create({
             data: {
-              type: 'INCOME',
+              type: 'ENTRATA',
               category: 'Tatuaggio',
               description,
               amount: finalIncomeAmount,
@@ -374,7 +374,7 @@ export class BookingService {
         if (artistPrice > 0) {
           await tx.transaction.create({
             data: {
-              type: 'EXPENSE',
+              type: 'USCITA',
               category: 'Compenso Artista',
               description: `Compenso artista — prenotazione #${updated.id}`,
               amount: artistPrice,
@@ -434,7 +434,7 @@ export class BookingService {
 
           await tx.transaction.create({
             data: {
-              type: 'EXPENSE',
+              type: 'USCITA',
               category: 'Acconto',
               description: `Rimborso acconto prenotazione #${oldBooking.id} - ${customerName}`,
               amount: oldBooking.deposit,

@@ -178,7 +178,7 @@ export default function CustomerCard({
             <Button
               variant="secondary"
               size="sm"
-              icon={<Icon name="edit" size={16} />}
+              icon={<Icon name="pencil" size={16} />}
               fullWidth
               onClick={() => onEdit(customer)}
             >

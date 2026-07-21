@@ -36,7 +36,7 @@ export class SpesaLiberaService {
 
     await prisma.transaction.create({
       data: {
-        type: 'EXPENSE',
+        type: 'USCITA',
         category: 'Spese Libere',
         description: `Spesa Libera: ${data.name}`,
         amount: data.price,

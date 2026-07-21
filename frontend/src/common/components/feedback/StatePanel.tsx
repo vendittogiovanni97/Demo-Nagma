@@ -36,6 +36,8 @@ export default function StatePanel({
   const theme = useTheme();
   const Icon = icon ?? defaultIcons[variant];
 
+  const isLight = theme.palette.mode === 'light';
+
   const variantConfig = {
     error: {
       bg: alpha(theme.palette.error.main, 0.1),
@@ -44,13 +46,13 @@ export default function StatePanel({
       ringBg: alpha(theme.palette.error.main, 0.1)
     },
     empty: {
-      bg: alpha(theme.palette.common.white, 0.05),
+      bg: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.05),
       border: alpha(theme.palette.primary.main, 0.2),
       text: theme.palette.text.secondary,
       ringBg: alpha(theme.palette.primary.main, 0.1)
     },
     loading: {
-      bg: alpha(theme.palette.common.white, 0.05),
+      bg: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.05),
       border: alpha(theme.palette.primary.main, 0.2),
       text: theme.palette.text.secondary,
       ringBg: alpha(theme.palette.primary.main, 0.1)

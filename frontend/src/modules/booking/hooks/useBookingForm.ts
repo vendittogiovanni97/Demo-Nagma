@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/common/hooks/useToast';
 import { useEntityForm, UseEntityFormReturn } from '@/common/hooks/useEntityForm';
 import { bookingApi as bookingService } from '@/modules/booking/api/booking.api';
@@ -294,58 +294,74 @@ export function useBookingForm({
     if (isOpen) handleArtistLoad();
   }, [isOpen, handleArtistLoad]);
 
+  const { setFields, resetForm: formResetForm } = form;
+
+  const prevOpenRef = useRef(isOpen);
+  const prevBookingIdRef = useRef<number | null | undefined>(undefined);
+
   // Sync form with booking prop
   useEffect(() => {
-    if (!isOpen) return;
-
-    if (booking) {
-      const d = new Date(booking.date);
-      const perc = booking.formData?.artistPercentage;
-      let percentualeMode = '50';
-      if (perc != null) {
-        const found = (PERCENTUALE_OPTIONS_VALUES as readonly string[]).includes(perc.toString());
-        if (found) percentualeMode = perc.toString();
-        else percentualeMode = 'custom';
-      }
-
-      let preLoadedArtists: ArtistOption[] = [];
-      if (booking.artist) preLoadedArtists = [{ id: booking.artist.id, name: booking.artist.name, color: booking.artist.color }];
-
-      form.setFields({
-        customerId: booking.customerId.toString(),
-        artistId: booking.artistId.toString(),
-        date: d.toISOString().split('T')[0],
-        time: d.toTimeString().slice(0, 5),
-        duration: booking.duration?.toString() || '120',
-        price: booking.price?.toString() || '',
-        deposit: booking.deposit?.toString() || '',
-        notes: booking.notes || '',
-        percentualeMode,
-        dynamicValues: booking.formData as Record<string, string> || {},
-        status: booking.status ?? 'CONFERMATO',
-      });
-
-      if (preLoadedArtists.length > 0) {
-        setArtists(preLoadedArtists);
-      }
-    } else {
-      form.resetForm();
-      form.setFields({
-        date: initialDate || '',
-        time: initialTime || '',
-        duration: '120',
-        percentualeMode: '50',
-        status: 'CONFERMATO',
-        isNewCustomer: false,
-        newCustomerFirstName: '',
-        newCustomerLastName: '',
-        newCustomerPhone: '',
-        newCustomerEmail: '',
-        selectedTemplateId: null,
-        dynamicValues: {},
-      });
+    if (!isOpen) {
+      prevOpenRef.current = false;
+      return;
     }
-  }, [booking?.id, isOpen, initialDate, initialTime, form]);
+
+    const isJustOpened = isOpen && !prevOpenRef.current;
+    const isDifferentBooking = booking?.id !== prevBookingIdRef.current;
+
+    if (isJustOpened || isDifferentBooking) {
+      if (booking) {
+        const d = new Date(booking.date);
+        const perc = booking.formData?.artistPercentage;
+        let percentualeMode = '50';
+        if (perc != null) {
+          const found = (PERCENTUALE_OPTIONS_VALUES as readonly string[]).includes(perc.toString());
+          if (found) percentualeMode = perc.toString();
+          else percentualeMode = 'custom';
+        }
+
+        let preLoadedArtists: ArtistOption[] = [];
+        if (booking.artist) preLoadedArtists = [{ id: booking.artist.id, name: booking.artist.name, color: booking.artist.color }];
+
+        setFields({
+          customerId: booking.customerId.toString(),
+          artistId: booking.artistId.toString(),
+          date: d.toISOString().split('T')[0],
+          time: d.toTimeString().slice(0, 5),
+          duration: booking.duration?.toString() || '120',
+          price: booking.price?.toString() || '',
+          deposit: booking.deposit?.toString() || '',
+          notes: booking.notes || '',
+          percentualeMode,
+          dynamicValues: booking.formData as Record<string, string> || {},
+          status: booking.status ?? 'CONFERMATO',
+        });
+
+        if (preLoadedArtists.length > 0) {
+          setArtists(preLoadedArtists);
+        }
+      } else {
+        formResetForm();
+        setFields({
+          date: initialDate || '',
+          time: initialTime || '',
+          duration: '120',
+          percentualeMode: '50',
+          status: 'CONFERMATO',
+          isNewCustomer: false,
+          newCustomerFirstName: '',
+          newCustomerLastName: '',
+          newCustomerPhone: '',
+          newCustomerEmail: '',
+          selectedTemplateId: null,
+          dynamicValues: {},
+        });
+      }
+    }
+
+    prevOpenRef.current = isOpen;
+    prevBookingIdRef.current = booking?.id;
+  }, [booking, isOpen, initialDate, initialTime, setFields, formResetForm]);
 
   // Handle new customer creation
   const handleNewCustomerCreate = useCallback(async (): Promise<number | null> => {

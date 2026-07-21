@@ -184,12 +184,51 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
     components: {
       ...theme.components,
 
-      // ── CssBaseline: body background corretto per il mode ──────────────────
+      // ── CssBaseline: sfondo unificato html+body+gradiente ────────────────
       MuiCssBaseline: {
         styleOverrides: {
+          ':root': {
+            // Sincronizza le CSS custom properties con la palette dinamica
+            '--color-background': activePalette.background.default,
+            '--color-surface': mode === 'light'
+              ? 'rgba(255, 255, 255, 0.8)'
+              : hexToRgba(primaryColor, 0.035),
+            '--color-surface-border': mode === 'light'
+              ? 'rgba(0, 0, 0, 0.1)'
+              : hexToRgba(primaryColor, 0.2),
+            '--color-accent': primaryColor,
+            '--color-text-primary': activePalette.text.primary,
+            '--color-text-secondary': activePalette.text.secondary,
+            '--color-glow-1': hexToRgba(primaryColor, mode === 'light' ? 0.06 : 0.08),
+            '--color-glow-2': hexToRgba(primaryColor, mode === 'light' ? 0.03 : 0.04),
+            '--color-gradient-start': activePalette.background.default,
+            '--color-gradient-end': mode === 'light' ? '#e2e8f0' : activePalette.background.paper,
+          },
+          html: {
+            backgroundColor: activePalette.background.default,
+            scrollBehavior: 'smooth',
+          },
           body: {
-            backgroundColor: mode === 'light' ? '#f0f4f8' : '#0d1a28',
-            color: mode === 'light' ? '#1a202c' : '#ffffff',
+            backgroundColor: activePalette.background.default,
+            color: activePalette.text.primary,
+            overflowX: 'hidden',
+          },
+          'body::before': {
+            content: '""',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: -1,
+            backgroundImage: [
+              `radial-gradient(circle at top right, ${hexToRgba(primaryColor, mode === 'light' ? 0.06 : 0.08)}, transparent 800px)`,
+              `radial-gradient(circle at bottom left, ${hexToRgba(primaryColor, mode === 'light' ? 0.03 : 0.04)}, transparent 800px)`,
+              `linear-gradient(180deg, ${activePalette.background.default} 0%, ${mode === 'light' ? '#e2e8f0' : activePalette.background.paper} 100%)`,
+            ].join(', '),
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            pointerEvents: 'none',
           },
         },
       },

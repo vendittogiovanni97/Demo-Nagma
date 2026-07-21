@@ -36,8 +36,8 @@ describe('ReportsService', () => {
   describe('getSummary', () => {
     it('should aggregate financial, booking and customer metrics correctly', async () => {
       mockPrisma.transaction.findMany.mockResolvedValue([
-        { amount: 1500, type: 'INCOME' },
-        { amount: 300, type: 'EXPENSE' },
+        { amount: 1500, type: 'ENTRATA' },
+        { amount: 300, type: 'USCITA' },
       ]);
       const mockBookings = Array(15).fill({ status: 'COMPLETATO' }).concat(Array(5).fill({ status: 'ANNULLATO' }));
       mockPrisma.booking.findMany.mockResolvedValue(mockBookings as any);

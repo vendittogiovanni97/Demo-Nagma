@@ -67,7 +67,7 @@ npm run dev                                  # dalla root: backend (3001) + fron
 
 **backend/.env**:
 ```
-DATABASE_URL=postgresql://root:root123@localhost:5432/nagmadb_?schema=public
+DATABASE_URL="postgresql://root:root123@localhost:5433/nagmadb?schema=public"
 JWT_SECRET=<stringa ≥32 caratteri>
 PORT=3001
 NODE_ENV=development

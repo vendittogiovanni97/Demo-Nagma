@@ -179,7 +179,7 @@ describe('BookingService', () => {
         expect.objectContaining({ data: expect.objectContaining({ action: 'CANCELLATO' }) })
       );
       expect(tx.transaction.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ type: 'EXPENSE', category: 'Acconto' }) })
+        expect.objectContaining({ data: expect.objectContaining({ type: 'USCITA', category: 'Acconto' }) })
       );
     });
 

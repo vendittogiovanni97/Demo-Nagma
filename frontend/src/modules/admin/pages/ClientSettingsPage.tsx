@@ -15,16 +15,19 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { SaveButton } from '@/common/components/ui/Button';
 import { useClientConfig, useUpdateClientConfig, ClientConfig } from '@/common/hooks/useClientConfig';
 import { useToast } from '@/common/hooks/useToast';
 import { useAuth } from '@/common/context/AuthContext';
+import { inputSx } from '@/common/theme/inputStyles';
 
 /**
  * Admin Settings Page — Configurazione client
  * SUPER_ADMIN only
  */
 export default function ClientSettingsPage() {
+  const theme = useTheme();
   const { isSuperAdmin } = useAuth();
   const { clientConfig, isLoading } = useClientConfig();
   const { updateConfig } = useUpdateClientConfig();
@@ -101,7 +104,7 @@ export default function ClientSettingsPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
         Impostazioni Client
       </Typography>
 
@@ -118,6 +121,7 @@ export default function ClientSettingsPage() {
                   onChange={(e) => handleChange('clientName', e.target.value)}
                   fullWidth
                   size="small"
+                  sx={inputSx(theme)}
                 />
                 <TextField
                   label="Logo URL"
@@ -126,9 +130,10 @@ export default function ClientSettingsPage() {
                   fullWidth
                   size="small"
                   helperText="URL pubblico del logo"
+                  sx={inputSx(theme)}
                 />
                 <Box>
-                  <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
+                  <Typography variant="caption" sx={{ mb: 1, display: 'block', fontWeight: 600, color: 'text.secondary' }}>
                     Colore Primario
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -136,18 +141,25 @@ export default function ClientSettingsPage() {
                       type="color"
                       value={formData.primaryColor || '#00bfff'}
                       onChange={(e) => handleChange('primaryColor', e.target.value)}
-                      style={{ width: 50, height: 40, cursor: 'pointer' }}
+                      style={{
+                        width: 48,
+                        height: 40,
+                        cursor: 'pointer',
+                        borderRadius: 8,
+                        border: `1px solid ${theme.palette.divider}`,
+                        backgroundColor: 'transparent',
+                      }}
                     />
                     <TextField
                       value={formData.primaryColor || '#00bfff'}
                       onChange={(e) => handleChange('primaryColor', e.target.value)}
                       size="small"
-                      sx={{ flex: 1 }}
+                      sx={{ flex: 1, ...inputSx(theme) }}
                     />
                   </Box>
                 </Box>
                 <Box>
-                  <Typography variant="caption" sx={{ mb: 1, display: 'block' }}>
+                  <Typography variant="caption" sx={{ mb: 1, display: 'block', fontWeight: 600, color: 'text.secondary' }}>
                     Colore Secondario
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -155,13 +167,20 @@ export default function ClientSettingsPage() {
                       type="color"
                       value={formData.secondaryColor || '#1a2332'}
                       onChange={(e) => handleChange('secondaryColor', e.target.value)}
-                      style={{ width: 50, height: 40, cursor: 'pointer' }}
+                      style={{
+                        width: 48,
+                        height: 40,
+                        cursor: 'pointer',
+                        borderRadius: 8,
+                        border: `1px solid ${theme.palette.divider}`,
+                        backgroundColor: 'transparent',
+                      }}
                     />
                     <TextField
                       value={formData.secondaryColor || '#1a2332'}
                       onChange={(e) => handleChange('secondaryColor', e.target.value)}
                       size="small"
-                      sx={{ flex: 1 }}
+                      sx={{ flex: 1, ...inputSx(theme) }}
                     />
                   </Box>
                 </Box>
@@ -183,6 +202,7 @@ export default function ClientSettingsPage() {
                   fullWidth
                   size="small"
                   helperText="es: Europe/Rome, America/New_York"
+                  sx={inputSx(theme)}
                 />
                 <TextField
                   label="Locale"
@@ -191,6 +211,7 @@ export default function ClientSettingsPage() {
                   fullWidth
                   size="small"
                   helperText="es: it-IT, en-US, fr-FR"
+                  sx={inputSx(theme)}
                 />
               </Stack>
             </CardContent>
@@ -257,6 +278,7 @@ export default function ClientSettingsPage() {
                   onChange={(e) => handleChange('maxUsers', parseInt(e.target.value))}
                   fullWidth
                   size="small"
+                  sx={inputSx(theme)}
                 />
                 <TextField
                   label="Max Prenotazioni"
@@ -265,6 +287,7 @@ export default function ClientSettingsPage() {
                   onChange={(e) => handleChange('maxBookings', parseInt(e.target.value))}
                   fullWidth
                   size="small"
+                  sx={inputSx(theme)}
                 />
               </Stack>
             </CardContent>
@@ -284,6 +307,7 @@ export default function ClientSettingsPage() {
                   onChange={(e) => handleChange('maxAttachmentSizeMB', parseInt(e.target.value))}
                   fullWidth
                   size="small"
+                  sx={inputSx(theme)}
                 />
                 <TextField
                   label="Rate Limit (req/min)"
@@ -292,6 +316,7 @@ export default function ClientSettingsPage() {
                   onChange={(e) => handleChange('apiRateLimitPerMinute', parseInt(e.target.value))}
                   fullWidth
                   size="small"
+                  sx={inputSx(theme)}
                 />
                 <TextField
                   label="Password Modifica Prenotazioni"
@@ -301,6 +326,7 @@ export default function ClientSettingsPage() {
                   fullWidth
                   size="small"
                   helperText="Lasciare vuoto per non modificare"
+                  sx={inputSx(theme)}
                 />
               </Stack>
             </CardContent>

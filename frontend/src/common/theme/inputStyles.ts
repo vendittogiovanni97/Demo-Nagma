@@ -8,8 +8,12 @@ import { alpha } from '@mui/material/styles';
  */
 export function inputRootSx(theme: Theme) {
   return {
+    color: theme.palette.text.primary,
+    '& .MuiInputBase-input': {
+      color: theme.palette.text.primary,
+    },
     backgroundColor: theme.palette.mode === 'light'
-      ? 'rgba(0, 0, 0, 0.03)'
+      ? alpha(theme.palette.common.black, 0.03)
       : alpha(theme.palette.common.white, 0.05),
     borderRadius: '8px',
     fontSize: '0.875rem',

@@ -125,7 +125,6 @@ export default function BookingHistoryPage() {
           toolbarFilters={toolbarFilters}
           extraToolbarActions={extraToolbarActions}
           exportFileName="storico-prenotazioni"
-          pageSize={10}
           openEntityModal={(action, entry, onClose, onSuccess) => {
             if (!entry?.booking) return null;
             return (

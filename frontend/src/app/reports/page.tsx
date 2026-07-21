@@ -53,11 +53,8 @@ export default function ReportsPage() {
       <ReportsDataGrid
         data={details}
         total={totalDetails}
-        page={page}
         limit={limit}
-        totalPages={totalPages}
         isLoading={isDetailsLoading}
-        onPageChange={(newPage) => setFilters({ ...filters, page: newPage })}
       />
     </Container>
   );

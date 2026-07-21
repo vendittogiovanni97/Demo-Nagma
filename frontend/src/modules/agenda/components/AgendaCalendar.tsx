@@ -258,8 +258,9 @@ export default function AgendaCalendar({
 
   const handleDatesSetInternal = useCallback(
     (arg: DatesSetArg) => {
-      setTitle(calendarRef.current?.getApi().view.title ?? '');
-      setActiveView(calendarRef.current?.getApi().view.type as CalendarView ?? 'dayGridMonth');
+      const viewTitle = arg.view?.title || calendarRef.current?.getApi().view.title || '';
+      setTitle(viewTitle);
+      setActiveView((arg.view?.type as CalendarView) || 'dayGridMonth');
       handleDatesSet(arg);
     },
     [handleDatesSet],
@@ -334,8 +335,8 @@ export default function AgendaCalendar({
               height="100%"
               allDaySlot={false}
               nowIndicator
-              eventMinHeight={20}
-              dayMaxEvents={2}
+              eventMinHeight={26}
+              dayMaxEvents={3}
               moreLinkClick={handleMoreLinkClick}
               weekText="Settimana"
               dayHeaderFormat={

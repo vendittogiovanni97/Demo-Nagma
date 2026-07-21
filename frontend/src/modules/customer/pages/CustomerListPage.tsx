@@ -78,7 +78,6 @@ export default function CustomerListPage() {
           onRowClick={(c) => router.push(`/clienti/${c.id}`)}
           onDelete={isAdmin ? handleDelete : undefined}
           deleteConfirmMessage="Sei sicuro di voler eliminare questo cliente?"
-          pageSize={20}
           emptyTitle="Nessun cliente presente"
           emptyDescription="Clicca 'Nuovo Cliente' per aggiungere il primo contatto."
           openEntityModal={isAdmin ? (action, customer, onClose, onSuccess) => (

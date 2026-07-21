@@ -14,7 +14,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://root:root123@postgres:5432/nagmadb_?schema=public
+      DATABASE_URL: postgresql://root:root123@postgres:5432/nagmadb?schema=public
       JWT_SECRET: a3f8c2d7e1b94056f2a8c3d6e0b7f1a4c9d2e5f8b1a3c6d9e2f5a8b4c7d0e3f6
       CORS_ORIGINS: http://localhost:3000
       NODE_ENV: development

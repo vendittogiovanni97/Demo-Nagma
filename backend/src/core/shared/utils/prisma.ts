@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { logger } from './logger';
 
-export const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5432/nagmadb?schema=public';
+export const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5433/nagmadb?schema=public';
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 const adapter = new PrismaPg(pool);

@@ -64,7 +64,6 @@ function BookingDataTable({
         hasError={hasError}
         keyExtractor={(b) => b.id}
         getRowStyle={getRowStyle}
-        pageSize={9}
         hideToolbar
         hideState={true}
         renderCard={(booking: Booking) => (

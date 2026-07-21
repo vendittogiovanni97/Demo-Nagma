@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useFormModal, UseFormModalOptions, UseFormModalReturn } from './useFormModal';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFormModal, UseFormModalReturn } from './useFormModal';
 
 export interface UseEntityFormOptions<TEntity, TFormData> {
   /** Entità in modifica (null = creazione) */
@@ -71,14 +71,23 @@ export function useEntityForm<TEntity, TFormData extends Record<string, any>>({
   const [isDirty, setIsDirty] = useState(false);
 
   // Sync formData con initialValues quando cambia l'entità o la modal si apre
+  const prevOpenRef = useRef(open);
+  const prevEntityRef = useRef(entity);
+
   useEffect(() => {
-    if (open) {
+    const isNewOpen = open && !prevOpenRef.current;
+    const isDifferentEntity = open && entity !== prevEntityRef.current;
+
+    if (isNewOpen || isDifferentEntity) {
       setFormData(initialValues);
       setIsDirty(false);
       onOpen?.();
-    } else {
+    } else if (!open && prevOpenRef.current) {
       onClose?.();
     }
+
+    prevOpenRef.current = open;
+    prevEntityRef.current = entity;
   }, [open, initialValues, entity, onOpen, onClose]);
 
   // Submit handler per useFormModal
@@ -97,9 +106,7 @@ export function useEntityForm<TEntity, TFormData extends Record<string, any>>({
     onSuccess: () => {
       onSuccess?.(undefined);
     },
-    onClose: () => {
-      // onClose viene gestito dall'effect sopra
-    },
+    onClose,
     successMessage: typeof successMessage === 'function' ? successMessage(entity !== null) : (successMessage || (entity ? 'Aggiornato' : 'Creato')),
     errorMessage,
   });

@@ -1,78 +1,105 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { ColDef } from 'ag-grid-community';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
-import Pagination from '@mui/material/Pagination';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
+import DataTable, { ColumnDefinition } from '@/common/components/table/DataTable';
+import { MonoText } from '@/common/components/ui/MonoText';
+import { formatDate, formatPrice } from '@/common/shared/utils/format';
 import { ReportDetailItem } from '../api/reportsApi';
 
 interface ReportsDataGridProps {
   data: ReportDetailItem[];
   total: number;
-  page: number;
   limit: number;
-  totalPages: number;
   isLoading: boolean;
-  onPageChange: (newPage: number) => void;
 }
 
 export function ReportsDataGrid({
   data,
   total,
-  page,
   limit,
-  totalPages,
   isLoading,
-  onPageChange,
 }: ReportsDataGridProps) {
-  const theme = useTheme();
-
-  const columnDefs: ColDef<ReportDetailItem>[] = useMemo(
+  const columns: ColumnDefinition<ReportDetailItem>[] = useMemo(
     () => [
-      { field: 'id', headerName: 'ID', width: 120, sortable: true },
-      { field: 'date', headerName: 'Data', width: 130, sortable: true },
       {
-        field: 'type',
-        headerName: 'Tipo',
-        width: 140,
-        cellRenderer: (params: any) => {
-          const isIncome = params.value === 'INCOME';
+        key: 'id',
+        label: 'ID',
+        width: 90,
+        sortable: true,
+        render: (row) => <MonoText>#{row.id}</MonoText>,
+      },
+      {
+        key: 'date',
+        label: 'Data',
+        minWidth: 140,
+        sortable: true,
+        render: (row) => <MonoText>{formatDate(row.date, 'dd/MM/yyyy HH:mm')}</MonoText>,
+      },
+      {
+        key: 'type',
+        label: 'Tipo',
+        minWidth: 130,
+        align: 'center',
+        render: (row) => {
+          const isIncome = row.type === 'INCOME';
           return (
             <Chip
               label={isIncome ? 'ENTRATA' : 'USCITA'}
               color={isIncome ? 'success' : 'error'}
               size="small"
               variant="outlined"
+              sx={{ fontWeight: 700 }}
             />
           );
         },
       },
-      { field: 'category', headerName: 'Categoria', width: 180, sortable: true, filter: true },
-      { field: 'description', headerName: 'Descrizione', flex: 1, minWidth: 200, filter: true },
       {
-        field: 'amount',
-        headerName: 'Importo (€)',
-        width: 150,
+        key: 'category',
+        label: 'Categoria',
+        minWidth: 160,
         sortable: true,
-        cellRenderer: (params: any) => {
-          const val = Number(params.value || 0);
+      },
+      {
+        key: 'description',
+        label: 'Descrizione',
+        minWidth: 320,
+        flex: 2,
+        render: (row) => (
+          <Typography
+            variant="body2"
+            title={row.description}
+            sx={{
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
+            }}
+          >
+            {row.description}
+          </Typography>
+        ),
+      },
+      {
+        key: 'amount',
+        label: 'Importo',
+        minWidth: 140,
+        align: 'right',
+        sortable: true,
+        render: (row) => {
+          const val = Number(row.amount || 0);
           return (
             <Typography
               variant="body2"
               sx={{
                 fontWeight: 'bold',
-                color: params.data?.type === 'INCOME' ? 'success.main' : 'error.main',
+                color: row.type === 'INCOME' ? 'success.main' : 'error.main',
               }}
             >
-              € {val.toFixed(2)}
+              {formatPrice(val)}
             </Typography>
           );
         },
@@ -81,60 +108,21 @@ export function ReportsDataGrid({
     []
   );
 
-  const defaultColDef: ColDef = useMemo(
-    () => ({
-      resizable: true,
-      suppressMovable: true,
-    }),
-    []
-  );
-
   return (
-    <Card sx={{ boxShadow: 2 }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Movimenti & Dettaglio Report
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Totale voci: {total}
-          </Typography>
-        </Box>
-
-        <Box
-          className="ag-theme-alpine"
-          sx={{
-            height: 450,
-            width: '100%',
-            '& .ag-header': {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
-          <AgGridReact
-            rowData={data}
-            columnDefs={columnDefs}
-            defaultColDef={defaultColDef}
-            animateRows={true}
-            loading={isLoading}
-            overlayLoadingTemplate='<span class="ag-overlay-loading-center">Caricamento dati report...</span>'
-            overlayNoRowsTemplate='<span class="ag-overlay-loading-center">Nessun dato trovato per i filtri selezionati</span>'
-          />
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            Pagina {page} di {totalPages} (Mostrati {data.length} su {total})
-          </Typography>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, newPage) => onPageChange(newPage)}
-            color="primary"
-            shape="rounded"
-          />
-        </Box>
-      </CardContent>
-    </Card>
+    <Box sx={{ mt: 3 }}>
+      <DataTable
+        title="Movimenti & Dettaglio Report"
+        subtitle={`Totale movimenti: ${total}`}
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        exportable
+        hideState={true}
+        exportFileName="report_movimenti"
+        emptyTitle="Nessun movimento trovato"
+        emptyDescription="Nessun dato registrato per i filtri ed il periodo selezionato"
+        pageSize={limit}
+      />
+    </Box>
   );
 }

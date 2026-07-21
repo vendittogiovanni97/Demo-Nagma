@@ -5,7 +5,7 @@ import { Box } from '@mui/material';
 import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import dynamic from 'next/dynamic';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
@@ -82,14 +82,19 @@ export default function AgendaPage() {
     html: `<span class="fc-daygrid-day-number" tabindex="0" role="gridcell" aria-label="${format(arg.date, 'EEEE d MMMM', { locale: it })}">${arg.dayNumberText}</span>`,
   }), []);
 
+  const currentMonthRef = useRef<string | null>(null);
+
   const handleDatesSet = useCallback((arg: DatesSetArg) => {
     const visibleStart = format(arg.start, 'yyyy-MM');
     const visibleEnd = format(subDays(arg.end, 1), 'yyyy-MM');
+    let targetMonth = visibleStart;
     if (visibleEnd !== visibleStart) {
       const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
-      setCurrentMonth(format(mid, 'yyyy-MM'));
-    } else {
-      setCurrentMonth(visibleStart);
+      targetMonth = format(mid, 'yyyy-MM');
+    }
+    if (targetMonth !== currentMonthRef.current) {
+      currentMonthRef.current = targetMonth;
+      setCurrentMonth(targetMonth);
     }
   }, [setCurrentMonth]);
 

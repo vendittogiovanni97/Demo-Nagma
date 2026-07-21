@@ -152,6 +152,7 @@ export interface DataTableProps<E> {
   isLoading?: boolean;
   hasError?: boolean;
   pageSize?: number;
+  pageSizeSelector?: number[];
   getRowStyle?: (row: E) => React.CSSProperties | undefined;
   actions?: (row: E) => React.ReactNode;
   hideToolbar?: boolean;

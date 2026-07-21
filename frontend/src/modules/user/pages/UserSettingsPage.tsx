@@ -19,7 +19,7 @@ import { usePreferences } from '@/common/context/PreferencesContext';
 import { useToast } from '@/common/hooks/useToast';
 import Icon from '@/common/components/ui/Icon';
 
-export default function SettingsPage() {
+export default function UserSettingsPage() {
   const { preferences, updatePreferences, isLoading } = usePreferences();
   const toast = useToast();
 

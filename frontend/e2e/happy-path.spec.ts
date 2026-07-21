@@ -54,8 +54,8 @@ test.describe('Happy Path - Full User Journey', () => {
   test('superadmin can configure client settings', async ({ page }) => {
     await login(page);
 
-    await page.goto('/admin-panel/settings');
-    await expect(page).toHaveURL(/admin-panel\/settings/);
+    await page.goto('/admin-panel?tab=clientSettings');
+    await expect(page).toHaveURL(/admin-panel/);
 
     await expect(page.getByText('Branding')).toBeVisible();
 
@@ -144,7 +144,7 @@ test.describe('Client Settings Page', () => {
   });
 
   test('superadmin can configure branding', async ({ page }) => {
-    await page.goto('/admin-panel/settings');
+    await page.goto('/admin-panel?tab=clientSettings');
     await expect(page.getByText('Branding')).toBeVisible();
 
     await page.getByLabel('Nome Client').fill('Test Studio');
@@ -161,7 +161,7 @@ test.describe('Client Settings Page', () => {
   });
 
   test('superadmin can toggle feature flags in settings', async ({ page }) => {
-    await page.goto('/admin-panel/settings');
+    await page.goto('/admin-panel?tab=clientSettings');
     await expect(page.getByText('Feature Flags')).toBeVisible();
 
     // MUI Switch inside FormControlLabel — getByLabel uses the label text
@@ -188,7 +188,7 @@ test.describe('Client Settings Page', () => {
   });
 
   test('superadmin can set limits', async ({ page }) => {
-    await page.goto('/admin-panel/settings');
+    await page.goto('/admin-panel?tab=clientSettings');
     await expect(page.getByText('Limiti Utenti')).toBeVisible();
 
     await page.getByLabel('Max Utenti').fill('25');

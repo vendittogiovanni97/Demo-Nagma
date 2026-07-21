@@ -24,7 +24,7 @@ export default function SpesaDataTable({
   monthLabel,
   total,
   onDelete,
-  pageSize = 7,
+  pageSize,
 }: SpesaDataTableProps) {
   const theme = useTheme();
 

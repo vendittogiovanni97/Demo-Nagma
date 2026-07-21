@@ -133,7 +133,6 @@ export default function CreamsPage() {
           emptyTitle={hasFilters ? "Nessuna vendita trovata." : "Nessuna vendita registrata."}
           emptyDescription={hasFilters ? "Prova a cambiare i filtri impostati." : "Clicca su \"Nuova Vendita\" per registrare la prima transazione."}
           keyExtractor={(row) => row.id}
-          pageSize={7}
           openEntityModal={(action, row, onClose, onSuccess) => (
             <SaleModal
               isOpen

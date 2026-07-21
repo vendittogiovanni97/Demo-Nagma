@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
+  BarChart3,
   ClipboardList,
   DollarSign,
   FileText,
@@ -472,6 +473,7 @@ function NavbarUserMenu({
   const menuItems = useMemo(
     () => [
       { href: '/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
+      { href: '/reports', icon: BarChart3, label: 'Report & Analytics', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
       { href: '/posizionamento', icon: Map, label: 'Mappa Corporea', show: isSuperAdmin && SHOW_POSIZIONAMENTO },
       { href: '/consensi', icon: ClipboardList, label: 'Archivio Consensi', show: isSuperAdmin && SHOW_CONSENSI },
@@ -480,8 +482,6 @@ function NavbarUserMenu({
       { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
-      { href: '/settings', icon: FileText, label: 'Impostazioni Utente', show: true },
-      { href: '/admin-panel/settings', icon: FileText, label: 'Impostazioni Client', show: isSuperAdmin },
     ],
     [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]
   );

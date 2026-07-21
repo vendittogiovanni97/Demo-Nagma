@@ -130,7 +130,7 @@ export default function SmartModal({
 
 const styles = {
   paper: (theme: Theme) => ({
-    backgroundColor: alpha(theme.palette.background.default, 0.95),
+    backgroundColor: theme.palette.background.default,
     backdropFilter: 'blur(40px)',
     border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
     borderRadius: '16px',
@@ -144,7 +144,8 @@ const styles = {
   }),
   titleWrapper: (theme: Theme) => ({
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    px: 3, py: 2.5, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, m: 0
+    px: 3, py: 2.5, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, m: 0,
+    backgroundColor: 'transparent',
   }),
   titleText: {
     fontSize: '1.25rem', fontWeight: 700, color: 'primary.main',
@@ -161,6 +162,7 @@ const styles = {
     px: 3,
     pt: '16px !important',
     pb: 3,
+    backgroundColor: 'transparent',
     '&::-webkit-scrollbar': { width: '6px' },
     '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
     '&::-webkit-scrollbar-thumb': {

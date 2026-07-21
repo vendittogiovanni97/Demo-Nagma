@@ -37,6 +37,10 @@ export function useReports(initialFilters: ReportFilterParams = {}) {
     }
   };
 
+  const userPreferredLimit = typeof window !== 'undefined'
+    ? (parseInt(localStorage.getItem('nagma_items_per_page') || '25', 10) || 25)
+    : 25;
+
   return {
     filters,
     setFilters,
@@ -46,7 +50,7 @@ export function useReports(initialFilters: ReportFilterParams = {}) {
     details: detailsRes?.data || [],
     totalDetails: detailsRes?.total || 0,
     page: detailsRes?.page || 1,
-    limit: detailsRes?.limit || 20,
+    limit: detailsRes?.limit || userPreferredLimit,
     totalPages: detailsRes?.totalPages || 1,
     isDetailsLoading,
     detailsError,

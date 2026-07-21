@@ -46,35 +46,44 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
     return (
       <Box
         sx={{
-          height: '100%',
+          minHeight: 28,
+          width: '100%',
           overflow: 'hidden',
-          px: 0.75,
-          py: 0.35,
+          px: 1,
+          py: 0.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 0.6,
+          gap: 0.75,
           position: 'relative',
-          borderRadius: '4px',
-          borderLeft: `3px solid ${color}`,
+          borderRadius: '6px',
+          borderLeft: `4px solid ${color}`,
           background: isCompleted
-            ? isLight ? alpha(theme.palette.success.main, 0.1) : `linear-gradient(135deg, rgba(0,0,0,0.3) 0%, ${color}10 100%)`
-            : isLight ? alpha(color, 0.12) : `linear-gradient(135deg, ${color}20 0%, ${color}08 100%)`,
+            ? isLight
+              ? alpha(theme.palette.success.main, 0.12)
+              : `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, ${color}15 100%)`
+            : isLight
+              ? alpha(color, 0.15)
+              : `linear-gradient(135deg, ${color}25 0%, ${color}10 100%)`,
           backdropFilter: 'blur(8px)',
+          boxShadow: isLight
+            ? `0 1px 3px ${alpha(theme.palette.common.black, 0.06)}`
+            : `0 1px 4px ${alpha(theme.palette.common.black, 0.3)}`,
           opacity,
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: isCompleted ? 'default' : 'pointer',
           userSelect: 'none',
           '&:hover': isCompleted ? {} : {
-            background: isLight ? alpha(color, 0.2) : `linear-gradient(135deg, ${color}30 0%, ${color}14 100%)`,
-            borderLeftWidth: '4px',
+            background: isLight ? alpha(color, 0.25) : `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)`,
+            transform: 'translateY(-1px)',
+            boxShadow: `0 3px 8px ${alpha(color, 0.25)}`,
           },
         }}
       >
         {/* Staff color dot */}
         <Box
           sx={{
-            width: 5,
-            height: 5,
+            width: 6,
+            height: 6,
             borderRadius: '50%',
             backgroundColor: color,
             flexShrink: 0,
@@ -86,9 +95,9 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Typography
           component="span"
           sx={{
-            fontSize: '0.62rem',
+            fontSize: '0.75rem',
             fontWeight: 800,
-            color: isLight ? theme.palette.primary.dark : `${color}E0`,
+            color: isLight ? '#0284c7' : `${color}FF`,
             fontFamily: 'monospace',
             lineHeight: 1,
             flexShrink: 0,
@@ -101,15 +110,14 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Typography
           component="span"
           sx={{
-            fontSize: '0.72rem',
+            fontSize: '0.8125rem',
             fontWeight: 700,
             color: 'text.primary',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            lineHeight: 1.1,
+            lineHeight: 1.2,
             flex: 1,
-            textShadow: isLight ? 'none' : '0 1px 3px rgba(0,0,0,0.6)',
           }}
         >
           {booking.customerName}
@@ -119,11 +127,11 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         {(isCancelled || isRescheduled || isCompleted) && (
           <Box
             sx={{
-              fontSize: '0.42rem',
+              fontSize: '0.6rem',
               fontWeight: 800,
-              px: 0.4,
-              py: 0.1,
-              borderRadius: '2px',
+              px: 0.6,
+              py: 0.2,
+              borderRadius: '4px',
               backgroundColor: isCompleted
                 ? alpha(theme.palette.success.main, 0.2)
                 : isCancelled
@@ -135,7 +143,7 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
                 ? theme.palette.error.main
                 : theme.palette.warning.main,
               textTransform: 'uppercase',
-              lineHeight: 1.4,
+              lineHeight: 1,
               flexShrink: 0,
             }}
           >
@@ -152,11 +160,11 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
       sx={{
         height: '100%',
         overflow: 'hidden',
-        px: 1.2,
-        py: 0.8,
+        px: 1.25,
+        py: 0.85,
         display: 'flex',
         flexDirection: 'column',
-        gap: isShort ? 0.3 : 0.5,
+        gap: isShort ? 0.35 : 0.6,
         position: 'relative',
         cursor: isCompleted ? 'default' : 'pointer',
         userSelect: 'none',
@@ -181,25 +189,25 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
       }}
     >
       {/* ROW 1: Time + Status */}
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 16 }}>
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 18 }}>
         {/* Time pill */}
         <Box
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 0.5,
-            px: 0.7,
-            py: 0.15,
+            px: 0.8,
+            py: 0.2,
             borderRadius: '20px',
-            backgroundColor: `${color}18`,
-            border: `1px solid ${color}30`,
+            backgroundColor: `${color}20`,
+            border: `1px solid ${color}40`,
           }}
         >
           <Typography
             sx={{
-              fontSize: '0.6rem',
+              fontSize: '0.68rem',
               fontWeight: 800,
-              color: `${color}F0`,
+              color: isLight ? '#0284c7' : `${color}FF`,
               fontFamily: 'monospace',
               lineHeight: 1,
               letterSpacing: '0.04em',
@@ -217,8 +225,8 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 14,
-              height: 14,
+              width: 16,
+              height: 16,
               borderRadius: '50%',
               backgroundColor: alpha(theme.palette.success.main, 0.2),
               border: `1px solid ${theme.palette.success.main}80`,
@@ -226,24 +234,24 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
               flexShrink: 0,
             }}
           >
-            <Icon name="check" size={8} color={theme.palette.success.main} />
+            <Icon name="check" size={10} color={theme.palette.success.main} />
           </Box>
         ) : (isCancelled || isRescheduled) ? (
           <Box
             sx={{
-              px: 0.5,
-              py: 0.1,
-              borderRadius: '3px',
+              px: 0.6,
+              py: 0.15,
+              borderRadius: '4px',
               backgroundColor: isCancelled
                 ? alpha(theme.palette.error.main, 0.22)
                 : alpha(theme.palette.warning.main, 0.22),
               border: `1px solid ${isCancelled ? theme.palette.error.main : theme.palette.warning.main}40`,
-              fontSize: '0.48rem',
+              fontSize: '0.58rem',
               fontWeight: 900,
               letterSpacing: '0.05em',
               color: isCancelled ? theme.palette.error.main : theme.palette.warning.main,
               textTransform: 'uppercase',
-              lineHeight: 1.3,
+              lineHeight: 1.2,
               flexShrink: 0,
             }}
           >
@@ -261,8 +269,7 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
           lineHeight: 1.2,
-          fontSize: isShort ? '0.75rem' : '0.8rem',
-          textShadow: isLight ? 'none' : '0 1px 3px rgba(0,0,0,0.5)',
+          fontSize: isShort ? '0.8125rem' : '0.875rem',
           letterSpacing: '-0.1px',
         }}
       >
@@ -276,8 +283,8 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
           sx={{
             alignItems: 'center',
             gap: 0.5,
-            px: 0.6,
-            py: 0.2,
+            px: 0.75,
+            py: 0.25,
             borderRadius: '4px',
             backgroundColor: `${color}18`,
             border: `1px solid ${color}30`,
@@ -298,7 +305,7 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
           />
           <Typography
             sx={{
-              fontSize: '0.6rem',
+              fontSize: '0.68rem',
               fontWeight: 700,
               color,
               overflow: 'hidden',
@@ -317,8 +324,8 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Stack direction="row" sx={{ alignItems: 'center', gap: 0.4 }}>
           <Box
             sx={{
-              width: 4,
-              height: 4,
+              width: 5,
+              height: 5,
               borderRadius: '50%',
               backgroundColor: color,
               boxShadow: `0 0 5px ${color}`,
@@ -327,9 +334,9 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
           />
           <Typography
             sx={{
-              fontSize: '0.58rem',
+              fontSize: '0.65rem',
               fontWeight: 600,
-              color: `${color}C0`,
+              color: `${color}E0`,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',

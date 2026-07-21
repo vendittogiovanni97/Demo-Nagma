@@ -70,7 +70,7 @@ describe('SpesaLiberaService', () => {
       expect(result.price).toBe(10);
       expect(mockPrisma.transaction.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          type: 'EXPENSE',
+          type: 'USCITA',
           category: 'Spese Libere',
           description: 'Spesa Libera: Carta',
           amount: 10,

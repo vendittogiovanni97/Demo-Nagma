@@ -102,6 +102,7 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     isLoading,
     hasError,
     pageSize,
+    pageSizeSelector,
     getRowStyle,
     actions,
     hideToolbar = true,
@@ -125,14 +126,6 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     },
     [getRowStyle]
   );
-
-  const pageSizeSelector = useMemo(() => {
-    const defaultSelector = [10, 20, 50, 100];
-    if (pageSize && !defaultSelector.includes(pageSize)) {
-      return [pageSize, ...defaultSelector].sort((a, b) => a - b);
-    }
-    return defaultSelector;
-  }, [pageSize]);
 
   const canEdit = usePermission(editPermission ?? '');
   const canDelete = usePermission(deletePermission ?? '');
@@ -355,6 +348,27 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     }
   }));
 
+  const userPreferredPageSize = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('nagma_items_per_page');
+      if (saved) {
+        const num = parseInt(saved, 10);
+        if ([10, 20, 25, 50, 100].includes(num)) return num;
+      }
+    }
+    return 25;
+  }, []);
+
+  const effectivePageSize = pageSize ?? userPreferredPageSize;
+
+  const effectivePageSizeSelector = useMemo(() => {
+    const baseOptions = pageSizeSelector ?? [10, 20, 25, 50, 100];
+    if (!baseOptions.includes(effectivePageSize)) {
+      return [...baseOptions, effectivePageSize].sort((a, b) => a - b);
+    }
+    return baseOptions;
+  }, [pageSizeSelector, effectivePageSize]);
+
   return (
     <>
       <Box
@@ -495,8 +509,8 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
               }}
               quickFilterText={!isManaged ? searchTerm : undefined}
               pagination={!isManaged}
-              paginationPageSize={pageSize ?? 10}
-              paginationPageSizeSelector={pageSizeSelector}
+              paginationPageSize={effectivePageSize}
+              paginationPageSizeSelector={effectivePageSizeSelector}
               suppressCellFocus
               rowStyle={{ cursor: onRowClick ? 'pointer' : 'default' }}
               getRowStyle={onGetRowStyle}

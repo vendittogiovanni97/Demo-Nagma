@@ -1,14 +1,14 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: backend-postgres
+    container_name: nagma-postgres-prod
     restart: unless-stopped
     environment:
       POSTGRES_DB: nagmadb_prod
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - nagma_data:/var/lib/postgresql/data
       - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql

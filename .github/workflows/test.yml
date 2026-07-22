@@ -33,6 +33,7 @@ jobs:
       ADMIN_PASSWORD: admin123
       SUPER_ADMIN_PASSWORD: superadmin123
       RUN_SEEDS: true
+      INIT_CONFIG_FROM_DB: 'false'
       NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
 
     steps:
@@ -60,9 +61,21 @@ jobs:
       working-directory: ./backend
       run: npx prisma generate
 
-    - name: Run backend tests
+    - name: Run database migrations
       working-directory: ./backend
-      run: npm test -- --runInBand --forceExit --detectOpenHandles
+      run: npx prisma migrate deploy
+
+    - name: Seed database (superadmin + config)
+      working-directory: ./backend
+      run: npx tsx prisma/seed.ts
+
+    - name: Run unit tests (no server required)
+      working-directory: ./backend
+      run: npm run test:unit -- --forceExit
+
+    - name: Run integration + security tests (server auto-spawned)
+      working-directory: ./backend
+      run: npm run test:integration -- --forceExit
 
     - name: Build backend
       run: npm run build --prefix backend

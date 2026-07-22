@@ -6,14 +6,19 @@ import { logger, getRequestContext, isDebugHttpEnabled, sanitizeForLog } from '.
 export function globalErrorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   // 1. AppError (Expected/application errors)
   if (err instanceof AppError) {
-    logger.warn('Errore applicativo gestito', {
-      ...getRequestContext(req),
-      code: err.code,
-      statusCode: err.statusCode,
-      details: err.details,
-      message: err.message,
-      ...(isDebugHttpEnabled() ? { body: sanitizeForLog(req.body), query: sanitizeForLog(req.query) } : {}),
-    });
+    const ctx = getRequestContext(req);
+    logger.warn(
+      `${err.statusCode} ${ctx.method} ${ctx.path} · ${err.code} · ${err.message}`,
+      {
+        userId: ctx.userId,
+        ...(isDebugHttpEnabled() ? {
+          requestId: ctx.requestId,
+          details: err.details,
+          body: sanitizeForLog(req.body),
+          query: sanitizeForLog(req.query),
+        } : {}),
+      },
+    );
 
     return res.status(err.statusCode).json({
       success: false,
@@ -65,11 +70,10 @@ export function globalErrorHandler(err: unknown, req: Request, res: Response, _n
         break;
     }
 
-    logger.warn('Errore Prisma gestito', {
-      ...getRequestContext(req),
-      code: err.code,
-      message,
-    });
+    logger.warn(
+      `${statusCode} ${req.method} ${req.originalUrl} · ${code} · ${message}`,
+      { userId: req.user?.id, prismaCode: err.code },
+    );
 
     return res.status(statusCode).json({
       success: false,
@@ -84,10 +88,10 @@ export function globalErrorHandler(err: unknown, req: Request, res: Response, _n
 
   // 3. SyntaxError (e.g. malformed JSON in request body)
   if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
-    logger.warn('Errore sintassi payload', {
-      ...getRequestContext(req),
-      message: err.message,
-    });
+    logger.warn(
+      `400 ${req.method} ${req.originalUrl} · MALFORMED_JSON · ${err.message}`,
+      { userId: req.user?.id },
+    );
 
     return res.status(400).json({
       success: false,
@@ -101,10 +105,14 @@ export function globalErrorHandler(err: unknown, req: Request, res: Response, _n
   }
 
   // 4. Fallback for unhandled internal server errors (safe, concise, not leaking stack traces)
-  logger.errorWithStack('Errore interno non gestito', err, {
-    ...getRequestContext(req),
-    ...(isDebugHttpEnabled() ? { body: sanitizeForLog(req.body), query: sanitizeForLog(req.query) } : {}),
-  });
+  logger.errorWithStack(
+    `500 ${req.method} ${req.originalUrl} · INTERNAL_SERVER_ERROR`,
+    err,
+    {
+      userId: req.user?.id,
+      ...(isDebugHttpEnabled() ? { requestId: req.requestId, body: sanitizeForLog(req.body) } : {}),
+    },
+  );
 
   return res.status(500).json({
     success: false,

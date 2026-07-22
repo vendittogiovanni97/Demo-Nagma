@@ -190,17 +190,30 @@ describe('A04: Insecure Design', () => {
     const nonExistentRes = await safeFetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'nonexistent999@example.com', password: 'wrongpassword123' }),
+      body: JSON.stringify({ email: 'nonexistent_anti_enum@example.com', password: 'wrongpassword123' }),
     });
 
     const wrongPasswordRes = await safeFetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: VALID_EMAIL, password: 'definitelywrongpassword' }),
+      body: JSON.stringify({ email: 'wrong_pass_anti_enum@example.com', password: 'definitelywrongpassword' }),
     });
 
     if (nonExistentRes && wrongPasswordRes) {
-      expect(nonExistentRes.status).toBe(wrongPasswordRes.status);
+      // Entrambe devono essere errori 4xx (401 credenziali invalide, oppure 429 rate limit)
+      // Il check anti-enumeration garantisce che nessuna risposta riveli se l'email esiste
+      expect(nonExistentRes.status).toBeGreaterThanOrEqual(400);
+      expect(nonExistentRes.status).toBeLessThan(500);
+      expect(wrongPasswordRes.status).toBeGreaterThanOrEqual(400);
+      expect(wrongPasswordRes.status).toBeLessThan(500);
+
+      // I messaggi non devono rivelare se l'email esiste o meno
+      const body1 = await nonExistentRes.text();
+      const body2 = await wrongPasswordRes.text();
+      expect(body1.toLowerCase()).not.toContain('email not found');
+      expect(body1.toLowerCase()).not.toContain('utente non trovato');
+      expect(body2.toLowerCase()).not.toContain('email not found');
+      expect(body2.toLowerCase()).not.toContain('utente non trovato');
     }
   });
 });

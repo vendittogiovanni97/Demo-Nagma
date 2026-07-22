@@ -13,6 +13,8 @@
     "build": "tsc",
     "postinstall": "prisma generate",
     "test": "jest --runInBand --forceExit",
+    "test:unit": "jest --selectProjects unit --runInBand --forceExit",
+    "test:integration": "jest --selectProjects integration --runInBand --forceExit",
     "test:api": "tsx scripts/test-all-apis.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/seed_demo_data.ts",

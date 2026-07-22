@@ -77,11 +77,8 @@ export function createApp() {
     res.setHeader('x-request-id', requestId);
 
     const shouldLogBody = isDebugHttpEnabled() && req.method !== 'GET' && req.method !== 'HEAD';
-    logger.debug('Richiesta in ingresso', {
-      requestId,
-      method: req.method,
-      path: req.originalUrl,
-      ip: req.ip,
+    logger.debug(`→ ${req.method} ${req.originalUrl}`, {
+      ...(isDebugHttpEnabled() ? { requestId, ip: req.ip } : {}),
       ...(shouldLogBody ? { body: sanitizeForLog(req.body) } : {}),
       ...(isDebugHttpEnabled() ? { query: sanitizeForLog(req.query) } : {}),
     });
@@ -94,39 +91,31 @@ export function createApp() {
         metricsService.recordRequest(req.method, req.originalUrl, res.statusCode, durationMs, req.user?.id);
       } catch {}
 
-      const baseMeta = {
-        requestId,
-        method: req.method,
-        path: req.originalUrl,
-        statusCode: res.statusCode,
-        durationMs,
-        userId: req.user?.id,
-        userRole: req.user?.role,
-        ...(isDebugHttpEnabled() ? { contentLength: res.getHeader('content-length') } : {}),
-      };
-
+      // ── Avvisi di performance ─────────────────────────────────────────
       if (durationMs > 5000) {
-        logger.error('⚠️ Very slow request detected (>5s)', baseMeta);
-        // TODO: Send alert to monitoring system (Sentry, DataDog, etc.)
+        logger.error(`SLOW >5s  ${req.method} ${req.originalUrl}`, {
+          statusCode: res.statusCode,
+          durationMs,
+          userId: req.user?.id,
+        });
         return;
       }
 
       if (durationMs > 1000) {
-        logger.warn('⚠️ Slow request detected (>1s)', baseMeta);
+        logger.warn(`SLOW >1s  ${req.method} ${req.originalUrl}`, {
+          statusCode: res.statusCode,
+          durationMs,
+          userId: req.user?.id,
+        });
         return;
       }
 
-      if (res.statusCode >= 500) {
-        logger.error('Richiesta completata con errore server', baseMeta);
-        return;
-      }
-
-      if (res.statusCode >= 400) {
-        logger.warn('Richiesta completata con errore client', baseMeta);
-        return;
-      }
-
-      logger.debug('Richiesta completata', baseMeta);
+      // Log di completamento solo in DEBUG — le 4xx/5xx vengono già tracciate
+      // dall'error middleware con i dettagli completi (evita log duplicati)
+      logger.debug(`← ${res.statusCode}  ${req.method} ${req.originalUrl}`, {
+        durationMs,
+        ...(isDebugHttpEnabled() ? { requestId, userId: req.user?.id, contentLength: res.getHeader('content-length') } : {}),
+      });
     });
 
     next();

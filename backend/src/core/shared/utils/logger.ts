@@ -6,10 +6,15 @@ type LogMeta = Record<string, unknown>;
 
 const ANSI = {
   reset: '\x1b[0m',
+  dim: '\x1b[2m',
+  bold: '\x1b[1m',
   gray: '\x1b[90m',
+  cyan: '\x1b[36m',
   blue: '\x1b[34m',
   yellow: '\x1b[33m',
   red: '\x1b[31m',
+  green: '\x1b[32m',
+  magenta: '\x1b[35m',
 } as const;
 
 // Log level hierarchy: DEBUG < INFO < WARN < ERROR
@@ -19,6 +24,20 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   WARN: 2,
   ERROR: 3,
 } as const;
+
+const LEVEL_COLOR: Record<LogLevel, string> = {
+  DEBUG: ANSI.gray,
+  INFO: ANSI.blue,
+  WARN: ANSI.yellow,
+  ERROR: ANSI.red,
+};
+
+const LEVEL_LABEL: Record<LogLevel, string> = {
+  DEBUG: 'DBG',
+  INFO: 'INF',
+  WARN: 'WRN',
+  ERROR: 'ERR',
+};
 
 function timestamp() {
   return new Date().toISOString();
@@ -36,23 +55,31 @@ function serializeError(error: unknown) {
   return error;
 }
 
-function formatMeta(meta?: LogMeta) {
+function formatMeta(meta?: LogMeta): string {
   if (!meta || Object.keys(meta).length === 0) return '';
 
-  try {
-    return ` ${JSON.stringify(meta)}`;
-  } catch {
-    return ' {"meta":"unserializable"}';
+  if (!isDevelopmentEnv()) {
+    // In produzione: JSON compatto su unica riga
+    try {
+      return ` ${JSON.stringify(meta)}`;
+    } catch {
+      return ' {"meta":"unserializable"}';
+    }
   }
-}
 
-function colorize(level: LogLevel, value: string) {
-  if (!isDevelopmentEnv()) return value;
+  // In sviluppo: formato human-readable senza chiavi ridondanti
+  const SKIP_KEYS = new Set(['requestId', 'method', 'path', 'statusCode', 'durationMs']);
+  const entries = Object.entries(meta).filter(([k]) => !SKIP_KEYS.has(k));
 
-  if (level === 'INFO') return `${ANSI.blue}${value}${ANSI.reset}`;
-  if (level === 'WARN') return `${ANSI.yellow}${value}${ANSI.reset}`;
-  if (level === 'ERROR') return `${ANSI.red}${value}${ANSI.reset}`;
-  return `${ANSI.gray}${value}${ANSI.reset}`;
+  if (entries.length === 0) return '';
+
+  const parts = entries.map(([k, v]) => {
+    if (v === undefined || v === null) return null;
+    const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
+    return `${ANSI.dim}${k}${ANSI.reset}=${ANSI.cyan}${val}${ANSI.reset}`;
+  }).filter(Boolean);
+
+  return parts.length > 0 ? `  ${parts.join('  ')}` : '';
 }
 
 /**
@@ -63,37 +90,51 @@ function getLogLevelSync(): LogLevel {
   try {
     const { configService } = require('@/services/config.service');
     const level = configService.getLogLevelSync() as string;
-    // Valida che sia un livello conosciuto
     if (level in LOG_LEVEL_PRIORITY) {
       return level as LogLevel;
     }
   } catch {
-    // Fallback durante boot (prima di initializeConfig)
     const envLevel = process.env.LOG_LEVEL as string | undefined;
     if (envLevel && envLevel in LOG_LEVEL_PRIORITY) {
       return envLevel as LogLevel;
     }
   }
-  // Default fallback
   return 'INFO';
 }
 
 /**
  * Controlla se il log dovrebbe essere scritto in base al livello configurato
- * Es: se LOG_LEVEL='WARN', scrive solo WARN e ERROR (skippa DEBUG e INFO)
  */
 function shouldLog(level: LogLevel): boolean {
   const configuredLevel = getLogLevelSync();
   return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[configuredLevel];
 }
 
-function writeLog(level: LogLevel, message: string, meta?: LogMeta) {
-  // Skip se il livello di log è sotto la soglia configurata
-  if (!shouldLog(level)) {
-    return;
+function buildLine(level: LogLevel, message: string, meta?: LogMeta): string {
+  if (!isDevelopmentEnv()) {
+    // Produzione: JSON strutturato machine-readable
+    const payload = { ts: timestamp(), level, msg: message, ...meta };
+    try {
+      return JSON.stringify(payload);
+    } catch {
+      return JSON.stringify({ ts: timestamp(), level, msg: message });
+    }
   }
 
-  const line = `${colorize(level, timestamp())} ${colorize(level, `[${level}]`)} ${message}${formatMeta(meta)}`;
+  // Sviluppo: formato leggibile
+  const color = LEVEL_COLOR[level];
+  const label = LEVEL_LABEL[level];
+  const ts = `${ANSI.dim}${timestamp().slice(11, 23)}${ANSI.reset}`; // solo HH:MM:SS.mmm
+  const lvl = `${color}${ANSI.bold}${label}${ANSI.reset}`;
+  const msg = `${color}${message}${ANSI.reset}`;
+
+  return `${ts} ${lvl} ${msg}${formatMeta(meta)}`;
+}
+
+function writeLog(level: LogLevel, message: string, meta?: LogMeta) {
+  if (!shouldLog(level)) return;
+
+  const line = buildLine(level, message, meta);
 
   if (level === 'ERROR') {
     console.error(line);
@@ -138,7 +179,6 @@ export function isDebugHttpEnabled(): boolean {
     const { configService } = require('@/services/config.service');
     return configService.getDebugHttpSync();
   } catch {
-    // Fallback durante boot (prima di initializeConfig)
     return process.env.DEBUG_HTTP === 'true';
   }
 }

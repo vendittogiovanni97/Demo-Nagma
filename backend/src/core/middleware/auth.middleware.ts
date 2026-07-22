@@ -50,12 +50,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 
   if (!token) {
-    logger.warn('Richiesta autenticata senza token Bearer o query token', {
-      requestId: req.requestId,
-      method: req.method,
-      path: req.originalUrl,
-      ip: req.ip,
-    });
+    logger.warn(`401 ${req.method} ${req.originalUrl} · NO_TOKEN`);
     return res.status(401).json({
       message: 'Accesso negato. Token mancante.',
       requestId: req.requestId,
@@ -82,12 +77,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     req.user = decoded;
     next();
   } catch {
-    logger.warn('Token JWT non valido o scaduto', {
-      requestId: req.requestId,
-      method: req.method,
-      path: req.originalUrl,
-      ip: req.ip,
-    });
+    logger.warn(`401 ${req.method} ${req.originalUrl} · INVALID_TOKEN`);
     return res.status(401).json({
       message: 'Token non valido o scaduto.',
       requestId: req.requestId,
@@ -97,13 +87,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
 export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (req.user?.role !== 'ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
-    logger.warn('Accesso negato: route adminOnly', {
-      requestId: req.requestId,
-      method: req.method,
-      path: req.originalUrl,
-      userId: req.user?.id,
-      role: req.user?.role,
-    });
+    logger.warn(`403 ${req.method} ${req.originalUrl} · ADMIN_ONLY`, { userId: req.user?.id, role: req.user?.role });
     return res.status(403).json({
       message: 'Accesso negato. Permessi insufficienti.',
       requestId: req.requestId,
@@ -115,10 +99,7 @@ export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) =
 export const requireRoles = (...roles: Role[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || (!roles.includes(req.user.role) && req.user.role !== 'SUPER_ADMIN')) {
-      logger.warn('Accesso negato: ruolo non autorizzato', {
-        requestId: req.requestId,
-        method: req.method,
-        path: req.originalUrl,
+      logger.warn(`403 ${req.method} ${req.originalUrl} · FORBIDDEN`, {
         userId: req.user?.id,
         role: req.user?.role,
         allowedRoles: roles,

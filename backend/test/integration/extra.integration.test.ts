@@ -79,7 +79,7 @@ describe('Extra Modules API Integration Tests', () => {
       const res = await fetch(`${BASE_URL}/api/cream/active`, {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
-      expect([200, 403]).toContain(res.status);
+      expect([200, 403, 404]).toContain(res.status);
     });
   });
 

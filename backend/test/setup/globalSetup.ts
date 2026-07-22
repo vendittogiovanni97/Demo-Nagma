@@ -5,15 +5,12 @@
  * il processo figlio usa tsx per eseguire src/index.ts direttamente.
  */
 
-import { spawn, ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
 const MAX_WAIT_MS = 30_000;
 const POLL_INTERVAL_MS = 500;
-
-// Variabile globale per il processo server (condivisa con globalTeardown via __BACKEND_PID__)
-let serverProcess: ChildProcess | null = null;
 
 async function waitForServer(): Promise<void> {
   const start = Date.now();
@@ -36,12 +33,11 @@ async function waitForServer(): Promise<void> {
 export default async function globalSetup(): Promise<void> {
   const rootDir = path.resolve(__dirname, '../../');
 
-  // Se il server è già in ascolto (avviato manualmente), non ne spawniamo uno nuovo
+  // Se il server è già in ascolto (avviato manualmente / npm run dev), non ne spawniamo uno nuovo
   try {
     const res = await fetch(`${BASE_URL}/health`);
     if (res.ok) {
       console.log(`\n✅ Server già in ascolto su ${BASE_URL} — skip avvio automatico\n`);
-      // Segnala a globalTeardown di non uccidere il processo
       (globalThis as Record<string, unknown>).__BACKEND_EXTERNAL__ = true;
       return;
     }
@@ -55,16 +51,21 @@ export default async function globalSetup(): Promise<void> {
     ...process.env,
     NODE_ENV: 'test',
     PORT: '3001',
-    // Assicuriamo che la config non venga caricata da DB durante i test
     INIT_CONFIG_FROM_DB: 'false',
   };
 
-  serverProcess = spawn('npx', ['tsx', 'src/index.ts'], {
+  // ⚠️ detached: true — il server viene messo in un proprio process group.
+  // Questo è FONDAMENTALE: permette a globalTeardown di inviare SIGTERM/SIGKILL
+  // solo al gruppo del server, senza colpire il processo Jest stesso.
+  const serverProcess = spawn('npx', ['tsx', 'src/index.ts'], {
     cwd: rootDir,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
-    detached: false,
+    detached: true, // processo indipendente con proprio pgid
   });
+
+  // Deref: Jest non aspetta la fine del processo figlio
+  serverProcess.unref();
 
   if (serverProcess.stdout) {
     serverProcess.stdout.on('data', (chunk: Buffer) => {
@@ -86,7 +87,7 @@ export default async function globalSetup(): Promise<void> {
     console.error('❌ Errore avvio processo server:', err);
   });
 
-  // Salva il PID nel global per il teardown
+  // Salva PID nel globalThis per il teardown
   (globalThis as Record<string, unknown>).__BACKEND_PID__ = serverProcess.pid;
   (globalThis as Record<string, unknown>).__BACKEND_EXTERNAL__ = false;
 

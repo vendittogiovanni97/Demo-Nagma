@@ -72,8 +72,7 @@ backend/
 ├── .env                       # Environment variables
 ├── package.json               # Dependencies
 ├── tsconfig.json              # TypeScript config
-├── .gitignore                 # Git exclusions
-└── docker-compose.yml         # PostgreSQL orchestration
+└── .gitignore                 # Git exclusions
 ```
 
 ---

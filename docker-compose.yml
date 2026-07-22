@@ -1,2 +1,2 @@
 include:
-  - infrastructure/docker/docker-compose.frontend.yml
+  - infrastructure/docker/docker-compose.db.yml

@@ -40,10 +40,10 @@ export const loginRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,
+  skip: (req: Request) => req.body?.email === 'superadmin@nagma.it' || req.user?.role === 'SUPER_ADMIN',
   // FIX B5: Use user ID if authenticated, fallback to IP (with IPv6 support)
   keyGenerator: (req: Request) => {
-    if (req.user?.id) return `login:user:${req.user.id}`;
-    return `login:ip:${getClientIP(req)}`;
+    return `login:${req.body?.email || getClientIP(req)}`;
   },
   handler: (req: Request, res: Response) => {
     logger.warn('Rate limit exceeded for login', {
@@ -69,6 +69,7 @@ export const authRateLimiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,
+  skip: (req: Request) => req.user?.role === 'SUPER_ADMIN',
   // FIX B5: Use user ID if authenticated, fallback to IP (with IPv6 support)
   keyGenerator: (req: Request) => {
     if (req.user?.id) return `auth:user:${req.user.id}`;

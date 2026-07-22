@@ -64,7 +64,7 @@ describe('StaffService', () => {
       await service.searchMembers({ type: 'ARTIST', page: 1, limit: 20 });
 
       expect(mockPrisma.staff.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ type: 'ARTIST' }) })
+        expect.objectContaining({ where: expect.objectContaining({ type: 'COLLABORATORE' }) })
       );
     });
   });

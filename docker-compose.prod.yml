@@ -1,2 +1,0 @@
-include:
-  - infrastructure/docker/docker-compose.prod.frontend.yml

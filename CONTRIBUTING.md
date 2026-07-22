@@ -21,10 +21,14 @@ Formato libero, chiaro e in italiano.
 - Colori solo dal tema MUI, mai hardcoded
 - Pulsanti semantici: `SaveButton`, `CancelButton`, `DeleteButton`, `OkButton`, `CloseButton` — mai `<Button>` generico per azioni standard
 
-## Test
+## Test e Verifica
+
 ```bash
-# Backend unit (130+ test)
-cd backend && npx jest --forceExit
+# Verifica tipi TypeScript (Backend + Frontend)
+npm run typecheck
+
+# Backend unit test (16 suite, 134 test)
+npm run test
 
 # Backend security audit OWASP (21 test)
 cd backend && npx jest test/security/ --forceExit
@@ -32,9 +36,7 @@ cd backend && npx jest test/security/ --forceExit
 # Frontend E2E (10 test, richiede backend + frontend attivi)
 cd frontend && npx playwright test --project=chromium
 
-# Frontend unit
-cd frontend && npx jest
-
 # Load test (richiede k6 installato + backend attivo)
 k6 run backend/test/load/scenario.k6.js
 ```
+

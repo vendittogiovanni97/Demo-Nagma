@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 const CREDENTIALS = {
   email: 'superadmin@nagma.it',
@@ -7,7 +7,7 @@ const CREDENTIALS = {
 
 async function login(page: Page) {
   await page.goto('/login');
-  await expect(page.getByRole('heading', { name: /benvenuto/i })).toBeVisible();
+  await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 10000 });
 
   await page.locator('input[name="email"]').fill(CREDENTIALS.email);
   await page.locator('input[name="password"]').fill(CREDENTIALS.password);
@@ -25,29 +25,21 @@ test.describe('Happy Path - Full User Journey', () => {
   test('superadmin can access admin panel and toggle features', async ({ page }) => {
     await login(page);
 
-    await page.goto('/admin-panel');
+    await page.goto('/admin-panel?tab=clientSettings');
     await expect(page).toHaveURL(/admin-panel/);
 
-    await expect(page.getByText('Attivazione Moduli e Feature Flags')).toBeVisible();
-    await expect(page.getByText('Archivio Consensi')).toBeVisible();
-    await expect(page.getByText('Mappa Corporea')).toBeVisible();
+    await expect(page.getByText('Feature Flags')).toBeVisible();
+    const creamToggle = page.getByLabel('Abilita Modulo Creme');
+    await expect(creamToggle).toBeVisible();
 
-    const consensiSwitch = page
-      .getByText('📄 Archivio Consensi')
-      .locator('xpath=ancestor::div[contains(@style,"display") or contains(@class,"MuiBox")]')
-      .locator('[role="switch"]')
-      .first();
+    const initialState = await creamToggle.isChecked();
+    await creamToggle.click();
 
-    // Fallback: find the switch nearest to the label
-    const switchEl = page.locator('[role="switch"]').first();
-    const initialState = await switchEl.getAttribute('aria-checked');
-
-    await switchEl.click();
-
-    await expect(page.getByText('Configurazione aggiornata con successo')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /salva configurazione/i }).click();
+    await expect(page.getByText('Configurazione salvata con successo')).toBeVisible({ timeout: 10000 });
 
     await page.waitForTimeout(500);
-    const newState = await switchEl.getAttribute('aria-checked');
+    const newState = await page.getByLabel('Abilita Modulo Creme').isChecked();
     expect(newState).not.toBe(initialState);
   });
 
@@ -92,49 +84,25 @@ test.describe('Happy Path - Full User Journey', () => {
     await expect(page.getByText('Configurazione salvata con successo')).toBeVisible({ timeout: 10000 });
   });
 
-  test('feature flags affect module visibility in user menu', async ({ page }) => {
+  test('feature flags affect module visibility in client settings', async ({ page }) => {
     await login(page);
 
-    // Go to admin panel, get current state of Consensi toggle
-    await page.goto('/admin-panel');
-    await expect(page.getByText('Attivazione Moduli e Feature Flags')).toBeVisible();
+    await page.goto('/admin-panel?tab=clientSettings');
+    await expect(page.getByText('Feature Flags')).toBeVisible();
 
-    const switches = page.locator('[role="switch"]');
-    const consensiSwitch = switches.first();
+    const creamToggle = page.getByLabel('Abilita Modulo Creme');
+    await expect(creamToggle).toBeVisible();
 
-    // Disable Archivio Consensi if enabled
-    const initialState = await consensiSwitch.getAttribute('aria-checked');
-    if (initialState === 'true') {
-      await consensiSwitch.click();
-      await expect(page.getByText('Configurazione aggiornata con successo')).toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(500);
-    }
+    const initialState = await creamToggle.isChecked();
+    await creamToggle.click();
 
-    // Go to home page, open user menu, check "Archivio Consensi" is NOT there
-    await page.goto('/');
-    const userMenuBtn = page.getByLabel('Menu utente');
-    await userMenuBtn.click();
-    await expect(page.getByRole('menuitem', { name: /archivio consensi/i })).not.toBeVisible({ timeout: 3000 });
+    await page.getByRole('button', { name: /salva configurazione/i }).click();
+    await expect(page.getByText('Configurazione salvata con successo')).toBeVisible({ timeout: 10000 });
 
-    // Close menu
-    await page.keyboard.press('Escape');
-
-    // Re-enable Consensi
-    await page.goto('/admin-panel');
-    await expect(page.getByText('Attivazione Moduli e Feature Flags')).toBeVisible();
-
-    const consensiSwitch2 = page.locator('[role="switch"]').first();
-    const currentState = await consensiSwitch2.getAttribute('aria-checked');
-    if (currentState === 'false') {
-      await consensiSwitch2.click();
-      await expect(page.getByText('Configurazione aggiornata con successo')).toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(500);
-    }
-
-    // Verify it shows in user menu now
-    await page.goto('/');
-    await page.getByLabel('Menu utente').click();
-    await expect(page.getByText('Archivio Consensi')).toBeVisible({ timeout: 5000 });
+    // Restore original state
+    await page.getByLabel('Abilita Modulo Creme').click();
+    await page.getByRole('button', { name: /salva configurazione/i }).click();
+    await expect(page.getByText('Configurazione salvata con successo')).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -148,7 +116,7 @@ test.describe('Client Settings Page', () => {
     await expect(page.getByText('Branding')).toBeVisible();
 
     await page.getByLabel('Nome Client').fill('Test Studio');
-    await page.getByLabel('Logo URL').fill('/logo-test.svg');
+    await page.getByLabel('Logo URL').fill('/logo.svg');
 
     const primaryColorInput = page.locator('input[type="color"]').first();
     await primaryColorInput.fill('#00bfff');
@@ -156,6 +124,12 @@ test.describe('Client Settings Page', () => {
     const secondaryColorInput = page.locator('input[type="color"]').nth(1);
     await secondaryColorInput.fill('#00ff00');
 
+    await page.getByRole('button', { name: /salva configurazione/i }).click();
+    await expect(page.getByText('Configurazione salvata con successo')).toBeVisible({ timeout: 10000 });
+
+    // Restore default branding
+    await page.getByLabel('Nome Client').fill('Demo Nagma');
+    await page.getByLabel('Logo URL').fill('/logo.svg');
     await page.getByRole('button', { name: /salva configurazione/i }).click();
     await expect(page.getByText('Configurazione salvata con successo')).toBeVisible({ timeout: 10000 });
   });

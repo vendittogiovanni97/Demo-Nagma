@@ -1,10 +1,10 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, StaffType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import prisma from '../../../core/shared/utils/prisma';
-import { AppError } from '../../../core/shared/errors/AppError';
-import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
-import { parseUTCDate } from '../../../core/shared/utils/date-utils';
 import { config } from '../../../core/config/env';
+import { AppError } from '../../../core/shared/errors/AppError';
+import { buildPagination, paginate } from '../../../core/shared/kernel/pagination';
+import { parseUTCDate } from '../../../core/shared/utils/date-utils';
+import prisma from '../../../core/shared/utils/prisma';
 
 const SHIFT_LABEL_MAP: Record<string, { startTime: string; endTime: string; isOff: boolean }> = {
   'Mattina': { startTime: '09:00', endTime: '13:00', isOff: false },
@@ -40,7 +40,12 @@ export class StaffService {
     const where: Prisma.StaffWhereInput = { deletedAt: null };
 
     if (type) {
-      where.type = type as any;
+      const upperType = type.toUpperCase();
+      if (upperType === 'COLLABORATORE' || upperType === 'APPRENDISTA') {
+        where.type = upperType as StaffType;
+      } else if (upperType === 'ARTIST') {
+        where.type = StaffType.COLLABORATORE;
+      }
     }
 
     if (search?.trim()) {

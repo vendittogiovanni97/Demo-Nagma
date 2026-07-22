@@ -51,66 +51,49 @@ NEXT_PUBLIC_PORTAL_DESCRIPTION
 ## Comandi
 
 ```bash
-# Sviluppo (root)
-npm run dev                        # backend + frontend in parallelo
-docker compose up -d               # stack completo Docker
-docker compose -f infrastructure/docker/docker-compose.db.yml up -d   # solo DB
+# Sviluppo e Produzione (root)
+npm run dev                        # backend + frontend in parallelo (dev)
+npm run start                      # backend + frontend in parallelo (prod)
+npm run install:all                # installa dipendenze per root, backend e frontend
+npm run deploy                     # aggiornamento automatico da main, installazione, migrazione e build (macOS)
+./start.command                    # avvio rapido con doppio clic su macOS
 
-# Sviluppo (individuale)
-cd backend && npm run dev          # nodemon (porta 3001)
-cd frontend && npm run dev         # Next.js dev (porta 3000)
+# Database (PostgreSQL)
+npm run db:up                      # avvia il database PostgreSQL (porta 5433)
+npm run db:down                    # ferma il database PostgreSQL
+npm run db:migrate                 # prisma migrate dev (backend)
+npm run db:seed                    # seed base (admin, staff, config)
+npm run db:seed:demo               # seed dati demo (clienti, prenotazioni, finanze)
 
-# Build
-cd backend && npm run build
-cd frontend && npm run build
-
-# Database
-cd backend && npm run db:migrate   # prisma migrate dev
-cd backend && npm run db:migrate:prod  # prisma migrate deploy
-cd backend && npm run db:seed      # seed (idempotente)
-cd backend && npm run db:reset     # ATTENZIONE: reset completo + re-seed
-SEED_PROFILE=nagma cd backend && npx prisma db seed   # seed con profilo
-
-# Test
-cd backend && npx jest --forceExit                    # 13 suite, 130+ test
+# Verification & Test
+npm run typecheck                  # verifica compilazione TypeScript su backend e frontend
+npm run test                       # unit test backend (16 suite, 134 test)
 cd backend && npx jest test/security/ --forceExit     # OWASP security audit (21 test)
-cd frontend && npx jest                                # hook + unit test
 cd frontend && npx playwright test --project=chromium  # E2E happy path (10 test)
 k6 run backend/test/load/scenario.k6.js               # load test (smoke + ramp + spike)
-
-# Docker
-docker compose up -d               # avvia tutto
-docker compose down                # ferma tutto
-docker compose -f docker-compose.prod.yml up -d   # produzione
 ```
 
-## Seed — Profili JSON
+## Seed — Profili JSON e Dati Demo
 
 ```
 prisma/
-  seed.ts                    ← logica pura (legge JSON, loop, upsert)
+  seed.ts                    ← seed base (account, staff, config)
+  seed_demo_data.ts          ← seed dati demo (clienti, prenotazioni, transazioni)
   seed-data/
     nagma.json               ← Nagma: account, staff, config, template, form, crema, clientConfig
 ```
 
-`SEED_PROFILE=nagma npm run db:seed` carica `seed-data/nagma.json`.
-Per aggiungere un cliente: copi JSON, cambi dati, `SEED_PROFILE=xyz npm run db:seed`.
-Password e dati sensibili stanno solo nel JSON, mai in env.
+- `npm run db:seed` carica `seed-data/nagma.json`.
+- `npm run db:seed:demo` carica i dati di prova di clienti e prenotazioni.
+- Password e dati sensibili stanno solo nel JSON, mai in env.
 
-## Docker — Dockerfile e compose separati
+## Docker — Gestione Database
 
 ```
-backend/Dockerfile                     ← Dockerfile backend
-frontend/Dockerfile                    ← Dockerfile frontend
 infrastructure/docker/
-  docker-compose.db.yml                ← solo postgres
-  docker-compose.backend.yml           ← backend + include db
-  docker-compose.frontend.yml          ← frontend + include backend
-  docker-compose.prod.db/backend/frontend.yml
-  docker-entrypoint.sh
+  docker-compose.db.yml                ← container PostgreSQL 17 (porta 5433)
 root/
-  docker-compose.yml                   ← include → frontend.yml
-  docker-compose.prod.yml              ← include → prod.frontend.yml
+  docker-compose.yml                   ← include → infrastructure/docker/docker-compose.db.yml
 ```
 
 ## Struttura chiave

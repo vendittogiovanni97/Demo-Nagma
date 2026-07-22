@@ -62,6 +62,7 @@ async function startServer() {
   await prisma.$connect();
   logger.info('Connessione Prisma aperta');
 
+
   // Inizializza config dalla tabella Config in base ai flag di env
   const initFromDb = (process.env.INIT_CONFIG_FROM_DB ?? 'false').toLowerCase() === 'true';
   const seedFlag = (process.env.INIT_CONFIG_SEED ?? 'false').toLowerCase() === 'true';
@@ -101,8 +102,9 @@ async function scheduleRestart(reason: string, error?: unknown) {
     logger.errorWithStack('Errore durante lo stop prima del riavvio', shutdownError);
   }
 
-  logger.warn('Riavvio pianificato', {
-    delaySeconds: RESTART_DELAY_MS / 1000,
+  const FAST_RESTART_DELAY_MS = 1000;
+  logger.warn('Riavvio immediato pianificato (1s)', {
+    delaySeconds: FAST_RESTART_DELAY_MS / 1000,
     reason,
   });
 
@@ -112,7 +114,7 @@ async function scheduleRestart(reason: string, error?: unknown) {
 
     logger.info('Tentativo di riavvio automatico in corso');
     void boot();
-  }, RESTART_DELAY_MS);
+  }, FAST_RESTART_DELAY_MS);
 }
 
 async function shutdown(signal: string) {
@@ -151,8 +153,7 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason) => {
-  logger.error('unhandledRejection intercettata', { reason });
-  void scheduleRestart('unhandledRejection', reason);
+  logger.error('unhandledRejection intercettata (il server rimane attivo)', { reason });
 });
 
 process.on('SIGINT', () => {

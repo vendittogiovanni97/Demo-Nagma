@@ -18,10 +18,11 @@
     "clean:backend": "rm -rf backend/dist",
     "clean:frontend": "rm -rf frontend/.next frontend/tsconfig.tsbuildinfo",
     "typecheck": "(cd backend && npx tsc --noEmit) && (cd frontend && npx tsc --noEmit)",
-    "test": "(cd backend && npx jest test/modules/ --forceExit)",
-    "test:api": "npm run test:api --prefix backend",
+    "test": "npm test --prefix backend",
+    "test:unit": "npm run test:unit --prefix backend",
+    "test:integration": "npm run test:integration --prefix backend",
     "test:frontend": "npm run test --prefix frontend",
-    "test:all": "npx tsx scripts/test-all-suite.ts"
+    "test:api": "npm run test:api --prefix backend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

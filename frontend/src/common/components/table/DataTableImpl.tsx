@@ -2,26 +2,36 @@
 
 import type { ICellRendererParams, IsFullWidthRowParams } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import React, { forwardRef, useCallback, useMemo, useRef } from 'react';
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import Icon from '@/common/components/ui/Icon';
+import TableActions, { type TableAction } from './TableActions';
 import Alert from '@mui/material/Alert';
+import type { AlertProps } from '@mui/material/Alert';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme, alpha } from '@mui/material/styles';
 import { usePermission } from '@/common/providers/AuthProvider';
 import { useThemeMode } from '@/common/providers/ThemeModeProvider';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import MuiButton from '@mui/material/Button';
+import type { ButtonProps as MuiButtonProps } from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Switch from '@mui/material/Switch';
 import TablePagination from '@mui/material/TablePagination';
+import {
+  getPreferredItemsPerPage,
+  PAGE_SIZE_OPTIONS,
+} from '@/common/shared/utils/pagination';
 import Typography from '@mui/material/Typography';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { useTranslation } from 'react-i18next';
 import { DetailRow, RowWithId, useDataTable } from '../../hooks/useDataTable';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { ActionMode, type BaseColumnKey, type DataTableProps } from './DataTable';
+import {
+  ActionMode,
+  type BaseColumnKey,
+  type DataTableProps,
+  type DataTableRef,
+} from './DataTable';
 import { DataTableToolbar } from './DataTableToolbar';
 import { LoadingOverlay, NoRowsOverlay } from './gridTheme';
 
@@ -33,7 +43,17 @@ const DEFAULT_COL_DEF = {
   cellStyle: { display: 'flex', alignItems: 'center', height: '100%' },
 } as const;
 
-// PageTitle local wrapper
+function isDetailRow<E>(row: E | DetailRow<E>): row is DetailRow<E> {
+  return typeof row === 'object' && row !== null && '__isDetailRow' in row;
+}
+
+function getRowStatus<E>(row: E): string {
+  if (typeof row === 'object' && row !== null && 'status' in row && typeof row.status === 'string') {
+    return row.status;
+  }
+  return '';
+}
+
 const PageTitle = ({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) => (
   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
     <Box>
@@ -44,21 +64,18 @@ const PageTitle = ({ title, subtitle, action }: { title: string; subtitle?: stri
   </Box>
 );
 
-// CreateButton local wrapper
-const CreateButton = ({ children, onClick, variant, className }: any) => (
-  <Button variant={variant} onClick={onClick} className={className} startIcon={<Icon name="piu" size={16} />}>
+const CreateButton = ({ children, onClick, variant, className }: MuiButtonProps) => (
+  <MuiButton variant={variant} onClick={onClick} className={className} startIcon={<Icon name="piu" size={16} />}>
     {children}
-  </Button>
+  </MuiButton>
 );
 
-// StatusBanner local wrapper
-const StatusBanner = ({ children, severity, onClose }: any) => (
+const StatusBanner = ({ children, severity, onClose }: AlertProps) => (
   <Alert severity={severity} onClose={onClose} sx={{ mb: 3 }}>
     {children}
   </Alert>
 );
 
-// StatusToggleButton local wrapper
 const StatusToggleButton = ({ currentStatus, onClick }: { currentStatus: string; onClick: () => void }) => (
   <Switch
     checked={currentStatus === 'ATTIVO' || currentStatus === 'ACTIVE'}
@@ -67,7 +84,7 @@ const StatusToggleButton = ({ currentStatus, onClick }: { currentStatus: string;
   />
 );
 
-const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
+const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<DataTableRef<E>>) => {
   const {
     title,
     subtitle,
@@ -104,8 +121,9 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     pageSize,
     pageSizeSelector,
     getRowStyle,
-    actions,
+    rowActions,
     hideToolbar = true,
+    footerContent,
   } = props;
 
   const { t } = useTranslation();
@@ -118,9 +136,9 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     deleteConfirmMessage ?? t('Sei sicuro di voler eliminare questo elemento?');
 
   const onGetRowStyle = useCallback(
-    (params: any) => {
-      if (getRowStyle && params.data && !params.data.__isDetailRow) {
-        return getRowStyle(params.data) as any;
+    (params: { data?: E | DetailRow<E> }) => {
+      if (getRowStyle && params.data && !isDetailRow(params.data)) {
+        return getRowStyle(params.data);
       }
       return undefined;
     },
@@ -136,14 +154,14 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
       return renderRowActionStatus;
     }
     if (onStatusChange) {
-      // Callback di render per riga (non un componente): il display-name non è applicabile.
-      // eslint-disable-next-line react/display-name
-      return (row: E) => (
-        <StatusToggleButton
-          currentStatus={(row as unknown as { status: string }).status}
-          onClick={() => onStatusChange(row)}
-        />
-      );
+      return function StatusToggleCell(row: E) {
+        return (
+          <StatusToggleButton
+            currentStatus={getRowStatus(row)}
+            onClick={() => onStatusChange(row)}
+          />
+        );
+      };
     }
     return undefined;
   }, [renderRowActionStatus, onStatusChange]);
@@ -169,45 +187,42 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
       const showView = (onView || openEntityModal) && (!viewPermission || canView);
       const showEdit = (onEdit || openEntityModal) && (!editPermission || canEdit);
       const showDelete = onDelete && (!deletePermission || canDelete);
+      const configuredActions: TableAction[] = rowActions?.(row) ?? [];
+      const automaticActions: TableAction[] = [
+        {
+          id: 'view',
+          label: t('Visualizza'),
+          icon: 'vedi',
+          tone: 'primary',
+          hidden: !showView,
+          onClick: () =>
+            onView
+              ? onView(row)
+              : openEntityModal
+                ? actionsRef.current.openModal(ActionMode.Read, row)
+                : undefined,
+        },
+        {
+          id: 'edit',
+          label: t('Modifica'),
+          icon: 'pencil',
+          tone: 'primary',
+          hidden: !showEdit,
+          onClick: () =>
+            openEntityModal ? actionsRef.current.openModal(ActionMode.Edit, row) : onEdit!(row),
+        },
+        {
+          id: 'delete',
+          label: t('Elimina'),
+          icon: 'cestino',
+          tone: 'error',
+          hidden: !showDelete,
+          onClick: () => actionsRef.current.setDeleteTarget(row),
+        },
+      ];
       return (
         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', height: '100%' }}>
-          {actions && actions(row)}
-          {showView && (
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={() =>
-                openEntityModal ? actionsRef.current.openModal(ActionMode.Read, row) : onView!(row)
-              }
-            >
-              <Icon name="vedi" size={16} />
-            </IconButton>
-          )}
-          {showEdit && (
-            <IconButton
-              size="small"
-              onClick={() =>
-                openEntityModal ? actionsRef.current.openModal(ActionMode.Edit, row) : onEdit!(row)
-              }
-              sx={{
-                color: theme.palette.primary.main,
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                },
-              }}
-            >
-              <Icon name="pencil" size={17} color={theme.palette.primary.main} />
-            </IconButton>
-          )}
-          {showDelete && (
-            <IconButton
-              size="small"
-              color="error"
-              onClick={() => actionsRef.current.setDeleteTarget(row)}
-            >
-              <Icon name="cestino" size={16} />
-            </IconButton>
-          )}
+          <TableActions actions={[...configuredActions, ...automaticActions]} />
           {renderRowActionStatus
             ? renderRowActionStatus(row)
             : !hideState && activeRowActionStatus?.(row)}
@@ -228,7 +243,8 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
       deletePermission,
       hideState,
       renderRowActionStatus,
-      actions,
+      rowActions,
+      t,
     ]
   );
 
@@ -291,6 +307,8 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     showExport,
     colDefs,
     rowData,
+    rawData,
+    gridApiRef,
     onGridReady,
     handleColumnVisible,
     modalContent,
@@ -329,7 +347,7 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     ActionsCellRenderer,
     ExpandCellRenderer,
     toolbarFilters,
-    actions,
+    rowActions,
   });
 
   React.useEffect(() => {
@@ -340,39 +358,90 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
     openCreateModal: () => {
       openModal(ActionMode.Create, undefined);
     },
-    openEditModal: (item: any) => {
+    openEditModal: (item: E) => {
       openModal(ActionMode.Edit, item);
     },
-    openReadModal: (item: any) => {
+    openReadModal: (item: E) => {
       openModal(ActionMode.Read, item);
     }
   }));
 
-  const userPreferredPageSize = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nagma_items_per_page');
-      if (saved) {
-        const num = parseInt(saved, 10);
-        if ([10, 20, 25, 50, 100].includes(num)) return num;
-      }
-    }
-    return 25;
-  }, []);
-
-  const effectivePageSize = pageSize ?? userPreferredPageSize;
+  const userPreferredPageSize = useMemo(getPreferredItemsPerPage, []);
+  const [localPageSize, setLocalPageSize] = useState(pageSize ?? userPreferredPageSize);
+  const effectivePageSize = localPageSize;
+  const selectorCurrentSize = isManaged ? mLimit : effectivePageSize;
 
   const effectivePageSizeSelector = useMemo(() => {
-    const baseOptions = pageSizeSelector ?? [10, 20, 25, 50, 100];
-    if (!baseOptions.includes(effectivePageSize)) {
-      return [...baseOptions, effectivePageSize].sort((a, b) => a - b);
+    const baseOptions = pageSizeSelector ?? [...PAGE_SIZE_OPTIONS];
+    if (!baseOptions.includes(selectorCurrentSize)) {
+      return [...baseOptions, selectorCurrentSize].sort((a, b) => a - b);
     }
     return baseOptions;
-  }, [pageSizeSelector, effectivePageSize]);
+  }, [pageSizeSelector, selectorCurrentSize]);
+
+  const [localPage, setLocalPage] = useState(0);
+  const [localTotal, setLocalTotal] = useState(rawData.length);
+
+  const syncLocalPagination = useCallback(() => {
+    if (isManaged) return;
+    const api = gridApiRef.current;
+    setLocalPage(api?.paginationGetCurrentPage() ?? 0);
+    setLocalTotal(api?.getDisplayedRowCount() ?? rawData.length);
+  }, [gridApiRef, isManaged, rawData.length]);
+
+  useEffect(() => {
+    if (isManaged) return;
+    setLocalTotal(rawData.length);
+    const lastPage = Math.max(0, Math.ceil(rawData.length / effectivePageSize) - 1);
+    if (localPage > lastPage) {
+      setLocalPage(lastPage);
+      gridApiRef.current?.paginationGoToPage(lastPage);
+    }
+  }, [effectivePageSize, gridApiRef, isManaged, localPage, rawData.length]);
+
+  useEffect(() => {
+    if (isManaged) return;
+    setLocalPage(0);
+    gridApiRef.current?.paginationGoToFirstPage();
+  }, [gridApiRef, isManaged, searchTerm]);
+
+  const handlePaginationPageChange = useCallback(
+    (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+      if (isManaged) {
+        setMPage(newPage);
+        return;
+      }
+      setLocalPage(newPage);
+      gridApiRef.current?.paginationGoToPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [gridApiRef, isManaged, setMPage]
+  );
+
+  const handlePaginationPageSizeChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const newSize = Number.parseInt(event.target.value, 10);
+      setMLimit(newSize);
+      if (!isManaged) {
+        setLocalPageSize(newSize);
+        setLocalPage(0);
+        gridApiRef.current?.setGridOption('paginationPageSize', newSize);
+        gridApiRef.current?.paginationGoToFirstPage();
+      }
+    },
+    [gridApiRef, isManaged, setMLimit]
+  );
+
+  const paginationCount = isManaged ? mTotalCount : localTotal;
+  const paginationPage = isManaged ? mPage : localPage;
+  const paginationLimit = isManaged ? mLimit : effectivePageSize;
+  const mobileRows = isManaged
+    ? rowData
+    : rowData.slice(localPage * effectivePageSize, (localPage + 1) * effectivePageSize);
 
   return (
     <>
       <Box
-        ref={ref}
         className="table-container"
         sx={{
           p: 3,
@@ -452,8 +521,8 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
               maxHeight: 'calc(100vh - 250px)'
             }}
           >
-            {rowData.map((row: any, idx: number) => {
-              if (row.__isDetailRow) return null;
+            {mobileRows.map((row, idx) => {
+              if (isDetailRow(row)) return null;
               return <React.Fragment key={idx}>{renderCard(row)}</React.Fragment>;
             })}
           </Box>
@@ -511,6 +580,9 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
               pagination={!isManaged}
               paginationPageSize={effectivePageSize}
               paginationPageSizeSelector={effectivePageSizeSelector}
+              suppressPaginationPanel
+              onPaginationChanged={syncLocalPagination}
+              onModelUpdated={syncLocalPagination}
               suppressCellFocus
               rowStyle={{ cursor: onRowClick ? 'pointer' : 'default' }}
               getRowStyle={onGetRowStyle}
@@ -531,23 +603,27 @@ const DataTableInner = <E,>(props: DataTableProps<E>, ref: React.Ref<any>) => {
 
         {modalContent}
 
-        {isManaged && (
-          <TablePagination
-            component="div"
-            count={mTotalCount}
-            page={mPage}
-            onPageChange={(event, newPage) => setMPage(newPage)}
-            rowsPerPage={mLimit}
-            rowsPerPageOptions={[10, 25, 50, 100]}
-            onRowsPerPageChange={(event) => {
-              setMLimit(parseInt(event.target.value, 10));
-              setMPage(0);
-            }}
-            labelRowsPerPage={t('Righe per pagina:')}
-            className="table-pagination"
-            sx={{ mt: 2 }}
-          />
-        )}
+        {footerContent}
+
+        <TablePagination
+          component="div"
+          count={paginationCount}
+          page={paginationPage}
+          onPageChange={handlePaginationPageChange}
+          rowsPerPage={paginationLimit}
+          rowsPerPageOptions={effectivePageSizeSelector}
+          onRowsPerPageChange={handlePaginationPageSizeChange}
+          labelRowsPerPage={t('Righe per pagina:')}
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} di ${count}`}
+          getItemAriaLabel={(type) => {
+            if (type === 'first') return t('Prima pagina');
+            if (type === 'last') return t('Ultima pagina');
+            if (type === 'next') return t('Pagina successiva');
+            return t('Pagina precedente');
+          }}
+          className="table-pagination"
+          sx={{ mt: footerContent ? 0.5 : 2, flexShrink: 0 }}
+        />
       </Box>
     </>
   );

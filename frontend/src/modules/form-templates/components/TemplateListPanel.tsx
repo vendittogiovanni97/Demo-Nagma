@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
 import Badge from '@/common/components/ui/Badge';
-import Button from '@/common/components/ui/Button';
+import { DeleteButton } from '@/common/components/ui/Button';
+import Icon from '@/common/components/ui/Icon';
 import type { FormTemplate } from '@/modules/form-templates/model/form-template.types';
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
+import Skeleton from '@mui/material/Skeleton';
+import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
-import Icon from '@/common/components/ui/Icon';
 
 function decodeFieldCount(schemaB64: string): number {
   try {
@@ -18,6 +19,7 @@ function decodeFieldCount(schemaB64: string): number {
 
 interface TemplateListPanelProps {
   templates: FormTemplate[] | undefined;
+  isLoading: boolean;
   selectedId: number | null;
   onSelect: (template: FormTemplate) => void;
   onDelete: (id: number, name: string) => void;
@@ -25,196 +27,182 @@ interface TemplateListPanelProps {
 
 export default function TemplateListPanel({
   templates,
+  isLoading,
   selectedId,
   onSelect,
   onDelete,
 }: TemplateListPanelProps) {
-  const theme = useTheme();
-
   return (
     <Box
-      sx={{
-        backgroundColor: alpha(theme.palette.background.default, 0.8),
-        backdropFilter: 'blur(10px)',
-        width: { xs: '100%', lg: '33.333%' },
+      component="aside"
+      sx={(theme) => ({
+        width: { xs: '100%', lg: 'clamp(300px, 27vw, 380px)' },
+        maxHeight: { xs: 360, lg: 'none' },
+        flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 2,
-        p: 2.5,
-        border: `1px solid ${theme.palette.divider}`,
-      }}
+        backgroundColor: theme.palette.background.paper,
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        borderRadius: 3,
+        overflow: 'hidden',
+        boxShadow: `0 12px 32px ${alpha(
+          theme.palette.common.black,
+          theme.palette.mode === 'light' ? 0.04 : 0.15,
+        )}`,
+      })}
     >
-      <Box sx={{ mb: 2 }}>
-        <Box
-          component="h2"
-          sx={{
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            color: 'text.primary',
-            fontFamily: 'Outfit, sans-serif',
-          }}
-        >
-          Raccoglitore
-        </Box>
-        <Box component="p" sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.5 }}>
-          Scegli un form da modificare
+      <Box sx={{ px: 2.5, py: 2.25, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+          <Box>
+            <Typography component="h2" sx={{ fontSize: '1rem', fontWeight: 800, color: 'text.primary' }}>
+              I tuoi template
+            </Typography>
+            <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', mt: 0.25 }}>
+              Seleziona un form da configurare
+            </Typography>
+          </Box>
+          <Badge variant="secondary" size="xs">
+            {templates?.length ?? 0}
+          </Badge>
         </Box>
       </Box>
 
       <Box
         sx={{
           flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
-          pr: 0.5,
+          WebkitOverflowScrolling: 'touch',
+          p: 1.5,
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
+          gap: 1,
         }}
       >
-        {(!templates || templates.length === 0) && (
+        {isLoading
+          ? Array.from({ length: 3 }, (_, index) => (
+              <Skeleton key={index} variant="rounded" height={72} sx={{ borderRadius: 2.5 }} />
+            ))
+          : null}
+
+        {!isLoading && (!templates || templates.length === 0) ? (
           <Box
             sx={{
+              minHeight: 180,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              height: 160,
+              gap: 1,
+              p: 3,
               textAlign: 'center',
             }}
           >
-            <Box sx={{ color: 'text.disabled', mb: 1.5 }}>
-              <Icon name="fileText" size={32} />
+            <Box sx={{ color: 'text.disabled', display: 'inline-flex' }}>
+              <Icon name="fileText" size={30} />
             </Box>
-            <Box
-              component="p"
-              sx={{ color: 'text.secondary', fontSize: '0.875rem', fontWeight: 600 }}
-            >
-              Nessun template creato.
-            </Box>
+            <Typography sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 700 }}>
+              Nessun template disponibile
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+              Creane uno nuovo per iniziare.
+            </Typography>
           </Box>
-        )}
+        ) : null}
 
-        {templates?.map((t) => {
-          const isSelected = selectedId === t.id;
-          const fieldCount = decodeFieldCount(t.schemaB64);
+        {templates?.map((template) => {
+          const isSelected = selectedId === template.id;
+          const fieldCount = decodeFieldCount(template.schemaB64);
 
           return (
             <Box
-              key={t.id}
-              onClick={() => onSelect(t)}
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                border: 1,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1.5,
-                backgroundColor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.05),
-                borderColor: isSelected ? 'primary.main' : 'divider',
-                boxShadow: isSelected ? `0 0 15px ${alpha(theme.palette.primary.main, 0.1)}` : 'none',
-                '&:hover': {
-                  backgroundColor: isSelected
-                    ? alpha(theme.palette.primary.main, 0.1)
-                    : alpha(theme.palette.common.white, 0.1),
-                },
+              key={template.id}
+              component="div"
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelect(template)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelect(template);
+                }
               }}
+              aria-pressed={isSelected}
+              sx={(theme) => ({
+                width: '100%',
+                p: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.25,
+                textAlign: 'left',
+                color: 'inherit',
+                cursor: 'pointer',
+                borderRadius: 2.5,
+                border: '1px solid',
+                borderColor: isSelected ? theme.palette.primary.main : theme.palette.divider,
+                backgroundColor: isSelected
+                  ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.1 : 0.14)
+                  : 'transparent',
+                transition: 'background-color 0.2s ease, border-color 0.2s ease',
+                '&:hover': {
+                  borderColor: alpha(theme.palette.primary.main, 0.55),
+                  backgroundColor: alpha(theme.palette.primary.main, isSelected ? 0.14 : 0.06),
+                },
+                '&:focus-visible': {
+                  outline: `2px solid ${theme.palette.primary.main}`,
+                  outlineOffset: 2,
+                },
+              })}
             >
               <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                }}
+                sx={(theme) => ({
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  color: isSelected ? theme.palette.primary.contrastText : theme.palette.primary.main,
+                  backgroundColor: isSelected
+                    ? theme.palette.primary.main
+                    : alpha(theme.palette.primary.main, 0.1),
+                })}
               >
-                <Box
+                <Icon name="fileText" size={18} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    flex: 1,
-                    minWidth: 0,
-                    pr: 2,
+                    fontSize: '0.875rem',
+                    fontWeight: 750,
+                    color: isSelected ? 'primary.main' : 'text.primary',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      backgroundColor: isSelected ? 'primary.main' : 'transparent',
-                      border: 1,
-                      borderColor: isSelected ? 'primary.main' : 'divider',
-                      color: isSelected ? 'black' : 'white',
-                    }}
-                  >
-                    <Icon name="fileText" size={18} />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        fontWeight: 700,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        color: isSelected ? 'primary.main' : 'white',
-                      }}
-                    >
-                      {t.name}
-                    </Box>
-                    <Box sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 0.25 }}>
-                      Ultima modifica recente
-                    </Box>
-                  </Box>
-                </Box>
-                <Button
-                  variant="icon"
-                  icon={<Icon name="trash2" size={18} />}
-                  sx={{
-                    color: theme => theme.palette.error.main,
-                    '&:hover': {
-                      color: theme => theme.palette.error.main,
-                      backgroundColor: theme => alpha(theme.palette.error.main, 0.1),
-                    },
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(t.id, t.name);
-                  }}
-                  title="Elimina"
-                />
+                  {template.name}
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: '0.72rem', mt: 0.2 }}>
+                  {fieldCount} {fieldCount === 1 ? 'campo configurato' : 'campi configurati'}
+                </Typography>
               </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderTop: 1,
-                  borderColor: 'rgba(255,255,255,0.1)',
-                  pt: 1.5,
+              <DeleteButton
+                variant="icon"
+                icon={<Icon name="trash2" size={17} />}
+                title={`Elimina ${template.name}`}
+                aria-label={`Elimina ${template.name}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(template.id, template.name);
                 }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    color: 'text.secondary',
-                  }}
-                >
-                  Campi
-                </Box>
-                <Badge variant="secondary" size="xs">
-                  {fieldCount}
-                </Badge>
-              </Box>
+                sx={(theme) => ({
+                  color: theme.palette.error.main,
+                  flexShrink: 0,
+                  '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) },
+                })}
+              />
             </Box>
           );
         })}

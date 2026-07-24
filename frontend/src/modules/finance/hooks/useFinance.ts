@@ -3,12 +3,13 @@ import { financeApi } from '../api/finance.api';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
+import type { TransactionFilterType, TransactionParams } from '@/common/shared/types/transaction';
 
 export function useFinance(initialMonth = new Date()) {
   const [month, setMonth] = useState(initialMonth);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [type, setType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const [type, setType] = useState<TransactionFilterType>('ALL');
   const debouncedSearch = useDebouncedValue(search, 400);
 
   const monthStr = format(month, 'yyyy-MM');
@@ -46,7 +47,7 @@ export function useFinance(initialMonth = new Date()) {
   };
 }
 
-export function useFinanceHistory(filters: any = {}) {
+export function useFinanceHistory(filters: TransactionParams = {}) {
   const [page, setPage] = useState(1);
   
   const { data, isLoading, mutate } = useSWR(

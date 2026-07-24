@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { CreamService } from '../services/CreamService';
-import { handleCreate } from '../../../core/utils/handler';
+import { handleCreate, handleDelete } from '../../../core/utils/handler';
 import { validate } from '../../../core/shared/utils/validation';
 import { createCreamSchema, createCreamSaleSchema } from './cream.schemas';
 import { parsePageQuery } from '../../../core/shared/utils/date-utils';
@@ -37,6 +37,8 @@ export class CreamController {
     const result = await this.creamService.createSale(data);
     res.status(201).json(result);
   });
+
+  deleteSale = handleDelete(async (id) => this.creamService.deleteSale(id));
 
   getSalesSummary = asyncHandler(async (_req: Request, res: Response) => {
     const result = await this.creamService.getSalesSummary();

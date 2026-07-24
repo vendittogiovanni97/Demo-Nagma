@@ -3,6 +3,7 @@ import prisma from '../../../core/shared/utils/prisma';
 import type { CreateCreamInput, CreateCreamSaleInput } from '../controllers/cream.schemas';
 import { IPaginatedResponse } from '../../../core/shared/kernel/interfaces';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
+import { AppError } from '../../../core/shared/errors/AppError';
 
 export class CreamService {
   async findActive() {
@@ -45,6 +46,17 @@ export class CreamService {
         artist: { select: { id: true, name: true, color: true } },
       }
     });
+  }
+
+  async deleteSale(id: number) {
+    const result = await prisma.creamSale.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    if (result.count === 0) {
+      throw new AppError('Vendita crema non trovata.', 404, 'CREAM_SALE_NOT_FOUND');
+    }
   }
 
   async findSalesByCreamPaged(

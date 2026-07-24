@@ -8,63 +8,19 @@ import Badge from '@/common/components/ui/Badge';
 import type { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import type { BookingAction, BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
-import type { SxProps, Theme } from '@mui/material';
-
-function createActionConfig(theme: any): ActionConfig {
-  return {
-    CREATO: {
-      label: 'Creata',
-      color: 'info',
-      sx: { backgroundColor: alpha(theme.palette.info.main, 0.2), color: theme.palette.info.main },
-    },
-    CONFERMATO: {
-      label: 'Confermata',
-      color: 'success',
-      sx: { backgroundColor: alpha(theme.palette.success.main, 0.2), color: theme.palette.success.main },
-    },
-    MODIFICATO: {
-      label: 'Modificata',
-      color: 'warning',
-      sx: { backgroundColor: alpha(theme.palette.warning.main, 0.2), color: theme.palette.warning.main },
-    },
-    SPOSTATO: {
-      label: 'Spostata',
-      color: 'secondary',
-      sx: { backgroundColor: alpha(theme.palette.custom.purple, 0.2), color: theme.palette.custom.purple },
-    },
-    ANNULLATO: {
-      label: 'Annullata',
-      color: 'error',
-      sx: { backgroundColor: alpha(theme.palette.error.main, 0.2), color: theme.palette.error.main },
-    },
-    COMPLETATO: {
-      label: 'Completata',
-      color: 'success',
-      sx: { backgroundColor: alpha(theme.palette.success.main, 0.2), color: theme.palette.success.main },
-    },
-    CANCELLATO: {
-      label: 'Eliminata',
-      color: 'error',
-      sx: { backgroundColor: alpha(theme.palette.text.secondary, 0.2), color: theme.palette.text.secondary },
-    },
-  };
-}
-
-type ActionConfig = Record<
-  BookingAction,
-  { label: string; color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'; sx?: SxProps<Theme> }
->;
+import type { BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
+import { getBookingStatusBadgeVariant, getBookingStatusLabel } from '@/common/config/status-config';
+import BookingHistoryDateDetails from '@/modules/booking-history/components/BookingHistoryDateDetails';
 
 export function useBookingHistoryColumns(): Column<BookingHistoryEntry>[] {
   const theme = useTheme();
-  const ACTION_CONFIG = useMemo(() => createActionConfig(theme), [theme]);
 
   return useMemo(() => [
     {
       key: 'changedAt',
-      label: 'Data',
-      width: '180px',
+      label: 'Registrato il',
+      minWidth: 170,
+      flex: 1.15,
       render: (entry) => (
         <Stack direction="row" useFlexGap sx={{ fontSize: '0.875rem', alignItems: 'center', gap: 0.75 }}>
           <Icon name="calendarDays" size={14} color={theme.palette.primary.main} />
@@ -74,22 +30,22 @@ export function useBookingHistoryColumns(): Column<BookingHistoryEntry>[] {
     },
     {
       key: 'action',
-      label: 'Azione',
-      width: '120px',
-      render: (entry) => {
-        const cfg = ACTION_CONFIG[entry.action];
-        return (
-          <Badge
-            label={ACTION_CONFIG[entry.action]?.label ?? entry.action}
-            size="sm"
-            variant={cfg?.color as any}
-          />
-        );
-      },
+      label: 'Stato',
+      minWidth: 115,
+      flex: 0.8,
+      render: (entry) => (
+        <Badge
+          label={getBookingStatusLabel(entry.action)}
+          variant={getBookingStatusBadgeVariant(entry.action)}
+          size="sm"
+        />
+      ),
     },
     {
       key: 'cliente',
       label: 'Cliente',
+      minWidth: 170,
+      flex: 1.25,
       render: (entry) =>
         entry.booking?.customer ? (
           <Stack direction="column" useFlexGap sx={{ gap: 0.5 }}>
@@ -119,7 +75,8 @@ export function useBookingHistoryColumns(): Column<BookingHistoryEntry>[] {
     {
       key: 'artista',
       label: 'Artista',
-      width: '140px',
+      minWidth: 135,
+      flex: 1,
       render: (entry) =>
         entry.booking?.artist ? (
           <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', fontSize: '0.875rem' }}>
@@ -143,35 +100,16 @@ export function useBookingHistoryColumns(): Column<BookingHistoryEntry>[] {
     },
     {
       key: 'data',
-      label: 'Dettagli',
-      render: (entry) => {
-        const actionType = entry.action;
-        if (entry.oldDate || entry.newDate) {
-          return (
-            <Stack direction="row" useFlexGap sx={{ gap: 1, fontSize: '0.875rem' }}>
-              {entry.oldDate && (
-                <Typography sx={{ color: theme.palette.error.main, textDecoration: 'line-through', fontSize: '0.875rem' }}>
-                  {format(new Date(entry.oldDate), 'dd/MM/yyyy HH:mm', { locale: it })}
-                </Typography>
-              )}
-              {entry.newDate && (
-                <Typography sx={{ color: theme.palette.success.main, fontSize: '0.875rem' }}>
-                  {format(new Date(entry.newDate), 'dd/MM/yyyy HH:mm', { locale: it })}
-                </Typography>
-              )}
-            </Stack>
-          );
-        }
-        if (actionType === 'CREATO') return <Typography sx={{ color: theme.palette.info.main, fontSize: '0.875rem' }}>Nuova prenotazione</Typography>;
-        if (actionType === 'ANNULLATO') return <Typography sx={{ color: theme.palette.error.main, fontSize: '0.875rem' }}>Prenotazione annullata</Typography>;
-        if (actionType === 'COMPLETATO') return <Typography sx={{ color: theme.palette.success.main, fontSize: '0.875rem' }}>Prenotazione completata</Typography>;
-        return <Typography sx={{ fontSize: '0.875rem' }}>—</Typography>;
-      },
+      label: 'Data appuntamento',
+      minWidth: 190,
+      flex: 1.5,
+      render: (entry) => <BookingHistoryDateDetails entry={entry} />,
     },
     {
       key: 'changedBy',
       label: 'Utente',
-      width: '150px',
+      minWidth: 140,
+      flex: 1,
       render: (entry) => (
         <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center', fontSize: '0.875rem' }}>
           <Icon name="user" size={12} color={theme.palette.primary.main} />

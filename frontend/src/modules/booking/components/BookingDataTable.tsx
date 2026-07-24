@@ -1,14 +1,11 @@
 "use client";
 
-import PermissionGate from '@/common/components/auth/PermissionGate';
 import DataTable, { type ColumnDefinition as Column } from '@/common/components/table/DataTable';
-import Button from '@/common/components/ui/Button';
+import type { TableAction } from '@/common/components/table/TableActions';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
-import { Box } from '@mui/material';
 import { useTheme as useMuiTheme, alpha } from '@mui/material/styles';
-import Icon from '@/common/components/ui/Icon';
-import { memo, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import BookingCard from './BookingCard';
 
 interface BookingDataTableProps {
@@ -36,23 +33,79 @@ function BookingDataTable({
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [selectedBookingForWhatsApp, setSelectedBookingForWhatsApp] = useState<Booking | null>(null);
 
-  const handleOpenWhatsAppModal = (booking: Booking) => {
+  const handleOpenWhatsAppModal = useCallback((booking: Booking) => {
     setSelectedBookingForWhatsApp(booking);
     setIsWhatsAppModalOpen(true);
-  };
+  }, []);
+
+  const rowActions = useCallback((booking: Booking): TableAction[] => [
+    {
+      id: 'complete',
+      label: 'Completato',
+      icon: 'checkCircle2',
+      tone: 'success',
+      adminOnly: true,
+      hidden: booking.status === 'COMPLETATO' || booking.status === 'ANNULLATO' || booking.status === 'CANCELLATO',
+      onClick: () => onComplete(booking.id),
+    },
+    {
+      id: 'whatsapp',
+      label: 'WhatsApp',
+      icon: 'messageCircle',
+      tone: 'whatsapp',
+      adminOnly: true,
+      hidden: booking.status === 'COMPLETATO' || booking.status === 'ANNULLATO' || booking.status === 'CANCELLATO',
+      onClick: () => handleOpenWhatsAppModal(booking),
+    },
+    {
+      id: 'edit',
+      label: 'Modifica',
+      icon: 'pencil',
+      tone: 'primary',
+      adminOnly: true,
+      hidden: booking.status === 'COMPLETATO' || booking.status === 'ANNULLATO' || booking.status === 'CANCELLATO',
+      onClick: () => onEdit(booking),
+    },
+    {
+      id: 'delete',
+      label: 'Elimina',
+      icon: 'trash2',
+      tone: 'error',
+      adminOnly: true,
+      hidden: booking.status === 'COMPLETATO' || booking.status === 'ANNULLATO' || booking.status === 'CANCELLATO',
+      onClick: () => onDelete(booking.id),
+    },
+    {
+      id: 'restore',
+      label: 'Ripristina',
+      icon: 'rotateCcw',
+      tone: 'warning',
+      adminOnly: true,
+      hidden: booking.status !== 'ANNULLATO',
+      onClick: () => onRestore(booking.id),
+    },
+  ], [handleOpenWhatsAppModal, onComplete, onDelete, onEdit, onRestore]);
 
   const getRowStyle = (booking: Booking) => {
-    if (booking.status === 'COMPLETATO') {
-      return {
-        backgroundColor: `${theme.palette.success.main}08`,
-      };
+    const tint = (color: string) => ({ backgroundColor: alpha(color, 0.06) });
+    switch (booking.status) {
+      case 'CREATO':
+        return tint(theme.palette.info.main);
+      case 'CONFERMATO':
+        return tint(theme.palette.primary.main);
+      case 'COMPLETATO':
+        return tint(theme.palette.success.main);
+      case 'MODIFICATO':
+        return tint(theme.palette.warning.main);
+      case 'SPOSTATO':
+        return tint(theme.palette.custom.purple);
+      case 'ANNULLATO':
+        return tint(theme.palette.error.main);
+      case 'CANCELLATO':
+        return tint(theme.palette.text.secondary);
+      default:
+        return undefined;
     }
-    if (booking.status === 'ANNULLATO') {
-      return {
-        backgroundColor: `${theme.palette.error.main}08`,
-      };
-    }
-    return undefined;
   };
 
   return (
@@ -76,85 +129,7 @@ function BookingDataTable({
             onWhatsApp={() => handleOpenWhatsAppModal(booking)}
           />
         )}
-        actions={(booking: Booking) => (
-          <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-            <PermissionGate requireAdmin>
-              <>
-                {booking.status !== 'COMPLETATO' && booking.status !== 'ANNULLATO' && (
-                  <>
-                    <Button
-                      variant="icon"
-                      icon={<Icon name="checkCircle2" size={18} />}
-                      title="Completato"
-                      sx={{
-                        color: `${theme.palette.success.main}99`,
-                        '&:hover': {
-                          color: theme.palette.success.main,
-                          backgroundColor: `${theme.palette.success.main}10`,
-                        },
-                      }}
-                      onClick={() => onComplete(booking.id)}
-                    />
-                    <Button
-                      variant="icon"
-                      icon={<Icon name="messageCircle" size={18} />}
-                      title="WhatsApp"
-                      sx={{
-                        color: alpha(theme.palette.custom.whatsapp, 0.6),
-                        '&:hover': {
-                          color: theme.palette.custom.whatsapp,
-                          backgroundColor: alpha(theme.palette.custom.whatsapp, 0.063),
-                        },
-                      }}
-                      onClick={() => handleOpenWhatsAppModal(booking)}
-                    />
-                    <Button
-                      variant="icon"
-                      icon={<Icon name="pencil" size={17} color={theme.palette.primary.main} />}
-                      title="Modifica"
-                      sx={{
-                        color: theme.palette.primary.main,
-                        '&:hover': {
-                          color: theme.palette.primary.main,
-                          backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        },
-                      }}
-                      onClick={() => onEdit(booking)}
-                    />
-                    <Button
-                      variant="icon"
-                      icon={<Icon name="trash2" size={18} />}
-                      sx={{
-                        color: `${theme.palette.error.main}99`,
-                        '&:hover': {
-                          color: theme.palette.error.main,
-                          backgroundColor: `${theme.palette.error.main}10`,
-                        },
-                      }}
-                      title="Elimina"
-                      onClick={() => onDelete(booking.id)}
-                    />
-                  </>
-                )}
-                {booking.status === 'ANNULLATO' && (
-                  <Button
-                    variant="icon"
-                    icon={<Icon name="rotateCcw" size={18} />}
-                    title="Ripristina"
-                    sx={{
-                      color: `${theme.palette.warning.main}99`,
-                      '&:hover': {
-                        color: theme.palette.warning.main,
-                        backgroundColor: `${theme.palette.warning.main}10`,
-                      },
-                    }}
-                    onClick={() => onRestore(booking.id)}
-                  />
-                )}
-              </>
-            </PermissionGate>
-          </Box>
-        )}
+        rowActions={rowActions}
       />
       <WhatsAppSendModal
         isOpen={isWhatsAppModalOpen}

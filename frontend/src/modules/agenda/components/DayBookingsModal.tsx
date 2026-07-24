@@ -81,24 +81,18 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
     <Box
       onClick={() => { onBookingClick(booking); onClose(); }}
       sx={{
-        p: 2,
-        borderRadius: '14px',
-        backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.035),
-        border: `1px solid ${isLight ? alpha(artistColor, 0.35) : `${artistColor}28`}`,
-        backdropFilter: 'blur(10px)',
-        boxShadow: isLight
-          ? `0 2px 10px ${alpha(theme.palette.common.black, 0.05)}`
-          : `0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 ${alpha(theme.palette.common.white, 0.05)}`,
+        p: 1.5,
+        borderRadius: '12px',
+        backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.03) : alpha(theme.palette.common.white, 0.03),
+        border: `1px solid ${theme.palette.divider}`,
         cursor: 'pointer',
-        transition: 'all 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'background-color 0.15s ease, border-color 0.15s ease',
         opacity: isCancelled ? 0.55 : 1,
         '&:hover': {
-          backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.08) : alpha(theme.palette.common.white, 0.055),
-          borderColor: artistColor,
-          boxShadow: `0 8px 28px ${artistColor}20`,
-          transform: 'translateY(-2px)',
+          backgroundColor: isLight ? alpha(artistColor, 0.06) : alpha(artistColor, 0.1),
+          borderColor: alpha(artistColor, 0.5),
           '& .arrow-icon': {
-            transform: 'translateX(5px)',
+            transform: 'translateX(4px)',
             color: artistColor,
           },
         },
@@ -108,13 +102,12 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
         {/* Left: colored accent bar */}
         <Box
           sx={{
-            width: 4,
+            width: 3,
             borderRadius: '2px',
             backgroundColor: artistColor,
-            boxShadow: `0 0 10px ${artistColor}80`,
             alignSelf: 'stretch',
             flexShrink: 0,
-            minHeight: 50,
+            minHeight: 44,
           }}
         />
 
@@ -197,8 +190,7 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
                 width: 26,
                 height: 26,
                 fontSize: '0.72rem',
-                border: `1px solid ${artistColor}35`,
-                boxShadow: `0 0 10px ${artistColor}12`,
+                border: `1px solid ${alpha(artistColor, 0.3)}`,
                 flexShrink: 0,
               }}
             />
@@ -225,7 +217,6 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
                 height: 6,
                 borderRadius: '50%',
                 backgroundColor: artistColor,
-                boxShadow: `0 0 8px ${artistColor}`,
                 flexShrink: 0,
               }}
             />
@@ -259,12 +250,16 @@ function BookingCard({ booking, onBookingClick, onClose }: BookingCardProps) {
 
         {/* Right: Arrow icon */}
         <Box sx={{ display: 'flex', alignItems: 'center', alignSelf: 'center', pl: 0.5 }}>
-          <Icon
-            name="arrowRight"
-            size={15}
+          <Box
             className="arrow-icon"
-            color={theme.palette.text.secondary}
-          />
+            sx={{
+              display: 'inline-flex',
+              color: 'text.secondary',
+              transition: 'transform 0.15s ease, color 0.15s ease',
+            }}
+          >
+            <Icon name="arrowRight" size={15} />
+          </Box>
         </Box>
       </Stack>
     </Box>
@@ -355,9 +350,8 @@ export default function DayBookingsModal({
                 px: 0.9,
                 py: 0.15,
                 borderRadius: '20px',
-                backgroundColor: alpha(theme.palette.primary.main, 0.18),
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
-                boxShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.2)}`,
+                backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
               }}
             >
               <Typography

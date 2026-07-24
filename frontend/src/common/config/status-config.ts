@@ -1,3 +1,5 @@
+import type { Theme } from '@mui/material/styles';
+
 export type BookingBadgeVariant =
   | 'status-created'
   | 'status-confirmed'
@@ -8,44 +10,53 @@ export type BookingBadgeVariant =
   | 'status-deleted'
   | 'secondary';
 
+export type BookingStatusTone =
+  | 'info'
+  | 'primary'
+  | 'success'
+  | 'warning'
+  | 'purple'
+  | 'secondary'
+  | 'error';
+
 export const BOOKING_STATUS_CONFIG: Record<
   string,
-  { label: string; badgeVariant: BookingBadgeVariant; color?: string }
+  { label: string; badgeVariant: BookingBadgeVariant; tone: BookingStatusTone }
 > = {
   CREATO: {
     label: 'Creato',
     badgeVariant: 'status-created',
-    color: 'bg-sky-500/20 text-sky-300 border border-sky-500/30',
+    tone: 'info',
   },
   CONFERMATO: {
     label: 'Confermato',
     badgeVariant: 'status-confirmed',
-    color: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
+    tone: 'primary',
   },
   COMPLETATO: {
     label: 'Completato',
     badgeVariant: 'status-completed',
-    color: 'bg-green-500/20 text-green-300 border border-green-500/30',
+    tone: 'success',
   },
   MODIFICATO: {
     label: 'Modificato',
     badgeVariant: 'status-updated',
-    color: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+    tone: 'warning',
   },
   SPOSTATO: {
-    label: 'Rimandato',
+    label: 'Spostato',
     badgeVariant: 'status-rescheduled',
-    color: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30',
+    tone: 'purple',
   },
   ANNULLATO: {
     label: 'Annullato',
     badgeVariant: 'status-cancelled',
-    color: 'bg-red-500/20 text-red-300 border border-red-500/30',
+    tone: 'error',
   },
   CANCELLATO: {
     label: 'Cancellato',
     badgeVariant: 'status-deleted',
-    color: 'bg-red-500/20 text-red-400 border border-red-600/30',
+    tone: 'secondary',
   },
 };
 
@@ -60,4 +71,14 @@ export function getBookingStatusVariant(status: string): string {
 
 export function getBookingStatusBadgeVariant(status: string): BookingBadgeVariant {
   return BOOKING_STATUS_CONFIG[status]?.badgeVariant ?? 'secondary';
+}
+
+export function getBookingStatusTone(status: string): BookingStatusTone {
+  return BOOKING_STATUS_CONFIG[status]?.tone ?? 'secondary';
+}
+
+export function getBookingStatusColor(theme: Theme, status: string): string {
+  const tone = getBookingStatusTone(status);
+  if (tone === 'purple') return theme.palette.custom.purple;
+  return theme.palette[tone].main;
 }

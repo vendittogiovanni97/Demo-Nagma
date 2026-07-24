@@ -3,7 +3,8 @@
 import Icon from '@/common/components/ui/Icon';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-
+import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import type { WhatsAppTemplate } from '../model/whatsapp.types';
 
@@ -14,6 +15,8 @@ interface TemplateCardProps {
 }
 
 export default function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
+  const theme = useTheme();
+  const isLight = theme.palette.mode === 'light';
   const variables = template.body.match(/\{\{([^}]+)\}\}/g) || [];
 
   return (
@@ -23,21 +26,21 @@ export default function TemplateCard({ template, onEdit, onDelete }: TemplateCar
         borderRadius: 3,
         border: 1,
         borderColor: 'divider',
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: isLight ? alpha(theme.palette.common.black, 0.02) : alpha(theme.palette.common.white, 0.05),
         transition: 'all 0.2s',
         display: 'flex',
         flexDirection: 'column',
         cursor: 'default',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        boxShadow: isLight ? `0 1px 2px ${alpha(theme.palette.common.black, 0.05)}` : 'none',
         '&:hover': {
-          backgroundColor: 'rgba(255,255,255,0.1)',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          backgroundColor: isLight ? alpha(theme.palette.common.black, 0.04) : alpha(theme.palette.common.white, 0.08),
+          boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, isLight ? 0.08 : 0.2)}`,
         },
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mb: 1.5 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography sx={{ fontSize: '1.125rem', fontWeight: 700, color: 'white', lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: '1.125rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>
             {template.name}
           </Typography>
           {!template.isActive && (
@@ -70,7 +73,7 @@ export default function TemplateCard({ template, onEdit, onDelete }: TemplateCar
               opacity: 0.6,
               '&:hover': {
                 color: 'error.main',
-                backgroundColor: 'rgba(244,67,54,0.1)',
+                backgroundColor: alpha(theme.palette.error.main, 0.1),
               },
             }}
             title="Elimina"
@@ -81,7 +84,7 @@ export default function TemplateCard({ template, onEdit, onDelete }: TemplateCar
 
       <Box
         sx={{
-          backgroundColor: 'rgba(0,0,0,0.2)',
+          backgroundColor: isLight ? alpha(theme.palette.common.black, 0.03) : alpha(theme.palette.common.black, 0.2),
           borderRadius: 2,
           p: 2,
           flex: 1,
@@ -105,7 +108,7 @@ export default function TemplateCard({ template, onEdit, onDelete }: TemplateCar
           alignItems: 'center',
           mt: 'auto',
           borderTop: 1,
-          borderColor: 'rgba(255,255,255,0.08)',
+          borderColor: 'divider',
           pt: 1.5,
         }}
       >
@@ -116,7 +119,7 @@ export default function TemplateCard({ template, onEdit, onDelete }: TemplateCar
               sx={{
                 px: 0.75,
                 py: 0.25,
-                backgroundColor: 'rgba(0,191,255,0.1)',
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 color: 'primary.main',
                 borderRadius: 1,
               }}

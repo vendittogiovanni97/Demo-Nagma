@@ -8,6 +8,6 @@ export enum Role {
 export type BookingStatus = 'CREATO' | 'CONFERMATO' | 'COMPLETATO' | 'MODIFICATO' | 'SPOSTATO' | 'ANNULLATO' | 'CANCELLATO';
 
 export enum TransactionType {
-  INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE',
+  ENTRATA = 'ENTRATA',
+  USCITA = 'USCITA',
 }

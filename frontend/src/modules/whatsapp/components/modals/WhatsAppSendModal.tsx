@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, alpha } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
 import StatePanel from '@/common/components/feedback/StatePanel';
@@ -266,8 +266,8 @@ export default function WhatsAppSendModal({
           <Box
             sx={{
               borderRadius: '16px',
-              border: '1px solid rgba(0, 191, 255, 0.15)',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+              backgroundColor: theme.palette.mode === 'light' ? alpha(theme.palette.common.black, 0.02) : alpha(theme.palette.common.white, 0.03),
               p: 3,
             }}
           >
@@ -286,8 +286,8 @@ export default function WhatsAppSendModal({
             <Box
               sx={{
                 borderRadius: '12px',
-                border: '1px solid rgba(0, 191, 255, 0.1)',
-                backgroundColor: 'rgba(10, 26, 38, 0.5)',
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                backgroundColor: theme.palette.mode === 'light' ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.background.default, 0.6),
                 p: 2.5,
                 minHeight: '80px',
               }}
@@ -295,7 +295,7 @@ export default function WhatsAppSendModal({
               <Typography
                 variant="body2"
                 sx={{
-                  color: 'rgba(255, 255, 255, 0.85)',
+                  color: 'text.primary',
                   lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
                   fontFamily: 'Inter, sans-serif',

@@ -1,95 +1,92 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useToast } from '@/common/hooks/useToast';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 
-export interface UseFormModalOptions<T> {
-  /** Valori iniziali del form */
-  initial: T;
-  /** Callback di submit */
-  onSubmit: (data: T) => Promise<void>;
-  /** Callback al successo */
-  onSuccess?: () => void;
-  /** Callback alla chiusura */
+type FormEvent = React.FormEvent<HTMLFormElement>;
+
+export interface UseFormModalOptions<TFormData, TResult = void> {
+  initial?: TFormData;
+  onSubmit: (data: TFormData) => Promise<TResult>;
+  onSuccess?: (result: TResult) => void;
   onClose?: () => void;
-  /** Messaggio di successo */
   successMessage?: string;
-  /** Messaggio di errore personalizzato */
   errorMessage?: string;
 }
 
-export interface UseFormModalReturn<T> {
-  /** Dati correnti del form */
-  formData: T;
-  /** Stato di loading */
+export interface UseFormModalReturn<TFormData, TResult = void> {
+  formData: TFormData;
   isLoading: boolean;
-  /** Errore corrente */
   error: string | null;
-  /** True se il form è stato inviato con successo */
   isSubmitted: boolean;
-  /** Imposta un singolo campo */
-  setField: <K extends keyof T>(key: K, value: T[K]) => void;
-  /** Imposta più campi insieme */
-  setFields: (fields: Partial<T>) => void;
-  /** Resetta il form ai valori iniziali */
+  setField: <K extends keyof TFormData>(key: K, value: TFormData[K]) => void;
+  setFields: (fields: Partial<TFormData>) => void;
+  replaceFormData: (data: TFormData) => void;
   resetForm: () => void;
-  /** Handler per onChange dei campi (compatibile con FormInput, FormSelect, ecc.) */
-  handleChange: (key: keyof T) => (value: any) => void;
-  /** Handler per submit - compatibile con form onSubmit */
-  handleSubmit: (data?: T | React.FormEvent<HTMLFormElement>) => Promise<void>;
-  /** Handler per chiusura */
+  handleChange: <K extends keyof TFormData>(key: K) => (value: TFormData[K]) => void;
+  handleSubmit: (data?: TFormData | FormEvent) => Promise<TResult | undefined>;
   handleClose: () => void;
-  /** Resetta stato loading/error */
   resetState: () => void;
 }
 
-export function useFormModal<T extends Record<string, any>>({
-  initial,
+function isFormEvent<TFormData>(value: TFormData | FormEvent): value is FormEvent {
+  return typeof value === 'object' && value !== null && 'preventDefault' in value;
+}
+
+export function useFormModal<TFormData extends object, TResult = void>({
+  initial = {} as TFormData,
   onSubmit,
   onSuccess,
   onClose,
   successMessage = 'Operazione completata',
   errorMessage,
-}: UseFormModalOptions<T>): UseFormModalReturn<T> {
+}: UseFormModalOptions<TFormData, TResult>): UseFormModalReturn<TFormData, TResult> {
   const toast = useToast();
-  const [formData, setFormData] = useState<T>(initial);
+  const [formData, setFormData] = useState<TFormData>(initial);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const setField = useCallback(<K extends keyof T>(key: K, value: T[K]) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const setField = useCallback(<K extends keyof TFormData>(key: K, value: TFormData[K]) => {
+    setFormData((previous) => ({ ...previous, [key]: value }));
   }, []);
 
-  const setFields = useCallback((fields: Partial<T>) => {
-    setFormData((prev) => ({ ...prev, ...fields }));
+  const setFields = useCallback((fields: Partial<TFormData>) => {
+    setFormData((previous) => ({ ...previous, ...fields }));
+  }, []);
+
+  const replaceFormData = useCallback((data: TFormData) => {
+    setFormData(data);
   }, []);
 
   const resetForm = useCallback(() => {
     setFormData(initial);
   }, [initial]);
 
-  const handleChange = useCallback((key: keyof T) => (value: any) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const handleChange = useCallback(
+    <K extends keyof TFormData>(key: K) => (value: TFormData[K]) => {
+      setField(key, value);
+    },
+    [setField],
+  );
 
-  const handleSubmit = useCallback(async (data?: T | React.FormEvent<HTMLFormElement>) => {
-    // Se è un FormEvent (da onSubmit del form), previeni default e usa formData
-    if (data && typeof data === 'object' && 'preventDefault' in data) {
-      data.preventDefault();
-    }
-    const submitData = (data && !('preventDefault' in data)) ? data : formData;
+  const handleSubmit = useCallback(async (data?: TFormData | FormEvent) => {
+    if (data && isFormEvent(data)) data.preventDefault();
+    const submitData = data && !isFormEvent(data) ? data : formData;
+
     setIsLoading(true);
     setError(null);
     try {
-      await onSubmit(submitData);
+      const result = await onSubmit(submitData);
       setIsSubmitted(true);
       toast.success(successMessage);
-      onSuccess?.();
+      onSuccess?.(result);
       onClose?.();
-    } catch (e: unknown) {
-      const msg = errorMessage ?? extractErrorMessage(e);
-      setError(msg);
-      toast.error(msg);
+      return result;
+    } catch (caught: unknown) {
+      const message = errorMessage ?? extractErrorMessage(caught);
+      setError(message);
+      toast.error(message);
+      return undefined;
     } finally {
       setIsLoading(false);
     }
@@ -102,6 +99,7 @@ export function useFormModal<T extends Record<string, any>>({
   const resetState = useCallback(() => {
     setIsLoading(false);
     setError(null);
+    setIsSubmitted(false);
   }, []);
 
   return {
@@ -111,6 +109,7 @@ export function useFormModal<T extends Record<string, any>>({
     isSubmitted,
     setField,
     setFields,
+    replaceFormData,
     resetForm,
     handleChange,
     handleSubmit,

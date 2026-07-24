@@ -12,7 +12,11 @@ interface DeleteConfirmOptions {
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
+  title: string;
   message: string;
+  confirmText: string;
+  severity: 'error';
+  loading: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -68,7 +72,11 @@ export function useDeleteConfirm(): UseDeleteConfirmReturn {
 
   const confirmDialogProps: ConfirmDialogProps = {
     isOpen: pendingOptions !== null,
+    title: 'Conferma eliminazione',
     message: pendingOptions?.confirmMessage ?? '',
+    confirmText: 'Elimina',
+    severity: 'error',
+    loading: isDeleting,
     onConfirm: handleConfirm,
     onCancel: handleCancel,
   };

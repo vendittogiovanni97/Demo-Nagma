@@ -67,7 +67,7 @@ npm run db:seed:demo               # seed dati demo (clienti, prenotazioni, fina
 
 # Verification & Test
 npm run typecheck                  # verifica compilazione TypeScript su backend e frontend
-npm run test                       # unit test backend (16 suite, 134 test)
+npm run test                       # suite backend unit, integration e security
 cd backend && npx jest test/security/ --forceExit     # OWASP security audit (21 test)
 cd frontend && npx playwright test --project=chromium  # E2E happy path (10 test)
 k6 run backend/test/load/scenario.k6.js               # load test (smoke + ramp + spike)
@@ -111,7 +111,7 @@ backend/
   prisma/       # schema, migrations, seed, seed-data/
 frontend/
   src/
-    app/        # Next.js App Router (17 route)
+    app/        # Next.js App Router (pagine pubbliche e protette)
     common/     # components, config, context, hooks, shared, theme
     modules/    # agenda, auth, booking, customer, staff, finance, ...
   test/
@@ -134,11 +134,34 @@ Un solo client: `apiClient` da `@/common/shared/api/client.ts`.
 `createCrudService<T>(basePath, byIdPath)` per CRUD standard.
 Axios solo per upload multipart (`useAttachments`).
 
+## Frontend — Pattern Condivisi Aggiornati
+
+- `DataTable` gestisce tabelle AG Grid responsive; le colonne usano `flex` e `minWidth`.
+- Le azioni di riga sono configurazioni `TableAction[]` passate con `rowActions` e renderizzate da `TableActions`.
+- AG Grid riceve lo stato tramite `loading`; le API imperative degli overlay non devono essere usate.
+- Gli stili AG Grid globali sono caricati da `app/layout.tsx` prima dell'inizializzazione delle griglie.
+- I form usano `FormInput`, `FormSelect`, `TextareaInput` e `CheckboxInput`.
+- `Button` supporta correttamente `sx` come oggetto, funzione o array; le azioni standard usano i wrapper semantici.
+- `ExportModal` e `common/shared/api/export.api.ts` sono l'unico flusso di esportazione frontend.
+- `useDateRangeFilters` sostituisce implementazioni locali equivalenti.
+
+## Comportamenti di Dominio Aggiornati
+
+- Il widget “Appuntamenti oggi” mostra al massimo 5 prenotazioni `CREATO`/`CONFERMATO`, ordinate per orario.
+- Un appuntamento scompare dal widget 10 minuti dopo l'orario di inizio; il controllo avviene automaticamente ogni 30 secondi.
+- Lo staff usa `COLLABORATORE`/`APPRENDISTA`; create e update devono condividere lo stesso contratto Zod/Prisma.
+- `StaffModal` gestisce sia creazione sia modifica e deve ricevere il membro selezionato in edit.
+- L'editor dei form template preserva le nuove righe delle opzioni durante la digitazione, valida chiavi duplicate e normalizza i dati al salvataggio.
+
 ## Database — Prisma
 
 Prisma 7.8, schema in `backend/prisma/schema.prisma` + `prisma.config.ts`.
-17 modelli, 5 enum. Soft delete con `deletedAt` su tutti tranne audit log.
+21 modelli, 6 enum. Soft delete con `deletedAt` sui dati applicativi; storico e configurazioni seguono il proprio ciclo di vita.
 `@@map` per snake_case. `onDelete` esplicito.
+
+## Esportazione Backend
+
+Il modulo `export` genera CSV UTF-8 BOM, Excel e PDF. I PDF usano template dedicati in `backend/src/modules/export/templates/` e utility condivise in `backend/src/modules/export/utils/pdf.utils.ts`; non inserire layout PDF specifici direttamente nei controller.
 
 ## Master Prompt & Feature Guidelines
 
@@ -165,4 +188,3 @@ Demo-Nagma is a showcase application demonstrating modern web architecture with 
 - [ ] Unit + integration tests.
 - [ ] Mobile-responsive UI with MUI components.
 - [ ] Documentation.
-

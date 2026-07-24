@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { transactionApi } from '../api/transaction.api';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
 import type { FinanceSummary, Transaction, SpesaLibera } from '../model/spese.types';
+import type { TransactionType } from '@/common/shared/types/transaction';
 import type { PaginatedResponse } from '@/common/shared/types/pagination';
 
 interface UseTransactionsOptions {
   month?: string;
-  type?: string;
+  type?: TransactionType;
   search?: string;
   page?: number;
   limit?: number;
@@ -20,7 +21,7 @@ export function useTransactions({
   type,
   search,
   page = 1,
-  limit = 20,
+  limit = 25,
   enabled = true,
 }: UseTransactionsOptions = {}) {
   const [data, setData] = useState<PaginatedResponse<Transaction> | undefined>();

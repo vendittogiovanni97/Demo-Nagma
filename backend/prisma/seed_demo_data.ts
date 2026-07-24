@@ -148,6 +148,7 @@ async function main() {
       description: 'Saldo Tatuaggio Watercolor - Giulia Rossi',
       amount: 200.00,
       date: new Date('2026-07-21T11:30:00.000Z'),
+      sourceType: 'BOOKING',
     },
     {
       type: TransactionType.ENTRATA,
@@ -155,6 +156,7 @@ async function main() {
       description: 'Saldo Cover Up - Elena Esposito',
       amount: 280.00,
       date: new Date('2026-07-21T18:00:00.000Z'),
+      sourceType: 'BOOKING',
     },
     {
       type: TransactionType.ENTRATA,
@@ -162,6 +164,7 @@ async function main() {
       description: 'Acconto Tatuaggio Maori - Alessandro Romano',
       amount: 80.00,
       date: new Date('2026-07-20T16:00:00.000Z'),
+      sourceType: 'BOOKING_DEPOSIT',
     },
     {
       type: TransactionType.USCITA,
@@ -169,6 +172,7 @@ async function main() {
       description: 'Acquisto aghi monouso e inchiostri neri',
       amount: 85.50,
       date: new Date('2026-07-18T10:00:00.000Z'),
+      sourceType: 'SPESA_LIBERA',
     },
     {
       type: TransactionType.USCITA,
@@ -176,6 +180,7 @@ async function main() {
       description: 'Saponi disinfettanti e pellicole protettive',
       amount: 42.00,
       date: new Date('2026-07-19T14:30:00.000Z'),
+      sourceType: 'SPESA_LIBERA',
     },
   ];
 

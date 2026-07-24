@@ -6,10 +6,10 @@ import DataTable, { DataTableRef } from '@/common/components/table/DataTable';
 import Icon from '@/common/components/ui/Icon';
 import { useAuth } from '@/common/context/AuthContext';
 import { Box } from '@mui/material';
-import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { customerApi } from '../api/customer.api';
 import CustomerCard from '../components/CustomerCard';
+import CustomerDetailModal from '../components/modals/CustomerDetailModal';
 import CustomerFilters from '../components/CustomerFilters';
 import CustomerModal from '../components/modals/CustomerModal';
 import { useCustomerColumns } from '../hooks/useCustomerColumns';
@@ -18,9 +18,9 @@ import type { CustomerModel as Customer } from '../model/customer.model';
 
 export default function CustomerListPage() {
   const { isAdmin } = useAuth();
-  const router = useRouter();
-  const tableRef = useRef<DataTableRef>(null);
+  const tableRef = useRef<DataTableRef<Customer>>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [viewId, setViewId] = useState<number | null>(null);
 
   const filterState = useCustomersFilter();
   const columns = useCustomerColumns();
@@ -30,18 +30,28 @@ export default function CustomerListPage() {
   }, []);
 
   const fetchCustomers = useCallback(async (params: FetchParams) => {
-    return customerApi.getAll({
+    const response = await customerApi.getAll({
       page: params.page,
       limit: params.limit,
-      search: params.search,
+      search: filterState.debouncedSearch || params.search,
       startDate: filterState.startDate,
       endDate: filterState.endDate,
     });
-  }, [filterState.startDate, filterState.endDate]);
+    return {
+      ...response,
+      data: response.data.map((customer): Customer => ({
+        ...customer,
+        fullName: `${customer.firstName} ${customer.lastName}`.trim(),
+        email: customer.email ?? '',
+        notes: customer.notes ?? '',
+        totalBookings: customer._count?.bookings ?? 0,
+      })),
+    };
+  }, [filterState.startDate, filterState.endDate, filterState.debouncedSearch]);
 
   const refreshKey = useMemo(() => {
-    return `${filterState.startDate || ''}_${filterState.endDate || ''}_${refreshTrigger}`;
-  }, [filterState.startDate, filterState.endDate, refreshTrigger]);
+    return `${filterState.debouncedSearch || ''}_${filterState.startDate || ''}_${filterState.endDate || ''}_${refreshTrigger}`;
+  }, [filterState.debouncedSearch, filterState.startDate, filterState.endDate, refreshTrigger]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1.5, pt: 1 }}>
@@ -73,9 +83,9 @@ export default function CustomerListPage() {
           hideState={true}
           fetchData={fetchCustomers}
           queryKey="customers"
-          refreshKey={refreshKey as any}
+          refreshKey={refreshKey}
           keyExtractor={(c) => c.id}
-          onRowClick={(c) => router.push(`/clienti/${c.id}`)}
+          onView={(c) => setViewId(c.id)}
           onDelete={isAdmin ? handleDelete : undefined}
           deleteConfirmMessage="Sei sicuro di voler eliminare questo cliente?"
           emptyTitle="Nessun cliente presente"
@@ -97,6 +107,15 @@ export default function CustomerListPage() {
           )}
         />
       </Box>
+
+      <CustomerDetailModal
+        id={viewId}
+        isOpen={viewId !== null}
+        onClose={() => {
+          setViewId(null);
+          setRefreshTrigger((t) => t + 1);
+        }}
+      />
     </Box>
   );
 }

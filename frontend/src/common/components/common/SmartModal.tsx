@@ -15,7 +15,7 @@ import {
   useTheme,
 } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
-import { ReactNode } from 'react';
+import { type FormEvent, ReactNode } from 'react';
 
 interface SmartModalProps {
   isOpen: boolean;
@@ -51,6 +51,12 @@ export default function SmartModal({
   headerAction,
 }: SmartModalProps) {
   const theme = useTheme();
+  const handleSubmit = (event: FormEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (!saveDisabled && !isSaving && !initialLoading) {
+      onSave?.();
+    }
+  };
 
   return (
     <Dialog
@@ -60,7 +66,11 @@ export default function SmartModal({
       fullWidth
       scroll="paper"
       slotProps={{
-        paper: { sx: (t: Theme) => styles.paper(t) },
+        paper: {
+          component: 'form',
+          onSubmit: handleSubmit,
+          sx: (t: Theme) => styles.paper(t),
+        },
         backdrop: { sx: styles.backdrop },
       }}
     >
@@ -70,8 +80,10 @@ export default function SmartModal({
           {headerAction}
         </Box>
         <IconButton
+          autoFocus
           onClick={onClose}
           disabled={isSaving}
+          aria-label="Chiudi finestra"
           sx={(t: Theme) => styles.closeButton(t)}
           size="small"
         >
@@ -110,8 +122,8 @@ export default function SmartModal({
 
           {onSave && (
             <Button
+              type="submit"
               variant="primary"
-              onClick={onSave}
               disabled={saveDisabled || isSaving || initialLoading}
               sx={{ minWidth: 100, position: 'relative' }}
             >

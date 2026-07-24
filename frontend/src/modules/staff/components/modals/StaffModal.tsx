@@ -6,8 +6,9 @@ import { useFormModal } from '@/common/hooks/useFormModal';
 import { useToast } from '@/common/hooks/useToast';
 import { createStaffSchema } from '@/modules/staff/model/staff.schema';
 import { staffApi } from '@/modules/staff/api/staff.api';
+import type { Staff, StaffType } from '@/modules/staff/model/staff.types';
 import { validateData } from '@/common/shared/utils/validation';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SmartModal from '@/common/components/common/SmartModal';
@@ -26,23 +27,55 @@ const STAFF_COLOR_PRESETS = ['#00BFFF', '#4F7CFF', '#25D366', '#FF6B6B', '#FFB02
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  member?: Staff | null;
 }
 
-export default function StaffModal({ isOpen, onClose }: Props) {
+interface StaffFormData {
+  name: string;
+  type: StaffType;
+  color: string;
+}
+
+export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props) {
   const toast = useToast();
   const { isAdmin } = useAuth();
   const theme = useTheme();
+  const isEditing = member !== null && member !== undefined;
 
-  const { isLoading, handleSubmit, handleChange, formData } = useFormModal({
+  const {
+    isLoading,
+    handleSubmit,
+    handleChange,
+    formData,
+    replaceFormData,
+    resetState,
+  } = useFormModal<StaffFormData>({
     initial: { name: '', type: 'COLLABORATORE', color: theme.palette.primary.main },
     onSubmit: async (data) => {
       const payload = { name: data.name, type: data.type, color: data.color };
-      await staffApi.create(payload);
+      if (member) {
+        await staffApi.update(member.id, payload);
+      } else {
+        await staffApi.create(payload);
+      }
     },
     onClose,
-    successMessage: 'Staff aggiunto al team!',
-    errorMessage: "Errore durante l'inserimento",
+    onSuccess,
+    successMessage: isEditing ? 'Staff modificato con successo!' : 'Staff aggiunto al team!',
+    errorMessage: isEditing ? 'Errore durante la modifica' : "Errore durante l'inserimento",
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    replaceFormData({
+      name: member?.name ?? '',
+      type: member?.type ?? 'COLLABORATORE',
+      color: member?.color ?? theme.palette.primary.main,
+    });
+    resetState();
+  }, [isOpen, member, replaceFormData, resetState, theme.palette.primary.main]);
 
   const handleSave = async () => {
     const payload = { name: formData.name, type: formData.type, color: formData.color };
@@ -58,17 +91,17 @@ export default function StaffModal({ isOpen, onClose }: Props) {
     <SmartModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Aggiungi Staff"
+      title={isEditing ? 'Modifica Staff' : 'Aggiungi Staff'}
       maxWidth="sm"
       onSave={handleSave}
       isSaving={isLoading}
-      saveLabel="Crea Profilo Staff"
+      saveLabel={isEditing ? 'Salva Modifiche' : 'Crea Profilo Staff'}
     >
       {!isAdmin ? (
         <StatePanel
           variant="error"
           title="Permessi insufficienti"
-          description="Solo un admin può creare nuovi membri dello staff."
+          description="Solo un admin può gestire i membri dello staff."
         />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -91,7 +124,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
             />
             <Box sx={{ minWidth: 0 }}>
               <Typography sx={{ fontSize: '0.9375rem', fontWeight: 600, color: theme.palette.text.primary }}>
-                {formData.name.trim() || 'Nuovo membro staff'}
+                {formData.name.trim() || (isEditing ? 'Membro staff' : 'Nuovo membro staff')}
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
                 {STAFF_TYPE_OPTIONS.find((option) => option.value === formData.type)?.label ?? 'Collaboratore'}
@@ -110,7 +143,7 @@ export default function StaffModal({ isOpen, onClose }: Props) {
           <FormSelect
             label="Tipo"
             value={formData.type}
-            onChange={handleChange('type')}
+            onChange={(value) => handleChange('type')(value as StaffType)}
             options={STAFF_TYPE_OPTIONS}
             required
           />

@@ -3,7 +3,7 @@
 import Icon from '@/common/components/ui/Icon';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 
 
 import MonthPicker from '@/common/components/ui/MonthPicker';
@@ -39,6 +39,7 @@ export default function FinanceOverviewWidget({
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
   const [showData, setShowData] = useState(true);
+  const [activeFinanceItem, setActiveFinanceItem] = useState<'Entrate' | 'Uscite' | null>(null);
 
   // Memoize financeData to prevent Recharts remount on parent re-render
   // Dependencies: totalIncome, totalExpense, showData (user toggle), theme
@@ -78,7 +79,7 @@ export default function FinanceOverviewWidget({
             sx={{
               p: 0.75,
               borderRadius: 1.25,
-              bgcolor: `${theme.palette.primary.main}15`,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
               color: theme.palette.primary.main,
               display: 'flex',
               alignItems: 'center',
@@ -105,7 +106,7 @@ export default function FinanceOverviewWidget({
             sx={{
               color: theme.palette.primary.main,
               '&:hover': {
-                bgcolor: `${theme.palette.primary.main}15`,
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
               },
             }}
           />
@@ -117,7 +118,7 @@ export default function FinanceOverviewWidget({
             sx={{
               color: theme.palette.primary.main,
               '&:hover': {
-                bgcolor: `${theme.palette.primary.main}15`,
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
               },
             }}
           />
@@ -126,10 +127,26 @@ export default function FinanceOverviewWidget({
 
       {/* Content */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', opacity: isLoading ? 0.65 : 1, transition: 'opacity 0.2s ease-in-out' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, alignItems: 'stretch', flex: 1 }}>
-          <Box sx={{ flex: 1, minWidth: { xs: 160, md: 240 }, minHeight: { xs: 160, md: 240 }, position: 'relative' }}>
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
+        <Stack
+          direction="row"
+          useFlexGap
+          sx={{
+            gap: { xs: 1, md: 2 },
+            alignItems: 'center',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <Box
+            sx={{
+              flex: '1 1 55%',
+              minWidth: 0,
+              height: { xs: 210, md: 240 },
+              position: 'relative',
+            }}
+          >
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart accessibilityLayer={false}>
                   <defs>
                     <linearGradient id="gradientEntrate" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
@@ -153,42 +170,74 @@ export default function FinanceOverviewWidget({
                     animationBegin={0}
                     animationDuration={1200}
                     cornerRadius={6}
+                    onMouseEnter={(entry) => {
+                      if (entry.name === 'Entrate' || entry.name === 'Uscite') {
+                        setActiveFinanceItem(entry.name);
+                      }
+                    }}
+                    onMouseLeave={() => setActiveFinanceItem(null)}
                   >
                     <Cell fill="url(#gradientEntrate)" />
                     <Cell fill="url(#gradientUscite)" />
                   </Pie>
-                  <RechartsTooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        const actualValue = data.name === 'Entrate' ? totalIncome : totalExpense;
-                        return (
-                          <Box
-                            sx={{
-                              bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.95),
-                              backdropFilter: 'blur(8px)',
-                              border: `1px solid ${data.color}33`,
-                              borderRadius: 2,
-                              p: 1.5,
-                              boxShadow: isLight
-                                ? `0 4px 16px ${alpha(theme.palette.common.black, 0.12)}`
-                                : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
-                            }}
-                          >
-                            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', fontWeight: 800, fontSize: '0.6rem', letterSpacing: '0.1em', display: 'block', mb: 0.5 }}>
-                              {data.name}
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: data.color, fontWeight: 800 }}>
-                              {formatPrice(actualValue)}
-                            </Typography>
-                          </Box>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
                 </PieChart>
               </ResponsiveContainer>
+              {activeFinanceItem && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: 'calc(50% + 88px)',
+                    top: activeFinanceItem === 'Entrate' ? '12%' : 'auto',
+                    bottom: activeFinanceItem === 'Uscite' ? '4%' : 'auto',
+                    zIndex: 5,
+                    pointerEvents: 'none',
+                    bgcolor: isLight
+                      ? 'background.paper'
+                      : alpha(theme.palette.background.default, 0.95),
+                    backdropFilter: 'blur(8px)',
+                    border: `1px solid ${alpha(
+                      activeFinanceItem === 'Entrate'
+                        ? theme.palette.primary.main
+                        : theme.palette.error.main,
+                      0.25,
+                    )}`,
+                    borderRadius: 2,
+                    p: 1.5,
+                    whiteSpace: 'nowrap',
+                    boxShadow: isLight
+                      ? `0 4px 16px ${alpha(theme.palette.common.black, 0.12)}`
+                      : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      textTransform: 'uppercase',
+                      fontWeight: 800,
+                      fontSize: '0.6rem',
+                      letterSpacing: '0.1em',
+                      display: 'block',
+                      mb: 0.5,
+                    }}
+                  >
+                    {activeFinanceItem}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: activeFinanceItem === 'Entrate'
+                        ? 'primary.main'
+                        : 'error.main',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {formatPrice(
+                      activeFinanceItem === 'Entrate' ? totalIncome : totalExpense,
+                    )}
+                  </Typography>
+                </Box>
+              )}
               <Box
                 sx={{
                   position: 'absolute',
@@ -230,7 +279,16 @@ export default function FinanceOverviewWidget({
               </Box>
             </Box>
 
-            <Stack useFlexGap sx={{ gap: 2.5, justifyContent: 'center', flex: 1, minWidth: { xs: 160, md: 200 }, px: 1 }}>
+            <Stack
+              useFlexGap
+              sx={{
+                gap: { xs: 1.5, md: 2.5 },
+                justifyContent: 'center',
+                flex: '1 1 45%',
+                minWidth: 0,
+                px: { xs: 0, sm: 1 },
+              }}
+            >
               {/* Entrate Row */}
               <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
                 <Stack direction="row" useFlexGap sx={{ alignItems: 'center', gap: 1 }}>
@@ -247,7 +305,15 @@ export default function FinanceOverviewWidget({
                     Entrate
                   </Typography>
                 </Stack>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: theme.palette.primary.main }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 800,
+                    color: theme.palette.primary.main,
+                    fontSize: { xs: '0.82rem', md: '1rem' },
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {showData ? formatPrice(totalIncome) : '€ ••••••'}
                 </Typography>
               </Stack>
@@ -268,7 +334,15 @@ export default function FinanceOverviewWidget({
                     Uscite
                   </Typography>
                 </Stack>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: theme.palette.error.main }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 800,
+                    color: theme.palette.error.main,
+                    fontSize: { xs: '0.82rem', md: '1rem' },
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {showData ? formatPrice(totalExpense) : '€ ••••••'}
                 </Typography>
               </Stack>

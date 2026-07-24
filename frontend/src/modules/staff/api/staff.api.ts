@@ -101,7 +101,7 @@ export const staffApi = {
     search,
     type,
     page = 1,
-    limit = 20,
+    limit = 25,
   }: {
     search?: string;
     type?: string;

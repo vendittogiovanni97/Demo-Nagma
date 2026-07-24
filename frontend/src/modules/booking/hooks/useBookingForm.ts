@@ -101,6 +101,7 @@ interface UseBookingFormOptions {
   onSuccess?: () => void;
   onClose: () => void;
   isSuperAdmin: boolean;
+  onUpdateLocalState?: (id: number, fields: Partial<any>) => void;
 }
 
 interface UseBookingFormReturn extends UseEntityFormReturn<BookingFormData> {
@@ -128,8 +129,8 @@ interface UseBookingFormReturn extends UseEntityFormReturn<BookingFormData> {
   setShowPasswordModal: (show: boolean) => void;
   passwordLoading: boolean;
   setPasswordLoading: (loading: boolean) => void;
-  pendingData: (CreateBookingData & { status?: BookingStatus }) | null;
-  setPendingData: (data: (CreateBookingData & { status?: BookingStatus }) | null) => void;
+  pendingData: BookingFormData | null;
+  setPendingData: (data: BookingFormData | null) => void;
   showSuccess: boolean;
   setShowSuccess: (show: boolean) => void;
 
@@ -149,6 +150,7 @@ export function useBookingForm({
   onSuccess,
   onClose,
   isSuperAdmin,
+  onUpdateLocalState,
 }: UseBookingFormOptions): UseBookingFormReturn {
   const toast = useToast();
 
@@ -162,7 +164,7 @@ export function useBookingForm({
   // Internal state for complex UI states - DECLARE FIRST
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [pendingData, setPendingData] = useState<(CreateBookingData & { status?: BookingStatus }) | null>(null);
+  const [pendingData, setPendingData] = useState<BookingFormData | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Computed data
@@ -178,15 +180,16 @@ export function useBookingForm({
 
   // Build payload for API
   const buildPayload = useCallback((formData: BookingFormData): CreateBookingData & { status?: BookingStatus } => {
-    const percentuale = Number(formData.percentualeMode) || 0;
     const prezzoNum = Number(formData.price) || 0;
-    const prezzoArtista = Math.round((prezzoNum * percentuale / 100) * 100) / 100;
-    const guadagno = Math.round((prezzoNum - prezzoArtista) * 100) / 100;
 
     const formDataObj: Record<string, unknown> = {
-      artistPercentage: percentuale,
-      artistPrice: prezzoArtista,
-      studioProfit: guadagno
+      isNewCustomer: formData.isNewCustomer,
+      newCustomerFirstName: formData.newCustomerFirstName,
+      newCustomerLastName: formData.newCustomerLastName,
+      newCustomerPhone: formData.newCustomerPhone,
+      newCustomerEmail: formData.newCustomerEmail,
+      percentualeMode: formData.percentualeMode,
+      selectedTemplateId: formData.selectedTemplateId,
     };
     Object.entries(formData.dynamicValues).forEach(([k, v]) => { if (v) formDataObj[k] = v; });
 
@@ -220,7 +223,11 @@ export function useBookingForm({
   }, []);
 
   // useEntityForm for core form management
-  const form = useEntityForm<Booking | null, BookingFormData>({
+  const form = useEntityForm<
+    Booking,
+    BookingFormData,
+    CreateBookingData & { status?: BookingStatus }
+  >({
     entity: booking,
     open: isOpen,
     initial,
@@ -228,10 +235,22 @@ export function useBookingForm({
     persist,
     successMessage: (isEdit) => isEdit ? 'Modifica salvata!' : 'Prenotazione confermata!',
     onSuccess: () => {
+      if (booking?.id) {
+        onUpdateLocalState?.(booking.id, {
+          status: form.formData.status,
+          price: Number(form.formData.price) || 0,
+          deposit: Number(form.formData.deposit) || 0,
+          duration: Number(form.formData.duration) || 120,
+          notes: form.formData.notes,
+        });
+      }
       toast.success(booking ? 'Modifica salvata!' : 'Prenotazione confermata!');
       onSuccess?.();
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+      }, 500);
     },
     onClose: () => {
       onClose();
@@ -425,7 +444,7 @@ export function useBookingForm({
     const updatedFormData = { ...form.formData, customerId: finalCustomerId };
 
     if (booking?.id && !isSuperAdmin) {
-      setPendingData(buildPayload(updatedFormData));
+      setPendingData(updatedFormData);
       setShowPasswordModal(true);
     } else {
       await form.handleSubmit(updatedFormData);
@@ -439,8 +458,7 @@ export function useBookingForm({
       await bookingService.verifyPassword(password);
       setShowPasswordModal(false);
       if (pendingData) {
-        // pendingData is already in the form format, just submit it
-        await form.handleSubmit(pendingData as unknown as BookingFormData);
+        await form.handleSubmit(pendingData);
       }
     } catch {
       throw new Error('Password errata');

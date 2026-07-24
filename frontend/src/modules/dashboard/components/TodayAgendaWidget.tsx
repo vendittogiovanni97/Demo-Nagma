@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import {
   Box,
@@ -18,34 +19,64 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
+import BookingModal from '@/modules/booking/components/modals/BookingModal';
+import { useSWRConfig } from 'swr';
+import { useToast } from '@/common/hooks/useToast';
+import { getOperationalTodayBookings } from '@/modules/dashboard/utils/todayAgenda';
+import { getBookingStatusBadgeVariant, getBookingStatusLabel } from '@/common/config/status-config';
+
+const MAX_VISIBLE_BOOKINGS = 5;
+const CLOCK_REFRESH_INTERVAL_MS = 30_000;
 
 interface TodayAgendaWidgetProps {
   bookings?: Booking[];
   isLoading: boolean;
   className?: string;
+  onSuccess?: () => void;
 }
 
 export default function TodayAgendaWidget({
   bookings,
   isLoading,
   className,
+  onSuccess,
 }: TodayAgendaWidgetProps) {
   const theme = useTheme();
   const router = useRouter();
+  const { mutate } = useSWRConfig();
+  const toast = useToast();
 
-  const todayBookings = bookings?.filter((booking) => {
-    const bookingDate = new Date(booking.date);
-    const today = new Date();
-    return (
-      bookingDate.getDate() === today.getDate() &&
-      bookingDate.getMonth() === today.getMonth() &&
-      bookingDate.getFullYear() === today.getFullYear()
-    );
-  }) || [];
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
-  // STATS CALCULATIONS
-  const totalEarnings = todayBookings.reduce((acc, b) => acc + (b.price || 0), 0);
-  const totalHours = Math.round(todayBookings.reduce((acc, b) => acc + (b.duration || 60), 0) / 60 * 10) / 10;
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setCurrentTime(Date.now()), CLOCK_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  const handleOpenDetails = useCallback((booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
+  }, []);
+
+  const handleModalSuccess = useCallback(() => {
+    mutate((key) => typeof key === 'string' && key.includes('/api/bookings'), undefined, { revalidate: true });
+    if (onSuccess) {
+      onSuccess();
+    }
+  }, [mutate, onSuccess]);
+
+  const operationalTodayBookings = useMemo(
+    () => getOperationalTodayBookings(bookings, new Date(currentTime)),
+    [bookings, currentTime],
+  );
+  const visibleBookings = operationalTodayBookings.slice(0, MAX_VISIBLE_BOOKINGS);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -54,36 +85,6 @@ export default function TodayAgendaWidget({
     if (hours > 0) label += `${hours}h`;
     if (mins > 0) label += `${hours > 0 ? ' ' : ''}${mins}m`;
     return label || `${minutes} min`;
-  };
-
-  const getStatusBadge = (status: string, color: string) => {
-    const statusMap: Record<string, { label: string, color: string, bgcolor: string }> = {
-      CONFERMATO: { label: 'Confermato', color: theme.palette.custom.emerald, bgcolor: alpha(theme.palette.custom.emerald, 0.12) },
-      CREATO: { label: 'Creato', color: theme.palette.primary.main, bgcolor: 'divider' },
-      COMPLETATO: { label: 'Completato', color: theme.palette.custom.purple, bgcolor: alpha(theme.palette.custom.purple, 0.12) },
-      ANNULLATO: { label: 'Annullato', color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.12) },
-      CANCELLATO: { label: 'Cancellato', color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.12) },
-      SPOSTATO: { label: 'Spostato', color: theme.palette.warning.main, bgcolor: alpha(theme.palette.warning.main, 0.12) },
-    };
-
-    const config = statusMap[status] || { label: status, color: theme.palette.text.secondary, bgcolor: alpha(theme.palette.text.secondary, 0.12) };
-
-    return (
-      <Box sx={{
-        px: 1,
-        py: 0.25,
-        borderRadius: '4px',
-        backgroundColor: config.bgcolor,
-        border: `1px solid ${config.color}20`,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <Typography variant="caption" sx={{ color: config.color, fontWeight: 700, fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-          {config.label}
-        </Typography>
-      </Box>
-    );
   };
 
   const isLight = theme.palette.mode === 'light';
@@ -159,18 +160,21 @@ export default function TodayAgendaWidget({
                 letterSpacing: '-0.01em',
               }}
             >
-              {todayBookings.length} {todayBookings.length === 1 ? 'prenotazione' : 'prenotazioni'}
+              {operationalTodayBookings.length} {operationalTodayBookings.length === 1 ? 'prenotazione' : 'prenotazioni'}
             </Typography>
           </Box>
           <Tooltip title="Vedi tutte le prenotazioni">
             <Button
               variant="icon"
+              aria-label="Vedi tutte le prenotazioni"
               icon={<Icon name="externalLink" size={15} />}
               onClick={() => {
                 const today = format(new Date(), 'yyyy-MM-dd');
                 router.push(`/prenotazioni?startDate=${today}&endDate=${today}`);
               }}
               sx={{
+                minWidth: 44,
+                minHeight: 44,
                 color: 'primary.main',
                 bgcolor: alpha(theme.palette.primary.main, 0.05),
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
@@ -210,7 +214,7 @@ export default function TodayAgendaWidget({
             <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.text.primary, 0.05) }} />
             <Skeleton variant="rect" height={70} sx={{ borderRadius: '12px', bgcolor: alpha(theme.palette.text.primary, 0.05) }} />
           </Stack>
-        ) : todayBookings.length === 0 ? (
+        ) : operationalTodayBookings.length === 0 ? (
           <Stack
             direction="column"
             useFlexGap
@@ -240,82 +244,17 @@ export default function TodayAgendaWidget({
           </Stack>
         ) : (
           <Stack spacing={1.5}>
-            {/* STATS HEADER */}
-            <Stack direction="row" spacing={1.2} sx={{ mb: 0.5 }}>
-              <Box sx={{
-                flex: 1,
-                p: 1.2,
-                borderRadius: '10px',
-                backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.02),
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 0.2,
-              }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Prenotati
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
-                  {todayBookings.length}
-                </Typography>
-              </Box>
-
-              <Box sx={{
-                flex: 1,
-                p: 1.2,
-                borderRadius: '10px',
-                backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.02),
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 0.2,
-              }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Ore Totali
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
-                  {totalHours}h
-                </Typography>
-              </Box>
-
-              <Box sx={{
-                flex: 1,
-                p: 1.2,
-                borderRadius: '10px',
-                backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.04) : alpha(theme.palette.common.white, 0.02),
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 0.2,
-              }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Valore
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 800, color: 'custom.emerald', fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}>
-                  €{totalEarnings}
-                </Typography>
-              </Box>
-            </Stack>
-
-            {/* BOOKINGS LIST */}
-            {todayBookings.map((booking) => {
+            {visibleBookings.map((booking) => {
               const artistColor = booking.artist?.color || theme.palette.primary.main;
               const bookingTime = format(new Date(booking.date), 'HH:mm');
 
               const firstName = booking.customer?.firstName || 'U';
               const lastName = booking.customer?.lastName || '';
-              const customerInitials = firstName[0]?.toUpperCase() || 'U';
               const customerFullName = booking.customer ? `${booking.customer.firstName} ${booking.customer.lastName || ''}` : 'Cliente';
 
               return (
                 <Box
                   key={booking.id}
-                  onClick={() => {
-                    router.push(`/prenotazioni?id=${booking.id}`);
-                  }}
                   sx={{
                     p: 2,
                     borderRadius: '14px',
@@ -325,7 +264,6 @@ export default function TodayAgendaWidget({
                     boxShadow: isLight
                       ? `0 2px 8px ${alpha(theme.palette.common.black, 0.06)}`
                       : `0 4px 12px ${alpha(theme.palette.common.black, 0.15)}`,
-                    cursor: 'pointer',
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',
@@ -334,17 +272,9 @@ export default function TodayAgendaWidget({
                     position: 'relative',
                     overflow: 'hidden',
                     '&:hover': {
-                      backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.06) : alpha(theme.palette.common.white, 0.05),
-                      borderColor: artistColor,
-                      boxShadow: `0 8px 24px ${artistColor}15`,
-                      transform: 'translateY(-2px)',
-                      '& .arrow-icon': {
-                        transform: 'translateX(4px)',
-                        opacity: 0,
-                      },
+                      borderColor: alpha(artistColor, 0.4),
                       '& .quick-actions-bar': {
-                        opacity: 1,
-                        transform: 'translateX(0)',
+                        borderColor: alpha(theme.palette.primary.main, 0.25),
                       }
                     }
                   }}
@@ -377,7 +307,11 @@ export default function TodayAgendaWidget({
                       />
 
                       {/* STATUS */}
-                      {getStatusBadge(booking.status, artistColor)}
+                      <Badge
+                        label={getBookingStatusLabel(booking.status)}
+                        variant={getBookingStatusBadgeVariant(booking.status)}
+                        size="xs"
+                      />
                     </Stack>
 
                     {/* CLIENT & ARTIST INFO */}
@@ -418,49 +352,46 @@ export default function TodayAgendaWidget({
                     </Stack>
                   </Stack>
 
-                  {/* INTERACTIVE ACTION ICON */}
-                  <Box
-                    className="arrow-icon"
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      pl: 1,
-                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                      opacity: 0.3,
-                    }}
-                  >
-                    <Icon name="arrowRight" size={16} color={theme.palette.text.secondary} />
-                  </Box>
-
-                  {/* QUICK ACTION BAR (FADES IN ON HOVER) */}
                   <Box
                     className="quick-actions-bar"
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
-                      opacity: 0,
-                      transform: 'translateX(8px)',
-                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                      position: 'absolute',
-                      right: 16,
+                      flexShrink: 0,
+                      opacity: 1,
+                      p: 0.5,
+                      borderRadius: '999px',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      backgroundColor: alpha(theme.palette.background.default, 0.55),
+                      transition: theme.transitions.create(['border-color'], {
+                        duration: theme.transitions.duration.short,
+                      }),
                       zIndex: 2,
                     }}
-                    onClick={(e) => e.stopPropagation()}
                   >
                     {booking.customer?.phone && (
                       <Tooltip title="Invia WhatsApp">
                         <Button
                           variant="icon"
-                          icon={<Icon name="messageCircle" size={13} />}
+                          aria-label={`Invia un messaggio WhatsApp a ${customerFullName}`}
+                          icon={<Icon name="messageCircle" size={18} />}
                           onClick={() => {
-                            const formattedPhone = booking.customer?.phone?.replace(/\D/g, '');
-                            window.open(`https://wa.me/${formattedPhone}`, '_blank');
+                            try {
+                              const formattedPhone = booking.customer?.phone?.replace(/\D/g, '');
+                              if (formattedPhone) {
+                                window.open(`https://wa.me/${formattedPhone}`, '_blank');
+                              } else {
+                                toast.error("Numero di telefono non valido per WhatsApp");
+                              }
+                            } catch {
+                              toast.error("Impossibile aprire WhatsApp");
+                            }
                           }}
                           sx={{
-                            width: 28,
-                            height: 28,
-                            minWidth: 28,
+                            minWidth: 44,
+                            minHeight: 44,
                             color: 'custom.whatsapp',
                             bgcolor: alpha(theme.palette.custom.whatsapp, 0.1),
                             border: `1px solid ${alpha(theme.palette.custom.whatsapp, 0.2)}`,
@@ -474,17 +405,15 @@ export default function TodayAgendaWidget({
                       </Tooltip>
                     )}
 
-                    <Tooltip title="Vedi Dettagli">
+                    <Tooltip title="Vedi dettagli">
                       <Button
                         variant="icon"
-                        icon={<Icon name="externalLink" size={13} />}
-                        onClick={() => {
-                          router.push(`/prenotazioni?id=${booking.id}`);
-                        }}
+                        aria-label={`Apri i dettagli dell'appuntamento di ${customerFullName}`}
+                        icon={<Icon name="externalLink" size={18} />}
+                        onClick={() => handleOpenDetails(booking)}
                         sx={{
-                          width: 28,
-                          height: 28,
-                          minWidth: 28,
+                          minWidth: 44,
+                          minHeight: 44,
                           color: 'primary.main',
                           bgcolor: alpha(theme.palette.primary.main, 0.1),
                           border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
@@ -500,9 +429,25 @@ export default function TodayAgendaWidget({
                 </Box>
               );
             })}
+            {operationalTodayBookings.length > MAX_VISIBLE_BOOKINGS ? (
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', textAlign: 'center', py: 0.5 }}
+              >
+                Mostrati i prossimi {MAX_VISIBLE_BOOKINGS} appuntamenti. Usa “vedi tutte” per la lista completa.
+              </Typography>
+            ) : null}
           </Stack>
         )}
       </Box>
+
+      {/* Booking Details Modal */}
+      <BookingModal
+        isOpen={isModalOpen}
+        onClose={handleCloseDetails}
+        onSuccess={handleModalSuccess}
+        booking={selectedBooking}
+      />
     </Card>
   );
 }

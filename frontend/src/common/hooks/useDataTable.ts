@@ -10,6 +10,7 @@ import type {
   GridReadyEvent,
   ICellRendererParams,
   SortChangedEvent,
+  ValueGetterParams,
 } from 'ag-grid-community';
 import { usePermission } from '@/common/providers/AuthProvider';
 import {
@@ -28,14 +29,20 @@ import {
   ActionMode,
   columnPresets,
   ToolbarFilter,
+  type DataTableResponse,
 } from '../components/table/DataTable';
+import type { TableAction } from '../components/table/TableActions';
+import {
+  getPreferredItemsPerPage,
+  setPreferredItemsPerPage,
+} from '@/common/shared/utils/pagination';
 
 export interface UseDataTableOptions<E> {
   columns: ColumnDefinition<E>[];
   baseColumns: BaseColumnKey[];
   data?: E[];
-  fetchData?: (params: FetchParams) => Promise<{ items: E[]; meta: { totalItems: number } } | any>;
-  refreshKey?: number;
+  fetchData?: (params: FetchParams) => Promise<DataTableResponse<E>>;
+  refreshKey?: unknown;
   queryKey?: string | unknown[];
   onRowClick?: (row: E) => void;
   renderRowActionStatus?: (row: E) => React.ReactNode;
@@ -65,19 +72,17 @@ export interface UseDataTableOptions<E> {
   ActionsCellRenderer: (params: ICellRendererParams) => React.ReactNode;
   ExpandCellRenderer: (params: ICellRendererParams) => React.ReactNode;
   toolbarFilters?: ToolbarFilter[];
-  actions?: (row: E) => React.ReactNode;
+  rowActions?: (row: E) => TableAction[];
 }
 
 export type DetailRow<E> = { __isDetailRow: true; __parentData: E };
 export type RowWithId = { id?: string | number };
 
-function parsePxWidth(width?: string | number): number | undefined {
-  if (width === undefined || width === null) return undefined;
-  if (typeof width === 'number') return width;
-  const m = String(width).match(/^(\d+(?:\.\d+)?)px$/);
-  if (m) return parseFloat(m[1]);
-  const parsed = parseFloat(String(width));
-  return isNaN(parsed) ? undefined : parsed;
+function normalizeResponse<E>(response: DataTableResponse<E>): { data: E[]; total: number } {
+  if ('items' in response) {
+    return { data: response.items, total: response.meta.totalItems };
+  }
+  return { data: response.data, total: response.total };
 }
 
 const BASE_COLUMNS_START: ('id' | 'createdAt' | 'updatedAt')[] = ['id'];
@@ -112,7 +117,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
     title,
     ActionsCellRenderer,
     ExpandCellRenderer,
-    actions,
+    rowActions,
   } = opts;
 
   const { t } = useTranslation();
@@ -144,22 +149,11 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
   );
 
   const [mPage, setMPageInternal] = useState(0);
-  const [mLimit, setMLimitState] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nagma_items_per_page');
-      if (saved) {
-        const num = parseInt(saved, 10);
-        if ([10, 25, 50, 100].includes(num)) return num;
-      }
-    }
-    return 25;
-  });
+  const [mLimit, setMLimitState] = useState<number>(getPreferredItemsPerPage);
 
   const setMLimit = useCallback((newLimit: number) => {
     setMLimitState(newLimit);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('nagma_items_per_page', String(newLimit));
-    }
+    setPreferredItemsPerPage(newLimit);
   }, []);
 
   const setMPage = useCallback((newPage: number) => {
@@ -265,14 +259,13 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
 
   const rawData = useMemo(() => {
     if (isQueryEnabled) {
-      const resData = swrResponse?.items || swrResponse?.data || [];
-      return resData;
+      return swrResponse ? normalizeResponse(swrResponse).data : [];
     }
     return isManaged ? mData : data;
   }, [isQueryEnabled, swrResponse, isManaged, mData, data]);
 
-  const mTotalCount = isQueryEnabled 
-    ? (swrResponse?.meta?.totalItems || swrResponse?.total || 0) 
+  const mTotalCount = isQueryEnabled
+    ? (swrResponse ? normalizeResponse(swrResponse).total : 0)
     : mTotal;
 
   const activeFetching = isQueryEnabled ? swrLoading : isFetching;
@@ -304,11 +297,10 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
         orderDirection: mSortOrder,
         filter: Object.keys(filter).length > 0 ? filter : undefined,
       })
-      .then((res: any) => {
-        const resItems = res.items || res.data || [];
-        const resTotal = res.meta?.totalItems || res.total || 0;
-        setMData(resItems);
-        setMTotal(resTotal);
+      .then((response) => {
+        const normalized = normalizeResponse(response);
+        setMData(normalized.data);
+        setMTotal(normalized.total);
       })
       .catch(() => {
         setMData([]);
@@ -327,13 +319,6 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
     isQueryEnabled,
     filterValuesStr,
   ]);
-
-  useEffect(() => {
-    if (!gridApiRef.current) return;
-    if (activeFetching) gridApiRef.current.showLoadingOverlay();
-    else if (rawData.length === 0) gridApiRef.current.showNoRowsOverlay();
-    else gridApiRef.current.hideOverlay();
-  }, [activeFetching, rawData.length]);
 
   useEffect(() => {
     if (!gridApiRef.current || !columnVisibility) return;
@@ -431,8 +416,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
           : col.align === 'right'
             ? 'ag-header-cell-align-right'
             : 'ag-header-cell-align-left',
-      ...(col.width !== undefined ? { width: parsePxWidth(col.width), flex: 0 } : {}),
-      ...(col.flex !== undefined && col.width === undefined ? { flex: col.flex } : {}),
+      flex: col.flex ?? 1,
       ...(col.minWidth !== undefined ? { minWidth: col.minWidth } : {}),
       ...(col.maxWidth !== undefined ? { maxWidth: col.maxWidth } : {}),
       cellStyle: {
@@ -445,6 +429,12 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
       cellRenderer: col.render
         ? (params: ICellRendererParams) => (params.data ? col.render!(params.data as E) : null)
         : undefined,
+      ...(col.sortValue
+        ? {
+            valueGetter: (params: ValueGetterParams) =>
+              params.data ? col.sortValue!(params.data as E) : undefined,
+          }
+        : {}),
     });
 
     const defs = allColumns.map(toColDef);
@@ -476,7 +466,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
       onStatusChange ||
       renderRowActionStatus ||
       openEntityModal ||
-      actions
+      rowActions
     ) {
       defs.push({
         colId: '__actions',
@@ -490,7 +480,8 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
           height: '100%',
           justifyContent: 'center',
         },
-        width: 130,
+        flex: 1.25,
+        minWidth: 196,
         suppressMovable: true,
       });
     }
@@ -508,7 +499,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
     ActionsCellRenderer,
     renderExpandedRow,
     ExpandCellRenderer,
-    actions,
+    rowActions,
     t,
   ]);
 
@@ -600,11 +591,10 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
         orderDirection: mSortOrder,
         filter: Object.keys(filter).length > 0 ? filter : undefined,
       });
-      const resItems = res.items || res.data || [];
-      const resTotal = res.meta?.totalItems || res.total || 0;
-      accumulatedItems.push(...resItems);
-      total = resTotal;
-      if (resItems.length < pageSize) break;
+      const normalized = normalizeResponse(res);
+      accumulatedItems.push(...normalized.data);
+      total = normalized.total;
+      if (normalized.data.length < pageSize) break;
       page++;
     }
     return accumulatedItems;
@@ -619,7 +609,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
         const cols = buildExportColumns();
         const { headers, data: matrix } = buildMatrix(cols, rows);
         const fileName = exportFileName ?? (title ? slugifyFileName(title) : 'export');
-        if (format === 'csv') exportCsv(fileName, headers, matrix);
+        if (format === 'csv') await exportCsv(fileName, headers, matrix);
         else if (format === 'xlsx') await exportXlsx(fileName, headers, matrix);
         else if (format === 'pdf') await exportPdf(fileName, headers, matrix);
       } finally {
@@ -676,6 +666,7 @@ export function useDataTable<E>(opts: UseDataTableOptions<E>) {
     showExport,
     colDefs,
     rowData,
+    gridApiRef,
     onGridReady,
     handleColumnVisible,
     modalContent,

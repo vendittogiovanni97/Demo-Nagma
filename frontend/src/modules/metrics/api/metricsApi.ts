@@ -1,5 +1,5 @@
-import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
-import { getToken } from '@/common/shared/utils/auth';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
 
 export interface EndpointMetric {
   method: string;
@@ -51,45 +51,15 @@ export interface MetricsSummaryData {
 }
 
 export const metricsApi = {
-  getSummary: async (): Promise<MetricsSummaryData> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.METRICS.SUMMARY}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Impossibile recuperare le metriche di prestazione');
-    }
-
-    return response.json();
-  },
+  getSummary: () =>
+    apiClient.get<MetricsSummaryData>(ENDPOINTS.METRICS.SUMMARY),
 
   recordVitals: async (vitals: Partial<CoreWebVitalsData>): Promise<void> => {
     try {
-      await fetch(`${API_BASE_URL}${ENDPOINTS.METRICS.VITALS}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(vitals),
-      });
+      await apiClient.post<void>(ENDPOINTS.METRICS.VITALS, vitals);
     } catch {}
   },
 
-  resetMetrics: async (): Promise<void> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.METRICS.RESET}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Impossibile azzerare le metriche');
-    }
-  },
+  resetMetrics: () =>
+    apiClient.delete<void>(ENDPOINTS.METRICS.RESET),
 };

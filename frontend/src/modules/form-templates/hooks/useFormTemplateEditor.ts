@@ -73,9 +73,33 @@ export function useFormTemplateEditor({ onMutate }: UseFormTemplateEditorOptions
       return;
     }
 
+    const duplicateKeys = fields.filter(
+      (field, index) => fields.findIndex((candidate) => candidate.name === field.name) !== index,
+    );
+    if (duplicateKeys.length > 0) {
+      toast.error('Gli identificativi dei campi devono essere univoci.');
+      return;
+    }
+
+    const selectWithoutOptions = fields.find(
+      (field) => field.type === 'select' && !field.options?.some((option) => option.trim()),
+    );
+    if (selectWithoutOptions) {
+      toast.error(`Aggiungi almeno un’opzione al campo "${selectWithoutOptions.label}".`);
+      return;
+    }
+
     setSaving(true);
     try {
-      const schemaB64 = encodeFields(fields);
+      const normalizedFields = fields.map((field) => ({
+        ...field,
+        name: field.name.trim(),
+        label: field.label.trim(),
+        ...(field.type === 'select'
+          ? { options: field.options?.map((option) => option.trim()).filter(Boolean) ?? [] }
+          : { options: undefined }),
+      }));
+      const schemaB64 = encodeFields(normalizedFields);
       if (isCreating) {
         await formTemplateService.create({ name: templateName, schemaB64 });
         toast.success('Nuovo template creato con successo.');
@@ -93,8 +117,7 @@ export function useFormTemplateEditor({ onMutate }: UseFormTemplateEditorOptions
     }
   };
 
-  const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Sei sicuro di voler eliminare il template "${name}"?`)) return;
+  const handleDelete = async (id: number) => {
     try {
       await formTemplateService.delete(id);
       toast.success('Template eliminato.');

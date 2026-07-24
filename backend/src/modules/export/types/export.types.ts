@@ -7,13 +7,20 @@ export interface ExportColumnDto {
   width?: number;
 }
 
+export type ExportValue = string | number | boolean | Date | null | undefined;
+export type ExportRow = Record<string, unknown>;
+
 export interface ExportRequestDto {
   format: ExportFormat;
   title?: string;
   filename?: string;
   entityType?: 'customer' | 'booking' | 'transaction' | 'staff' | 'cream';
   columns: ExportColumnDto[];
-  filters?: Record<string, any>;
-  data?: Record<string, any>[];
+  filters?: Record<string, unknown>;
+  data?: ExportRow[];
   includeFilterSummary?: boolean;
+  pdfSummary?: {
+    label: string;
+    value: string;
+  };
 }

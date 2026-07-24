@@ -2,7 +2,7 @@
 
 import SmartFilters from '@/common/components/common/SmartFilters';
 import type { BookingStatus } from '@/modules/booking/model/booking.types';
-import { useTheme as useMuiTheme } from '@mui/material/styles';
+import { useTheme as useMuiTheme, alpha } from '@mui/material/styles';
 import { useBreakpointContext } from '@/common/context/BreakpointContext';
 import { CancelButton } from '@/common/components/ui/Button';
 import FormSelect from '@/common/components/forms/FormSelect';
@@ -21,6 +21,7 @@ interface BookingFiltersProps {
   onStatusFilterChange: (value: BookingStatus | 'ALL') => void;
   onSortOrderChange: (value: 'asc' | 'desc') => void;
   onResetDateRange: () => void;
+  onTodayClick: () => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
 }
@@ -38,6 +39,7 @@ export default function BookingFilters({
   onStatusFilterChange,
   onSortOrderChange,
   onResetDateRange,
+  onTodayClick,
   onPrevMonth,
   onNextMonth,
 }: BookingFiltersProps) {
@@ -84,10 +86,17 @@ export default function BookingFilters({
       <FormSelect
         label="Ordinamento"
         value={sortOrder}
-        onChange={(val) => onSortOrderChange(val as 'asc' | 'desc')}
+        onChange={(val) => {
+          if (val === 'oggi') {
+            onTodayClick();
+            return;
+          }
+          onSortOrderChange(val as 'asc' | 'desc');
+        }}
         options={[
           { value: 'desc', label: 'Più recente' },
           { value: 'asc', label: 'Meno recente' },
+          { value: 'oggi', label: 'Oggi' },
         ]}
         hideLabel
         sx={{ flex: isXLarge ? '0 1 180px' : '0 1 150px', minWidth: 100 }}
@@ -96,13 +105,23 @@ export default function BookingFilters({
       {/* Reset button if dates are filtered */}
       {(startDate || endDate) && (
         <CancelButton
-          variant="ghost"
+          variant="secondary"
           size="sm"
           onClick={onResetDateRange}
-          icon={<Icon name="x" size={14} />}
-          sx={{ fontSize: '0.75rem', px: 1 }}
+          icon={<Icon name="x" size={16} />}
+          sx={{
+            flexShrink: 0,
+            fontWeight: 700,
+            color: 'warning.main',
+            borderColor: 'warning.main',
+            bgcolor: (theme) => alpha(theme.palette.warning.main, 0.12),
+            '&:hover': {
+              borderColor: 'warning.main',
+              bgcolor: (theme) => alpha(theme.palette.warning.main, 0.22),
+            },
+          }}
         >
-          Reset
+          Azzera date
         </CancelButton>
       )}
     </SmartFilters>

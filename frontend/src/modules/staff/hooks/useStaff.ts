@@ -21,7 +21,7 @@ export function useStaffMembers({
   search,
   type,
   page = 1,
-  limit = 20,
+  limit = 25,
   enabled = true,
 }: MemberHookOptions = {}) {
   const [data, setData] = useState<PaginatedResponse<Staff> | undefined>();

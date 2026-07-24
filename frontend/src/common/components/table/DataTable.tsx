@@ -7,6 +7,8 @@ import Skeleton from '@mui/material/Skeleton';
 import { StatusChip } from '@/common/components/ui/StatusChip';
 import { MonoText } from '@/common/components/ui/MonoText';
 import { formatDate } from '@/common/shared/utils/format';
+import type { RowStyle } from 'ag-grid-community';
+import type { TableAction } from './TableActions';
 
 export enum ActionMode {
   Create = 'Create',
@@ -15,10 +17,10 @@ export enum ActionMode {
   Delete = 'Delete',
 }
 
-export interface DataTableRef {
+export interface DataTableRef<E = unknown> {
   openCreateModal: () => void;
-  openEditModal: (item: any) => void;
-  openReadModal: (item: any) => void;
+  openEditModal: (item: E) => void;
+  openReadModal: (item: E) => void;
 }
 
 export interface ColumnDefinition<E> {
@@ -27,7 +29,7 @@ export interface ColumnDefinition<E> {
   align?: 'left' | 'center' | 'right';
   render?: (row: E) => React.ReactNode;
   sortable?: boolean;
-  width?: number | string;
+  sortValue?: (row: E) => string | number | null | undefined;
   minWidth?: number;
   maxWidth?: number;
   flex?: number;
@@ -70,7 +72,7 @@ export const columnPresets = {
     align: 'center',
     render: (row: Record<string, unknown>) => <StatusChip status={row.status as string} />,
   } as ColumnDefinition<Record<string, unknown>>,
-  actions: { key: '__actions', label: 'Azioni', width: 130, sortable: false } as ColumnDefinition<
+  actions: { key: '__actions', label: 'Azioni', flex: 1.25, minWidth: 196, sortable: false } as ColumnDefinition<
     Record<string, unknown>
   >,
 };
@@ -98,6 +100,10 @@ export interface FetchParams {
   filter?: Record<string, string>;
 }
 
+export type DataTableResponse<E> =
+  | { items: E[]; meta: { totalItems: number } }
+  | { data: E[]; total: number };
+
 export type BaseColumnKey = 'id' | 'createdAt' | 'updatedAt';
 
 export interface DataTableProps<E> {
@@ -111,8 +117,8 @@ export interface DataTableProps<E> {
   columns: ColumnDefinition<E>[];
   baseColumns?: BaseColumnKey[];
   data?: E[];
-  fetchData?: (params: FetchParams) => Promise<{ items: E[]; meta: { totalItems: number } } | any>;
-  refreshKey?: number;
+  fetchData?: (params: FetchParams) => Promise<DataTableResponse<E>>;
+  refreshKey?: unknown;
   queryKey?: string | unknown[];
   onRowClick?: (row: E) => void;
   keyExtractor?: (row: E) => string | number;
@@ -153,9 +159,11 @@ export interface DataTableProps<E> {
   hasError?: boolean;
   pageSize?: number;
   pageSizeSelector?: number[];
-  getRowStyle?: (row: E) => React.CSSProperties | undefined;
-  actions?: (row: E) => React.ReactNode;
+  getRowStyle?: (row: E) => RowStyle | undefined;
+  rowActions?: (row: E) => TableAction[];
   hideToolbar?: boolean;
+  /** Optional summary rendered between the grid and the shared pagination controls. */
+  footerContent?: React.ReactNode;
 }
 
 export type DataTableParams<E> = Omit<
@@ -176,7 +184,7 @@ const LazyDataTableImpl = dynamic(() => import('./DataTableImpl'), {
 });
 
 export const DataTable = LazyDataTableImpl as unknown as <E>(
-  props: DataTableProps<E> & { ref?: React.Ref<any> }
+  props: DataTableProps<E> & { ref?: React.Ref<DataTableRef<E>> }
 ) => React.ReactElement;
 
 export default DataTable;

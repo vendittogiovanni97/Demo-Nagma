@@ -5,6 +5,7 @@ import { AppError } from '../../../core/shared/errors/AppError';
 import { buildPagination, paginate } from '../../../core/shared/kernel/pagination';
 import { parseUTCDate } from '../../../core/shared/utils/date-utils';
 import prisma from '../../../core/shared/utils/prisma';
+import type { CreateStaffInput, UpdateStaffInput } from '../controllers/staff.schemas';
 
 const SHIFT_LABEL_MAP: Record<string, { startTime: string; endTime: string; isOff: boolean }> = {
   'Mattina': { startTime: '09:00', endTime: '13:00', isOff: false },
@@ -36,7 +37,7 @@ function timeToMinutes(time: string): number {
 
 export class StaffService {
   async searchMembers(filters: { search?: string; type?: string; page: number; limit: number }) {
-    const { search, type, page = 1, limit = 20 } = filters;
+    const { search, type, page = 1, limit = 25 } = filters;
     const where: Prisma.StaffWhereInput = { deletedAt: null };
 
     if (type) {
@@ -78,7 +79,7 @@ export class StaffService {
     return member ?? null;
   }
 
-  async createMember(data: any) {
+  async createMember(data: CreateStaffInput) {
     const created = await prisma.staff.create({
       data: {
         name: data.name,
@@ -89,19 +90,26 @@ export class StaffService {
     return created;
   }
 
-  async updateMember(id: number, data: any) {
+  async updateMember(id: number, data: UpdateStaffInput) {
+    const existing = await prisma.staff.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!existing) throw new AppError('Collaboratore non trovato.', 404);
+
     const updated = await prisma.staff.update({
       where: { id },
-      data: data as any,
+      data,
     });
     return updated;
   }
 
   async deleteMember(id: number) {
-    await prisma.staff.update({
-      where: { id },
+    const result = await prisma.staff.updateMany({
+      where: { id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+    if (result.count === 0) throw new AppError('Collaboratore non trovato.', 404);
   }
 
   async listShifts(weekStart?: string) {

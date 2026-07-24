@@ -1,40 +1,31 @@
 "use client";
 
+import SwitchInput from '@/common/components/forms/SwitchInput';
+import Icon from '@/common/components/ui/Icon';
 import {
+  alpha,
   Box,
   Grid,
   Typography,
   useTheme,
-  alpha,
 } from '@mui/material';
-import SwitchInput from '@/common/components/forms/SwitchInput';
-import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import Icon from '@/common/components/ui/Icon';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
-import { configService } from '@/common/shared/services/config.service';
 // Components
 import SmartModal from '@/common/components/common/SmartModal';
 import FormAutocomplete from '@/common/components/forms/FormAutocomplete';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
+import Badge from '@/common/components/ui/Badge';
 
 // Types & Config
-import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
 import { useAuth } from '@/common/context/AuthContext';
 import { useToast } from '@/common/hooks/useToast';
-import type { Booking, BookingStatus, CreateBookingData } from '@/modules/booking/model/booking.types';
-import { customerApi as customerService } from '@/modules/customer/api/customer.api';
-import { useCustomers } from '@/modules/customer/hooks/useCustomer';
-import { useFormTemplates } from '@/modules/form-templates/hooks/useFormTemplates';
-import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
-import { staffApi as staffService } from '@/modules/staff/api/staff.api';
-import { extractErrorMessage } from '@/common/shared/utils/extract-error';
-import { bookingApi as bookingService } from '../../api/booking.api';
-import { PERCENTUALE_OPTIONS_VALUES } from '../../hooks/booking-config';
-import { useBookingForm, BookingFormData } from '../../hooks/useBookingForm';
+import type { Booking, BookingStatus } from '@/modules/booking/model/booking.types';
+import { useBookingForm } from '../../hooks/useBookingForm';
+import { BOOKING_STATUS_CONFIG } from '@/common/config/status-config';
 
 export interface ArtistOption {
   id: number;
@@ -46,6 +37,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  onUpdateLocalState?: (id: number, fields: Partial<any>) => void;
   booking: Booking | null;
   initialDate?: string;
   initialTime?: string;
@@ -55,6 +47,7 @@ export default function BookingModal({
   isOpen,
   onClose,
   onSuccess,
+  onUpdateLocalState,
   booking = null,
   initialDate,
   initialTime
@@ -71,6 +64,7 @@ export default function BookingModal({
     onSuccess,
     onClose,
     isSuperAdmin,
+    onUpdateLocalState,
   });
 
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -290,22 +284,34 @@ export default function BookingModal({
               {booking?.id && (
                 <Grid size={12}>
                   <Box sx={styles.statusGroup}>
-                    {([
-                      { v: 'CREATO', l: 'Creato', c: theme.palette.text.secondary },
-                      { v: 'CONFERMATO', l: 'Confermato', c: theme.palette.primary.main },
-                      { v: 'MODIFICATO', l: 'Modificato', c: theme.palette.custom.purple },
-                      { v: 'SPOSTATO', l: 'Spostato', c: theme.palette.warning.main },
-                      { v: 'ANNULLATO', l: 'Annullato', c: theme.palette.error.main },
-                      { v: 'COMPLETATO', l: 'Completato', c: theme.palette.success.main },
-                    ]).map((opt) => (
+                    {(Object.entries(BOOKING_STATUS_CONFIG) as Array<[
+                      BookingStatus,
+                      (typeof BOOKING_STATUS_CONFIG)[string],
+                    ]>).map(([status, config]) => (
                       <Box
-                        key={opt.v}
+                        key={status}
                         component="button"
                         type="button"
-                        onClick={() => form.setField('status', opt.v as BookingStatus)}
-                        sx={styles.statusButton(form.formData.status === opt.v, opt.c)}
+                        aria-pressed={form.formData.status === status}
+                        aria-label={`Imposta stato ${config.label}`}
+                        onClick={() => form.setField('status', status)}
+                        sx={styles.statusButton(form.formData.status === status)}
                       >
-                        {opt.l}
+                        <Badge
+                          variant={config.badgeVariant}
+                          size="lg"
+                          sx={{
+                            width: '100%',
+                            height: 40,
+                            pointerEvents: 'none',
+                            '& .MuiChip-label': {
+                              width: '100%',
+                              textAlign: 'center',
+                            },
+                          }}
+                        >
+                          {config.label}
+                        </Badge>
                       </Box>
                     ))}
                   </Box>
@@ -480,28 +486,35 @@ function createStyles(theme: any) {
       color: theme.palette.success.main,
     },
     statusGroup: {
-      display: 'flex',
-      flexWrap: 'wrap',
+      display: 'grid',
+      gridTemplateColumns: {
+        xs: 'repeat(2, minmax(0, 1fr))',
+        sm: 'repeat(4, minmax(0, 1fr))',
+        lg: 'repeat(7, minmax(0, 1fr))',
+      },
       gap: 1,
     },
-    statusButton: (active: boolean, color: string) => ({
-      px: 2,
-      py: 0.75,
-      borderRadius: 1.5,
-      fontSize: '0.7rem',
-      fontWeight: 700,
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
+    statusButton: (active: boolean) => ({
+      minWidth: 0,
+      p: 0,
+      border: 0,
+      borderRadius: 2,
+      backgroundColor: 'transparent',
       cursor: 'pointer',
-      transition: 'all 0.2s',
-      border: active ? 'none' : '1px solid',
-      borderColor: active ? 'transparent' : alpha(color, 0.4),
-      backgroundColor: active ? color : alpha(color, 0.1),
-      color: active ? (color === theme.palette.text.secondary ? theme.palette.common.black : theme.palette.common.white) : color,
-      boxShadow: active ? `0 2px 8px ${alpha(color, 0.4)}` : 'none',
+      transition: theme.transitions.create(['transform', 'box-shadow'], {
+        duration: theme.transitions.duration.shorter,
+      }),
+      outline: active ? `2px solid ${theme.palette.text.primary}` : '2px solid transparent',
+      outlineOffset: 2,
+      boxShadow: active
+        ? `0 4px 14px ${alpha(theme.palette.common.black, 0.28)}`
+        : 'none',
+      transform: active ? 'translateY(-1px)' : 'none',
       '&:hover': {
-        backgroundColor: active ? color : alpha(color, 0.2),
         transform: 'translateY(-1px)',
+      },
+      '&:focus-visible': {
+        outlineColor: theme.palette.primary.main,
       },
     }),
     textarea: {

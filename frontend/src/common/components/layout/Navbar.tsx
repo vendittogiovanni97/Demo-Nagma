@@ -20,7 +20,6 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import {
-  BarChart3,
   ClipboardList,
   DollarSign,
   FileText,
@@ -473,7 +472,6 @@ function NavbarUserMenu({
   const menuItems = useMemo(
     () => [
       { href: '/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
-      { href: '/reports', icon: BarChart3, label: 'Report & Analytics', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
       { href: '/posizionamento', icon: Map, label: 'Mappa Corporea', show: isSuperAdmin && SHOW_POSIZIONAMENTO },
       { href: '/consensi', icon: ClipboardList, label: 'Archivio Consensi', show: isSuperAdmin && SHOW_CONSENSI },

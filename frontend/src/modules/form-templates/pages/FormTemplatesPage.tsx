@@ -1,13 +1,17 @@
 "use client";
 
 import PageHeader from '@/common/components/common/PageHeader';
+import StatePanel from '@/common/components/feedback/StatePanel';
 import SmartFilters from '@/common/components/common/SmartFilters';
 import { useAuth } from '@/common/context/AuthContext';
+import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
+import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import { useFormTemplates } from '../hooks/useFormTemplates';
 import { useFormTemplateEditor } from '../hooks/useFormTemplateEditor';
 import TemplateListPanel from '../components/TemplateListPanel';
 import TemplateEditorPanel from '../components/TemplateEditorPanel';
 import Icon from '@/common/components/ui/Icon';
+import { OkButton } from '@/common/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
@@ -17,7 +21,8 @@ export default function FormTemplatesPage() {
   const router = useRouter();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const { data: templates, mutate } = useFormTemplates({ startDate, endDate });
+  const { data: templates, isLoading, error, mutate } = useFormTemplates({ startDate, endDate });
+  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const {
     selectedId,
@@ -36,6 +41,16 @@ export default function FormTemplatesPage() {
     handleDelete,
   } = useFormTemplateEditor({ onMutate: mutate });
 
+  const onRequestDelete = (id: number, name: string) => {
+    void deleteItem({
+      confirmMessage: `Sei sicuro di voler eliminare il template "${name}"?`,
+      action: () => handleDelete(id),
+      successMessage: 'Template eliminato.',
+      errorMessage: 'Errore durante la cancellazione del template',
+      onSuccess: mutate,
+    });
+  };
+
   useEffect(() => {
     if (user && !isSuperAdmin) {
       router.push('/');
@@ -43,6 +58,18 @@ export default function FormTemplatesPage() {
   }, [user, isSuperAdmin, router]);
 
   if (!isSuperAdmin) return null;
+
+  if (error) {
+    return (
+      <StatePanel
+        variant="error"
+        fullPage
+        title="Impossibile caricare i template"
+        description="Riprova tra qualche secondo."
+        action={<OkButton onClick={() => void mutate()}>Riprova</OkButton>}
+      />
+    );
+  }
 
   return (
     <Box
@@ -53,11 +80,11 @@ export default function FormTemplatesPage() {
         gap: 3,
         width: '100%',
         maxWidth: '100%',
-        overflow: 'hidden',
+        overflow: { xs: 'visible', lg: 'hidden' },
       }}
     >
       <PageHeader
-        title="Workspace Template"
+        title="Template dei form"
         filters={
           <SmartFilters
             dateRange={{
@@ -83,9 +110,10 @@ export default function FormTemplatesPage() {
       >
         <TemplateListPanel
           templates={templates}
+          isLoading={isLoading}
           selectedId={selectedId}
           onSelect={handleSelectTemplate}
-          onDelete={handleDelete}
+          onDelete={onRequestDelete}
         />
         <TemplateEditorPanel
           selectedId={selectedId}
@@ -102,6 +130,7 @@ export default function FormTemplatesPage() {
           onNewTemplate={handleNewTemplate}
         />
       </Box>
+      <ConfirmDialog {...confirmDialogProps} />
     </Box>
   );
 }

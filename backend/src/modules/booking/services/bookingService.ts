@@ -13,29 +13,50 @@ function timeToMinutes(time: string): number {
 
 export class BookingService {
   async findAll(filters: any) {
-    const { month, startDate, endDate, page, limit = 20, offset } = filters;
+    const { month, startDate, endDate, page, limit, offset, status, search, sortOrder } = filters;
     const where: Prisma.BookingWhereInput = {
       deletedAt: null,
       customer: { is: { deletedAt: null } },
     };
 
+    const dateBounds: { gte?: Date; lt?: Date; lte?: Date } = {};
     if (month) {
-      where.date = getMonthRange(month);
-    } else {
-      if (startDate) {
-        where.date = { gte: new Date(startDate) };
-      }
-      if (endDate) {
-        where.date = { ...where.date as object, lte: new Date(endDate + 'T23:59:59.999') };
-      }
+      const range = getMonthRange(month);
+      dateBounds.gte = range.gte;
+      dateBounds.lt = range.lt;
+    }
+    if (startDate) {
+      const from = new Date(startDate);
+      if (!dateBounds.gte || from > dateBounds.gte) dateBounds.gte = from;
+    }
+    if (endDate) {
+      dateBounds.lte = new Date(endDate + 'T23:59:59.999');
+    }
+    if (Object.keys(dateBounds).length > 0) {
+      where.date = dateBounds;
+    }
+
+    if (status && status !== 'ALL') {
+      where.status = status;
+    } else if (status === 'ALL') {
+      where.status = { notIn: ['ANNULLATO', 'CANCELLATO'] };
+    }
+
+    if (search) {
+      where.OR = [
+        { customer: { is: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { customer: { is: { lastName: { contains: search, mode: 'insensitive' } } } },
+        { customer: { is: { phone: { contains: search } } } },
+        { artist: { is: { name: { contains: search, mode: 'insensitive' } } } },
+      ];
     }
 
     if (page) {
       const [raws, total] = await prisma.$transaction([
         prisma.booking.findMany({
           where,
-          ...buildPagination(page, limit),
-          orderBy: { date: 'desc' },
+          ...buildPagination(page, limit ?? 25),
+          orderBy: { date: sortOrder ?? 'desc' },
           include: { customer: true, artist: true },
         }),
         prisma.booking.count({ where }),
@@ -45,14 +66,14 @@ export class BookingService {
         raws.map(r => ({ ...r, price: r.price ? Number(r.price) : null, deposit: r.deposit ? Number(r.deposit) : null })),
         total,
         page,
-        limit
+        limit ?? 25
       );
     }
 
     const [raws, total] = await prisma.$transaction([
       prisma.booking.findMany({
         where,
-        orderBy: { date: 'asc' },
+        orderBy: { date: sortOrder ?? 'asc' },
         include: { customer: true, artist: true },
         ...(limit && { take: limit }),
         ...(offset && { skip: offset }),
@@ -84,9 +105,12 @@ export class BookingService {
 
     return {
       total: Object.values(counts).reduce((sum, v) => sum + v, 0),
+      created: counts.CREATO ?? 0,
       confirmed: counts.CONFERMATO ?? 0,
-      cancelled: counts.CANCELLATO ?? counts.ANNULLATO ?? 0,
+      modified: counts.MODIFICATO ?? 0,
       rescheduled: counts.SPOSTATO ?? 0,
+      cancelled: counts.CANCELLATO ?? 0,
+      annullated: counts.ANNULLATO ?? 0,
       completed: counts.COMPLETATO ?? 0,
       month: month ?? null,
     };

@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
-import Button, { CloseButton, SaveButton, OkButton } from '@/common/components/ui/Button';
+import FormInput from '@/common/components/forms/FormInput';
+import { CloseButton, OkButton, SaveButton } from '@/common/components/ui/Button';
+import Icon from '@/common/components/ui/Icon';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 import Box from '@mui/material/Box';
-import { useTheme, alpha } from '@mui/material/styles';
-import Icon from '@/common/components/ui/Icon';
+import Typography from '@mui/material/Typography';
+import { alpha } from '@mui/material/styles';
 import FieldEditor from './FieldEditor';
 
 interface TemplateEditorPanelProps {
@@ -36,281 +38,251 @@ export default function TemplateEditorPanel({
   onSave,
   onNewTemplate,
 }: TemplateEditorPanelProps) {
-  const theme = useTheme();
   const isEditorOpen = selectedId !== null || isCreating;
 
   return (
     <Box
-      sx={{
-        backgroundColor: alpha(theme.palette.background.paper, 0.8),
-        backdropFilter: 'blur(10px)',
+      sx={(theme) => ({
         flex: 1,
-        width: { xs: '100%' },
+        minWidth: 0,
+        minHeight: { xs: 520, lg: 0 },
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 2,
-        position: 'relative',
-        border: 1,
-        borderColor: alpha(theme.palette.common.white, 0.1),
-        minHeight: 500,
+        backgroundColor: theme.palette.background.default,
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        borderRadius: 3,
         overflow: 'hidden',
-      }}
+        boxShadow: `0 12px 32px ${alpha(
+          theme.palette.common.black,
+          theme.palette.mode === 'light' ? 0.05 : 0.18,
+        )}`,
+      })}
     >
       {isEditorOpen ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <>
           <Box
-            sx={{
-              p: 3,
-              pb: 2,
-              borderBottom: 1,
-              borderColor: alpha(theme.palette.common.white, 0.1),
-              backgroundColor: 'rgba(0,0,0,0.2)',
+            sx={(theme) => ({
+              px: { xs: 2, sm: 3 },
+              py: 2.5,
               display: 'flex',
               flexDirection: 'column',
               gap: 2,
-            }}
+              backgroundColor: theme.palette.background.paper,
+              borderBottom: '1px solid',
+              borderColor: theme.palette.divider,
+            })}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
-                  component="span"
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    color: 'primary.main',
-                  }}
+                  sx={(theme) => ({
+                    width: 34,
+                    height: 34,
+                    display: 'grid',
+                    placeItems: 'center',
+                    borderRadius: 2,
+                    color: theme.palette.primary.main,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  })}
                 >
-                  {isCreating ? 'Creazione Nuovo' : 'Modalità Modifica'}
+                  <Icon name={isCreating ? 'plus' : 'edit3'} size={18} />
                 </Box>
-                <Icon name="edit3" size={12} />
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      color: 'primary.main',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                    }}
+                  >
+                    {isCreating ? 'Nuovo template' : 'Modifica template'}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                    Configura il titolo e i campi visualizzati nel form.
+                  </Typography>
+                </Box>
               </Box>
               <CloseButton
-              variant="ghost"
-              icon={<Icon name="x" size={20} />}
-              onClick={onClose}
-              sx={{ p: 0.25 }}
-            />
+                variant="icon"
+                icon={<Icon name="x" size={20} />}
+                onClick={onClose}
+                title="Chiudi editor"
+                aria-label="Chiudi editor"
+              />
             </Box>
-            <Box
-              component="input"
-              type="text"
+
+            <FormInput
+              name="template-name"
+              label="Nome del template"
               value={templateName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onTemplateNameChange(e.target.value)
-              }
+              onChange={onTemplateNameChange}
+              placeholder="es. Scheda prenotazione tattoo"
+              required
               sx={{
-                width: '100%',
-                backgroundColor: 'transparent',
-                color: 'white',
-                fontSize: { xs: '1.875rem', md: '2.25rem' },
-                fontWeight: 900,
-                fontFamily: 'Outfit, sans-serif',
-                outline: 'none',
-                '&::placeholder': { color: 'divider' },
+                '& .MuiInputBase-input': {
+                  fontSize: { xs: '1.125rem', sm: '1.35rem' },
+                  fontWeight: 750,
+                },
               }}
-              placeholder="Titolo del Template..."
             />
           </Box>
 
           <Box
             sx={{
               flex: 1,
+              minHeight: 0,
               overflowY: 'auto',
-              p: 3,
+              WebkitOverflowScrolling: 'touch',
+              px: { xs: 2, sm: 3 },
+              py: 3,
               display: 'flex',
               flexDirection: 'column',
-              gap: 3,
+              gap: 2.5,
             }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                pb: 1,
-                borderBottom: 1,
-                borderColor: alpha(theme.palette.common.white, 0.1),
-              }}
-            >
-              <Box
-                component="h3"
-                sx={{
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  color: 'common.white',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                Struttura Dati
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              <Box>
+                <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: 'text.primary' }}>
+                  Campi del form
+                </Typography>
+                <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+                  Definisci le informazioni che verranno richieste.
+                </Typography>
               </Box>
               <Box
-                component="span"
-                sx={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'text.secondary' }}
+                sx={(theme) => ({
+                  px: 1.25,
+                  py: 0.6,
+                  borderRadius: 10,
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: theme.palette.primary.main,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  whiteSpace: 'nowrap',
+                })}
               >
-                {fields.length} elementi
+                {fields.length} {fields.length === 1 ? 'campo' : 'campi'}
               </Box>
             </Box>
 
             {fields.length === 0 ? (
               <Box
-                sx={{
+                sx={(theme) => ({
+                  minHeight: 280,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  py: 6,
+                  gap: 1.25,
+                  p: 4,
                   textAlign: 'center',
-                  borderRadius: 2,
-                  border: '2px dashed',
-                  borderColor: 'divider',
-                  backgroundColor: alpha(theme.palette.common.white, 0.05),
-                }}
+                  borderRadius: 3,
+                  border: '1px dashed',
+                  borderColor: theme.palette.divider,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.025),
+                })}
               >
-                <Box sx={{ color: 'text.secondary', mb: 1.5, opacity: 0.5 }}>
-                  <Icon name="plus" size={40} />
+                <Box sx={{ color: 'primary.main', display: 'inline-flex' }}>
+                  <Icon name="fileText" size={36} />
                 </Box>
-                <Box component="p" sx={{ color: 'common.white', fontWeight: 600, mb: 0.25 }}>
-                  Nessun campo aggiunto
-                </Box>
-                <Box
-                  component="p"
-                  sx={{
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    px: 4,
-                    maxWidth: 'sm',
-                    mb: 3,
-                  }}
-                >
-                  Inizia ad aggiungere campi per costruire la struttura informativa del tuo template
-                  form.
-                </Box>
-                <Button variant="secondary" onClick={onAddField}>
+                <Typography sx={{ color: 'text.primary', fontWeight: 750 }}>
+                  Il template non contiene ancora campi
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem', maxWidth: 440 }}>
+                  Aggiungi il primo campo e scegli se sarà testo, numero, data, selezione o checkbox.
+                </Typography>
+                <OkButton variant="secondary" icon={<Icon name="plus" size={18} />} onClick={onAddField} sx={{ mt: 1 }}>
                   Aggiungi il primo campo
-                </Button>
+                </OkButton>
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {fields.map((field, idx) => (
+                {fields.map((field, index) => (
                   <FieldEditor
-                    key={idx}
+                    key={index}
+                    index={index}
                     field={field}
-                    onChange={(updated) => onFieldChange(idx, updated)}
-                    onRemove={() => onRemoveField(idx)}
+                    onChange={(updated) => onFieldChange(index, updated)}
+                    onRemove={() => onRemoveField(index)}
                   />
                 ))}
-                <Button
+                <OkButton
                   variant="secondary"
-                  size="md"
                   icon={<Icon name="plus" size={18} />}
                   fullWidth
                   onClick={onAddField}
-                  sx={{ mt: 2 }}
+                  sx={{ mt: 0.5, minHeight: 48 }}
                 >
                   Aggiungi un altro campo
-                </Button>
+                </OkButton>
               </Box>
             )}
           </Box>
 
           <Box
-            sx={{
-              p: 3,
-              backgroundColor: 'background.default',
-              borderTop: 1,
-              borderColor: alpha(theme.palette.common.white, 0.1),
+            sx={(theme) => ({
+              px: { xs: 2, sm: 3 },
+              py: 2,
               display: 'flex',
               justifyContent: 'flex-end',
-              gap: 1.5,
-              mt: 'auto',
-              position: 'sticky',
-              bottom: 0,
-              zIndex: 10,
-            }}
+              backgroundColor: theme.palette.background.paper,
+              borderTop: '1px solid',
+              borderColor: theme.palette.divider,
+            })}
           >
-            <Button
-              variant="primary"
-              size="md"
+            <SaveButton
               icon={!saving ? <Icon name="save" size={18} /> : undefined}
               onClick={onSave}
               disabled={saving}
               isLoading={saving}
               loadingLabel="Salvataggio..."
-              sx={{ width: { xs: '100%', md: 'auto' } }}
+              sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { sm: 180 } }}
             >
-              {isCreating ? 'Pubblica Template' : 'Salva Modifiche'}
-            </Button>
+              {isCreating ? 'Crea template' : 'Salva modifiche'}
+            </SaveButton>
           </Box>
-        </Box>
+        </>
       ) : (
         <Box
           sx={{
-            width: '100%',
-            height: '100%',
+            flex: 1,
+            minHeight: 460,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 1.5,
             p: 4,
             textAlign: 'center',
-            backgroundColor: 'rgba(0,0,0,0.1)',
           }}
         >
           <Box
-            sx={{
-              width: 96,
-              height: 96,
-              borderRadius: '50%',
-              backgroundColor: alpha(theme.palette.primary.main, 0.05),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 3,
-              border: 1,
-              borderColor: alpha(theme.palette.primary.main, 0.1),
-            }}
+            sx={(theme) => ({
+              width: 76,
+              height: 76,
+              borderRadius: 3,
+              display: 'grid',
+              placeItems: 'center',
+              color: theme.palette.primary.main,
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              border: '1px solid',
+              borderColor: alpha(theme.palette.primary.main, 0.2),
+            })}
           >
-            <Box sx={{ color: alpha(theme.palette.primary.main, 0.6) }}>
-              <Icon name="fileText" size={40} />
-            </Box>
+            <Icon name="fileText" size={34} />
           </Box>
-          <Box
-            component="h3"
-            sx={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: 'common.white',
-              fontFamily: 'Outfit, sans-serif',
-              mb: 0.5,
-            }}
-          >
-            Editor Template
-          </Box>
-          <Box
-            component="p"
-            sx={{
-              color: 'text.secondary',
-              fontSize: '0.875rem',
-              maxWidth: 'sm',
-              mb: 4,
-              lineHeight: 1.6,
-            }}
-          >
-            Seleziona un template dal raccoglitore a sinistra per visualizzarne o modificarne la
-            struttura, oppure creane uno partendo da zero.
-          </Box>
-          <Button variant="primary" icon={(props: any) => <Icon name="plus" {...props} />} size="lg" onClick={onNewTemplate}>
-            Nuovo Template
-          </Button>
+          <Typography sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'text.primary' }}>
+            Seleziona un template
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem', maxWidth: 460 }}>
+            Apri un template dal raccoglitore per modificarlo oppure creane uno nuovo.
+          </Typography>
+          <OkButton icon={<Icon name="plus" size={18} />} onClick={onNewTemplate} sx={{ mt: 1 }}>
+            Nuovo template
+          </OkButton>
         </Box>
       )}
     </Box>

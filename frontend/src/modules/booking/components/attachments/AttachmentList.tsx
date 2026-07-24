@@ -2,10 +2,11 @@
 
 import React, { useCallback, useState } from 'react';
 import {
-  Box, CircularProgress, IconButton, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, useTheme, SxProps, Theme, Typography
+  Box, CircularProgress, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, SxProps, Theme, Typography
 } from '@mui/material';
-import Icon from '@/common/components/ui/Icon';
+import { alpha } from '@mui/material/styles';
+import TableActions, { type TableAction } from '@/common/components/table/TableActions';
 
 // Hooks & Types
 import { useAttachments } from '@/common/hooks/domain/useAttachments';
@@ -40,7 +41,6 @@ function getFileExtension(fileName: string): string {
 }
 
 export default function AttachmentList({ bookingId, onRefresh, refreshTrigger }: AttachmentListProps) {
-  const theme = useTheme();
   const { attachments, isLoading, deleting, deleteAttachment, downloadAttachment } = useAttachments({
     bookingId, enabled: !!bookingId, refreshTrigger,
   });
@@ -68,6 +68,32 @@ export default function AttachmentList({ bookingId, onRefresh, refreshTrigger }:
     setDeleteConfirmOpen(false);
     setPendingDeleteId(null);
   }, [pendingDeleteId, deleteAttachment, onRefresh]);
+
+  const getAttachmentActions = useCallback((attachment: Attachment): TableAction[] => [
+    {
+      id: 'preview',
+      label: `Anteprima ${attachment.fileName}`,
+      icon: 'eye',
+      tone: 'primary',
+      onClick: () => handlePreview(attachment),
+    },
+    {
+      id: 'download',
+      label: `Scarica ${attachment.fileName}`,
+      icon: 'download',
+      tone: 'primary',
+      onClick: () => downloadAttachment(attachment.id, attachment.fileName),
+    },
+    {
+      id: 'delete',
+      label: `Elimina ${attachment.fileName}`,
+      icon: 'trash2',
+      tone: 'error',
+      disabled: deleting !== null,
+      loading: deleting === attachment.id,
+      onClick: () => handleDeleteClick(attachment.id),
+    },
+  ], [deleting, downloadAttachment, handleDeleteClick, handlePreview]);
 
   if (isLoading) {
     return (
@@ -120,17 +146,7 @@ export default function AttachmentList({ bookingId, onRefresh, refreshTrigger }:
                   <Typography variant="body2" color="text.secondary">{formatDate(attachment.createdAt)}</Typography>
                 </TableCell>
                 <TableCell align="center">
-                  <Box sx={styles.actions}>
-                    <IconButton size="small" onClick={() => handlePreview(attachment)} sx={styles.actionButton('primary')}>
-                      <Icon name="eye" size={16} />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => downloadAttachment(attachment.id, attachment.fileName)} sx={styles.actionButton('primary')}>
-                      <Icon name="download" size={16} />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDeleteClick(attachment.id)} disabled={deleting !== null} sx={styles.actionButton('error')}>
-                      {deleting === attachment.id ? <CircularProgress size={16} color="inherit" /> : <Icon name="trash2" size={16} />}
-                    </IconButton>
-                  </Box>
+                  <TableActions actions={getAttachmentActions(attachment)} />
                 </TableCell>
               </TableRow>
             ))}
@@ -163,16 +179,20 @@ const styles = {
     display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200
   } as SxProps<Theme>,
   emptyState: {
-    p: 4, textAlign: 'center', bgcolor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.06)'
+    p: 4,
+    textAlign: 'center',
+    bgcolor: (theme: Theme) => alpha(theme.palette.common.white, 0.02),
+    borderRadius: 3,
+    border: '1px solid',
+    borderColor: 'divider',
   } as SxProps<Theme>,
   tableContainer: {
-    borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.06)', overflowX: 'auto',
+    borderRadius: 3, border: '1px solid', borderColor: 'divider', overflowX: 'auto',
     '&::-webkit-scrollbar': { height: '6px' },
-    '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0, 191, 255, 0.3)', borderRadius: '3px' }
+    '&::-webkit-scrollbar-thumb': { bgcolor: 'primary.main', opacity: 0.3, borderRadius: '3px' }
   } as SxProps<Theme>,
   headRow: {
-    bgcolor: 'rgba(255, 255, 255, 0.03)',
+    bgcolor: (theme: Theme) => alpha(theme.palette.common.white, 0.03),
     '& th': {
       color: 'primary.main', fontWeight: 700, fontSize: '0.7rem',
       textTransform: 'uppercase', letterSpacing: '0.1em', p: 2
@@ -180,16 +200,16 @@ const styles = {
   } as SxProps<Theme>,
   bodyRow: {
     '& td': { p: 2 },
-    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.02)' },
+    '&:hover': { bgcolor: 'action.hover' },
     transition: 'bgcolor 0.2s ease'
   } as SxProps<Theme>,
   fileInfo: {
     display: 'flex', alignItems: 'center', gap: 1.5
   } as SxProps<Theme>,
   extensionBadge: {
-    width: 36, height: 36, borderRadius: '8px', bgcolor: 'rgba(0, 191, 255, 0.1)',
+    width: 36, height: 36, borderRadius: '8px', bgcolor: 'action.hover',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: '0.7rem', fontWeight: 800, color: 'primary.main', border: '1px solid rgba(0, 191, 255, 0.1)'
+    fontSize: '0.7rem', fontWeight: 800, color: 'primary.main', border: '1px solid', borderColor: 'divider'
   } as SxProps<Theme>,
   fileNameGroup: {
     flex: 1, minWidth: 0
@@ -201,14 +221,6 @@ const styles = {
   mimeType: {
     fontSize: '0.65rem', color: 'text.secondary', mt: 0.25
   } as SxProps<Theme>,
-  actions: {
-    display: 'flex', justifyContent: 'center', gap: 1
-  } as SxProps<Theme>,
-  actionButton: (variant: 'primary' | 'error') => ({
-    color: variant === 'primary' ? 'primary.main' : 'error.main',
-    '&:hover': { bgcolor: variant === 'primary' ? 'rgba(0, 191, 255, 0.1)' : 'rgba(244, 67, 54, 0.1)' },
-    '&:disabled': { opacity: 0.5 }
-  } as SxProps<Theme>),
   hideMobile: {
     display: { xs: 'none', sm: 'table-cell' }
   } as SxProps<Theme>,

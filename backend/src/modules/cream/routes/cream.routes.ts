@@ -13,4 +13,5 @@ export function registerCreamRoutes(app: Express): void {
   app.get('/api/cream/summary', authMiddleware, requireFeature('enableCream'), controller.getSalesSummary);
   app.get('/api/cream/:id/sales', authMiddleware, requireFeature('enableCream'), controller.getSales);
   app.post('/api/cream/sales', authMiddleware, requireFeature('enableCream'), controller.createSale);
+  app.delete('/api/cream/sales/:id', authMiddleware, adminOnly, requireFeature('enableCream'), controller.deleteSale);
 }

@@ -1,21 +1,23 @@
 import { z } from 'zod';
 
+const staffTypeSchema = z.enum(['COLLABORATORE', 'APPRENDISTA']);
+
 export const createStaffSchema = z.object({
-  name: z.string().min(1),
-  type: z.enum(['ARTIST', 'USER', 'ADMIN']),
-  phone: z.string().optional(),
-  color: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
-  password: z.string().min(6),
+  name: z.string().trim().min(1),
+  type: staffTypeSchema,
+  color: z.string().trim().min(1).optional(),
 });
 
 export const updateStaffSchema = z.object({
-  name: z.string().min(1).optional(),
-  type: z.enum(['ARTIST', 'USER', 'ADMIN']).optional(),
-  phone: z.string().optional(),
-  color: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  name: z.string().trim().min(1).optional(),
+  type: staffTypeSchema.optional(),
+  color: z.string().trim().min(1).optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'Specificare almeno un campo da modificare',
 });
+
+export type CreateStaffInput = z.infer<typeof createStaffSchema>;
+export type UpdateStaffInput = z.infer<typeof updateStaffSchema>;
 
 export const createShiftSchema = z.object({
   staffId: z.number(),

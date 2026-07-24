@@ -1,7 +1,17 @@
 # 🗄️ Script Backup Database Automatico
 
+> [!WARNING]
+> Questa cartella contiene script **legacy per MariaDB/MySQL** e non è il sistema di backup del database corrente di Demo-Nagma. L'applicazione usa PostgreSQL 17 tramite `infrastructure/docker/docker-compose.db.yml`. Non eseguire questi script sul database Nagma senza averli prima convertiti a `pg_dump` e aver rimosso le credenziali di esempio.
+
 Script pronti per fare il backup automatico di un database MariaDB/MySQL su Docker.
 Funziona su **Windows**, **Mac** e **Linux**.
+
+## Stato nel progetto
+
+- Motore supportato dagli script: MariaDB/MySQL.
+- Motore usato da Demo-Nagma: PostgreSQL 17.
+- Utilizzo attuale: archivio di riferimento, escluso dal flusso `npm run db:*`.
+- Backup PostgreSQL consigliato: `pg_dump` con credenziali fornite tramite ambiente o secret manager, mai incorporate negli script.
 
 ---
 

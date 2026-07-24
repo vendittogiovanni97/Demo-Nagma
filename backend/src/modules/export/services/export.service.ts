@@ -1,13 +1,10 @@
 import ExcelJS from 'exceljs';
-import PDFDocument from 'pdfkit';
 import prisma from '../../../core/shared/utils/prisma';
-import { ExportRequestDto, ExportColumnDto } from '../types/export.types';
+import { ExportRequestDto, type ExportRow } from '../types/export.types';
+import { PdfUtils } from '../utils/pdf.utils';
 
 export class ExportService {
-  /**
-   * Risolve i dati dall'entità Prisma oppure usa quelli trasmessi.
-   */
-  async resolveRows(req: ExportRequestDto): Promise<Record<string, any>[]> {
+  async resolveRows(req: ExportRequestDto): Promise<ExportRow[]> {
     if (req.data && Array.isArray(req.data)) {
       return req.data;
     }
@@ -85,10 +82,7 @@ export class ExportService {
     }
   }
 
-  /**
-   * Genera una stringa CSV formattata in UTF-8 BOM.
-   */
-  async generateCsv(req: ExportRequestDto, rows: Record<string, any>[]): Promise<string> {
+  async generateCsv(req: ExportRequestDto, rows: ExportRow[]): Promise<string> {
     const columns = req.columns;
     const headerRow = columns.map((col) => `"${col.label.replace(/"/g, '""')}"`).join(',');
 
@@ -105,10 +99,7 @@ export class ExportService {
     return '\uFEFF' + [headerRow, ...dataRows].join('\n');
   }
 
-  /**
-   * Genera un buffer XLSX usando ExcelJS con formattazione e stili.
-   */
-  async generateExcel(req: ExportRequestDto, rows: Record<string, any>[]): Promise<Buffer> {
+  async generateExcel(req: ExportRequestDto, rows: ExportRow[]): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const title = req.title || 'Export Dati Demo-Nagma';
     const worksheet = workbook.addWorksheet('Export');
@@ -177,71 +168,161 @@ export class ExportService {
     return Buffer.from(uint8Array);
   }
 
-  /**
-   * Genera un buffer PDF formattato tramite PDFKit.
-   */
-  async generatePdf(req: ExportRequestDto, rows: Record<string, any>[]): Promise<Buffer> {
-    const title = req.title || 'Export Dati Demo-Nagma';
+  async generatePdf(req: ExportRequestDto, rows: ExportRow[]): Promise<Buffer> {
+    const rawTitle = req.title || 'Export Dati Demo-Nagma';
     const columns = req.columns;
+    const title = rawTitle
+      .replace(/(.*?)\s*—\s*\1/g, '$1')
+      .replace(/([a-zA-Z0-9àèéìòù])(Mese:)/g, '$1 — $2');
 
     return new Promise<Buffer>((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 30, size: 'A4' });
+      const margin = PdfUtils.DEFAULT_MARGIN;
+      const doc = PdfUtils.createDocument({ margin, layout: 'landscape' });
       const buffers: Buffer[] = [];
 
       doc.on('data', (chunk) => buffers.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', (err) => reject(err));
 
-      // Header Documento
-      doc.fontSize(16).text(title, { align: 'center' });
-      doc.fontSize(9).text(`Data Export: ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}`, { align: 'center' });
-      doc.moveDown(1.5);
+      const contentWidth = PdfUtils.PAGE_WIDTH_LANDSCAPE - margin * 2;
+      const bottomLimit = PdfUtils.PAGE_HEIGHT_LANDSCAPE - margin - 35;
 
-      // Tabella Dati PDF
-      const colWidth = Math.floor(530 / Math.max(columns.length, 1));
-      const startX = 30;
-      let startY = doc.y;
+      const getExactColWidth = (label: string, defaultWidth: number): number => {
+        const l = label.toLowerCase();
+        if (l.includes('durata')) return 85;
+        if (l.includes('stato')) return 80;
+        if (l.includes('prezzo')) return 75;
+        if (l.includes('acconto')) return 75;
+        if (l.includes('data')) return 105;
+        if (l.includes('artista')) return 120;
+        if (l.includes('cliente')) return 135;
+        if (l.includes('note')) return 96.89;
+        return defaultWidth;
+      };
 
-      // Draw Header Table Row
-      doc.fontSize(9).fillColor('#1E293B');
-      columns.forEach((col, idx) => {
-        doc.text(col.label, startX + idx * colWidth, startY, {
-          width: colWidth - 5,
-          align: 'left',
+      const defaultColW = contentWidth / Math.max(columns.length, 1);
+      const colWidths = columns.map((col) => getExactColWidth(col.label, defaultColW));
+      const colPositions = colWidths.reduce<number[]>((acc, w, i) => {
+        const prev = i === 0 ? margin : acc[i - 1] + colWidths[i - 1];
+        acc.push(prev);
+        return acc;
+      }, []);
+
+      const drawHeader = () => {
+        return PdfUtils.drawBrandHeader(
+          doc,
+          { title, totalRecords: rows.length },
+          columns,
+          colPositions,
+          colWidths
+        );
+      };
+
+      let currentY = drawHeader();
+
+      // Rendering Dati con Righe Più Spaziose (rowHeight minimo 36pt per ampio distacco)
+      rows.forEach((row, rowIndex) => {
+        const cellValues = columns.map((col) => this.formatValue(row[col.key], col.type));
+
+        doc.font('Helvetica').fontSize(8.5);
+        const cellHeights = cellValues.map((valStr, idx) => {
+          const colW = colWidths[idx] - 12;
+          return doc.heightOfString(valStr, { width: Math.max(colW, 20) });
         });
-      });
-      doc.moveDown(0.5);
-      doc.moveTo(startX, doc.y).lineTo(startX + 530, doc.y).strokeColor('#CBD5E1').stroke();
-      doc.moveDown(0.5);
 
-      // Draw Rows
-      doc.fillColor('#334155');
-      rows.slice(0, 150).forEach((row) => {
-        if (doc.y > 750) {
-          doc.addPage();
-          startY = doc.y;
+        const maxTextHeight = Math.max(...cellHeights, 14);
+        const rowHeight = Math.max(maxTextHeight + 16, 36);
+
+        if (currentY + rowHeight > bottomLimit) {
+          doc.addPage({ margin, size: 'A4', layout: 'landscape' });
+          doc.page.margins.bottom = 0;
+          currentY = drawHeader();
         }
 
-        const currentY = doc.y;
+        if (row.__pdfRowVariant === 'success') {
+          doc.rect(margin, currentY, contentWidth, rowHeight).fill('#D1FAE5');
+        } else if (rowIndex % 2 === 0) {
+          doc.rect(margin, currentY, contentWidth, rowHeight).fill('#F8FAFC');
+        }
+
         columns.forEach((col, idx) => {
-          const val = this.formatValue(row[col.key], col.type);
-          doc.fontSize(8).text(String(val), startX + idx * colWidth, currentY, {
-            width: colWidth - 5,
-            align: 'left',
-          });
+          const valStr = cellValues[idx];
+          const colX = colPositions[idx];
+          const colW = colWidths[idx];
+          const isRightAlign = col.type === 'number' || col.type === 'currency' || col.label.includes('(€)');
+          const isStatusCol = col.label.toLowerCase().includes('stato') || col.key.toLowerCase().includes('status');
+          const isStruckThrough = row[`${col.key}__pdfStrikeThrough`] === true;
+
+          if (isStatusCol && valStr && valStr !== '—') {
+            PdfUtils.drawStatusBadge(doc, valStr, colX, currentY, colW, rowHeight);
+          } else {
+            const textX = colX + 6;
+            const textY = currentY + (rowHeight - maxTextHeight) / 2;
+            doc.font('Helvetica').fontSize(8.5).fillColor(isStruckThrough ? '#DC2626' : '#334155');
+            doc.text(valStr, textX, textY, {
+              width: colW - 12,
+              align: isRightAlign ? 'right' : 'left',
+              lineBreak: false,
+            });
+            if (isStruckThrough) {
+              const strikeWidth = Math.min(doc.widthOfString(valStr), colW - 12);
+              doc
+                .moveTo(textX, textY + 4)
+                .lineTo(textX + strikeWidth, textY + 4)
+                .lineWidth(0.8)
+                .strokeColor('#DC2626')
+                .stroke();
+            }
+          }
         });
-        doc.moveDown(0.4);
+
+        currentY += rowHeight;
+
+        // Linea divisoria (Divider marcato) sotto OGNI riga per la massima chiarezza visiva
+        doc.moveTo(margin, currentY).lineTo(margin + contentWidth, currentY).lineWidth(0.8).strokeColor('#CBD5E1').stroke();
       });
 
-      // Footer
-      doc.moveDown(2);
-      doc.fontSize(8).fillColor('#94A3B8').text(`Totale record esportati: ${rows.length}`, { align: 'right' });
+      if (req.pdfSummary) {
+        const summaryHeight = 38;
+        if (currentY + summaryHeight > bottomLimit) {
+          doc.addPage({ margin, size: 'A4', layout: 'landscape' });
+          doc.page.margins.bottom = 0;
+          currentY = drawHeader();
+        }
+
+        const valueColumnWidth = colWidths.at(-1) ?? defaultColW;
+        const valueColumnX = colPositions.at(-1) ?? margin;
+        doc.rect(margin, currentY, contentWidth, summaryHeight).fill('#1E293B');
+        doc
+          .font('Helvetica-Bold')
+          .fontSize(9)
+          .fillColor('#FFFFFF')
+          .text(req.pdfSummary.label.toUpperCase(), margin + 8, currentY + 14, {
+            width: valueColumnX - margin - 16,
+            align: 'left',
+            lineBreak: false,
+          });
+        doc.text(
+          req.pdfSummary.value,
+          valueColumnX + 6,
+          currentY + 14,
+          {
+            width: valueColumnWidth - 12,
+            align: 'left',
+            lineBreak: false,
+          },
+        );
+        currentY += summaryHeight;
+      }
+
+      // Generazione Footer e numerazione esatta pagine senza mai creare pagine vuote extra
+      PdfUtils.finalizeFooter(doc, rows.length);
 
       doc.end();
     });
   }
 
-  private formatValue(val: any, type?: string): string {
+  private formatValue(val: unknown, type?: string): string {
     if (val === undefined || val === null) return '—';
     if (type === 'currency') {
       const num = Number(val);

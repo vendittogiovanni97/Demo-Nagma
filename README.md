@@ -27,6 +27,16 @@ Demo Nagma permette ai proprietari di studio, agli artisti e al personale ammini
 - 📊 **Esportazione Reportistica**: Esportazione istantanea dei dati finanziari e dei clienti in formato **Excel** (`.xlsx`), **PDF** e **CSV UTF-8 BOM**.
 - ⚙️ **Configurazione Dinamica**: Gestione flessibile delle impostazioni dello studio caricate dinamicamente dal database con caching ad alte prestazioni.
 
+### Aggiornamenti Funzionali — Luglio 2026
+
+- **Tabelle responsive:** `DataTable` usa colonne fluide e azioni di riga centralizzate in `TableActions`, con icone, colori, permessi e loading uniformi.
+- **AG Grid stabile:** CSS globali caricati dal layout e overlay controllati esclusivamente tramite la prop `loading`.
+- **Dashboard operativa:** “Appuntamenti oggi” mostra al massimo i prossimi 5 appuntamenti `CREATO` o `CONFERMATO`; quelli iniziati da più di 10 minuti vengono rimossi automaticamente.
+- **Staff create/edit:** la stessa modale gestisce creazione e modifica, con dati precompilati e contratto `COLLABORATORE`/`APPRENDISTA` allineato tra frontend, Zod e Prisma.
+- **Form Template:** editor ridisegnato per light/dark mode, textarea multilinea condivisa, opzioni per riga, validazione delle chiavi duplicate e layout responsive.
+- **Export centralizzato:** unico flusso per CSV, Excel e PDF; il backend utilizza template PDF specifici per dominio.
+- **Filtri e tipi condivisi:** range data, transazioni, paginazione ed enum sono centralizzati per ridurre duplicazioni.
+
 ---
 
 ## 🏛️ Architettura e Stack Tecnologico
@@ -39,7 +49,7 @@ Demo-Nagma/
 │   ├── src/
 │   │   ├── core/              # Container DI, Middleware di sicurezza/errori, Logger, Utility Prisma
 │   │   ├── modules/           # Moduli di business (Auth, Customer, Booking, Staff, Finance, ecc.)
-│   │   └── routes.ts          # Registro rotte centralizzato Express
+│   │   └── routes.ts          # Registro centralizzato dei moduli Express
 │   └── prisma/                # Schema Prisma, Migrazioni e Script di Seed
 ├── frontend/                  # Next.js 16 App Router & React 19 Frontend
 │   ├── src/
@@ -58,7 +68,7 @@ Demo-Nagma/
 | **Backend API** | Node.js 22+, Express 5, Prisma 7.8, PostgreSQL 17, Zod 4, JWT, ExcelJS, PDFKit |
 | **Frontend App** | Next.js 16 (App Router), React 19, Material-UI 9, AG-Grid 32, SWR, Lucide-React |
 | **Infrastruttura** | Docker Desktop, Docker Compose, Bash/Zsh Automation |
-| **Testing** | Jest (Backend Unit Tests), Playwright & Vitest (Frontend E2E) |
+| **Testing** | Jest (Backend unit/integration e Frontend unit), Playwright (Frontend E2E) |
 
 ---
 
@@ -166,6 +176,8 @@ Avvia contemporaneamente Backend su `http://localhost:3001` e Frontend su `http:
 npm run dev
 ```
 
+Il frontend viene avviato con `next dev --webpack`. Questa scelta evita il panic interno di Turbopack osservato durante la compilazione locale del progetto.
+
 #### Modalità Produzione:
 ```bash
 npm run build
@@ -193,7 +205,7 @@ Tutti i comandi principali possono essere eseguiti direttamente dalla cartella r
 | `npm run db:seed` | Inserisce i dati di base del sistema (Admin, Staff, Config) |
 | `npm run db:seed:demo` | Inserisce i dati demo di prova (Clienti, Appuntamenti, Finanze) |
 | `npm run typecheck` | Esegue la verifica dei tipi TypeScript su backend e frontend |
-| `npm run test` | Esegue la suite di test unitari backend con Jest (16 suite, 134 test) |
+| `npm run test` | Esegue le suite backend unit, integration e security con Jest |
 | `npm run clean` | Elimina le cartelle di build `dist` e `.next` |
 | `npm run deploy` | Script di aggiornamento e deploy automatico da Git `main` (macOS) |
 
@@ -226,15 +238,25 @@ Prima di effettuare un commit o considerare completato un task, verifica sempre 
 # 1. Verifica errori di tipo TypeScript
 npm run typecheck
 
-# 2. Test Unitari Backend (Jest)
+# 2. Test Unitari Backend e Frontend
+npm run test:unit
+npm run test:unit --prefix frontend -- --runInBand
+
+# 3. Suite completa Backend (richiede PostgreSQL e health check)
 npm run test
 
-# 3. Security Audit OWASP Backend
+# 4. Security Audit OWASP Backend
 cd backend && npx jest test/security/ --forceExit
 
-# 4. End-to-End Test Frontend (Playwright)
+# 5. End-to-End Test Frontend (Playwright)
 cd frontend && npx playwright test --project=chromium
+
+# 6. Controllo whitespace
+git diff --check
 ```
+
+> [!NOTE]
+> La suite backend completa usa un global setup che attende `http://localhost:3001/health`. Se il server di test o PostgreSQL non sono disponibili, la suite si interrompe per timeout prima di eseguire i test integration; usare `npm run test:unit` per isolare i test unitari.
 
 ---
 
@@ -266,4 +288,3 @@ Dopo aver eseguito il seed del database (`npm run db:seed`), gli account amminis
 - 👑 **Super Admin**: `superadmin@nagma.it` | Password: `superadmin123`
 - 👤 **Admin (Miriam)**: `miriam@nagma.it` | Password: `Nagmatattoo1926!`
 - 👤 **Admin (Giuseppe)**: `giuseppe@nagma.it` | Password: `Nagmatattoo1926!`
-

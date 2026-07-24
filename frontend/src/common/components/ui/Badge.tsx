@@ -36,55 +36,40 @@ export default function Badge({
 
   const getColors = () => {
     const isLight = theme.palette.mode === 'light';
+    const buildColors = (color: string) => ({
+      bg: alpha(color, isLight ? 0.12 : 0.22),
+      text: isLight ? color : theme.palette.common.white,
+      border: alpha(color, isLight ? 0.32 : 0.55),
+    });
     switch (variant) {
       case 'primary':
       case 'status-confirmed':
-        return {
-          bg: alpha(theme.palette.primary.main, isLight ? 0.12 : 0.22),
-          text: isLight ? theme.palette.primary.dark : theme.palette.primary.light,
-          border: alpha(theme.palette.primary.main, 0.35),
-        };
+        return buildColors(theme.palette.primary.main);
 
       case 'info':
       case 'status-created':
-        return {
-          bg: alpha(theme.palette.info.main, isLight ? 0.12 : 0.2),
-          text: isLight ? theme.palette.info.dark : theme.palette.info.light,
-          border: alpha(theme.palette.info.main, 0.3),
-        };
+        return buildColors(theme.palette.info.main);
 
       case 'success':
       case 'status-completed':
-        return {
-          bg: alpha(theme.palette.success.main, isLight ? 0.12 : 0.2),
-          text: isLight ? '#047857' : theme.palette.success.light,
-          border: alpha(theme.palette.success.main, 0.3),
-        };
+        return buildColors(theme.palette.success.main);
 
       case 'warning':
       case 'status-updated':
+        return buildColors(theme.palette.warning.main);
+
       case 'status-rescheduled':
-        return {
-          bg: alpha(theme.palette.warning.main, isLight ? 0.14 : 0.22),
-          text: isLight ? '#b45309' : theme.palette.warning.light,
-          border: alpha(theme.palette.warning.main, 0.35),
-        };
+        return buildColors(theme.palette.custom.purple);
 
       case 'error':
       case 'status-cancelled':
+        return buildColors(theme.palette.error.main);
+
       case 'status-deleted':
-        return {
-          bg: alpha(theme.palette.error.main, isLight ? 0.12 : 0.22),
-          text: isLight ? '#c53030' : theme.palette.error.light,
-          border: alpha(theme.palette.error.main, 0.3),
-        };
+        return buildColors(theme.palette.text.secondary);
 
       default:
-        return {
-          bg: isLight ? alpha(theme.palette.text.primary, 0.06) : alpha(theme.palette.common.white, 0.05),
-          text: theme.palette.text.secondary,
-          border: isLight ? alpha(theme.palette.text.primary, 0.12) : alpha(theme.palette.common.white, 0.1),
-        };
+        return buildColors(theme.palette.text.secondary);
     }
   };
 

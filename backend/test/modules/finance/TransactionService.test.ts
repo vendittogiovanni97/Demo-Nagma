@@ -34,7 +34,7 @@ const mockPrisma = prisma as unknown as ReturnType<typeof createMockPrisma>;
 function txRow(overrides = {}) {
   return {
     id: 1,
-    type: 'INCOME',
+    type: 'ENTRATA',
     category: 'Tatuaggio',
     description: 'Test',
     amount: 100,
@@ -75,7 +75,7 @@ describe('TransactionService', () => {
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
       const result = await transactionService.create({
-        type: 'INCOME',
+        type: 'ENTRATA',
         category: 'Tatuaggio',
         description: 'Test',
         amount: 100,
@@ -90,11 +90,11 @@ describe('TransactionService', () => {
 
     it('should create transaction without history when no userId', async () => {
       const tx = mockTx();
-      tx.transaction.create.mockResolvedValue(txRow({ id: 2, type: 'EXPENSE' }));
+      tx.transaction.create.mockResolvedValue(txRow({ id: 2, type: 'USCITA' }));
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
       await transactionService.create({
-        type: 'EXPENSE',
+        type: 'USCITA',
         category: 'Materiali',
         description: 'Inchiostro',
         amount: 50,

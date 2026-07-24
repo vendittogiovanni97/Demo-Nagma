@@ -1,5 +1,5 @@
-import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
-import { getToken } from '@/common/shared/utils/auth';
+import { apiClient } from '@/common/shared/api/client';
+import { ENDPOINTS } from '@/common/shared/api/endpoints';
 
 export type FilterOperator =
   | 'equals'
@@ -32,88 +32,18 @@ export interface SavedViewData {
 }
 
 export const savedViewApi = {
-  getSavedViews: async (moduleName: string): Promise<SavedViewData[]> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SAVED_VIEWS.BASE}?module=${encodeURIComponent(moduleName)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  getSavedViews: (moduleName: string) =>
+    apiClient.get<SavedViewData[]>(ENDPOINTS.SAVED_VIEWS.BASE, { module: moduleName }),
 
-    if (!response.ok) {
-      throw new Error('Impossibile caricare le viste salvate');
-    }
+  createSavedView: (data: Partial<SavedViewData>) =>
+    apiClient.post<SavedViewData>(ENDPOINTS.SAVED_VIEWS.BASE, data),
 
-    return response.json();
-  },
+  updateSavedView: (id: number, data: Partial<SavedViewData>) =>
+    apiClient.patch<SavedViewData>(ENDPOINTS.SAVED_VIEWS.BY_ID(id), data),
 
-  createSavedView: async (data: Partial<SavedViewData>): Promise<SavedViewData> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SAVED_VIEWS.BASE}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
+  deleteSavedView: (id: number) =>
+    apiClient.delete<void>(ENDPOINTS.SAVED_VIEWS.BY_ID(id)),
 
-    if (!response.ok) {
-      throw new Error('Impossibile salvare la nuova vista');
-    }
-
-    return response.json();
-  },
-
-  updateSavedView: async (id: number, data: Partial<SavedViewData>): Promise<SavedViewData> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SAVED_VIEWS.BY_ID(id)}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error('Impossibile aggiornare la vista salvata');
-    }
-
-    return response.json();
-  },
-
-  deleteSavedView: async (id: number): Promise<void> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SAVED_VIEWS.BY_ID(id)}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Impossibile eliminare la vista salvata');
-    }
-  },
-
-  setDefault: async (id: number): Promise<SavedViewData> => {
-    const token = getToken();
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SAVED_VIEWS.SET_DEFAULT(id)}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Impossibile impostare la vista come predefinita');
-    }
-
-    return response.json();
-  },
+  setDefault: (id: number) =>
+    apiClient.patch<SavedViewData>(ENDPOINTS.SAVED_VIEWS.SET_DEFAULT(id)),
 };

@@ -49,13 +49,15 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
 
       <FormInput
         label="Password"
-        type="password"
+        type="text"
         value={password}
         onChange={setPassword}
         placeholder="Inserisci password..."
         icon={Lock}
         error={error}
-        required
+        name="conferma-password"
+        autoComplete="off"
+        sx={{ '& input': { WebkitTextSecurity: 'disc' } as React.CSSProperties }}
       />
     </SmartModal>
   );

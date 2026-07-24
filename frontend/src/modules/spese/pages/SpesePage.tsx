@@ -3,7 +3,6 @@
 import Box from '@mui/material/Box';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import Icon from '@/common/components/ui/Icon';
 
 import PageHeader from '@/common/components/common/PageHeader';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
@@ -51,12 +50,31 @@ export default function SpesePage() {
     >
       <PageHeader
         title="Spese Libere"
-        subtitle="Annotazioni rapide di spesa"
-        icon={<Icon name="wallet" size={24} />}
-        filters={<SpesaFilters currentDate={currentDate} onDateChange={setCurrentDate} />}
+        expandFilters
+        filters={(
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              flexDirection: { xs: 'column', md: 'row' },
+              gap: 1.5,
+              width: '100%',
+            }}
+          >
+            <SpesaFilters currentDate={currentDate} onDateChange={setCurrentDate} />
+            <Box
+              sx={{
+                flex: { xs: '1 1 100%', md: '0 1 1150px', xl: '0 1 1250px' },
+                width: '100%',
+                minWidth: 0,
+              }}
+            >
+              <SpesaForm monthStr={monthStr} onSuccess={mutate} />
+            </Box>
+          </Box>
+        )}
       />
-
-      <SpesaForm monthStr={monthStr} onSuccess={mutate} />
 
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <SpesaDataTable

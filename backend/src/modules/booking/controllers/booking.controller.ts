@@ -12,19 +12,24 @@ export class BookingController {
   constructor(private bookingService: BookingService) {}
 
   getAll = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { month, page, limit } = parsePageQuery(req.query);
+    const { month, page, search } = parsePageQuery(req.query);
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
     const customLimit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    const status = req.query.status as string | undefined;
+    const sortOrder = req.query.sortOrder === 'asc' ? 'asc' : req.query.sortOrder === 'desc' ? 'desc' : undefined;
 
     const result = await this.bookingService.findAll({
       month,
       page: (req.query.page || (req.query.limit && !req.query.offset)) ? page : undefined,
-      limit: customLimit || limit,
+      limit: customLimit,
       offset,
       startDate,
-      endDate
+      endDate,
+      status,
+      search,
+      sortOrder,
     });
 
     res.json(result);
@@ -45,7 +50,7 @@ export class BookingController {
 
   getAllHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
     const page = req.query.page ? Number(req.query.page) : 1;
-    const limit = req.query.limit ? Number(req.query.limit) : 20;
+    const limit = req.query.limit ? Number(req.query.limit) : 25;
 
     const filters = {
       startDate: req.query.startDate as string | undefined,

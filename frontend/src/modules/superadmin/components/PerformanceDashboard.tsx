@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
+import Button from '@/common/components/ui/Button';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
@@ -104,21 +104,20 @@ export default function PerformanceDashboard() {
         </Typography>
         <Box sx={{ display: 'flex', gap: 1.5 }}>
           <Button
-            size="small"
-            variant="outlined"
+            size="sm"
+            variant="secondary"
             onClick={fetchMetrics}
             disabled={loading}
-            startIcon={<Icon name="refresh" size={16} />}
+            icon={<Icon name="refresh" size={16} />}
           >
             Aggiorna
           </Button>
           <Button
-            size="small"
-            variant="outlined"
-            color="error"
+            size="sm"
+            variant="danger"
             onClick={handleReset}
             disabled={resetting}
-            startIcon={<Icon name="refresh" size={16} />}
+            icon={<Icon name="refresh" size={16} />}
           >
             Azzera Metriche
           </Button>

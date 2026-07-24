@@ -2,21 +2,20 @@
 
 import SmartModal from '@/common/components/common/SmartModal';
 import DataTable, { ColumnDefinition as Column } from '@/common/components/table/DataTable';
+import type { TableAction } from '@/common/components/table/TableActions';
 import {
   Box,
   Stack,
-  Tooltip,
   Typography,
   useTheme,
   alpha,
 } from '@mui/material';
 import Avatar from '@/common/components/ui/Avatar';
 import Badge from '@/common/components/ui/Badge';
-import Button from '@/common/components/ui/Button';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import Icon, { Info, PlusCircle, Trash2 } from '@/common/components/ui/Icon';
-import { useState } from 'react';
+import { Info, PlusCircle, Trash2 } from '@/common/components/ui/Icon';
+import { useCallback, useState } from 'react';
 import { TransactionHistory } from '../api/finance.api';
 
 interface HistoryTableProps {
@@ -71,7 +70,8 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
     {
       key: 'changedAt',
       label: 'Data e Ora',
-      width: '180px',
+      minWidth: 170,
+      flex: 1,
       render: (row) => (
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {format(new Date(row.changedAt), 'dd/MM/yyyy HH:mm', { locale: it })}
@@ -81,7 +81,8 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
     {
       key: 'changedBy',
       label: 'Operatore',
-      width: '200px',
+      minWidth: 180,
+      flex: 1.2,
       render: (row) => (
         <Stack sx={{ flexDirection: 'row', gap: 1, alignItems: 'center' }} component="div">
 
@@ -98,7 +99,8 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
     {
       key: 'action',
       label: 'Azione',
-      width: '150px',
+      minWidth: 140,
+      flex: 0.9,
       render: (row) => (
         <Badge
           size="sm"
@@ -115,6 +117,8 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
     {
       key: 'transaction',
       label: 'Oggetto',
+      minWidth: 190,
+      flex: 1.5,
       render: (row) => (
         <Typography variant="body2" color="text.secondary">
           {row.transaction?.description || `Transazione #${row.transactionId}`}
@@ -123,11 +127,15 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
     }
   ];
 
-  const actions = (row: TransactionHistory) => (
-    <Tooltip title="Vedi Dettagli JSON">
-      <Button variant="icon" icon={<Icon name="eye" size={18} />} onClick={() => setSelectedLog(row)} sx={{ color: theme.palette.primary.main }} />
-    </Tooltip>
-  );
+  const rowActions = useCallback((row: TransactionHistory): TableAction[] => [
+    {
+      id: 'view',
+      label: 'Vedi dettagli JSON',
+      icon: 'eye',
+      tone: 'primary',
+      onClick: () => setSelectedLog(row),
+    },
+  ], []);
 
   return (
     <>
@@ -136,7 +144,7 @@ export default function HistoryTable({ data, isLoading }: HistoryTableProps) {
         data={data}
         isLoading={isLoading}
         keyExtractor={(row) => row.id}
-        actions={actions}
+        rowActions={rowActions}
         emptyTitle="Nessuna attività registrata"
       />
 

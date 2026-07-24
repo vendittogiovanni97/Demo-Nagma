@@ -1,12 +1,12 @@
 'use client';
 
-import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
+import { useDateRangeFilters } from '@/common/hooks/useDateRangeFilters';
 import { Box } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import DataTable, { FetchParams, DataTableRef } from '@/common/components/table/DataTable';
+import DataTable, { FetchParams } from '@/common/components/table/DataTable';
 import { useToast } from '@/common/hooks/useToast';
 import { creamService, type CreamSale } from '@/modules/creams/api/cream.api';
 import { staffApi } from '@/modules/staff/api/staff.api';
@@ -35,10 +35,10 @@ export default function CreamsPage() {
     setStartDate,
     endDate,
     setEndDate,
-  } = usePaginationFilters();
+  } = useDateRangeFilters();
   const [artistFilter, setArtistFilter] = useState<number | ''>('');
-  const tableRef = useRef<DataTableRef>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
 
   const [creamData, setCreamData] = useState<CreamInfo | null>(null);
   const [teamMembers, setTeamMembers] = useState<StaffMember[]>([]);
@@ -74,10 +74,18 @@ export default function CreamsPage() {
     try {
       await creamService.createSale({ creamId: creamData.id, artistId, quantity });
       toast.success('Vendita registrata!');
+      setIsSaleModalOpen(false);
+      setRefreshTrigger((prev) => prev + 1);
     } catch {
       toast.error('Errore nella registrazione');
       throw new Error('Errore nella registrazione');
     }
+  };
+
+  const handleDeleteSale = async (sale: CreamSale) => {
+    await creamService.deleteSale(sale.id);
+    toast.success('Vendita eliminata.');
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const fetchSales = useCallback(async (params: FetchParams) => {
@@ -113,7 +121,7 @@ export default function CreamsPage() {
         showButton
         buttonLabel="Nuova Vendita"
         buttonIcon={<Icon name="plus" size={18} />}
-        onButtonClick={() => tableRef.current?.openCreateModal()}
+        onButtonClick={() => setIsSaleModalOpen(true)}
       />
 
       {creamData && (
@@ -125,28 +133,27 @@ export default function CreamsPage() {
 
       <Box sx={{ flex: 1 }}>
         <DataTable
-          ref={tableRef}
           fetchData={fetchSales}
           queryKey="creamSales"
-          refreshKey={refreshKey as any}
+          refreshKey={refreshKey}
           columns={columns}
           emptyTitle={hasFilters ? "Nessuna vendita trovata." : "Nessuna vendita registrata."}
           emptyDescription={hasFilters ? "Prova a cambiare i filtri impostati." : "Clicca su \"Nuova Vendita\" per registrare la prima transazione."}
           keyExtractor={(row) => row.id}
-          openEntityModal={(action, row, onClose, onSuccess) => (
-            <SaleModal
-              isOpen
-              cream={creamData}
-              teamMembers={teamMembers}
-              onClose={onClose || (() => {})}
-              onSubmit={async (artistId, quantity) => {
-                await handleCreateSale(artistId, quantity);
-                onSuccess?.();
-              }}
-            />
-          )}
+          hideState
+          onDelete={handleDeleteSale}
+          deleteConfirmTitle="Elimina vendita"
+          deleteConfirmMessage="Vuoi eliminare questa vendita di crema?"
         />
       </Box>
+
+      <SaleModal
+        isOpen={isSaleModalOpen}
+        cream={creamData}
+        teamMembers={teamMembers}
+        onClose={() => setIsSaleModalOpen(false)}
+        onSubmit={handleCreateSale}
+      />
     </Box>
   );
 }

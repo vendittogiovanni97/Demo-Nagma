@@ -5,7 +5,7 @@ import { AppError } from '../../../core/shared/errors/AppError';
 
 export class CustomerService {
   async search(params: Record<string, unknown>): Promise<IPaginatedResponse<any>> {
-    const { search, page: pageStr = '1', limit: limitStr = '20' } = params as any;
+    const { search, page: pageStr = '1', limit: limitStr = '25' } = params as any;
     const page = Number(pageStr);
     const limit = Number(limitStr);
 
@@ -38,8 +38,24 @@ export class CustomerService {
   async getById(id: number) {
     const customer = await prisma.customer.findFirst({
       where: { id, deletedAt: null },
+      include: {
+        bookings: {
+          where: { deletedAt: null },
+          orderBy: { date: 'desc' },
+          include: { artist: true },
+        },
+        whatsappLogs: { orderBy: { createdAt: 'desc' } },
+      },
     });
-    return customer;
+    if (!customer) return null;
+    return {
+      ...customer,
+      bookings: customer.bookings.map((b) => ({
+        ...b,
+        price: b.price != null ? Number(b.price) : null,
+        deposit: b.deposit != null ? Number(b.deposit) : null,
+      })),
+    };
   }
 
   async getSummary(id: number) {
@@ -111,6 +127,13 @@ export class CustomerService {
   }
 
   async update(id: number, data: any) {
+    const currentCustomer = await prisma.customer.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!currentCustomer) {
+      throw new AppError('Cliente non trovato.', 404, 'CUSTOMER_NOT_FOUND');
+    }
+
     if (data.phone) {
       const existingByPhone = await prisma.customer.findFirst({
         where: { phone: data.phone, deletedAt: null },
@@ -121,12 +144,9 @@ export class CustomerService {
     }
 
     if (data.firstName || data.lastName) {
-      const current = await prisma.customer.findFirst({
-        where: { id, deletedAt: null },
-      });
-      if (current) {
-        const newFirstName = data.firstName || current.firstName;
-        const newLastName = data.lastName || current.lastName;
+      {
+        const newFirstName = data.firstName || currentCustomer.firstName;
+        const newLastName = data.lastName || currentCustomer.lastName;
 
         const existingByName = await prisma.customer.findFirst({
           where: {
@@ -155,9 +175,12 @@ export class CustomerService {
   }
 
   async delete(id: number) {
-    await prisma.customer.update({
-      where: { id },
+    const result = await prisma.customer.updateMany({
+      where: { id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+    if (result.count === 0) {
+      throw new AppError('Cliente non trovato.', 404, 'CUSTOMER_NOT_FOUND');
+    }
   }
 }

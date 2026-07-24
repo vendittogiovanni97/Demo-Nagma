@@ -25,7 +25,7 @@ export const config = {
   // FIX #4: JWT_SECRET deve essere 32+ characters. Genera con:
   // node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
   // Ruota ogni 90 giorni per security best practices.
-  jwtExpiry: envStr('JWT_EXPIRY', '8h') as StringValue,
+  jwtExpiry: envStr('JWT_EXPIRY', '7d') as StringValue,
 
   // Sicurezza
   bcryptSaltRounds: envInt('BCRYPT_SALT_ROUNDS', 10),
@@ -35,7 +35,7 @@ export const config = {
   jsonPayloadLimit: envStr('JSON_PAYLOAD_LIMIT', '1mb'),
 
   // Paginazione
-  defaultPageLimit: envInt('DEFAULT_PAGE_LIMIT', 20),
+  defaultPageLimit: envInt('DEFAULT_PAGE_LIMIT', 25),
   // Business
   defaultBookingDurationMinutes: envInt('DEFAULT_BOOKING_DURATION_MINUTES', 60),
   defaultTrendsMonths: envInt('DEFAULT_TRENDS_MONTHS', 6),

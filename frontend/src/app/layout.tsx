@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Outfit } from 'next/font/google';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 import './globals.css';
 import { AppProviders } from './providers';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
@@ -8,7 +10,8 @@ const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '900'],
+  weight: 'variable',
+  preload: false,
 });
 
 export const viewport = {

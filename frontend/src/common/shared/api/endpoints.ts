@@ -59,6 +59,7 @@ export const ENDPOINTS = {
   CREAM: {
     BASE: '/api/cream',
     SALES: '/api/cream/sales',
+    SALE_BY_ID: (id: string | number) => `/api/cream/sales/${id}`,
     SUMMARY: '/api/cream/summary',
   },
   CONFIG: {

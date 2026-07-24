@@ -25,6 +25,8 @@ interface PageHeaderProps {
   showSecondaryButton?: boolean;
   /** Custom filter bar (usually SmartFilters) */
   filters?: ReactNode;
+  /** Let the filter area consume the remaining horizontal space. */
+  expandFilters?: boolean;
   /** Other actions like Export, etc. */
   actions?: ReactNode;
   /** Legacy support or extra content */
@@ -46,6 +48,7 @@ export default function PageHeader({
   secondaryButtonRequiresAdmin = false,
   showSecondaryButton = false,
   filters,
+  expandFilters = false,
   actions,
   children,
 }: PageHeaderProps) {
@@ -142,7 +145,7 @@ export default function PageHeader({
         }}
       >
         {filters && (
-          <Box sx={{ minWidth: 0, flexShrink: 1 }}>
+          <Box sx={{ minWidth: 0, flex: expandFilters ? 1 : '0 1 auto' }}>
             {filters}
           </Box>
         )}

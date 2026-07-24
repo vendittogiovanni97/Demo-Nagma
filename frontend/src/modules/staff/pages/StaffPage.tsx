@@ -29,6 +29,7 @@ export default function StaffPage() {
     format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
   );
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
+  const [selectedStaffMember, setSelectedStaffMember] = useState<Staff | null>(null);
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [shiftModalData, setShiftModalData] = useState<{ staffId?: number; dayOfWeek?: number }>({});
 
@@ -84,8 +85,19 @@ export default function StaffPage() {
     setIsShiftModalOpen(true);
   };
 
-  const handleEditMember = (_member: Staff) => {
+  const handleOpenCreateMember = () => {
+    setSelectedStaffMember(null);
     setIsStaffModalOpen(true);
+  };
+
+  const handleEditMember = (member: Staff) => {
+    setSelectedStaffMember(member);
+    setIsStaffModalOpen(true);
+  };
+
+  const handleCloseStaffModal = () => {
+    setIsStaffModalOpen(false);
+    setSelectedStaffMember(null);
   };
 
   const handleDeleteShiftById = async (id: string) => {
@@ -156,7 +168,7 @@ export default function StaffPage() {
         buttonLabel="Staff"
         buttonIcon={<Icon name="plus" size={14} />}
         buttonRequiresAdmin
-        onButtonClick={() => setIsStaffModalOpen(true)}
+        onButtonClick={handleOpenCreateMember}
       />
 
       <Paper
@@ -190,10 +202,9 @@ export default function StaffPage() {
 
       <StaffModal
         isOpen={isStaffModalOpen}
-        onClose={() => {
-          setIsStaffModalOpen(false);
-          mutateMembers();
-        }}
+        member={selectedStaffMember}
+        onClose={handleCloseStaffModal}
+        onSuccess={mutateMembers}
       />
       <ShiftModal
         isOpen={isShiftModalOpen}

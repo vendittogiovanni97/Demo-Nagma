@@ -5,7 +5,6 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -18,6 +17,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { usePreferences } from '@/common/context/PreferencesContext';
 import { useToast } from '@/common/hooks/useToast';
 import Icon from '@/common/components/ui/Icon';
+import { CancelButton, SaveButton } from '@/common/components/ui/Button';
 
 export default function UserSettingsPage() {
   const { preferences, updatePreferences, isLoading } = usePreferences();
@@ -228,25 +228,21 @@ export default function UserSettingsPage() {
 
         {/* Form Action Buttons */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          <Button
-            variant="outlined"
-            color="inherit"
+          <CancelButton
             onClick={handleReset}
             disabled={isSaving}
             sx={{ minHeight: 44, px: 3 }}
           >
             Annulla
-          </Button>
-          <Button
+          </CancelButton>
+          <SaveButton
             type="submit"
-            variant="contained"
-            color="primary"
-            disabled={isSaving}
-            startIcon={isSaving ? <CircularProgress size={18} /> : <Icon name="check" size={18} />}
+            isLoading={isSaving}
+            icon={isSaving ? <CircularProgress size={18} /> : <Icon name="check" size={18} />}
             sx={{ minHeight: 44, px: 4, fontWeight: 700 }}
           >
             {isSaving ? 'Salvataggio...' : 'Salva Impostazioni'}
-          </Button>
+          </SaveButton>
         </Box>
       </form>
     </Box>

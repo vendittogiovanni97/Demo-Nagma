@@ -174,10 +174,6 @@ html[data-theme="light"] ::-webkit-calendar-picker-indicator {
   border-right: none !important;
 }
 
-/* Odd rows */
-.nagma-grid.ag-theme-alpine .ag-row-odd { background-color: rgba(0, 0, 0, 0.02) !important; }
-.nagma-grid.ag-theme-alpine-dark .ag-row-odd { background-color: rgba(255, 255, 255, 0.015) !important; }
-
 /* Cell layout */
 .nagma-grid .ag-cell {
   display: flex !important;
@@ -319,7 +315,7 @@ html[data-theme="light"] ::-webkit-calendar-picker-indicator {
 .fc-materio-wrapper .fc-scrollgrid,
 .fc-materio-wrapper .fc-scrollgrid-section td,
 .fc-materio-wrapper .fc-daygrid-day {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
 }
 /* Grid borders — light */
 html[data-theme="light"] .fc-materio-wrapper .fc-theme-standard td,
@@ -327,85 +323,91 @@ html[data-theme="light"] .fc-materio-wrapper .fc-theme-standard th,
 html[data-theme="light"] .fc-materio-wrapper .fc-scrollgrid,
 html[data-theme="light"] .fc-materio-wrapper .fc-scrollgrid-section td,
 html[data-theme="light"] .fc-materio-wrapper .fc-daygrid-day {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
 }
 
 /* Column headers */
 .fc-materio-wrapper .fc-col-header-cell {
-  padding: 0.75rem 0 !important;
-  background-color: rgba(255, 255, 255, 0.01) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 0.6rem 0 !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 html[data-theme="light"] .fc-materio-wrapper .fc-col-header-cell {
-  background-color: rgba(0, 0, 0, 0.02) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
 }
 
 .fc-materio-wrapper .fc-col-header-cell-cushion {
   font-weight: 600 !important;
-  font-size: 0.8rem !important;
+  font-size: 0.72rem !important;
   color: var(--color-text-secondary) !important;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
   text-decoration: none !important;
 }
 .fc-materio-wrapper .fc-day-today .fc-col-header-cell-cushion {
   color: var(--color-accent, #00BFFF) !important;
+  opacity: 1;
 }
 
-/* Today highlight */
-html[data-theme="light"] .fc-materio-wrapper .fc-day-today {
-  background-color: rgba(0, 152, 204, 0.06) !important;
-}
+/* Faded days from other months */
+.fc-materio-wrapper .fc-day-other .fc-daygrid-day-number { opacity: 0.35 !important; }
 html[data-theme="light"] .fc-materio-wrapper .fc-day-other {
-  background-color: rgba(0, 0, 0, 0.015) !important;
+  background-color: rgba(0, 0, 0, 0.01) !important;
 }
 
 /* Day numbers */
 .fc-materio-wrapper .fc-daygrid-day-number {
-  font-size: 0.92rem !important;
-  font-weight: 700 !important;
-  padding: 6px 10px !important;
-  color: var(--color-text-primary) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  padding: 6px 8px !important;
+  color: var(--color-text-secondary) !important;
   text-decoration: none !important;
+}
+
+/* Today: accent number, no heavy fill */
+.fc-materio-wrapper .fc-day-today .fc-daygrid-day-number {
+  color: var(--color-accent, #00BFFF) !important;
+  font-weight: 800 !important;
 }
 
 /* Day cell hover */
-.fc-materio-wrapper .fc-daygrid-day:hover { background: rgba(255, 255, 255, 0.015) !important; }
-html[data-theme="light"] .fc-materio-wrapper .fc-daygrid-day:hover { background: rgba(0, 152, 204, 0.04) !important; }
+.fc-materio-wrapper .fc-daygrid-day:hover { background: rgba(255, 255, 255, 0.02) !important; }
+html[data-theme="light"] .fc-materio-wrapper .fc-daygrid-day:hover { background: rgba(0, 152, 204, 0.03) !important; }
 
-/* Day cell bottom spacing */
-.fc-materio-wrapper .fc-daygrid-day-bottom { padding: 4px 6px 6px 6px !important; }
-
-/* "+altri" more-link button */
-.fc-materio-wrapper .fc-daygrid-more-link {
+/* "+altri" pushed to the bottom of the cell via flex (events grow to fill) */
+.fc-materio-wrapper .fc-daygrid-day-frame {
   display: flex !important;
+  flex-direction: column !important;
+}
+.fc-materio-wrapper .fc-daygrid-day-events { flex: 1 1 auto !important; }
+.fc-materio-wrapper .fc-daygrid-day-bottom {
+  margin: 0 !important;
+  padding: 16px 6px 8px 6px !important;
+}
+
+/* "+altri" more-link — soft accent pill */
+.fc-materio-wrapper .fc-daygrid-more-link {
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin: 6px 4px 2px 4px !important;
-  padding: 5px 12px !important;
-  font-size: 0.78rem !important;
+  margin: 0 2px !important;
+  padding: 3px 10px !important;
+  font-size: 0.72rem !important;
   font-weight: 700 !important;
-  color: #0284c7 !important;
-  background: rgba(2, 132, 199, 0.08) !important;
-  border: 1px solid rgba(2, 132, 199, 0.25) !important;
-  border-radius: 6px !important;
+  letter-spacing: 0.01em !important;
+  color: var(--color-accent, #00BFFF) !important;
+  background: rgba(0, 191, 255, 0.1) !important;
+  border: 1px solid rgba(0, 191, 255, 0.2) !important;
+  border-radius: 999px !important;
   text-decoration: none !important;
   cursor: pointer !important;
-  text-align: center !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
 }
 .fc-materio-wrapper .fc-daygrid-more-link:hover {
-  background: rgba(0, 191, 255, 0.15) !important;
-  border-color: var(--color-accent, #00BFFF) !important;
-  color: #ffffff !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.2) !important;
-}
-.fc-materio-wrapper .fc-daygrid-more-link:active {
-  transform: translateY(0) !important;
-  background: rgba(0, 191, 255, 0.25) !important;
+  background: rgba(0, 191, 255, 0.18) !important;
+  border-color: rgba(0, 191, 255, 0.4) !important;
 }
 
 /* Time grid slots */

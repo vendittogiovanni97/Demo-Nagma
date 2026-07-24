@@ -18,7 +18,7 @@ Questo file definisce i principi, le regole tecniche e la struttura da seguire p
 |---|---|
 | **Backend** | Node.js 22+, Express 5, Prisma 7.8 (PostgreSQL 17), Zod 4, JWT, ExcelJS, PDFKit |
 | **Frontend** | Next.js 16 (App Router), React 19, Material-UI 9, AG-Grid, SWR, Lucide-React |
-| **Testing** | Jest (Backend unit/integration), Vitest & Playwright (Frontend) |
+| **Testing** | Jest (Backend unit/integration e Frontend unit), Playwright (Frontend E2E) |
 
 ---
 
@@ -58,6 +58,24 @@ Ogni modulo deve contenere la seguente struttura uniforme:
 
 ---
 
+## 🧩 Componenti Condivisi Correnti
+
+- **Tabelle:** usare `DataTable` e colonne responsive tramite `flex`/`minWidth`; non assegnare larghezze rigide alle colonne applicative.
+- **Azioni tabella:** le pagine dichiarano `TableAction[]` tramite `rowActions`; rendering, colori, tooltip, permessi e loading sono gestiti da `TableActions` con `Button variant="icon"`.
+- **AG Grid:** controllare il caricamento esclusivamente con la prop `loading`; non usare `showLoadingOverlay()`, `showNoRowsOverlay()` o `hideOverlay()`.
+- **Form:** usare `FormInput`, `FormSelect`, `TextareaInput` e `CheckboxInput`. Le textarea controllate devono preservare le righe vuote durante la digitazione e normalizzarle al salvataggio.
+- **Export frontend:** utilizzare `ExportModal` e il client centralizzato in `common/shared/api/export.api.ts`; non ricreare client o modali di esportazione nei moduli.
+- **Filtri data:** utilizzare `useDateRangeFilters` per i range condivisi.
+- **Dashboard appuntamenti:** il widget mostra al massimo 5 prenotazioni operative (`CREATO`, `CONFERMATO`) e rimuove quelle iniziate da più di 10 minuti.
+
+## 🔐 Contratti di Dominio
+
+- `StaffType` accetta esclusivamente `COLLABORATORE` e `APPRENDISTA` in frontend, Zod backend e Prisma.
+- Una modale CRUD deve ricevere l'entità selezionata: la modalità modifica usa `update(id, payload)`, la creazione usa `create(payload)`.
+- Gli enum e i payload devono essere verificati lungo l'intero percorso frontend → API → Zod → service → Prisma.
+
+---
+
 ## ✅ Protocollo di Verifica Obbligatorio
 
 Prima di considerare completato un task, eseguire sempre i seguenti comandi:
@@ -66,9 +84,18 @@ Prima di considerare completato un task, eseguire sempre i seguenti comandi:
 # 1. Compilazione TypeScript Backend
 cd backend && npx tsc --noEmit
 
-# 2. Test Unitari Backend
+# 2. Suite completa Backend (richiede database e health check disponibili)
 cd backend && npx jest --forceExit
 
-# 3. Compilazione TypeScript Frontend
+# 3. Test unitari Backend
+cd backend && npm run test:unit
+
+# 4. Compilazione TypeScript Frontend
 cd frontend && npx tsc --noEmit
+
+# 5. Test unitari Frontend
+cd frontend && npm run test:unit -- --runInBand
+
+# 6. Controllo whitespace
+git diff --check
 ```

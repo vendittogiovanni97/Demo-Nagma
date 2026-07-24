@@ -8,7 +8,8 @@ import StatePanel from '@/common/components/feedback/StatePanel';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import { Box } from '@mui/material';
-import { financeApi, Transaction, CreateTransactionData } from '@/modules/finance/api/finance.api';
+import { financeApi } from '@/modules/finance/api/finance.api';
+import type { CreateTransactionData, Transaction, TransactionType } from '@/common/shared/types/transaction';
 
 interface Props {
   isOpen: boolean;
@@ -18,14 +19,14 @@ interface Props {
 }
 
 const CATEGORIES = {
-  INCOME: ['Servizi', 'Vendita Prodotti', 'Corsi', 'Acconto', 'Altro'],
-  EXPENSE: ['Affitto', 'Forniture', 'Marketing', 'Utenze', 'Pulizie', 'Stipendi', 'Tasse', 'Altro']
-};
+  ENTRATA: ['Servizi', 'Vendita Prodotti', 'Corsi', 'Acconto', 'Altro'],
+  USCITA: ['Affitto', 'Forniture', 'Marketing', 'Utenze', 'Pulizie', 'Stipendi', 'Tasse', 'Altro'],
+} satisfies Record<TransactionType, string[]>;
 
 interface TransactionFormData {
   description: string;
   amount: string;
-  type: 'INCOME' | 'EXPENSE';
+  type: TransactionType;
   category: string;
   date: string;
 }
@@ -37,7 +38,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
   const initial = (entity: Transaction | null): TransactionFormData => ({
     description: entity?.description ?? '',
     amount: entity?.amount?.toString() ?? '',
-    type: entity?.type ?? 'EXPENSE',
+    type: entity?.type ?? 'USCITA',
     category: entity?.category ?? 'Altro',
     date: entity?.date ? entity.date.split('T')[0] : new Date().toISOString().split('T')[0],
   });
@@ -65,7 +66,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
     return null;
   };
 
-  const form = useEntityForm<Transaction, TransactionFormData>({
+  const form = useEntityForm<Transaction, TransactionFormData, CreateTransactionData>({
     entity: transaction,
     open: isOpen,
     initial,
@@ -78,7 +79,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
     errorMessage: 'Errore nel salvare la transazione',
   });
 
-  const handleTypeChange = (newType: 'INCOME' | 'EXPENSE') => {
+  const handleTypeChange = (newType: TransactionType) => {
     form.setFields({ type: newType, category: CATEGORIES[newType][0] });
   };
 
@@ -122,10 +123,10 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
             <FormSelect
               label="Tipo"
               value={form.formData.type}
-              onChange={(v) => handleTypeChange(v as 'INCOME' | 'EXPENSE')}
+              onChange={(v) => handleTypeChange(v as TransactionType)}
               options={[
-                { value: 'EXPENSE', label: 'Spesa (Uscita)' },
-                { value: 'INCOME', label: 'Entrata' },
+                { value: 'USCITA', label: 'Spesa (Uscita)' },
+                { value: 'ENTRATA', label: 'Entrata' },
               ]}
             />
           </Box>

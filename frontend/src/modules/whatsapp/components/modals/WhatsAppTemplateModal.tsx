@@ -1,18 +1,17 @@
 "use client";
 
 import { Box, Typography, Tooltip } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { alpha } from '@mui/material/styles';
 
 import Button from '@/common/components/ui/Button';
 import FormInput from '@/common/components/forms/FormInput';
-import FormTextarea from '@/common/components/forms/FormTextarea';
+import TextareaInput from '@/common/components/forms/TextareaInput';
 import SmartModal from '@/common/components/common/SmartModal';
-import { useToast } from '@/common/hooks/useToast';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import { createWhatsAppTemplateSchema } from '@/modules/whatsapp/model/whatsapp.schema';
 import { whatsappApi as whatsappService } from '../../api/whatsapp.api';
 import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '../../model/whatsapp.types';
 import SwitchInput from '@/common/components/forms/SwitchInput';
-import { useFormModal } from '@/common/hooks/useFormModal';
 import { validateData } from '@/common/shared/utils/validation';
 
 interface WhatsAppTemplateModalProps {
@@ -23,12 +22,41 @@ interface WhatsAppTemplateModalProps {
 }
 
 const QUICK_VARIABLES = [
-  { label: '👤 Nome Cliente', value: '{{nome}}', color: '#00e5ff' },
-  { label: '📅 Data Appt.', value: '{{data}}', color: '#ff007f' },
-  { label: '⏰ Ora Appt.', value: '{{ora}}', color: '#7000ff' },
-  { label: '🎨 Artista', value: '{{artista}}', color: '#ffaa00' },
-  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}', color: '#00ff66' },
+  { label: '👤 Nome Cliente', value: '{{nome}}' },
+  { label: '📅 Data Appt.', value: '{{data}}' },
+  { label: '⏰ Ora Appt.', value: '{{ora}}' },
+  { label: '🎨 Artista', value: '{{artista}}' },
+  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}' },
 ];
+
+interface TemplateFormData {
+  name: string;
+  category: string;
+  body: string;
+  isActive: boolean;
+}
+
+const getInitialValues = (template: WhatsAppTemplate | null): TemplateFormData => ({
+  name: template?.name ?? '',
+  category: template?.category ?? '',
+  body: template?.body ?? '',
+  isActive: template?.isActive ?? true,
+});
+
+const buildPayload = (data: TemplateFormData): CreateWhatsAppTemplateData => ({
+  name: data.name,
+  category: data.category || undefined,
+  body: data.body,
+  isActive: data.isActive,
+});
+
+const persistTemplate = (payload: CreateWhatsAppTemplateData, template: WhatsAppTemplate | null) =>
+  template
+    ? whatsappService.updateTemplate(template.id, payload)
+    : whatsappService.createTemplate(payload);
+
+const validateTemplate = (data: TemplateFormData) =>
+  validateData(createWhatsAppTemplateSchema, buildPayload(data));
 
 export default function WhatsAppTemplateModal({
   isOpen,
@@ -36,42 +64,20 @@ export default function WhatsAppTemplateModal({
   onSuccess,
   template,
 }: WhatsAppTemplateModalProps) {
-  const toast = useToast();
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [body, setBody] = useState('');
-  const [isActive, setIsActive] = useState(true);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setName(template?.name || '');
-    setCategory(template?.category || '');
-    setBody(template?.body || '');
-    setIsActive(template?.isActive ?? true);
-  }, [isOpen, template]);
-
-  const form = useFormModal({
-    initial: { name: '', category: '', body: '', isActive: true },
-    onSubmit: async (data) => {
-      const payload: CreateWhatsAppTemplateData = {
-        name: data.name,
-        category: data.category || undefined,
-        body: data.body,
-        isActive: data.isActive,
-      };
-      if (template) {
-        await whatsappService.updateTemplate(template.id, payload);
-      } else {
-        await whatsappService.createTemplate(payload);
-      }
-      onSuccess?.();
-    },
+  const form = useEntityForm({
+    entity: template ?? null,
+    open: isOpen,
+    initial: getInitialValues,
+    buildPayload,
+    persist: persistTemplate,
+    validate: validateTemplate,
+    onSuccess,
     onClose,
-    successMessage: template ? 'Template aggiornato' : 'Template creato',
+    successMessage: (isEdit) => isEdit ? 'Template aggiornato' : 'Template creato',
     errorMessage: 'Errore durante il salvataggio del template',
   });
 
-  const { isLoading } = form;
+  const { formData, setField, isLoading } = form;
 
   const insertVariable = (variableVal: string) => {
     const textarea = document.getElementById('whatsapp-template-body') as HTMLTextAreaElement;
@@ -82,32 +88,15 @@ export default function WhatsAppTemplateModal({
       const before = text.substring(0, start);
       const after = text.substring(end, text.length);
       const newValue = before + variableVal + after;
-      setBody(newValue);
+      setField('body', newValue);
 
-      // Restore focus and selection position after state update
       setTimeout(() => {
         textarea.focus();
         textarea.setSelectionRange(start + variableVal.length, start + variableVal.length);
       }, 0);
     } else {
-      setBody((prev) => prev + variableVal);
+      setField('body', formData.body + variableVal);
     }
-  };
-
-  const handleSave = async () => {
-    const payload: CreateWhatsAppTemplateData = {
-      name,
-      category: category || undefined,
-      body,
-      isActive,
-    };
-
-    const validationError = validateData(createWhatsAppTemplateSchema, payload);
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-    await form.handleSubmit();
   };
 
   return (
@@ -115,18 +104,18 @@ export default function WhatsAppTemplateModal({
       isOpen={isOpen}
       onClose={onClose}
       title={template ? 'Modifica Template WhatsApp' : 'Nuovo Template WhatsApp'}
-      onSave={handleSave}
+      onSave={() => form.handleSubmit()}
       isSaving={isLoading}
       saveLabel={template ? 'Salva modifiche' : 'Crea template'}
       maxWidth="md"
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-          <FormInput label="Nome template" value={name} onChange={setName} required />
+          <FormInput label="Nome template" value={formData.name} onChange={form.handleChange('name')} required />
           <FormInput
             label="Categoria"
-            value={category}
-            onChange={setCategory}
+            value={formData.category}
+            onChange={form.handleChange('category')}
             placeholder="Conferma, post tattoo, recupero..."
           />
         </Box>
@@ -137,8 +126,9 @@ export default function WhatsAppTemplateModal({
             alignItems: 'center',
             justifyContent: 'space-between',
             borderRadius: 2,
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'action.hover',
             px: 2.5,
             py: 1.5,
           }}
@@ -152,17 +142,17 @@ export default function WhatsAppTemplateModal({
             </Typography>
           </Box>
           <SwitchInput
-            checked={isActive}
-            onChange={setIsActive}
+            checked={formData.isActive}
+            onChange={form.handleChange('isActive')}
           />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <FormTextarea
+          <TextareaInput
             id="whatsapp-template-body"
             label="Corpo del Messaggio"
-            value={body}
-            onChange={setBody}
+            value={formData.body}
+            onChange={form.handleChange('body')}
             rows={8}
             required
             placeholder={'Ciao {{nome}}, ti confermo l\'appuntamento del {{data}} alle {{ora}} con {{artista}}.'}
@@ -172,8 +162,9 @@ export default function WhatsAppTemplateModal({
             sx={{
               mt: 1,
               borderRadius: 2.5,
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'action.hover',
               px: 2.5,
               py: 2,
             }}
@@ -203,14 +194,15 @@ export default function WhatsAppTemplateModal({
                       fontSize: '0.75rem',
                       fontWeight: 600,
                       color: 'text.primary',
-                      border: `1px solid rgba(255, 255, 255, 0.15)`,
-                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      backgroundColor: 'background.paper',
                       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
-                        borderColor: v.color,
-                        background: `rgba(${parseInt(v.color.slice(1,3), 16)}, ${parseInt(v.color.slice(3,5), 16)}, ${parseInt(v.color.slice(5,7), 16)}, 0.1)`,
+                        borderColor: 'primary.main',
+                        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
                         transform: 'translateY(-2px)',
-                        boxShadow: `0 4px 12px ${v.color}25`,
+                        boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
                       },
                       '&:active': {
                         transform: 'translateY(0)',

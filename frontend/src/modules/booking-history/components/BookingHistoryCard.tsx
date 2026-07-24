@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 
 import type { BookingAction, BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
+import BookingHistoryDateDetails from './BookingHistoryDateDetails';
 
 interface BookingHistoryCardProps {
   entry: BookingHistoryEntry;
@@ -27,44 +28,11 @@ const ACTION_CONFIG: Record<
   CANCELLATO: { label: 'Cancellato', variant: 'default' },
 };
 
-function renderDetails(entry: BookingHistoryEntry, theme: any) {
-  if (entry.oldDate || entry.newDate) {
-    return (
-      <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-        {entry.oldDate && (
-          <Typography sx={{ color: theme.palette.error.main, textDecoration: 'line-through', fontSize: '0.8125rem' }}>
-            {format(new Date(entry.oldDate), 'dd/MM/yyyy HH:mm', { locale: it })}
-          </Typography>
-        )}
-        {entry.oldDate && entry.newDate && (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>→</Typography>
-        )}
-        {entry.newDate && (
-          <Typography sx={{ color: theme.palette.success.main, fontSize: '0.8125rem' }}>
-            {format(new Date(entry.newDate), 'dd/MM/yyyy HH:mm', { locale: it })}
-          </Typography>
-        )}
-      </Stack>
-    );
-  }
-  if (entry.action === 'CREATO') {
-    return <Typography sx={{ color: theme.palette.info.main, fontSize: '0.8125rem' }}>Nuova prenotazione</Typography>;
-  }
-  if (entry.action === 'ANNULLATO') {
-    return <Typography sx={{ color: theme.palette.error.main, fontSize: '0.8125rem' }}>Prenotazione annullata</Typography>;
-  }
-  if (entry.action === 'COMPLETATO') {
-    return <Typography sx={{ color: theme.palette.success.main, fontSize: '0.8125rem' }}>Prenotazione completata</Typography>;
-  }
-  return null;
-}
-
 export default function BookingHistoryCard({ entry, onClick }: BookingHistoryCardProps) {
   const theme = useTheme();
   const cfg = ACTION_CONFIG[entry.action];
   const customer = entry.booking?.customer;
   const artist = entry.booking?.artist;
-  const details = renderDetails(entry, theme);
 
   return (
     <Box
@@ -158,7 +126,7 @@ export default function BookingHistoryCard({ entry, onClick }: BookingHistoryCar
       </Box>
 
       {/* Dettagli (oldDate -> newDate o messaggio) */}
-      {details && (
+      {(entry.oldDate || entry.newDate || entry.action === 'CREATO') && (
         <Box
           sx={{
             pt: 1,
@@ -176,7 +144,7 @@ export default function BookingHistoryCard({ entry, onClick }: BookingHistoryCar
           >
             Dettagli
           </Typography>
-          {details}
+          <BookingHistoryDateDetails entry={entry} fontSize="0.8125rem" />
         </Box>
       )}
 

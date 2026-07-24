@@ -37,6 +37,15 @@ logger.info('[DB] Prisma Client initialized');
 
 export default prisma;
 
+let databaseClosed = false;
+
+export async function closeDatabase(): Promise<void> {
+  if (databaseClosed) return;
+  databaseClosed = true;
+  await prisma.$disconnect();
+  await pool.end();
+}
+
 /**
  * Helper per soft delete: imposta deletedAt e aggiorna record.
  */

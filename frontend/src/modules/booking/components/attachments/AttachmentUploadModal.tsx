@@ -8,6 +8,7 @@ import Button from '@/common/components/ui/Button';
 import SmartModal from '@/common/components/common/SmartModal';
 import { Cloud } from 'lucide-react';
 import { useAttachments } from '@/common/hooks/domain/useAttachments';
+import { useToast } from '@/common/hooks/useToast';
 
 interface AttachmentUploadModalProps {
   bookingId: string;
@@ -28,6 +29,7 @@ const ALLOWED_TYPES = [
 export default function AttachmentUploadModal({
   bookingId, open, onClose, onUploadSuccess,
 }: AttachmentUploadModalProps) {
+  const toast = useToast();
   const theme = useTheme();
   const { uploadFile, uploading, uploadProgress } = useAttachments({ bookingId });
   const [dragActive, setDragActive] = useState(false);
@@ -45,14 +47,14 @@ export default function AttachmentUploadModal({
 
   const handleFile = useCallback(async (file: File) => {
     const error = validateFile(file);
-    if (error) { alert(error); return; }
+    if (error) { toast.error(error); return; }
 
     const result = await uploadFile(file);
     if (result) {
       onUploadSuccess?.();
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  }, [uploadFile, onUploadSuccess]);
+  }, [uploadFile, onUploadSuccess, toast]);
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault(); e.stopPropagation();

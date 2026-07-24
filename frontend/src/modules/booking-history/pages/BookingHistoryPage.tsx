@@ -1,144 +1,167 @@
 'use client';
 
 import { Box, Stack } from '@mui/material';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
+import SmartFilters from '@/common/components/common/SmartFilters';
+import FormSelect from '@/common/components/forms/FormSelect';
+import ExportModal from '@/common/components/modals/ExportModal';
 import DataTable from '@/common/components/table/DataTable';
-import FormInput from '@/common/components/forms/FormInput';
-import { usePaginationFilters } from '@/common/hooks/usePaginationFilters';
+import { useDateRangeFilters } from '@/common/hooks/useDateRangeFilters';
+import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
+import { DEBOUNCE_SEARCH_DELAY } from '@/common/config/env';
+import { formatDate } from '@/common/shared/utils/format';
 import { useAuth } from '@/common/context/AuthContext';
 import { bookingHistoryService, type BookingAction, type BookingHistoryEntry } from '@/modules/booking-history/api/booking-history.api';
 import BookingHistoryCard from '../components/BookingHistoryCard';
 import { useBookingHistoryColumns } from '../hooks/useBookingHistoryColumns';
 import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
-import BookingModal from '@/modules/booking/components/modals/BookingModal';
-import type { FetchParams, ToolbarFilter } from '@/common/components/table/DataTable';
+import { getBookingStatusLabel } from '@/common/config/status-config';
 
 export default function BookingHistoryPage() {
   const { user } = useAuth();
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const {
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-  } = usePaginationFilters();
-
+  const { startDate, setStartDate, endDate, setEndDate, resetDateRange } = useDateRangeFilters();
+  const [search, setSearch] = useState('');
   const [action, setAction] = useState<BookingAction | ''>('');
   const [artistId, setArtistId] = useState<string>('');
-  
-  const { data: artists } = useStaffForSelect();
+  const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
 
+  const { data: artists } = useStaffForSelect();
   const columns = useBookingHistoryColumns();
+
+  const [rows, setRows] = useState<BookingHistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const artistOptions = useMemo(() => [
     { label: 'Tutti gli artisti', value: '' },
-    ...artists.map(a => ({ label: a.name, value: a.id.toString() }))
+    ...artists.map(a => ({ label: a.name, value: a.id.toString() })),
   ], [artists]);
 
-  const fetchHistory = useCallback(async (params: FetchParams) => {
-    return bookingHistoryService.getAll({ 
-      page: params.page,
-      limit: params.limit,
-      search: params.search,
-      startDate: startDate || undefined,
-      endDate: endDate || undefined,
-      action: action || undefined,
-      artistId: artistId ? Number(artistId) : undefined,
-    });
-  }, [startDate, endDate, action, artistId]);
+  const actionOptions = useMemo(() => [
+    { label: 'Tutti gli stati', value: '' },
+    { label: 'Creato', value: 'CREATO' },
+    { label: 'Confermato', value: 'CONFERMATO' },
+    { label: 'Modificato', value: 'MODIFICATO' },
+    { label: 'Spostato', value: 'SPOSTATO' },
+    { label: 'Completato', value: 'COMPLETATO' },
+    { label: 'Annullato', value: 'ANNULLATO' },
+    { label: 'Cancellato', value: 'CANCELLATO' },
+  ], []);
 
-  const refreshKey = useMemo(() => {
-    return `${startDate || ''}_${endDate || ''}_${action}_${artistId}_${refreshTrigger}`;
-  }, [startDate, endDate, action, artistId, refreshTrigger]);
-
-  const toolbarFilters = useMemo<ToolbarFilter[]>(() => [
-    {
-      id: 'action',
-      label: 'Azione',
-      value: action,
-      onChange: (val) => setAction(val as BookingAction | ''),
-      options: [
-        { label: 'Tutte le azioni', value: '' },
-        { label: 'Creato', value: 'CREATO' },
-        { label: 'Confermato', value: 'CONFERMATO' },
-        { label: 'Modificato', value: 'MODIFICATO' },
-        { label: 'Spostato', value: 'SPOSTATO' },
-        { label: 'Completato', value: 'COMPLETATO' },
-        { label: 'Annullato', value: 'ANNULLATO' },
-        { label: 'Cancellato', value: 'CANCELLATO' },
-      ],
-      minWidth: 150,
-    },
-    {
-      id: 'artistId',
-      label: 'Artista',
-      value: artistId,
-      onChange: setArtistId,
-      options: artistOptions,
-      minWidth: 160,
+  const loadHistory = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await bookingHistoryService.getAll({
+        page: 1,
+        limit: 500,
+        search: debouncedSearch || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        action: action || undefined,
+        artistId: artistId ? Number(artistId) : undefined,
+      });
+      setRows(res.data);
+    } catch {
+      setRows([]);
+    } finally {
+      setIsLoading(false);
     }
-  ], [action, artistId, artistOptions]);
+  }, [debouncedSearch, startDate, endDate, action, artistId]);
 
-  const extraToolbarActions = useMemo(() => (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-      <FormInput
-        type="date"
-        value={startDate}
-        onChange={setStartDate}
-        hideLabel
-        placeholder="Da data"
-        sx={{ width: 140, '& .MuiInputBase-root': { height: 36 } }}
-      />
-      <Box sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>al</Box>
-      <FormInput
-        type="date"
-        value={endDate}
-        onChange={setEndDate}
-        hideLabel
-        placeholder="A data"
-        sx={{ width: 140, '& .MuiInputBase-root': { height: 36 } }}
-      />
-    </Stack>
-  ), [startDate, endDate, setStartDate, setEndDate]);
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const exportColumns = useMemo(() => [
+    { label: 'Registrato il', value: (e: BookingHistoryEntry) => formatDate(e.changedAt, 'dd/MM/yyyy HH:mm') },
+    { label: 'Stato', value: (e: BookingHistoryEntry) => getBookingStatusLabel(e.action) },
+    { label: 'Cliente', value: (e: BookingHistoryEntry) => e.booking?.customer ? `${e.booking.customer.firstName} ${e.booking.customer.lastName ?? ''}`.trim() : '-' },
+    { label: 'Artista', value: (e: BookingHistoryEntry) => e.booking?.artist?.name ?? '-' },
+    {
+      label: 'Data appuntamento',
+      value: (e: BookingHistoryEntry) =>
+        formatDate(e.newDate ?? e.oldDate ?? e.booking?.date, 'dd/MM/yyyy HH:mm'),
+      strikeThroughInPdf: (e: BookingHistoryEntry) =>
+        e.action === 'ANNULLATO' || e.action === 'CANCELLATO',
+    },
+    { label: 'Utente', value: (e: BookingHistoryEntry) => e.changedBy?.name ?? '-' },
+  ], []);
 
   return (
     <Stack direction="column" useFlexGap sx={{ gap: 3, flex: 1 }}>
       <PageHeader
         title="Storico Prenotazioni"
         subtitle={user ? `Accesso come ${user.name}` : undefined}
+        actions={
+          <ExportModal
+            filenameBase="storico-prenotazioni"
+            title="Storico Prenotazioni"
+            rows={rows}
+            columns={exportColumns}
+            getPdfRowVariant={(entry) =>
+              entry.action === 'COMPLETATO' ? 'success' : undefined
+            }
+          />
+        }
+        filters={
+          <SmartFilters
+            search={{
+              value: search,
+              onChange: setSearch,
+              placeholder: 'Cerca cliente, artista...',
+            }}
+            dateRange={{
+              start: { value: startDate, onChange: setStartDate },
+              end: { value: endDate, onChange: setEndDate },
+            }}
+          >
+            <FormSelect
+              label="Stato"
+              value={action}
+              onChange={(val) => setAction(val as BookingAction | '')}
+              options={actionOptions}
+              hideLabel
+              sx={{ flex: '0 1 160px', minWidth: 120 }}
+            />
+            <FormSelect
+              label="Artista"
+              value={artistId}
+              onChange={setArtistId}
+              options={artistOptions}
+              hideLabel
+              sx={{ flex: '0 1 170px', minWidth: 120 }}
+            />
+            {(startDate || endDate) && (
+              <Box
+                component="button"
+                onClick={resetDateRange}
+                sx={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'text.secondary',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                }}
+              >
+                Reset
+              </Box>
+            )}
+          </SmartFilters>
+        }
       />
 
       <Box sx={{ flex: 1 }}>
         <DataTable<BookingHistoryEntry>
           columns={columns}
-          fetchData={fetchHistory}
-          queryKey="bookingHistory"
-          refreshKey={refreshKey as any}
+          data={rows}
+          isLoading={isLoading}
           keyExtractor={(entry) => entry.id}
+          hideState
           emptyTitle="Nessuna modifica"
           emptyDescription="Nessuna modifica trovata per i filtri selezionati."
           renderCard={(entry) => <BookingHistoryCard entry={entry} />}
-          getRowStyle={() => ({ cursor: 'pointer' })}
-          toolbarFilters={toolbarFilters}
-          extraToolbarActions={extraToolbarActions}
-          exportFileName="storico-prenotazioni"
-          openEntityModal={(action, entry, onClose, onSuccess) => {
-            if (!entry?.booking) return null;
-            return (
-              <BookingModal
-                isOpen
-                booking={{
-                  ...entry.booking,
-                  status: entry.booking.status as BookingAction
-                } as any}
-                onClose={onClose || (() => {})}
-                onSuccess={onSuccess}
-              />
-            );
-          }}
         />
       </Box>
     </Stack>

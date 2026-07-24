@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { userPreferencesApi, UserPreferencesData } from '@/modules/user/api/userPreferencesApi';
 import { useAuth } from './AuthContext';
+import { setPreferredItemsPerPage } from '@/common/shared/utils/pagination';
 
 const DEFAULT_PREFERENCES: UserPreferencesData = {
   language: 'it',
@@ -45,7 +46,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
       setPreferences(remote);
       if (typeof window !== 'undefined') {
         localStorage.setItem('nagma_user_preferences', JSON.stringify(remote));
-        localStorage.setItem('nagma_items_per_page', String(remote.itemsPerPage));
+        setPreferredItemsPerPage(remote.itemsPerPage);
       }
     } catch {
       // Fallback a preferenze locali
@@ -64,7 +65,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     if (typeof window !== 'undefined') {
       localStorage.setItem('nagma_user_preferences', JSON.stringify(updated));
       if (data.itemsPerPage) {
-        localStorage.setItem('nagma_items_per_page', String(data.itemsPerPage));
+        setPreferredItemsPerPage(data.itemsPerPage);
       }
     }
     if (isAuthenticated) {

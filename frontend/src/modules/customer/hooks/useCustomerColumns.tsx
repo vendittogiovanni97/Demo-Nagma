@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Icon from '@/common/components/ui/Icon';
 import { useMemo } from 'react';
-import { useTheme } from '@mui/material';
+import { alpha, useTheme } from '@mui/material';
 import { Box } from '@mui/material';
 
 export function useCustomerColumns(): Column<Customer>[] {
@@ -16,7 +16,7 @@ export function useCustomerColumns(): Column<Customer>[] {
         key: 'cliente',
         label: 'Cliente',
         minWidth: 180,
-        width: '200px',
+        flex: 1.35,
         render: (customer) => (
           <Box sx={{ minWidth: 0 }}>
             <Box sx={{ fontWeight: 600, lineHeight: 1.25, color: theme.palette.text.primary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -44,7 +44,7 @@ export function useCustomerColumns(): Column<Customer>[] {
         key: 'phone',
         label: 'Telefono',
         minWidth: 150,
-        width: '160px',
+        flex: 1,
         render: (customer) => (
           <Box
             sx={{
@@ -66,7 +66,7 @@ export function useCustomerColumns(): Column<Customer>[] {
         key: 'email',
         label: 'Email',
         minWidth: 200,
-        width: '220px',
+        flex: 1.45,
         render: (customer) =>
           customer.email ? (
             <Box
@@ -87,7 +87,7 @@ export function useCustomerColumns(): Column<Customer>[] {
               </Box>
             </Box>
           ) : (
-            <Box component="span" sx={{ fontSize: '0.875rem', color: 'rgba(244,67,54,0.4)' }}>
+            <Box component="span" sx={{ fontSize: '0.875rem', color: alpha(theme.palette.error.main, 0.4) }}>
               —
             </Box>
           ),
@@ -96,7 +96,7 @@ export function useCustomerColumns(): Column<Customer>[] {
         key: 'createdAt',
         label: 'Iscritto il',
         minWidth: 130,
-        width: '140px',
+        flex: 0.9,
         render: (customer) => (
           <Box
             component="span"
@@ -117,7 +117,7 @@ export function useCustomerColumns(): Column<Customer>[] {
         label: 'Prenotazioni',
         align: 'center',
         minWidth: 120,
-        width: '130px',
+        flex: 0.8,
         render: (customer) => (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Box
@@ -129,7 +129,7 @@ export function useCustomerColumns(): Column<Customer>[] {
                 height: '28px',
                 px: 2.5,
                 borderRadius: '9999px',
-                backgroundColor: 'rgba(0, 191, 255, 0.1)',
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 color: theme.palette.primary.main,
                 fontWeight: 700,
                 fontSize: '0.75rem',

@@ -27,17 +27,18 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Paper from '@/common/components/ui/Paper';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { formatDate } from '@/common/shared/utils/format';
 import Icon from '@/common/components/ui/Icon';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface Props {
   id: number;
+  embedded?: boolean;
+  onClose?: () => void;
 }
 
-export default function CustomerDetail({ id }: Props) {
+export default function CustomerDetail({ id, embedded = false, onClose }: Props) {
   const theme = useTheme();
   const router = useRouter();
   const { isAdmin } = useAuth();
@@ -72,7 +73,7 @@ export default function CustomerDetail({ id }: Props) {
       action: () => customerService.delete(id),
       successMessage: 'Cliente eliminato',
       errorMessage: "Errore durante l'eliminazione",
-      onSuccess: () => router.push('/clienti'),
+      onSuccess: () => (embedded ? onClose?.() : router.push('/clienti')),
     });
   };
 
@@ -97,10 +98,10 @@ export default function CustomerDetail({ id }: Props) {
           description="Il cliente potrebbe essere stato eliminato o non esiste."
 action={
               <CancelButton
-                onClick={() => router.push('/clienti')}
+                onClick={() => (embedded ? onClose?.() : router.push('/clienti'))}
                 sx={{ mt: 2 }}
               >
-                Torna alla lista
+                {embedded ? 'Chiudi' : 'Torna alla lista'}
               </CancelButton>
             }
         />
@@ -111,13 +112,15 @@ action={
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, overflow: 'hidden' }}>
 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <CancelButton
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/clienti')}
-            icon={<Icon name="arrowLeft" size={20} />}
-            sx={{ p: 1 }}
-          />
+          {!embedded && (
+            <CancelButton
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/clienti')}
+              icon={<Icon name="arrowLeft" size={20} />}
+              sx={{ p: 1 }}
+            />
+          )}
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {isLoadingCustomer ? (
@@ -260,7 +263,7 @@ action={
                 >
                   <Icon name="calendar" size={16} />
                   Cliente dal{' '}
-                  {format(new Date(customer.createdAt), 'dd MMM yyyy', { locale: it })}
+                  {formatDate(customer.createdAt, 'dd MMM yyyy')}
                 </Box>
               </Box>
 
@@ -404,7 +407,7 @@ action={
                       Appuntamento — {summary.lastBooking.artistName}
                     </Typography>
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
-                      {format(new Date(summary.lastBooking.date), 'dd MMM yyyy', { locale: it })}
+                      {formatDate(summary.lastBooking.date, 'dd MMM yyyy')}
                     </Typography>
                   </Box>
                 )}
@@ -504,10 +507,10 @@ action={
                       </Box>
                       <Box sx={{ textAlign: 'right' }}>
                         <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
-                          {format(new Date(booking.date), 'dd MMM', { locale: it })}
+                          {formatDate(booking.date, 'dd MMM')}
                         </Typography>
                         <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                          {format(new Date(booking.date), 'HH:mm')}
+                          {formatDate(booking.date, 'HH:mm')}
                         </Typography>
                         <Box>
                           <Badge
@@ -580,7 +583,7 @@ action={
                               py: 1,
                             }}
                           >
-                            {format(new Date(booking.date), 'dd MMM yyyy', { locale: it })}
+                            {formatDate(booking.date, 'dd MMM yyyy')}
                           </TableCell>
                           <TableCell
                             sx={{
@@ -691,7 +694,7 @@ action={
                         variant="caption"
                         sx={{ color: theme.palette.text.secondary, ml: 2, flexShrink: 0 }}
                       >
-                        {format(new Date(log.createdAt), 'dd MMM', { locale: it })}
+                        {formatDate(log.createdAt, 'dd MMM')}
                       </Typography>
                     </Box>
                   ))}

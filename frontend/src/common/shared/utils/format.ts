@@ -12,6 +12,13 @@ export function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-export function formatDate(date: string | Date, fmt = 'd MMM yyyy'): string {
-  return format(new Date(date), fmt, { locale: it });
+export function formatDate(
+  date: string | Date | null | undefined,
+  fmt = 'd MMM yyyy',
+  fallback = '—'
+): string {
+  if (date == null) return fallback;
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return fallback;
+  return format(d, fmt, { locale: it });
 }

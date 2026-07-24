@@ -7,11 +7,13 @@ import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModa
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import { useAuth } from '@/common/context/AuthContext';
 import { useBookings } from '../hooks/useBooking';
+import { bookingApi } from '../api/booking.api';
+import { bookingMapper } from '../api/booking.mapper';
 import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import { Box } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
-import { useMemo, useState, Suspense, useCallback } from 'react';
+import { useState, Suspense, useCallback } from 'react';
 import BookingAttachmentsModal from '../components/modals/BookingAttachmentsModal';
 import BookingDataTable from '../components/BookingDataTable';
 import BookingFilters from '../components/BookingFilters';
@@ -41,12 +43,19 @@ function PrenotazioniPageContent() {
     setStatusFilter,
     setSortOrder,
     resetDateRange,
+    setToday,
     prevMonth,
     nextMonth,
-    filterBookings,
   } = useBookingFilters();
 
-  const { data: bookingsResult, mutate, isLoading, error } = useBookings({ month });
+  const { data: bookingsResult, mutate, updateBookingLocalState, isLoading, error } = useBookings({
+    month,
+    search: debouncedSearch || undefined,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+    status: statusFilter,
+    sortOrder,
+  });
   const bookings = (bookingsResult?.data ?? []) as unknown as Booking[];
 
   const {
@@ -57,7 +66,7 @@ function PrenotazioniPageContent() {
     handleDelete,
     handlePasswordDelete,
     closePendingDelete,
-  } = useBookingActions({ mutate });
+  } = useBookingActions({ mutate, onUpdateLocalState: updateBookingLocalState });
 
   const handleEdit = useCallback((booking: Booking) => {
     setEditingBooking(booking);
@@ -72,11 +81,6 @@ function PrenotazioniPageContent() {
     onAttachmentClick: handleAttachmentClick,
   });
 
-  const filteredBookings = useMemo(
-    () => filterBookings(bookings ?? []),
-    [bookings, filterBookings],
-  );
-
   const handleOpenNewModal = useCallback(() => {
     setEditingBooking(null);
     setIsModalOpen(true);
@@ -89,12 +93,15 @@ function PrenotazioniPageContent() {
         actions={
           <ExportModal
             filenameBase={`prenotazioni-${month}`}
-            title={`Prenotazioni — ${monthLabel}`}
+            title="Prenotazioni"
             rows={bookings || []}
             columns={exportColumns}
             filters={exportFilters}
             filtersLabel={`Mese: ${monthLabel}`}
-            resolveRows={async () => bookings}
+            resolveRows={async () => {
+              const res = await bookingApi.getAll({ month });
+              return res.data.map(bookingMapper.toModel) as unknown as Booking[];
+            }}
           />
         }
         showButton
@@ -116,6 +123,7 @@ function PrenotazioniPageContent() {
             onStatusFilterChange={setStatusFilter}
             onSortOrderChange={setSortOrder}
             onResetDateRange={resetDateRange}
+            onTodayClick={setToday}
             onPrevMonth={prevMonth}
             onNextMonth={nextMonth}
           />
@@ -125,7 +133,7 @@ function PrenotazioniPageContent() {
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto', pt: 2 }}>
         <BookingDataTable
           columns={bookingColumns}
-          data={filteredBookings}
+          data={bookings}
           isLoading={isLoading}
           hasError={!!error}
           onComplete={handleComplete}
@@ -139,6 +147,7 @@ function PrenotazioniPageContent() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => mutate()}
+        onUpdateLocalState={updateBookingLocalState}
         booking={editingBooking}
       />
       <BookingAttachmentsModal

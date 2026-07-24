@@ -49,6 +49,9 @@ function DashboardContent() {
             monthDate={bookingDate}
             onMonthChange={setBookingDate}
             total={bookingStats?.total ?? 0}
+            modified={bookingStats?.modified ?? 0}
+            rescheduled={bookingStats?.rescheduled ?? 0}
+            annullated={bookingStats?.annullated ?? 0}
             cancelled={bookingStats?.cancelled ?? 0}
             completed={bookingStats?.completed ?? 0}
             isLoading={isStatsLoading}

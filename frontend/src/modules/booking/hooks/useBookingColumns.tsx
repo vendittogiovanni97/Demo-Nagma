@@ -25,7 +25,11 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       key: 'cliente',
       label: 'Cliente',
       minWidth: 170,
-      width: '180px',
+      flex: 1.45,
+      sortValue: (booking) =>
+        booking.customer
+          ? `${booking.customer.lastName ?? ''} ${booking.customer.firstName ?? ''}`.trim().toLowerCase()
+          : '',
       render: (booking) => (
         booking.customer ? (
           <Box sx={{ minWidth: 0 }}>
@@ -57,7 +61,8 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       key: 'artista',
       label: 'Artista',
       minWidth: 140,
-      width: '150px',
+      flex: 1.2,
+      sortValue: (booking) => booking.artist?.name?.toLowerCase() ?? '',
       render: (booking) => (
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
           <Box
@@ -77,9 +82,10 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     },
     {
       key: 'data_ora',
-      label: 'Data & Ora',
+      label: 'Data appuntamento',
       minWidth: 135,
-      width: '145px',
+      flex: 1.15,
+      sortValue: (booking) => new Date(booking.date).getTime(),
       render: (booking) => (
         <Stack useFlexGap sx={{ gap: 0.25 }}>
           <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center' }}>
@@ -115,7 +121,8 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       label: 'Durata',
       align: 'center',
       minWidth: 95,
-      width: '105px',
+      flex: 0.8,
+      sortValue: (booking) => booking.duration,
       render: (booking) => (
         <Stack direction="row" useFlexGap sx={{ gap: 0.75, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           <Icon name="timer" size={12} color={theme.palette.primary.main} />
@@ -134,9 +141,10 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
     },
     {
       key: 'prenotato_il',
-      label: 'Prenotato il',
+      label: 'Registrato il',
       minWidth: 125,
-      width: '135px',
+      flex: 1,
+      sortValue: (booking) => new Date(booking.createdAt).getTime(),
       render: (booking) => (
         <Stack useFlexGap sx={{ gap: 0.25 }}>
           <Typography
@@ -166,7 +174,8 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       label: 'Stato',
       align: 'center',
       minWidth: 140,
-      width: '145px',
+      flex: 1.1,
+      sortValue: (booking) => booking.status,
       render: (booking) => (
         <Badge
           label={getBookingStatusLabel(booking.status)}
@@ -179,7 +188,9 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       key: 'prezzo',
       label: 'Prezzo',
       align: 'right',
-      width: '110px',
+      minWidth: 105,
+      flex: 0.9,
+      sortValue: (booking) => booking.price ?? null,
       render: (booking) => (
         <Box sx={{ textAlign: 'right', width: '100%' }}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -205,7 +216,10 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       key: 'saldo',
       label: 'Saldo',
       align: 'right',
-      width: '110px',
+      minWidth: 105,
+      flex: 0.9,
+      sortValue: (booking) =>
+        booking.price != null ? booking.price - (booking.deposit ?? 0) : null,
       render: (booking) => {
         if (booking.status === 'COMPLETATO') {
           return (
@@ -224,7 +238,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
                 variant="caption"
                 sx={{
                   color: theme.palette.success.main,
-                  opacity: 0.6,
+                  fontWeight: 600,
                   display: 'block',
                   mt: 0.25,
                 }}
@@ -252,7 +266,6 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
                 variant="caption"
                 sx={{
                   color: theme.palette.text.secondary,
-                  opacity: 0.6,
                   display: 'block',
                   mt: 0.25,
                 }}
@@ -289,7 +302,7 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
                 variant="caption"
                 sx={{
                   color: theme.palette.success.main,
-                  opacity: 0.6,
+                  fontWeight: 600,
                   display: 'block',
                   mt: 0.25,
                 }}
@@ -306,7 +319,9 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
       key: 'allegati',
       label: 'Allegati',
       align: 'center',
-      width: '90px',
+      minWidth: 90,
+      flex: 0.7,
+      sortValue: (booking) => booking.attachments?.length ?? 0,
       render: (booking) => {
         const count = booking.attachments?.length ?? 0;
         return (
@@ -336,8 +351,8 @@ export function useBookingColumns(options: UseBookingColumnsOptions = {}) {
                   }
                 }}
                 sx={{
-                  width: 32,
-                  height: 32,
+                  minWidth: 44,
+                  minHeight: 44,
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',

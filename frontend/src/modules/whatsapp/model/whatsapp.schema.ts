@@ -25,5 +25,5 @@ export const listWhatsAppLogsSchema = z.object({
   search: z.string().trim().optional(),
   status: whatsappMessageStatusSchema.optional(),
   page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().max(100).default(20),
+  limit: z.number().int().positive().max(100).default(25),
 });

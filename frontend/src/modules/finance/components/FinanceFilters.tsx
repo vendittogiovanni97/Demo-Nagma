@@ -9,14 +9,15 @@ import {
   useTheme
 } from '@mui/material';
 import Icon, { Search } from '@/common/components/ui/Icon';
+import type { TransactionFilterType } from '@/common/shared/types/transaction';
 
 interface FinanceFiltersProps {
   month: Date;
   onMonthChange: (date: Date) => void;
   search: string;
   onSearchChange: (val: string) => void;
-  type: 'ALL' | 'INCOME' | 'EXPENSE';
-  onTypeChange: (val: 'ALL' | 'INCOME' | 'EXPENSE') => void;
+  type: TransactionFilterType;
+  onTypeChange: (val: TransactionFilterType) => void;
 }
 
 export default function FinanceFilters({
@@ -80,8 +81,8 @@ export default function FinanceFilters({
         }}
       >
         <ToggleButton value="ALL">Tutti</ToggleButton>
-        <ToggleButton value="INCOME">Entrate</ToggleButton>
-        <ToggleButton value="EXPENSE">Uscite</ToggleButton>
+        <ToggleButton value="ENTRATA">Entrate</ToggleButton>
+        <ToggleButton value="USCITA">Uscite</ToggleButton>
       </ToggleButtonGroup>
     </Stack>
   );

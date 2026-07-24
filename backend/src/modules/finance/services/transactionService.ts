@@ -17,7 +17,7 @@ export class TransactionService {
     page?: number;
     limit?: number;
   }) {
-    const { type, month, startDate, endDate, search, page = 1, limit = 20 } = filters;
+    const { type, month, startDate, endDate, search, page = 1, limit = 25 } = filters;
     const where: Prisma.TransactionWhereInput = { deletedAt: null };
 
     if (type) where.type = type as any;

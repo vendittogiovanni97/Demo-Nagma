@@ -8,6 +8,9 @@ export const bookingApi = {
     month?: string;
     startDate?: string;
     endDate?: string;
+    status?: string;
+    search?: string;
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     limit?: number;
   }) => {

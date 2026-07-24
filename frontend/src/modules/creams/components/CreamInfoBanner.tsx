@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme, alpha } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
 
 interface CreamInfo {
@@ -25,7 +25,7 @@ export default function CreamInfoBanner({ creamData, salesCount }: CreamInfoBann
         display: 'flex',
         alignItems: 'center',
         gap: 1.5,
-        bgcolor: 'rgba(26, 35, 50, 0.6)',
+        bgcolor: alpha(theme.palette.background.paper, 0.6),
         backdropFilter: 'blur(12px)',
         borderRadius: 2,
         border: `1px solid ${theme.palette.divider}`,

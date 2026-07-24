@@ -46,7 +46,12 @@ function FormSelect({
   const displayValue = optionValues.includes(stringValue) ? stringValue : '';
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ...sx }}>
+    <Box
+      sx={[
+        { display: 'flex', flexDirection: 'column', gap: 1 },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ].filter(Boolean) as SxProps<Theme>}
+    >
       {label && !hideLabel && (
         <Box
           component="label"
@@ -89,7 +94,7 @@ function FormSelect({
           '& .MuiOutlinedInput-root': {
             ...inputRootSx(theme),
             backgroundColor: theme.palette.mode === 'light'
-              ? 'rgba(0, 0, 0, 0.03)'
+              ? alpha(theme.palette.common.black, 0.03)
               : alpha(theme.palette.common.white, 0.05),
             borderRadius: 1.5,
             fontSize: '0.9375rem',

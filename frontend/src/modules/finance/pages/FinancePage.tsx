@@ -1,6 +1,5 @@
 "use client";
 
-import Button from '@/common/components/ui/Button';
 import {
   Box,
   Grid,
@@ -9,13 +8,9 @@ import {
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Icon from '@/common/components/ui/Icon';
-import { useState } from 'react';
 
 import PageHeader from '@/common/components/common/PageHeader';
 import ExportModal from '@/common/components/modals/ExportModal';
-import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
-import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
-import TransactionModal from '@/modules/spese/components/modals/TransactionModal';
 import { formatPrice } from '@/common/shared/utils/format';
 import { financeApi, Transaction } from '../api/finance.api';
 import FinanceDataTable from '../components/FinanceDataTable';
@@ -36,34 +31,11 @@ export default function FinancePage() {
     setSearch,
     type,
     setType,
-    refresh
   } = useFinance();
-
-  const { deleteItem, confirmDialogProps } = useDeleteConfirm();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-
-  const handleDelete = async (id: number) => {
-    await deleteItem({
-      confirmMessage: 'Sei sicuro di voler eliminare questa transazione? L\'operazione verrà registrata nell\'audit log.',
-      action: async () => {
-        await financeApi.delete(id);
-        refresh();
-      },
-      successMessage: 'Transazione eliminata correttamente',
-    });
-  };
-
-  const handleEdit = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setIsModalOpen(true);
-  };
-
 
   const exportColumns = [
     { label: 'Data', value: (t: Transaction) => format(new Date(t.date), 'dd/MM/yyyy') },
-    { label: 'Tipo', value: (t: Transaction) => t.type === 'INCOME' ? 'Entrata' : 'Uscita' },
+    { label: 'Tipo', value: (t: Transaction) => t.type === 'ENTRATA' ? 'Entrata' : 'Uscita' },
     { label: 'Categoria', value: (t: Transaction) => t.category },
     { label: 'Descrizione', value: (t: Transaction) => t.description },
     { label: 'Importo', value: (t: Transaction) => formatPrice(t.amount) },
@@ -74,35 +46,33 @@ export default function FinancePage() {
       <PageHeader
         title="Storico Movimenti"
         subtitle="Cronologia completa di entrate e uscite dello studio"
-            icon={<Icon name="dollarSign" size={24} />}
+        icon={<Icon name="dollarSign" size={24} />}
         actions={
-          <Stack sx={{ flexDirection: 'row', gap: 2 }} component="div">
-            <ExportModal
-              filenameBase={`finanza_${format(month, 'yyyy_MM')}`}
-              title={`Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`}
-              rows={transactions}
-              columns={exportColumns}
-              resolveRows={async () => {
-                const res = await financeApi.getAll({
-                  month: format(month, 'yyyy-MM'),
-                  type: type === 'ALL' ? undefined : type,
-                  search,
-                  limit: 1000 // Prendi tutto per l'export
-                });
-                return res.data;
-              }}
-            />
-            <Button
-              variant="primary"
-              icon={<Icon name="plus" size={18} />}
-              onClick={() => {
-                setSelectedTransaction(null);
-                setIsModalOpen(true);
-              }}
-            >
-              Nuovo Movimento
-            </Button>
-          </Stack>
+          <ExportModal
+            filenameBase={`finanza_${format(month, 'yyyy_MM')}`}
+            title={`Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`}
+            rows={transactions}
+            columns={exportColumns}
+            resolveRows={async () => {
+              const res = await financeApi.getAll({
+                month: format(month, 'yyyy-MM'),
+                type: type === 'ALL' ? undefined : type,
+                search,
+                limit: 1000,
+              });
+              return res.data;
+            }}
+            getPdfSummary={(rows) => ({
+              label: 'Totale netto',
+              value: formatPrice(
+                rows.reduce(
+                  (total, transaction) =>
+                    total + (transaction.type === 'ENTRATA' ? transaction.amount : -transaction.amount),
+                  0,
+                ),
+              ),
+            })}
+          />
         }
       />
 
@@ -148,23 +118,9 @@ export default function FinancePage() {
         <FinanceDataTable
           data={transactions}
           isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       </Stack>
-
-      <TransactionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={refresh}
-        transaction={selectedTransaction}
-      />
-
-      <ConfirmDialog {...confirmDialogProps} />
     </Box>
   );
 }
-
-
-
 

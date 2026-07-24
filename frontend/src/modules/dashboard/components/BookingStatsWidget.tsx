@@ -11,15 +11,17 @@ import {
     Typography,
     useTheme,
 } from '@mui/material';
-import { Skeleton } from '@/common/components/feedback/Skeleton';
 import Card from '@/common/components/ui/Card';
 
 interface BookingStatsWidgetProps {
   monthDate: Date;
   onMonthChange: (date: Date) => void;
   total: number;
+  modified: number;
+  rescheduled: number;
+  annullated: number;
   cancelled: number;
-  completed: number;
+  completed?: number;
   isLoading: boolean;
   className?: string;
 }
@@ -28,6 +30,9 @@ export default function BookingStatsWidget({
   monthDate,
   onMonthChange,
   total,
+  modified,
+  rescheduled,
+  annullated,
   cancelled,
   completed,
   isLoading,
@@ -35,6 +40,11 @@ export default function BookingStatsWidget({
 }: BookingStatsWidgetProps) {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
+
+  const amberColor = theme.palette.warning.main;
+  const purpleColor = theme.palette.custom.purple;
+  const annullatedColor = theme.palette.error.main;
+  const cancelledColor = theme.palette.text.secondary;
 
   return (
     <Card
@@ -65,7 +75,7 @@ export default function BookingStatsWidget({
             sx={{
               p: 0.75,
               borderRadius: 1.25,
-              bgcolor: `${theme.palette.primary.main}15`,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
               color: theme.palette.primary.main,
               display: 'flex',
               alignItems: 'center',
@@ -93,13 +103,13 @@ export default function BookingStatsWidget({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: isLight ? alpha(theme.palette.primary.main, 0.04) : `${theme.palette.primary.main}08`,
+                bgcolor: alpha(theme.palette.primary.main, isLight ? 0.04 : 0.03),
                 border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.15 : 0.2)}`,
                 borderRadius: 2,
                 transition: theme.transitions.create(['all'], { duration: 300 }),
                 '&:hover': {
                   borderColor: theme.palette.primary.main,
-                  bgcolor: isLight ? alpha(theme.palette.primary.main, 0.08) : `${theme.palette.primary.main}12`,
+                  bgcolor: alpha(theme.palette.primary.main, isLight ? 0.08 : 0.07),
                 },
               }}
             >
@@ -112,54 +122,113 @@ export default function BookingStatsWidget({
             </Box>
 
             <Grid container spacing={{ xs: 1, md: 1.5 }}>
-              <Grid size={{ xs: 6, sm: 12, md: 6 }}>
+              {/* MODIFICATE (AMBER) */}
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Box
                   sx={{
-                    p: { xs: 2, md: 2.5 },
-                    bgcolor: isLight ? alpha(theme.palette.primary.main, 0.04) : `${theme.palette.primary.main}08`,
-                    border: `1px solid ${alpha(theme.palette.primary.main, isLight ? 0.15 : 0.2)}`,
+                    p: { xs: 1.5, md: 2 },
+                    bgcolor: alpha(amberColor, isLight ? 0.06 : 0.1),
+                    border: `1px solid ${alpha(amberColor, isLight ? 0.2 : 0.3)}`,
                     borderRadius: 2,
                     transition: theme.transitions.create(['all'], { duration: 300 }),
                     '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      bgcolor: isLight ? alpha(theme.palette.primary.main, 0.08) : `${theme.palette.primary.main}12`,
+                      borderColor: amberColor,
+                      bgcolor: alpha(amberColor, isLight ? 0.1 : 0.16),
                     },
                     height: '100%',
                   }}
                 >
-                  <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mb: 1 }}>
-                    <Icon name="refreshCw" size={16} color={theme.palette.primary.main} />
-                    <Typography variant="caption" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 600, letterSpacing: '0.05em' }}>
+                  <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center', mb: 0.75 }}>
+                    <Icon name="refreshCw" size={15} color={amberColor} />
+                    <Typography variant="caption" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 700, fontSize: '0.65rem', letterSpacing: '0.03em' }}>
                       Modificate
                     </Typography>
                   </Stack>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.main }}>
-                    {completed}
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: amberColor }}>
+                    {modified}
                   </Typography>
                 </Box>
               </Grid>
-              <Grid size={{ xs: 6, sm: 12, md: 6 }}>
+
+              {/* SPOSTATE (PURPLE) */}
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Box
                   sx={{
-                    p: { xs: 2, md: 2.5 },
-                    bgcolor: isLight ? alpha(theme.palette.error.main, 0.04) : `${theme.palette.error.main}08`,
-                    border: `1px solid ${alpha(theme.palette.error.main, isLight ? 0.15 : 0.2)}`,
+                    p: { xs: 1.5, md: 2 },
+                    bgcolor: alpha(purpleColor, isLight ? 0.06 : 0.1),
+                    border: `1px solid ${alpha(purpleColor, isLight ? 0.2 : 0.3)}`,
                     borderRadius: 2,
                     transition: theme.transitions.create(['all'], { duration: 300 }),
                     '&:hover': {
-                      borderColor: theme.palette.error.main,
-                      bgcolor: isLight ? alpha(theme.palette.error.main, 0.08) : `${theme.palette.error.main}12`,
+                      borderColor: purpleColor,
+                      bgcolor: alpha(purpleColor, isLight ? 0.1 : 0.16),
                     },
                     height: '100%',
                   }}
                 >
-                  <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mb: 1 }}>
-                    <Icon name="xCircle" size={16} color={theme.palette.error.main} />
-                    <Typography variant="caption" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 600, letterSpacing: '0.05em' }}>
+                  <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center', mb: 0.75 }}>
+                    <Icon name="calendar" size={15} color={purpleColor} />
+                    <Typography variant="caption" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 700, fontSize: '0.65rem', letterSpacing: '0.03em' }}>
+                      Spostate
+                    </Typography>
+                  </Stack>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: purpleColor }}>
+                    {rescheduled}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* ANNULLATE (RED) */}
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Box
+                  sx={{
+                    p: { xs: 1.5, md: 2 },
+                    bgcolor: isLight ? alpha(annullatedColor, 0.06) : alpha(annullatedColor, 0.1),
+                    border: `1px solid ${alpha(annullatedColor, isLight ? 0.2 : 0.3)}`,
+                    borderRadius: 2,
+                    transition: theme.transitions.create(['all'], { duration: 300 }),
+                    '&:hover': {
+                      borderColor: annullatedColor,
+                      bgcolor: isLight ? alpha(annullatedColor, 0.1) : alpha(annullatedColor, 0.16),
+                    },
+                    height: '100%',
+                  }}
+                >
+                  <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center', mb: 0.75 }}>
+                    <Icon name="xCircle" size={15} color={annullatedColor} />
+                    <Typography variant="caption" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 700, fontSize: '0.65rem', letterSpacing: '0.03em' }}>
                       Annullate
                     </Typography>
                   </Stack>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.error.main }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: annullatedColor }}>
+                    {annullated}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* CANCELLATE (ROSE/DARK RED) */}
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Box
+                  sx={{
+                    p: { xs: 1.5, md: 2 },
+                    bgcolor: isLight ? alpha(cancelledColor, 0.06) : alpha(cancelledColor, 0.1),
+                    border: `1px solid ${alpha(cancelledColor, isLight ? 0.2 : 0.3)}`,
+                    borderRadius: 2,
+                    transition: theme.transitions.create(['all'], { duration: 300 }),
+                    '&:hover': {
+                      borderColor: cancelledColor,
+                      bgcolor: isLight ? alpha(cancelledColor, 0.1) : alpha(cancelledColor, 0.16),
+                    },
+                    height: '100%',
+                  }}
+                >
+                  <Stack direction="row" useFlexGap sx={{ gap: 0.75, alignItems: 'center', mb: 0.75 }}>
+                    <Icon name="trash2" size={15} color={cancelledColor} />
+                    <Typography variant="caption" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 700, fontSize: '0.65rem', letterSpacing: '0.03em' }}>
+                      Cancellate
+                    </Typography>
+                  </Stack>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: cancelledColor }}>
                     {cancelled}
                   </Typography>
                 </Box>

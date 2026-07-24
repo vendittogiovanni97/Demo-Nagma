@@ -50,7 +50,7 @@ export function useWhatsAppLogs({
   search,
   status,
   page = 1,
-  limit = 20,
+  limit = 25,
   enabled = true,
 }: UseWhatsAppLogsOptions = {}) {
   const [data, setData] = useState<PaginatedResponse<WhatsAppMessageLog> | undefined>();

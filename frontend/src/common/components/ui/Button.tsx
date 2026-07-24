@@ -1,7 +1,14 @@
 'use client';
 
 import { forwardRef, type ReactNode, createElement, isValidElement } from 'react';
-import { Button as MuiButton, type ButtonProps as MuiButtonProps, CircularProgress, useTheme } from '@mui/material';
+import {
+  Button as MuiButton,
+  type ButtonProps as MuiButtonProps,
+  CircularProgress,
+  type SxProps,
+  type Theme,
+  useTheme,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
 type ButtonVariant = 'primary' | 'secondary' | 'glass' | 'danger' | 'success' | 'ghost' | 'icon';
@@ -56,7 +63,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         case 'primary':
           return {
             backgroundColor: theme.palette.primary.main,
-            color: isLight ? '#ffffff' : '#0a1a26',
+            color: isLight ? theme.palette.common.white : theme.palette.common.black,
             fontWeight: 600,
             boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.25)}`,
             '&:hover': {
@@ -85,14 +92,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         case 'glass':
           return {
             backgroundColor: isLight
-              ? 'rgba(255, 255, 255, 0.85)'
+              ? alpha(theme.palette.common.white, 0.85)
               : alpha(theme.palette.common.white, 0.05),
             color: theme.palette.text.primary,
-            border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : theme.palette.divider}`,
+            border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : theme.palette.divider}`,
             backdropFilter: 'blur(10px)',
             '&:hover': {
               backgroundColor: isLight
-                ? 'rgba(255, 255, 255, 1)'
+                ? theme.palette.common.white
                 : alpha(theme.palette.common.white, 0.1),
               borderColor: theme.palette.primary.main,
             },
@@ -188,12 +195,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         size={getMuiSize()}
         fullWidth={fullWidth}
         startIcon={renderIcon()}
-        sx={{
-          textTransform: 'none',
-          transition: 'all 0.2s ease-in-out',
-          ...getVariantSx(),
-          ...sx,
-        }}
+        sx={[
+          {
+            textTransform: 'none',
+            transition: 'all 0.2s ease-in-out',
+            ...getVariantSx(),
+          },
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ].filter(Boolean) as SxProps<Theme>}
         {...props}
       >
         {isLoading ? (loadingLabel || 'Caricamento...') : children}

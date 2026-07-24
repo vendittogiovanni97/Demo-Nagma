@@ -6,19 +6,36 @@
  */
 
 import { spawn } from 'child_process';
+import http from 'node:http';
+import https from 'node:https';
 import path from 'path';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
 const MAX_WAIT_MS = 30_000;
 const POLL_INTERVAL_MS = 500;
 
+function isServerHealthy(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const url = new URL('/health', BASE_URL);
+    const transport = url.protocol === 'https:' ? https : http;
+    const request = transport.get(url, { agent: false, headers: { Connection: 'close' } }, (response) => {
+      response.resume();
+      response.once('end', () => resolve(
+        response.statusCode !== undefined
+        && response.statusCode >= 200
+        && response.statusCode < 300
+      ));
+    });
+    request.once('error', () => resolve(false));
+  });
+}
+
 async function waitForServer(): Promise<void> {
   const start = Date.now();
 
   while (Date.now() - start < MAX_WAIT_MS) {
     try {
-      const res = await fetch(`${BASE_URL}/health`);
-      if (res.ok) return;
+      if (await isServerHealthy()) return;
     } catch {
       // server non ancora pronto
     }
@@ -35,8 +52,7 @@ export default async function globalSetup(): Promise<void> {
 
   // Se il server è già in ascolto (avviato manualmente / npm run dev), non ne spawniamo uno nuovo
   try {
-    const res = await fetch(`${BASE_URL}/health`);
-    if (res.ok) {
+    if (await isServerHealthy()) {
       console.log(`\n✅ Server già in ascolto su ${BASE_URL} — skip avvio automatico\n`);
       (globalThis as Record<string, unknown>).__BACKEND_EXTERNAL__ = true;
       return;

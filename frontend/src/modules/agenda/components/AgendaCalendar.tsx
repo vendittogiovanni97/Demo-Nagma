@@ -336,7 +336,7 @@ export default function AgendaCalendar({
               allDaySlot={false}
               nowIndicator
               eventMinHeight={26}
-              dayMaxEvents={3}
+              dayMaxEvents={4}
               moreLinkClick={handleMoreLinkClick}
               weekText="Settimana"
               dayHeaderFormat={

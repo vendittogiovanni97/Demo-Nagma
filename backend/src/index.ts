@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import type { Server } from 'http';
-import prisma from './core/shared/utils/prisma';
+import prisma, { closeDatabase } from './core/shared/utils/prisma';
 import { createApp } from './app';
 import { config } from './core/config/env';
 import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
@@ -50,7 +50,7 @@ async function stopServer() {
     logger.info('HTTP server chiuso correttamente');
   }
 
-  await prisma.$disconnect();
+  await closeDatabase();
   logger.info('Connessione Prisma chiusa');
 }
 

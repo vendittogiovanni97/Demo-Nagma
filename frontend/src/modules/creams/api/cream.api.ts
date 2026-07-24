@@ -31,7 +31,7 @@ export const creamService = {
   create: async (data: { name: string; description?: string; isActive?: boolean }) => {
     return apiClient.post(ENDPOINTS.CREAM.BASE, data);
   },
-  getSales: async (creamId: number, page = 1, limit = 20, filters?: { startDate?: string; endDate?: string; artistId?: number }) => {
+  getSales: async (creamId: number, page = 1, limit = 25, filters?: { startDate?: string; endDate?: string; artistId?: number }) => {
     return apiClient.get<{ data: CreamSale[]; total: number; page: number; limit: number; totalPages: number }>(
       `${ENDPOINTS.CREAM.BASE}/${creamId}/sales`,
       { page, limit, ...filters }
@@ -39,6 +39,9 @@ export const creamService = {
   },
   createSale: async (data: CreamSaleInput) => {
     return apiClient.post(ENDPOINTS.CREAM.SALES, data);
+  },
+  deleteSale: async (id: number) => {
+    return apiClient.delete<void>(ENDPOINTS.CREAM.SALE_BY_ID(id));
   },
   getSalesSummary: async () => {
     return apiClient.get<{ id: number; name: string; color: string; totalSales: number; totalQuantity: number }[]>(

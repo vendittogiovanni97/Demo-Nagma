@@ -6,9 +6,10 @@ import { bookingApi as bookingService } from '../api/booking.api';
 
 interface UseBookingActionsOptions {
   mutate: () => Promise<unknown>;
+  onUpdateLocalState?: (id: number, fields: Partial<any>) => void;
 }
 
-export function useBookingActions({ mutate }: UseBookingActionsOptions) {
+export function useBookingActions({ mutate, onUpdateLocalState }: UseBookingActionsOptions) {
   const { isSuperAdmin } = useAuth();
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [showDeletePasswordModal, setShowDeletePasswordModal] = useState(false);
@@ -16,19 +17,21 @@ export function useBookingActions({ mutate }: UseBookingActionsOptions) {
 
   const handleComplete = async (id: number) => {
     try {
+      onUpdateLocalState?.(id, { status: 'COMPLETATO' });
       await bookingService.update(id, { status: 'COMPLETATO' });
       await mutate();
     } catch {
-      // errore silenzioso — il toast viene gestito dal service
+      await mutate();
     }
   };
 
   const handleRestore = async (id: number) => {
     try {
+      onUpdateLocalState?.(id, { status: 'CONFERMATO' });
       await bookingService.update(id, { status: 'CONFERMATO' });
       await mutate();
     } catch {
-      // errore silenzioso — il toast viene gestito dal service
+      await mutate();
     }
   };
 

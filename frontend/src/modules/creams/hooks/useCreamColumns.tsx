@@ -14,7 +14,8 @@ export function useCreamColumns(): Column<CreamSale>[] {
     {
       key: 'soldAt',
       label: 'Data',
-      width: '140px',
+      minWidth: 130,
+      flex: 1,
       render: (row) => (
         <Box sx={{ fontSize: '0.875rem', color: theme.palette.text.primary }}>
           {format(new Date(row.soldAt), 'dd MMM yyyy', { locale: it })}
@@ -24,6 +25,8 @@ export function useCreamColumns(): Column<CreamSale>[] {
     {
       key: 'artist',
       label: 'Artista',
+      minWidth: 160,
+      flex: 1.5,
       render: (row) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box
@@ -45,7 +48,8 @@ export function useCreamColumns(): Column<CreamSale>[] {
     {
       key: 'quantity',
       label: 'Qtà',
-      width: '80px',
+      minWidth: 80,
+      flex: 0.6,
       align: 'center',
       render: (row) => (
         <Box

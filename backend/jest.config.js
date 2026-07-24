@@ -49,6 +49,7 @@ module.exports = {
       // Avvia/arresta il server automaticamente prima/dopo i test di integrazione
       globalSetup: '<rootDir>/test/setup/globalSetup.ts',
       globalTeardown: '<rootDir>/test/setup/globalTeardown.ts',
+      setupFilesAfterEnv: ['<rootDir>/test/setup/closeHttpConnections.ts'],
       // Timeout più alto per le chiamate HTTP
       testTimeout: 30000,
       clearMocks: true,

@@ -7,15 +7,18 @@ import { Alert, Box, Stack, Typography, useTheme } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
 import { useMemo, useState } from 'react';
 
-import { exportService } from '@/common/shared/api/export.api';
+import {
+  exportService,
+  type ExportFormat,
+  type ExportValue,
+} from '@/common/shared/api/export.api';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
-
-type ExportFormat = 'pdf' | 'csv';
 
 export interface ExportColumn<T> {
   label: string;
   value: (row: T) => string | number | undefined | null;
+  strikeThroughInPdf?: (row: T) => boolean;
 }
 
 export interface ExportFilters {
@@ -42,6 +45,8 @@ interface ExportModalProps<T> {
   resolveRows?: () => Promise<T[]>;
   useBackendFilters?: boolean;
   getFilterParams?: () => ExportFilters;
+  getPdfSummary?: (rows: T[]) => { label: string; value: string };
+  getPdfRowVariant?: (row: T) => 'success' | undefined;
   isOpen?: boolean;
   onClose?: () => void;
 }
@@ -56,6 +61,8 @@ export default function ExportModal<T>({
   resolveRows,
   useBackendFilters = false,
   getFilterParams,
+  getPdfSummary,
+  getPdfRowVariant,
   isOpen: externalOpen,
   onClose: externalClose,
 }: ExportModalProps<T>) {
@@ -125,19 +132,38 @@ export default function ExportModal<T>({
         data = await resolveRows();
       }
 
-      switch (format) {
-        case 'pdf':  
-          import('@/common/shared/utils/export').then(mod => {
-            mod.exportRowsToPdf(filenameBase, title, data, columns, finalFiltersLabel);
-          });
-          break;
-        case 'csv':
-          import('@/common/shared/utils/export').then(mod => {
-            mod.exportRowsToCsv(filenameBase, data, columns);
-          });
-          break;
-      }
+      const exportColumns = columns.map((column, index) => ({
+        key: `col_${index}`,
+        label: column.label,
+      }));
+      const exportRows = data.map((row) =>
+        Object.fromEntries(
+          [
+            ...columns.flatMap((column, index) => [
+              [`col_${index}`, column.value(row) as ExportValue],
+              [`col_${index}__pdfStrikeThrough`, column.strikeThroughInPdf?.(row) ?? false],
+            ]),
+            ['__pdfRowVariant', getPdfRowVariant?.(row)],
+          ],
+        ),
+      );
+
+      const finalTitle = finalFiltersLabel && !title.toLowerCase().includes(finalFiltersLabel.toLowerCase())
+        ? `${title} — ${finalFiltersLabel}`
+        : title;
+
+      await exportService.download({
+        format,
+        filename: filenameBase,
+        title: finalTitle,
+        columns: exportColumns,
+        data: exportRows,
+        includeFilterSummary: Boolean(finalFiltersLabel),
+        pdfSummary: getPdfSummary?.(data),
+      });
       handleClose();
+    } catch (caught: unknown) {
+      setError(caught instanceof Error ? caught.message : 'Errore durante l\'esportazione');
     } finally {
       setIsExporting(false);
     }
@@ -191,7 +217,7 @@ export default function ExportModal<T>({
         title="Esporta Dati"
         onSave={handleExport}
         isSaving={isExporting}
-        saveLabel={format === 'pdf' ? 'Esporta in PDF' : 'Scarica CSV'}
+        saveLabel={`Esporta in ${format.toUpperCase()}`}
         saveDisabled={filteredRows.length === 0}
         maxWidth="md"
       >
@@ -207,6 +233,7 @@ export default function ExportModal<T>({
               options={[
                 { value: 'pdf', label: 'Documento PDF (per stampa/lettura)' },
                 { value: 'csv', label: 'File CSV (per Excel/Commercialista)' },
+                { value: 'xlsx', label: 'Cartella Excel (.xlsx con stili)' },
               ]}
             />
           </Box>

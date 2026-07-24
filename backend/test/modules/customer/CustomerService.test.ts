@@ -5,6 +5,7 @@ const createMockPrisma = () => ({
     count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
   },
   booking: {
     aggregate: jest.fn(),
@@ -29,7 +30,7 @@ describe('CustomerService', () => {
   let service: CustomerService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     service = new CustomerService();
   });
 
@@ -59,9 +60,9 @@ describe('CustomerService', () => {
 
   describe('getById', () => {
     it('should return customer when found', async () => {
-      mockPrisma.customer.findFirst.mockResolvedValue({ id: 1, firstName: 'Mario' });
+      mockPrisma.customer.findFirst.mockResolvedValue({ id: 1, firstName: 'Mario', bookings: [] });
       const result = await service.getById(1);
-      expect(result).toEqual({ id: 1, firstName: 'Mario' });
+      expect(result).toEqual({ id: 1, firstName: 'Mario', bookings: [] });
     });
 
     it('should return null when not found', async () => {
@@ -121,7 +122,9 @@ describe('CustomerService', () => {
 
   describe('update', () => {
     it('should update customer data', async () => {
-      mockPrisma.customer.findFirst.mockResolvedValue(null);
+      mockPrisma.customer.findFirst
+        .mockResolvedValueOnce({ id: 1, firstName: 'Old', lastName: 'Name', deletedAt: null })
+        .mockResolvedValueOnce(null);
       mockPrisma.customer.update.mockResolvedValue({ id: 1, firstName: 'Updated' });
 
       const result = await service.update(1, { firstName: 'Updated' });
@@ -130,7 +133,9 @@ describe('CustomerService', () => {
     });
 
     it('should throw when phone conflicts with another customer', async () => {
-      mockPrisma.customer.findFirst.mockResolvedValue({ id: 2, phone: '+39 999' });
+      mockPrisma.customer.findFirst
+        .mockResolvedValueOnce({ id: 1, firstName: 'Mario', lastName: 'Rossi', deletedAt: null })
+        .mockResolvedValueOnce({ id: 2, phone: '+39 999' });
 
       await expect(service.update(1, { phone: '+39 999' }))
         .rejects.toThrow('Un altro cliente possiede già questo numero di telefono (+39 999).');
@@ -147,9 +152,10 @@ describe('CustomerService', () => {
 
   describe('delete', () => {
     it('should soft-delete customer', async () => {
+      mockPrisma.customer.updateMany.mockResolvedValue({ count: 1 });
       await service.delete(1);
-      expect(mockPrisma.customer.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+      expect(mockPrisma.customer.updateMany).toHaveBeenCalledWith({
+        where: { id: 1, deletedAt: null },
         data: { deletedAt: expect.any(Date) },
       });
     });

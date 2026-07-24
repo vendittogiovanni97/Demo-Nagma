@@ -114,6 +114,7 @@ export default function Input({
         disabled={disabled}
         placeholder={placeholder}
         error={!!error}
+        helperText={error || undefined}
         className={className}
         autoComplete={autoComplete}
         fullWidth

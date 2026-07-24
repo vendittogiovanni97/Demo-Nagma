@@ -36,9 +36,12 @@ export interface BookingDTO {
 
 export interface BookingStatsDTO {
   total: number;
+  created: number;
   confirmed: number;
-  cancelled: number;
+  modified: number;
   rescheduled: number;
+  cancelled: number;
+  annullated?: number;
   completed: number;
   month: string;
 }

@@ -28,7 +28,7 @@ export class ReportsController {
       reportType: req.query.reportType as any,
       staffId: req.query.staffId ? Number(req.query.staffId) : undefined,
       page: req.query.page ? Number(req.query.page) : 1,
-      limit: req.query.limit ? Number(req.query.limit) : 20,
+      limit: req.query.limit ? Number(req.query.limit) : 25,
       search: req.query.search as string,
     };
 

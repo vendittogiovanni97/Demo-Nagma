@@ -204,4 +204,63 @@ describe('BookingService', () => {
       expect(tx.booking.update).not.toHaveBeenCalled();
     });
   });
+
+  describe('findAll', () => {
+    function setupList() {
+      mockPrisma.booking.findMany.mockResolvedValue([bookingRow()]);
+      mockPrisma.booking.count.mockResolvedValue(1);
+      mockPrisma.$transaction.mockImplementation((arg: unknown) =>
+        Array.isArray(arg) ? Promise.all(arg) : (arg as Function)()
+      );
+    }
+
+    function lastWhere() {
+      return mockPrisma.booking.findMany.mock.calls.at(-1)![0].where;
+    }
+
+    it('excludes ANNULLATO/CANCELLATO when status is ALL', async () => {
+      setupList();
+      await bookingService.findAll({ month: '2026-07', status: 'ALL' });
+      expect(lastWhere().status).toEqual({ notIn: ['ANNULLATO', 'CANCELLATO'] });
+    });
+
+    it('filters by explicit status', async () => {
+      setupList();
+      await bookingService.findAll({ month: '2026-07', status: 'COMPLETATO' });
+      expect(lastWhere().status).toBe('COMPLETATO');
+    });
+
+    it('does not add status filter when status is absent', async () => {
+      setupList();
+      await bookingService.findAll({ month: '2026-07' });
+      expect(lastWhere().status).toBeUndefined();
+    });
+
+    it('builds an OR search over customer and artist', async () => {
+      setupList();
+      await bookingService.findAll({ month: '2026-07', search: 'rossi' });
+      const or = lastWhere().OR;
+      expect(Array.isArray(or)).toBe(true);
+      expect(or).toEqual(
+        expect.arrayContaining([
+          { customer: { is: { firstName: { contains: 'rossi', mode: 'insensitive' } } } },
+          { artist: { is: { name: { contains: 'rossi', mode: 'insensitive' } } } },
+        ])
+      );
+    });
+
+    it('narrows the month range with startDate/endDate', async () => {
+      setupList();
+      await bookingService.findAll({ month: '2026-07', startDate: '2026-07-10', endDate: '2026-07-20' });
+      const date = lastWhere().date;
+      expect(date.gte).toEqual(new Date('2026-07-10'));
+      expect(date.lte).toEqual(new Date('2026-07-20T23:59:59.999'));
+    });
+
+    it('honors sortOrder on the date column', async () => {
+      setupList();
+      await bookingService.findAll({ month: '2026-07', sortOrder: 'desc' });
+      expect(mockPrisma.booking.findMany.mock.calls.at(-1)![0].orderBy).toEqual({ date: 'desc' });
+    });
+  });
 });

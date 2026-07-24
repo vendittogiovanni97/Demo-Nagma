@@ -15,7 +15,7 @@ import Icon, { Mail, Phone, User } from '@/common/components/ui/Icon';
 import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import FormInput from '@/common/components/forms/FormInput';
-import FormTextarea from '@/common/components/forms/FormTextarea';
+import TextareaInput from '@/common/components/forms/TextareaInput';
 
 import { configService } from '@/common/shared/services/config.service';
 
@@ -143,7 +143,7 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
             icon={Mail}
           />
 
-          <FormTextarea
+          <TextareaInput
             label="Note"
             value={form.formData.notes || ''}
             onChange={(v) => form.setField('notes', v)}

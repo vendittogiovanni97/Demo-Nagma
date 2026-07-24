@@ -87,11 +87,13 @@ export default function SmartFilters({
           </IconButton>
           <Typography
             sx={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: muiTheme.palette.text.primary,
+              fontSize: isXLarge ? '1.375rem' : isLarge ? '1.125rem' : '0.875rem',
+              lineHeight: 1.2,
+              fontWeight: 800,
+              color: muiTheme.palette.primary.main,
+              letterSpacing: isXLarge ? '-0.02em' : 0,
               textTransform: 'capitalize',
-              minWidth: { xs: 70, sm: 80, md: isXLarge ? 90 : 75 },
+              minWidth: { xs: 80, sm: 100, md: isXLarge ? 180 : isLarge ? 150 : 100 },
               textAlign: 'center',
             }}
           >

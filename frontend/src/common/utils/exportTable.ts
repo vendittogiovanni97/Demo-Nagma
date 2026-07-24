@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx';
 import type { ColumnDefinition } from '@/common/components/table/DataTable';
+import { exportService, type ExportFormat } from '@/common/shared/api/export.api';
 
 export interface ExportColumn<E> {
   header: string;
@@ -8,94 +8,46 @@ export interface ExportColumn<E> {
 
 export function resolveExportColumns<E>(
   columns: ColumnDefinition<E>[],
-  translate: (key: string) => string
+  translate: (key: string) => string,
 ): ExportColumn<E>[] {
   return columns
-    .filter((c) => !String(c.key).startsWith('__') && c.exportable !== false)
-    .map((c) => ({
-      header: translate(c.label),
+    .filter((column) => !String(column.key).startsWith('__') && column.exportable !== false)
+    .map((column) => ({
+      header: translate(column.label),
       value: (row: E) => {
-        const val = c.exportValue 
-          ? c.exportValue(row) 
-          : (row as Record<string, unknown>)[c.key as string];
-        if (val == null) return '';
-        if (val instanceof Date) return val.toLocaleString('it-IT');
-        return String(val);
+        const value = column.exportValue
+          ? column.exportValue(row)
+          : (row as Record<string, unknown>)[column.key as string];
+        if (value == null) return '';
+        if (value instanceof Date) return value.toLocaleString('it-IT');
+        return String(value);
       },
     }));
 }
 
 export function buildMatrix<E>(
   columns: ExportColumn<E>[],
-  rows: E[]
+  rows: E[],
 ): { headers: string[]; data: string[][] } {
   return {
-    headers: columns.map((c) => c.header),
-    data: rows.map((row) => columns.map((c) => c.value(row))),
+    headers: columns.map((column) => column.header),
+    data: rows.map((row) => columns.map((column) => column.value(row))),
   };
 }
 
-function triggerDownload(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
-}
-
-export function exportCsv(filename: string, headers: string[], data: string[][]): void {
-  const formatted = data.map((row) => {
-    const obj: Record<string, string> = {};
-    headers.forEach((h, index) => {
-      obj[h] = row[index];
-    });
-    return obj;
-  });
-  const worksheet = XLSX.utils.json_to_sheet(formatted);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Dati');
-  XLSX.writeFile(workbook, `${filename}.csv`, { bookType: 'csv' });
-}
-
-export async function exportXlsx(
+async function exportMatrix(
+  format: ExportFormat,
   filename: string,
   headers: string[],
   data: string[][],
-  sheetName = 'Dati'
 ): Promise<void> {
-  const formatted = data.map((row) => {
-    const obj: Record<string, string> = {};
-    headers.forEach((h, index) => {
-      obj[h] = row[index];
-    });
-    return obj;
-  });
-  const worksheet = XLSX.utils.json_to_sheet(formatted);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31));
-  XLSX.writeFile(workbook, `${filename}.xlsx`, { bookType: 'xlsx' });
-}
+  const columns = headers.map((label, index) => ({ key: `col_${index}`, label }));
+  const rows = data.map((row) =>
+    Object.fromEntries(row.map((value, index) => [`col_${index}`, value])),
+  );
 
-export async function exportPdf(
-  filename: string,
-  headers: string[],
-  data: string[][]
-): Promise<void> {
-  const { exportApi } = await import('@/modules/export/api/exportApi');
-  const columns = headers.map((h, i) => ({ key: `col_${i}`, label: h }));
-  const rows = data.map((row) => {
-    const obj: Record<string, any> = {};
-    headers.forEach((h, i) => {
-      obj[`col_${i}`] = row[i];
-    });
-    return obj;
-  });
-
-  await exportApi.download({
-    format: 'pdf',
+  await exportService.download({
+    format,
     title: filename.replace(/-/g, ' ').toUpperCase(),
     filename,
     columns,
@@ -103,13 +55,20 @@ export async function exportPdf(
   });
 }
 
+export const exportCsv = (filename: string, headers: string[], data: string[][]) =>
+  exportMatrix('csv', filename, headers, data);
+
+export const exportXlsx = (filename: string, headers: string[], data: string[][]) =>
+  exportMatrix('xlsx', filename, headers, data);
+
+export const exportPdf = (filename: string, headers: string[], data: string[][]) =>
+  exportMatrix('pdf', filename, headers, data);
+
 export function slugifyFileName(input: string): string {
-  return (
-    input
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'export'
-  );
+  return input
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'export';
 }

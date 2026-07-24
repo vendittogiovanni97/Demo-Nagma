@@ -62,7 +62,7 @@ export class WhatsAppService {
     const search = params.search as string | undefined;
     const status = params.status as string | undefined;
     const page = params.page ? Number(params.page) : 1;
-    const limit = params.limit ? Number(params.limit) : 20;
+    const limit = params.limit ? Number(params.limit) : 25;
 
     const where: Prisma.WhatsAppMessageLogWhereInput = {
       ...(status ? { status: status as any } : {}),

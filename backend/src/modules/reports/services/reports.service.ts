@@ -129,7 +129,7 @@ export class ReportsService {
    */
   async getDetails(filters: ReportFilterDto): Promise<PaginatedReportDetailsDto> {
     const page = filters.page ? Math.max(1, Number(filters.page)) : 1;
-    const limit = filters.limit ? Math.max(1, Number(filters.limit)) : 20;
+    const limit = filters.limit ? Math.max(1, Number(filters.limit)) : 25;
     const skip = (page - 1) * limit;
 
     const startDate = filters.startDate ? new Date(filters.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);

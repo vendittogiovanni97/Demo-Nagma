@@ -272,68 +272,6 @@ async function seedSavedViews(): Promise<void> {
   console.log(`  ${count} viste salvate`);
 }
 
-async function seedDemoData(): Promise<void> {
-  const staffList = await prisma.staff.findMany({ where: { deletedAt: null } });
-  if (staffList.length === 0) return;
-
-  const defaultArtistId = staffList[0].id;
-  const secondArtistId = staffList[1]?.id || defaultArtistId;
-
-  const customersData = [
-    { firstName: 'Giulia', lastName: 'Rossi', phone: '+393331234567', email: 'giulia.rossi@example.com', notes: 'Cliente abituale per tatuaggi watercolor' },
-    { firstName: 'Marco', lastName: 'Bianchi', phone: '+393479876543', email: 'marco.bianchi@example.com', notes: 'Prefisce appuntamenti nel pomeriggio' },
-    { firstName: 'Elena', lastName: 'Esposito', phone: '+393205554433', email: 'elena.esposito@example.com', notes: 'Allergica al nichel, usare guanti speciali' },
-    { firstName: 'Alessandro', lastName: 'Romano', phone: '+393381122334', email: 'alessandro.romano@example.com', notes: 'Primo tatuaggio maori braccio destro' },
-    { firstName: 'Sofia', lastName: 'Conti', phone: '+393409988776', email: 'sofia.conti@example.com', notes: 'Richiede crema lenitiva dopo seduta' },
-    { firstName: 'Matteo', lastName: 'Bruno', phone: '+393394455667', email: 'matteo.bruno@example.com', notes: 'Interessato a piercing e gioielli in titanio' },
-  ];
-
-  const customers = [];
-  for (const cData of customersData) {
-    const existing = await prisma.customer.findFirst({ where: { phone: cData.phone, deletedAt: null } });
-    if (!existing) {
-      const created = await prisma.customer.create({ data: cData });
-      customers.push(created);
-    } else {
-      customers.push(existing);
-    }
-  }
-
-  const bookingsData = [
-    { customerId: customers[0].id, artistId: defaultArtistId, date: new Date('2026-07-21T09:30:00.000Z'), duration: 120, status: 'CONFERMATO' as any, price: 250.00, deposit: 50.00, notes: 'Tatuaggio watercolor avambraccio' },
-    { customerId: customers[1].id, artistId: secondArtistId, date: new Date('2026-07-21T12:00:00.000Z'), duration: 60, status: 'CREATO' as any, price: 80.00, deposit: 20.00, notes: 'Piercing lobo ed elice titanio' },
-    { customerId: customers[2].id, artistId: defaultArtistId, date: new Date('2026-07-21T15:30:00.000Z'), duration: 150, status: 'COMPLETATO' as any, price: 380.00, deposit: 100.00, notes: 'Cover-up spalla destra con sfumature scure' },
-    { customerId: customers[3].id, artistId: defaultArtistId, date: new Date('2026-07-22T10:00:00.000Z'), duration: 180, status: 'CONFERMATO' as any, price: 320.00, deposit: 80.00, notes: 'Tatuaggio Maori polpaccio' },
-    { customerId: customers[4].id, artistId: secondArtistId, date: new Date('2026-07-23T14:00:00.000Z'), duration: 120, status: 'CONFERMATO' as any, price: 200.00, deposit: 40.00, notes: 'Lettering costato sinistro' },
-    { customerId: customers[5].id, artistId: defaultArtistId, date: new Date('2026-07-24T16:00:00.000Z'), duration: 60, status: 'ANNULLATO' as any, price: 90.00, deposit: 0.00, notes: 'Disdetta per imprevisto lavoro' },
-    { customerId: customers[0].id, artistId: secondArtistId, date: new Date('2026-07-28T11:00:00.000Z'), duration: 120, status: 'CREATO' as any, price: 220.00, deposit: 50.00, notes: 'Ritocco colore braccio' },
-  ];
-
-  for (const bData of bookingsData) {
-    const existing = await prisma.booking.findFirst({ where: { customerId: bData.customerId, date: bData.date, deletedAt: null } });
-    if (!existing) {
-      await prisma.booking.create({ data: bData });
-    }
-  }
-
-  const transactionsData = [
-    { type: 'ENTRATA' as any, category: 'Tatuaggi', description: 'Saldo Tatuaggio Watercolor - Giulia Rossi', amount: 200.00, date: new Date('2026-07-21T11:30:00.000Z') },
-    { type: 'ENTRATA' as any, category: 'Cover Up', description: 'Saldo Cover Up - Elena Esposito', amount: 280.00, date: new Date('2026-07-21T18:00:00.000Z') },
-    { type: 'ENTRATA' as any, category: 'Acconto', description: 'Acconto Tatuaggio Maori - Alessandro Romano', amount: 80.00, date: new Date('2026-07-20T16:00:00.000Z') },
-    { type: 'USCITA' as any, category: 'Forniture', description: 'Acquisto aghi monouso e inchiostri neri', amount: 85.50, date: new Date('2026-07-18T10:00:00.000Z') },
-    { type: 'USCITA' as any, category: 'Prodotti Studio', description: 'Saponi disinfettanti e pellicole protettive', amount: 42.00, date: new Date('2026-07-19T14:30:00.000Z') },
-  ];
-
-  for (const tData of transactionsData) {
-    const existing = await prisma.transaction.findFirst({ where: { description: tData.description, deletedAt: null } });
-    if (!existing) {
-      await prisma.transaction.create({ data: tData });
-    }
-  }
-
-  console.log('  Dati demo (6 clienti, 7 prenotazioni, 5 transazioni)');
-}
-
 async function main(): Promise<void> {
   console.log(`\nSeed [${SEED_PROFILE}]\n`);
 
@@ -349,7 +287,6 @@ async function main(): Promise<void> {
   await seedShifts(data.staff.length);
   await seedUserPreferences();
   await seedSavedViews();
-  await seedDemoData();
 
   console.log(`\nDone: ${data.clientConfig.clientName}`);
   console.log(`Staff: ${data.staff.length}, Account: ${data.accounts.length}`);

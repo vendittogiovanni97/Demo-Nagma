@@ -8,6 +8,7 @@ const createMockPrisma = () => ({
     create: jest.fn(),
     findMany: jest.fn(),
     count: jest.fn(),
+    updateMany: jest.fn(),
   },
   staff: {
     findMany: jest.fn(),
@@ -86,6 +87,25 @@ describe('CreamService', () => {
       const result = await service.createSale({ creamId: 1, artistId: 1, quantity: 2 });
 
       expect(result.id).toBe(1);
+    });
+  });
+
+  describe('deleteSale', () => {
+    it('should soft-delete a sale', async () => {
+      mockPrisma.creamSale.updateMany.mockResolvedValue({ count: 1 });
+
+      await service.deleteSale(7);
+
+      expect(mockPrisma.creamSale.updateMany).toHaveBeenCalledWith({
+        where: { id: 7, deletedAt: null },
+        data: { deletedAt: expect.any(Date) },
+      });
+    });
+
+    it('should reject a missing or already deleted sale', async () => {
+      mockPrisma.creamSale.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.deleteSale(99)).rejects.toThrow('Vendita crema non trovata.');
     });
   });
 

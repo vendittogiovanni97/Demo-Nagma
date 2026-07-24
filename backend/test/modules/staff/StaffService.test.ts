@@ -8,6 +8,7 @@ const createMockPrisma = () => ({
     count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
   },
   shift: {
     findMany: jest.fn(),
@@ -92,15 +93,16 @@ describe('StaffService', () => {
   describe('createMember', () => {
     it('should create member with default color', async () => {
       mockPrisma.staff.create.mockResolvedValue({ id: 1, name: 'Tizio', color: '#00bfff' });
-      const result = await service.createMember({ name: 'Tizio', type: 'ARTIST' });
+      const result = await service.createMember({ name: 'Tizio', type: 'COLLABORATORE' });
       expect(mockPrisma.staff.create).toHaveBeenCalledWith({
-        data: { name: 'Tizio', type: 'ARTIST', color: '#00bfff' },
+        data: { name: 'Tizio', type: 'COLLABORATORE', color: '#00bfff' },
       });
     });
   });
 
   describe('updateMember', () => {
     it('should update member', async () => {
+      mockPrisma.staff.findFirst.mockResolvedValue({ id: 1 });
       mockPrisma.staff.update.mockResolvedValue({ id: 1, name: 'Updated' });
       expect(await service.updateMember(1, { name: 'Updated' })).toEqual({ id: 1, name: 'Updated' });
     });
@@ -108,9 +110,10 @@ describe('StaffService', () => {
 
   describe('deleteMember', () => {
     it('should soft-delete member', async () => {
+      mockPrisma.staff.updateMany.mockResolvedValue({ count: 1 });
       await service.deleteMember(1);
-      expect(mockPrisma.staff.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+      expect(mockPrisma.staff.updateMany).toHaveBeenCalledWith({
+        where: { id: 1, deletedAt: null },
         data: { deletedAt: expect.any(Date) },
       });
     });

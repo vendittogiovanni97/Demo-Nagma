@@ -8,6 +8,9 @@ interface UseBookingsParams {
   month?: string;
   startDate?: string;
   endDate?: string;
+  status?: string;
+  search?: string;
+  sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
   enabled?: boolean;
@@ -42,11 +45,22 @@ export function useBookings(params: UseBookingsParams = {}) {
     fetchBookings();
   }, [fetchBookings]);
 
+  const updateBookingLocalState = useCallback((id: number, updatedFields: Partial<BookingModel>) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        data: prev.data.map((b) => (b.id === id ? { ...b, ...updatedFields } : b)),
+      };
+    });
+  }, [setData]);
+
   return {
     data,
     isLoading,
     error,
-    mutate: fetchBookings
+    mutate: fetchBookings,
+    updateBookingLocalState,
   };
 }
 

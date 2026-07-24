@@ -4,13 +4,11 @@ import DataTable, { ColumnDefinition as Column } from '@/common/components/table
 import { formatPrice } from '@/common/shared/utils/format';
 import {
   Box,
-  Stack,
-  Tooltip,
   Typography,
-  useTheme
+  useTheme,
+  alpha,
 } from '@mui/material';
 import Badge from '@/common/components/ui/Badge';
-import Button from '@/common/components/ui/Button';
 
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -20,24 +18,35 @@ import { Transaction } from '../api/finance.api';
 interface FinanceDataTableProps {
   data: Transaction[];
   isLoading: boolean;
-  onEdit: (t: Transaction) => void;
-  onDelete: (id: number) => void;
 }
 
-export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: FinanceDataTableProps) {
+export default function FinanceDataTable({ data, isLoading }: FinanceDataTableProps) {
   const theme = useTheme();
 
   const columns: Column<Transaction>[] = [
     {
+      key: 'id',
+      label: 'ID',
+      minWidth: 70,
+      flex: 0.45,
+      align: 'center',
+    },
+    {
       key: 'date',
       label: 'Data',
-      width: '150px',
+      minWidth: 135,
+      flex: 1,
+      align: 'center',
       render: (t) => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {format(new Date(t.date), 'dd MMM yyyy', { locale: it })}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}
+          >
             <Icon name="clock" size={10} /> {format(new Date(t.date), 'HH:mm')}
           </Typography>
         </Box>
@@ -46,13 +55,15 @@ export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: 
     {
       key: 'type',
       label: 'Tipo',
-      width: '120px',
+      minWidth: 115,
+      flex: 0.85,
+      align: 'center',
       render: (t) => (
         <Badge
-          label={t.type === 'INCOME' ? 'Entrata' : 'Uscita'}
+          label={t.type === 'ENTRATA' ? 'Entrata' : 'Uscita'}
           size="sm"
-          icon={t.type === 'INCOME' ? TrendingUp : TrendingDown}
-          variant={t.type === 'INCOME' ? 'success' : 'error'}
+          icon={t.type === 'ENTRATA' ? TrendingUp : TrendingDown}
+          variant={t.type === 'ENTRATA' ? 'success' : 'error'}
           sx={{
             fontWeight: 700,
           }}
@@ -62,22 +73,31 @@ export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: 
     {
       key: 'category',
       label: 'Categoria',
-      width: '150px',
+      minWidth: 130,
+      flex: 1,
+      align: 'center',
     },
     {
       key: 'description',
       label: 'Descrizione',
+      minWidth: 180,
+      flex: 1.6,
+      align: 'center',
     },
     {
       key: 'sourceType',
       label: 'Fonte',
-      width: '120px',
+      minWidth: 120,
+      flex: 0.9,
+      align: 'center',
       render: (t) => {
         if (!t.sourceType) return <Typography variant="caption" color="text.secondary">—</Typography>;
         const labels: Record<string, string> = {
           'SPESA_LIBERA': 'Spesa Libera',
           'BOOKING': 'Tatuaggio',
+          'BOOKING_DEPOSIT': 'Acconto',
           'BOOKING_COMMISSION': 'Commissione',
+          'BOOKING_REFUND': 'Rimborso',
           'ARTIST_PAYMENT': 'Pagamento'
         };
         return (
@@ -85,7 +105,7 @@ export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: 
             fontWeight: 700, 
             textTransform: 'uppercase',
             color: 'text.secondary',
-            bgcolor: 'rgba(255,255,255,0.03)',
+            bgcolor: alpha(theme.palette.common.white, 0.03),
             px: 1, py: 0.5, borderRadius: 1
           }}>
             {labels[t.sourceType] || t.sourceType}
@@ -96,39 +116,30 @@ export default function FinanceDataTable({ data, isLoading, onEdit, onDelete }: 
     {
       key: 'amount',
       label: 'Importo',
-      align: 'right',
-      width: '120px',
+      align: 'center',
+      minWidth: 115,
+      flex: 0.9,
       render: (t) => (
         <Typography variant="body1" sx={{
           fontWeight: 800,
-          color: t.type === 'INCOME' ? theme.palette.success.main : theme.palette.error.main
+          color: t.type === 'ENTRATA' ? theme.palette.success.main : theme.palette.error.main
         }}>
-          {t.type === 'INCOME' ? '+' : '-'}{formatPrice(t.amount)}
+          {t.type === 'ENTRATA' ? '+' : '-'}{formatPrice(t.amount)}
         </Typography>
       )
     }
   ];
 
-  const actions = (t: Transaction) => (
-    <Stack sx={{ flexDirection: 'row', gap: 1 }} component="div">
-      <Tooltip title="Modifica">
-        <Button variant="icon" icon={<Icon name="edit2" size={16} />} onClick={() => onEdit(t)} sx={{ color: theme.palette.primary.main }} />
-      </Tooltip>
-      <Tooltip title="Elimina">
-        <Button variant="icon" icon={<Icon name="trash2" size={16} />} onClick={() => onDelete(t.id)} sx={{ color: theme.palette.error.main }} />
-      </Tooltip>
-    </Stack>
-  );
-
   return (
     <DataTable
       columns={columns}
+      baseColumns={[]}
       data={data}
       isLoading={isLoading}
+      hideState
       keyExtractor={(t) => t.id}
-      actions={actions}
       emptyTitle="Nessuna transazione trovata"
-      emptyDescription="Prova a cambiare i filtri o aggiungi una nuova transazione."
+      emptyDescription="Prova a cambiare i filtri impostati."
     />
   );
 }

@@ -15,11 +15,17 @@ export const customerApi = {
   },
 
   getById: async (id: number) => {
-    return apiClient.get<CustomerDTO>(ENDPOINTS.CUSTOMERS.BY_ID(id));
+    const res = await apiClient.get<{ success: boolean; data: CustomerDTO }>(
+      ENDPOINTS.CUSTOMERS.BY_ID(id)
+    );
+    return res.data;
   },
 
   getSummary: async (id: number) => {
-    return apiClient.get<CustomerSummaryDTO>(ENDPOINTS.CUSTOMERS.SUMMARY(id));
+    const res = await apiClient.get<{ success: boolean; data: CustomerSummaryDTO }>(
+      ENDPOINTS.CUSTOMERS.SUMMARY(id)
+    );
+    return res.data;
   },
 
   create: async (data: CreateCustomerRequest) => {

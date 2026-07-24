@@ -4,7 +4,6 @@ import { memo } from 'react';
 import { Box, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { format } from 'date-fns';
-import Icon from '@/common/components/ui/Icon';
 
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 
@@ -41,53 +40,46 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
 
   const isLight = theme.palette.mode === 'light';
 
+  const statusTone = isCompleted
+    ? theme.palette.success.main
+    : isCancelled
+      ? theme.palette.error.main
+      : isRescheduled
+        ? theme.palette.warning.main
+        : null;
+
   // ─── MONTH VIEW ────────────────────────────────────────────────────────────
   if (isMonthView) {
     return (
       <Box
         sx={{
-          minHeight: 28,
+          minHeight: 26,
           width: '100%',
           overflow: 'hidden',
-          px: 1,
-          py: 0.5,
+          px: 0.75,
+          py: 0.4,
           display: 'flex',
           alignItems: 'center',
-          gap: 0.75,
-          position: 'relative',
+          gap: 0.6,
           borderRadius: '6px',
-          borderLeft: `4px solid ${color}`,
-          background: isCompleted
-            ? isLight
-              ? alpha(theme.palette.success.main, 0.12)
-              : `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, ${color}15 100%)`
-            : isLight
-              ? alpha(color, 0.15)
-              : `linear-gradient(135deg, ${color}25 0%, ${color}10 100%)`,
-          backdropFilter: 'blur(8px)',
-          boxShadow: isLight
-            ? `0 1px 3px ${alpha(theme.palette.common.black, 0.06)}`
-            : `0 1px 4px ${alpha(theme.palette.common.black, 0.3)}`,
+          backgroundColor: alpha(color, isLight ? 0.1 : 0.14),
           opacity,
-          transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'background-color 0.15s ease',
           cursor: isCompleted ? 'default' : 'pointer',
           userSelect: 'none',
-          '&:hover': isCompleted ? {} : {
-            background: isLight ? alpha(color, 0.25) : `linear-gradient(135deg, ${color}38 0%, ${color}18 100%)`,
-            transform: 'translateY(-1px)',
-            boxShadow: `0 3px 8px ${alpha(color, 0.25)}`,
-          },
+          '&:hover': isCompleted
+            ? {}
+            : { backgroundColor: alpha(color, isLight ? 0.18 : 0.22) },
         }}
       >
         {/* Staff color dot */}
         <Box
           sx={{
-            width: 6,
-            height: 6,
+            width: 7,
+            height: 7,
             borderRadius: '50%',
             backgroundColor: color,
             flexShrink: 0,
-            boxShadow: `0 0 6px ${color}CC`,
           }}
         />
 
@@ -95,10 +87,10 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Typography
           component="span"
           sx={{
-            fontSize: '0.75rem',
-            fontWeight: 800,
-            color: isLight ? '#0284c7' : `${color}FF`,
-            fontFamily: 'monospace',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            color: 'text.secondary',
+            fontVariantNumeric: 'tabular-nums',
             lineHeight: 1,
             flexShrink: 0,
           }}
@@ -110,40 +102,33 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         <Typography
           component="span"
           sx={{
-            fontSize: '0.8125rem',
-            fontWeight: 700,
+            fontSize: '0.8rem',
+            fontWeight: 600,
             color: 'text.primary',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             lineHeight: 1.2,
             flex: 1,
+            textDecoration: isCancelled ? 'line-through' : 'none',
           }}
         >
           {booking.customerName}
         </Typography>
 
         {/* Status badge (small) */}
-        {(isCancelled || isRescheduled || isCompleted) && (
+        {statusTone && (
           <Box
             sx={{
-              fontSize: '0.6rem',
+              fontSize: '0.58rem',
               fontWeight: 800,
-              px: 0.6,
-              py: 0.2,
+              px: 0.5,
+              py: 0.15,
               borderRadius: '4px',
-              backgroundColor: isCompleted
-                ? alpha(theme.palette.success.main, 0.2)
-                : isCancelled
-                ? alpha(theme.palette.error.main, 0.2)
-                : alpha(theme.palette.warning.main, 0.2),
-              color: isCompleted
-                ? theme.palette.success.main
-                : isCancelled
-                ? theme.palette.error.main
-                : theme.palette.warning.main,
+              backgroundColor: alpha(statusTone, 0.18),
+              color: statusTone,
               textTransform: 'uppercase',
-              lineHeight: 1,
+              lineHeight: 1.3,
               flexShrink: 0,
             }}
           >
@@ -160,104 +145,56 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
       sx={{
         height: '100%',
         overflow: 'hidden',
-        px: 1.25,
-        py: 0.85,
+        px: 1,
+        py: 0.75,
         display: 'flex',
         flexDirection: 'column',
-        gap: isShort ? 0.35 : 0.6,
-        position: 'relative',
+        gap: isShort ? 0.25 : 0.45,
         cursor: isCompleted ? 'default' : 'pointer',
         userSelect: 'none',
         borderRadius: '6px',
-        borderLeft: `4px solid ${color}`,
-        border: `1px solid ${color}22`,
-        background: isCompleted
-          ? `linear-gradient(135deg, rgba(0,0,0,0.38) 0%, ${color}0C 100%)`
-          : `linear-gradient(135deg, ${color}1E 0%, ${color}08 100%)`,
-        backdropFilter: 'blur(12px)',
-        boxShadow: isCompleted
-          ? 'none'
-          : `0 2px 12px -2px ${color}20, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        borderLeft: `3px solid ${color}`,
+        backgroundColor: alpha(color, isLight ? 0.1 : 0.16),
         opacity,
-        transition: 'all 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': isCompleted ? {} : {
-          transform: 'translateY(-1.5px)',
-          background: `linear-gradient(135deg, ${color}2E 0%, ${color}12 100%)`,
-          boxShadow: `0 6px 20px -2px ${color}35, inset 0 1px 0 rgba(255,255,255,0.10)`,
-          borderColor: `${color}44`,
-        },
+        transition: 'background-color 0.15s ease',
+        '&:hover': isCompleted
+          ? {}
+          : { backgroundColor: alpha(color, isLight ? 0.16 : 0.24) },
       }}
     >
       {/* ROW 1: Time + Status */}
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', minHeight: 18 }}>
-        {/* Time pill */}
-        <Box
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 0.5, minHeight: 14 }}>
+        <Typography
           sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.5,
-            px: 0.8,
-            py: 0.2,
-            borderRadius: '20px',
-            backgroundColor: `${color}20`,
-            border: `1px solid ${color}40`,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            color: 'text.secondary',
+            fontVariantNumeric: 'tabular-nums',
+            lineHeight: 1,
+            flexShrink: 0,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: '0.68rem',
-              fontWeight: 800,
-              color: isLight ? '#0284c7' : `${color}FF`,
-              fontFamily: 'monospace',
-              lineHeight: 1,
-              letterSpacing: '0.04em',
-            }}
-          >
-            {startTime}
-            {!isShort && ` · ${duration}m`}
-          </Typography>
-        </Box>
+          {startTime}{!isShort && ` · ${duration}m`}
+        </Typography>
 
-        {/* Status badge */}
-        {isCompleted ? (
+        {statusTone && (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 16,
-              height: 16,
-              borderRadius: '50%',
-              backgroundColor: alpha(theme.palette.success.main, 0.2),
-              border: `1px solid ${theme.palette.success.main}80`,
-              boxShadow: `0 0 8px ${theme.palette.success.main}40`,
-              flexShrink: 0,
-            }}
-          >
-            <Icon name="check" size={10} color={theme.palette.success.main} />
-          </Box>
-        ) : (isCancelled || isRescheduled) ? (
-          <Box
-            sx={{
-              px: 0.6,
-              py: 0.15,
+              fontSize: '0.55rem',
+              fontWeight: 800,
+              px: 0.45,
+              py: 0.1,
               borderRadius: '4px',
-              backgroundColor: isCancelled
-                ? alpha(theme.palette.error.main, 0.22)
-                : alpha(theme.palette.warning.main, 0.22),
-              border: `1px solid ${isCancelled ? theme.palette.error.main : theme.palette.warning.main}40`,
-              fontSize: '0.58rem',
-              fontWeight: 900,
-              letterSpacing: '0.05em',
-              color: isCancelled ? theme.palette.error.main : theme.palette.warning.main,
+              backgroundColor: alpha(statusTone, 0.18),
+              color: statusTone,
               textTransform: 'uppercase',
-              lineHeight: 1.2,
+              lineHeight: 1.3,
               flexShrink: 0,
             }}
           >
             {statusCfg?.label}
           </Box>
-        ) : null}
+        )}
       </Stack>
 
       {/* ROW 2: Customer name */}
@@ -269,74 +206,30 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
           lineHeight: 1.2,
-          fontSize: isShort ? '0.8125rem' : '0.875rem',
-          letterSpacing: '-0.1px',
+          fontSize: isShort ? '0.78rem' : '0.85rem',
+          textDecoration: isCancelled ? 'line-through' : 'none',
         }}
       >
         {booking.customerName}
       </Typography>
 
-      {/* ROW 3: Artist badge — always shown if name available */}
+      {/* ROW 3: Artist */}
       {booking.artistName && !isShort && (
-        <Stack
-          direction="row"
-          sx={{
-            alignItems: 'center',
-            gap: 0.5,
-            px: 0.75,
-            py: 0.25,
-            borderRadius: '4px',
-            backgroundColor: `${color}18`,
-            border: `1px solid ${color}30`,
-            alignSelf: 'flex-start',
-            maxWidth: '100%',
-            overflow: 'hidden',
-          }}
-        >
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5, overflow: 'hidden' }}>
           <Box
             sx={{
-              width: 5,
-              height: 5,
+              width: 6,
+              height: 6,
               borderRadius: '50%',
               backgroundColor: color,
-              boxShadow: `0 0 6px ${color}CC`,
               flexShrink: 0,
             }}
           />
           <Typography
             sx={{
               fontSize: '0.68rem',
-              fontWeight: 700,
-              color,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              lineHeight: 1,
-            }}
-          >
-            {booking.artistName}
-          </Typography>
-        </Stack>
-      )}
-
-      {/* Short event: artist dot only */}
-      {booking.artistName && isShort && (
-        <Stack direction="row" sx={{ alignItems: 'center', gap: 0.4 }}>
-          <Box
-            sx={{
-              width: 5,
-              height: 5,
-              borderRadius: '50%',
-              backgroundColor: color,
-              boxShadow: `0 0 5px ${color}`,
-              flexShrink: 0,
-            }}
-          />
-          <Typography
-            sx={{
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              color: `${color}E0`,
+              fontWeight: 500,
+              color: 'text.secondary',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',

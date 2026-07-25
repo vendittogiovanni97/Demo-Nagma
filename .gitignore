@@ -23,11 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment
-.env
-.env.production
-.env.development
-
 # Next.js
 .next
 out

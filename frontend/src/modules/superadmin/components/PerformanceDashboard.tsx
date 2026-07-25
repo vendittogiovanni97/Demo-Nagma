@@ -18,7 +18,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import { useTheme, alpha } from '@mui/material/styles';
-import { metricsApi, MetricsSummaryData } from '@/modules/metrics/api/metricsApi';
+import { metricsApi, MetricsSummaryData } from '@/common/shared/api/metrics.api';
 import { useToast } from '@/common/hooks/useToast';
 import Icon from '@/common/components/ui/Icon';
 import { initWebVitalsTracking } from '@/common/utils/webVitals';

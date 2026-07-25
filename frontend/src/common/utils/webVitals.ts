@@ -1,4 +1,4 @@
-import { metricsApi } from '@/modules/metrics/api/metricsApi';
+import { metricsApi } from '@/common/shared/api/metrics.api';
 
 export function initWebVitalsTracking(): void {
   if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;

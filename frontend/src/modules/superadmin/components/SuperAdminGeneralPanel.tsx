@@ -9,7 +9,7 @@ import FormInput from '@/common/components/forms/FormInput';
 import Icon from '@/common/components/ui/Icon';
 import { useToast } from '@/common/hooks/useToast';
 import { configService } from '@/common/shared/services/config.service';
-import { metricsApi, type SystemHealthData } from '@/modules/metrics/api/metricsApi';
+import { metricsApi, type SystemHealthData } from '@/common/shared/api/metrics.api';
 
 interface MaintenanceActionProps {
   title: string;

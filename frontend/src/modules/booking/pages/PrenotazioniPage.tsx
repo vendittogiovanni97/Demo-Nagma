@@ -140,7 +140,6 @@ function PrenotazioniPageContent() {
           columns={bookingColumns}
           data={bookings}
           isLoading={isLoading}
-          hasError={!!error}
           onComplete={handleComplete}
           onRestore={handleRestore}
           onEdit={handleEdit}

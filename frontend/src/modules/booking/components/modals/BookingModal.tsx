@@ -16,6 +16,8 @@ import { useMemo } from 'react';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormAutocomplete from '@/common/components/forms/FormAutocomplete';
 import FormInput from '@/common/components/forms/FormInput';
+import DateInput from '@/common/components/forms/DateInput';
+import TimeInput from '@/common/components/forms/TimeInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 import Badge from '@/common/components/ui/Badge';
@@ -201,10 +203,10 @@ export default function BookingModal({
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
-                  <FormInput label="Data *" type="date" value={form.formData.date} onChange={(v) => form.setField('date', v)} size="sm" />
+                  <DateInput label="Data *" value={form.formData.date} onChange={(v) => form.setField('date', v)} size="sm" />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
-                  <FormInput label="Ora *" type="time" value={form.formData.time} onChange={(v) => form.setField('time', v)} size="sm" />
+                  <TimeInput label="Ora *" value={form.formData.time} onChange={(v) => form.setField('time', v)} size="sm" />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 3 }}>
                   <FormSelect label="Durata" value={form.formData.duration} onChange={(v) => form.setField('duration', v)} options={DURATION_OPTIONS} />

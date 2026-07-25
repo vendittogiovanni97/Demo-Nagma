@@ -28,6 +28,9 @@ interface InputProps {
   autoComplete?: string;
   hideLabel?: boolean;
   name?: string;
+  onBlur?: () => void;
+  onIconClick?: () => void;
+  inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
   sx?: SxProps<Theme>;
 }
 
@@ -52,6 +55,9 @@ export default function Input({
   autoComplete,
   hideLabel = false,
   name,
+  onBlur,
+  onIconClick,
+  inputMode,
   sx,
   ...props
 }: InputProps) {
@@ -119,10 +125,11 @@ export default function Input({
         autoComplete={autoComplete}
         fullWidth
         name={name}
+        onBlur={onBlur}
         slotProps={{
           input: {
             startAdornment: Icon ? (
-              <InputAdornment position="start">
+              <InputAdornment position="start" onClick={onIconClick} style={{ cursor: onIconClick ? 'pointer' : 'default' }}>
                 <Icon size={16} style={{ color: theme.palette.text.secondary }} />
               </InputAdornment>
             ) : undefined,
@@ -132,6 +139,7 @@ export default function Input({
               max,
               step,
               pattern,
+              inputMode,
               style: {
                 cursor: (type === 'date' || type === 'time') ? 'pointer' : 'inherit',
               },

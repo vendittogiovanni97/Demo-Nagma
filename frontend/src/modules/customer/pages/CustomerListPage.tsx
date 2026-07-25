@@ -1,12 +1,11 @@
 "use client";
 
 import PageHeader from '@/common/components/common/PageHeader';
-import type { FetchParams } from '@/common/components/table/DataTable';
-import DataTable, { DataTableRef } from '@/common/components/table/DataTable';
+import DataTable, { type FetchParams, type TableAction } from '@/common/components/table/DataTable';
 import Icon from '@/common/components/ui/Icon';
 import { useAuth } from '@/common/context/AuthContext';
 import { Box } from '@mui/material';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { customerApi } from '../api/customer.api';
 import CustomerCard from '../components/CustomerCard';
 import CustomerDetailModal from '../components/modals/CustomerDetailModal';
@@ -18,9 +17,10 @@ import type { CustomerModel as Customer } from '../model/customer.model';
 
 export default function CustomerListPage() {
   const { isAdmin } = useAuth();
-  const tableRef = useRef<DataTableRef<Customer>>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [viewId, setViewId] = useState<number | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
   const filterState = useCustomersFilter();
   const columns = useCustomerColumns();
@@ -28,6 +28,32 @@ export default function CustomerListPage() {
   const handleDelete = useCallback(async (customer: Customer) => {
     await customerApi.delete(customer.id);
   }, []);
+
+  const openCustomerModal = useCallback((customer: Customer | null) => {
+    setEditingCustomer(customer);
+    setIsCustomerModalOpen(true);
+  }, []);
+
+  const getRowActions = useCallback(
+    (customer: Customer): TableAction[] => [
+      {
+        id: 'view',
+        label: 'Visualizza',
+        icon: 'vedi',
+        tone: 'primary',
+        onClick: () => setViewId(customer.id),
+      },
+      {
+        id: 'edit',
+        label: 'Modifica',
+        icon: 'pencil',
+        tone: 'primary',
+        hidden: !isAdmin,
+        onClick: () => openCustomerModal(customer),
+      },
+    ],
+    [isAdmin, openCustomerModal]
+  );
 
   const fetchCustomers = useCallback(async (params: FetchParams) => {
     const response = await customerApi.getAll({
@@ -61,7 +87,7 @@ export default function CustomerListPage() {
         buttonLabel="Nuovo Cliente"
         buttonIcon={<Icon name="plus" size={18} />}
         buttonRequiresAdmin
-        onButtonClick={() => tableRef.current?.openCreateModal()}
+        onButtonClick={() => openCustomerModal(null)}
         filters={
           <CustomerFilters
             search={filterState.search}
@@ -77,31 +103,21 @@ export default function CustomerListPage() {
 
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <DataTable<Customer>
-          ref={tableRef}
           columns={columns}
           baseColumns={['id']}
           hideState={true}
           fetchData={fetchCustomers}
-          queryKey="customers"
           refreshKey={refreshKey}
           keyExtractor={(c) => c.id}
-          onView={(c) => setViewId(c.id)}
           onDelete={isAdmin ? handleDelete : undefined}
+          rowActions={getRowActions}
           deleteConfirmMessage="Sei sicuro di voler eliminare questo cliente?"
           emptyTitle="Nessun cliente presente"
           emptyDescription="Clicca 'Nuovo Cliente' per aggiungere il primo contatto."
-          openEntityModal={isAdmin ? (action, customer, onClose, onSuccess) => (
-            <CustomerModal
-              isOpen
-              customer={customer}
-              onClose={onClose || (() => {})}
-              onSuccess={onSuccess || (() => {})}
-            />
-          ) : undefined}
           renderCard={(customer) => (
             <CustomerCard
               customer={customer}
-              onEdit={(c) => tableRef.current?.openEditModal(c)}
+              onEdit={(selected) => openCustomerModal(selected)}
               onDelete={() => handleDelete(customer)}
             />
           )}
@@ -114,6 +130,16 @@ export default function CustomerListPage() {
         onClose={() => {
           setViewId(null);
           setRefreshTrigger((t) => t + 1);
+        }}
+      />
+
+      <CustomerModal
+        isOpen={isCustomerModalOpen}
+        customer={editingCustomer}
+        onClose={() => setIsCustomerModalOpen(false)}
+        onSuccess={() => {
+          setIsCustomerModalOpen(false);
+          setRefreshTrigger((current) => current + 1);
         }}
       />
     </Box>

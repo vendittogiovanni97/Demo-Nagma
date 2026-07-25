@@ -18,13 +18,13 @@ import { alpha } from '@mui/material/styles';
 import Button, { CancelButton, SaveButton } from '@/common/components/ui/Button';
 import Card from '@/common/components/ui/Card';
 import Icon from '@/common/components/ui/Icon';
-import Modal, { ModalHeader, ModalBody, ModalFooter } from '@/common/components/ui/Modal/Modal';
+import SmartModal from '@/common/components/common/SmartModal';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import SwitchInput from '@/common/components/forms/SwitchInput';
 import { useToast } from '@/common/hooks/useToast';
-import { customFieldService, type CustomField } from '@/modules/custom-fields/api/customField.api';
+import { customFieldService, type CustomField } from '@/common/shared/api/custom-field.api';
 
 const ENTITY_OPTIONS = [
   { value: 'customer', label: 'Clienti' },
@@ -388,86 +388,82 @@ export default function CustomFieldsManager() {
       </Card>
 
       {/* CREATE / EDIT MODAL */}
-      <Modal open={modal.open} onClose={() => !modal.saving && setModal(MODAL_INITIAL)}>
-        <ModalHeader
-          title={modal.editing ? 'Modifica Campo Personalizzato' : 'Nuovo Campo Personalizzato'}
-          onClose={() => !modal.saving && setModal(MODAL_INITIAL)}
-          subtitle={modal.editing ? `ID: ${modal.editing.id}` : `Aggiungi una configurazione dinamica per ${ENTITY_OPTIONS.find(e => e.value === entityFilter)?.label}`}
-        />
-        <ModalBody>
-          <Stack spacing={3} sx={{ mt: 1 }}>
+      <SmartModal
+        isOpen={modal.open}
+        onClose={() => !modal.saving && setModal(MODAL_INITIAL)}
+        title={modal.editing ? 'Modifica Campo Personalizzato' : 'Nuovo Campo Personalizzato'}
+        onSave={handleSave}
+        isSaving={modal.saving}
+        saveLabel={modal.editing ? 'Salva Modifiche' : 'Crea Campo'}
+      >
+        <Stack spacing={3} sx={{ mt: 1 }}>
+          <FormInput
+            label="Etichetta Visualizzata (Label)"
+            value={fieldForm.fieldLabel}
+            onChange={(val: string) => {
+              setFormField('fieldLabel', val);
+              // Auto generate fieldName from label if creating
+              if (!modal.editing) {
+                const camel = val
+                  .toLowerCase()
+                  .replace(/[^a-zA-Z0-9\s]/g, '')
+                  .split(' ')
+                  .map((word, i) => (i === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+                  .join('');
+                setFormField('fieldName', camel);
+              }
+            }}
+            required
+            placeholder="Es. Codice Fiscale, Allergie..."
+            disabled={modal.saving}
+          />
+
+          <FormInput
+            label="Nome della Chiave (DB)"
+            value={fieldForm.fieldName}
+            onChange={(v: string) => setFormField('fieldName', v)}
+            required
+            placeholder="Es. codiceFiscale, allergie"
+            disabled={modal.saving || !!modal.editing} // Do not allow renaming key once created
+            sx={{ fontFamily: 'monospace' }}
+          />
+
+          <FormSelect
+            label="Tipo di Dato"
+            value={fieldForm.fieldType}
+            onChange={(v: string) => setFormField('fieldType', v)}
+            options={FIELD_TYPE_OPTIONS}
+            required
+            disabled={modal.saving}
+          />
+
+          <SwitchInput
+            label="Campo Obbligatorio (isRequired)"
+            checked={fieldForm.isRequired}
+            onChange={(v: boolean) => setFormField('isRequired', v)}
+            disabled={modal.saving}
+          />
+
+          {(fieldForm.fieldType === 'select' || fieldForm.fieldType === 'multiselect') && (
             <FormInput
-              label="Etichetta Visualizzata (Label)"
-              value={fieldForm.fieldLabel}
-              onChange={(val: string) => {
-                setFormField('fieldLabel', val);
-                // Auto generate fieldName from label if creating
-                if (!modal.editing) {
-                  const camel = val
-                    .toLowerCase()
-                    .replace(/[^a-zA-Z0-9\s]/g, '')
-                    .split(' ')
-                    .map((word, i) => i === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
-                    .join('');
-                  setFormField('fieldName', camel);
-                }
-              }}
+              label="Opzioni del menu (Separate da virgola)"
+              value={fieldForm.optionsString}
+              onChange={(v: string) => setFormField('optionsString', v)}
               required
-              placeholder="Es. Codice Fiscale, Allergie..."
+              placeholder="Es. Opzione 1, Opzione 2, Opzione 3"
               disabled={modal.saving}
             />
+          )}
 
-            <FormInput
-              label="Nome della Chiave (DB)"
-              value={fieldForm.fieldName}
-              onChange={(v: string) => setFormField('fieldName', v)}
-              required
-              placeholder="Es. codiceFiscale, allergie"
-              disabled={modal.saving || !!modal.editing} // Do not allow renaming key once created
-              sx={{ fontFamily: 'monospace' }}
-            />
-
-            <FormSelect
-              label="Tipo di Dato"
-              value={fieldForm.fieldType}
-              onChange={(v: string) => setFormField('fieldType', v)}
-              options={FIELD_TYPE_OPTIONS}
-              required
-              disabled={modal.saving}
-            />
-
-            <SwitchInput
-              label="Campo Obbligatorio (isRequired)"
-              checked={fieldForm.isRequired}
-              onChange={(v: boolean) => setFormField('isRequired', v)}
-              disabled={modal.saving}
-            />
-
-            {(fieldForm.fieldType === 'select' || fieldForm.fieldType === 'multiselect') && (
-              <FormInput
-                label="Opzioni del menu (Separate da virgola)"
-                value={fieldForm.optionsString}
-                onChange={(v: string) => setFormField('optionsString', v)}
-                required
-                placeholder="Es. Opzione 1, Opzione 2, Opzione 3"
-                disabled={modal.saving}
-              />
-            )}
-
-            <FormInput
-              label="Valore Predefinito (Opzionale)"
-              value={fieldForm.defaultValue}
-              onChange={(v: string) => setFormField('defaultValue', v)}
-              placeholder={fieldForm.fieldType === 'boolean' ? 'true / false' : 'Es. Nessuna'}
-              disabled={modal.saving}
-            />
-          </Stack>
-        </ModalBody>
-        <ModalFooter>
-          <CancelButton onClick={() => setModal(MODAL_INITIAL)} disabled={modal.saving} />
-          <SaveButton onClick={handleSave} isLoading={modal.saving} loadingLabel="Salvataggio..." />
-        </ModalFooter>
-      </Modal>
+          <FormInput
+            label="Valore Predefinito (Opzionale)"
+            value={fieldForm.defaultValue}
+            onChange={(v: string) => setFormField('defaultValue', v)}
+            placeholder={fieldForm.fieldType === 'boolean' ? 'true / false' : 'Es. Nessuna'}
+            disabled={modal.saving}
+          />
+        </Stack>
+      </SmartModal>
 
       {/* DELETE CONFIRM DIALOG */}
       <ConfirmDialog

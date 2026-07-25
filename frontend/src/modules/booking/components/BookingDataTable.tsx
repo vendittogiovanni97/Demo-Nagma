@@ -11,7 +11,6 @@ interface BookingDataTableProps {
   columns: Column<Booking>[];
   data: Booking[];
   isLoading: boolean;
-  hasError: boolean;
   onComplete: (id: number) => void;
   onRestore: (id: number) => void;
   onEdit: (booking: Booking) => void;
@@ -22,7 +21,6 @@ function BookingDataTable({
   columns,
   data,
   isLoading,
-  hasError,
   onComplete,
   onRestore,
   onEdit,
@@ -113,7 +111,6 @@ function BookingDataTable({
         columns={columns}
         data={data}
         isLoading={isLoading}
-        hasError={hasError}
         keyExtractor={(b) => b.id}
         getRowStyle={getRowStyle}
         hideToolbar

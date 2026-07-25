@@ -155,7 +155,6 @@ export default function CreamsPage() {
       <Box sx={{ flex: 1 }}>
         <DataTable
           fetchData={fetchSales}
-          queryKey="creamSales"
           refreshKey={refreshKey}
           columns={columns}
           emptyTitle={hasFilters ? "Nessuna vendita trovata." : "Nessuna vendita registrata."}

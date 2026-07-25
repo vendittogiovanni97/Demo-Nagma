@@ -135,12 +135,8 @@ export class DatabaseBackupScheduler {
   }
 
   private async findNativePgDump(): Promise<string | null> {
-    const customPath = (config as Record<string, unknown>).databaseBackupPgDumpPath as string | undefined;
-    const envPath = process.env.DB_BACKUP_PG_DUMP_PATH;
-
     const candidates = [
-      customPath,
-      envPath,
+      config.databaseBackupPgDumpPath,
       'pg_dump',
       'C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe',
       'C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe',

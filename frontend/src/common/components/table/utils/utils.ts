@@ -2,19 +2,10 @@ import type { Theme } from '@mui/material/styles';
 import { exportService, type ExportFormat } from '@/common/shared/api/export.api';
 import type {
   ColumnDefinition,
-  DataTableResponse,
-  DetailRow,
-  TableActionTone,
-} from '../DataTable';
+} from '../TableColumns';
+import type { DetailRow, TableActionTone } from '../DataTable.types';
 
 // ─── DATA & TYPE HELPERS ──────────────────────────────────────────────────────
-
-export function normalizeResponse<E>(response: DataTableResponse<E>): { data: E[]; total: number } {
-  if ('items' in response) {
-    return { data: response.items, total: response.meta.totalItems };
-  }
-  return { data: response.data, total: response.total };
-}
 
 export function isDetailRow<E>(row: E | DetailRow<E>): row is DetailRow<E> {
   return typeof row === 'object' && row !== null && '__isDetailRow' in row;

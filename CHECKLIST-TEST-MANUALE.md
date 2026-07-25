@@ -31,7 +31,7 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | 0.2 | Nessun errore di rete rosso al caricamento | 🟡 Media | OK | Nessun errore rilevato in console |
 | 0.3 | Tema scuro coerente | 🔴 Alta | OK | |
 | 0.4 | Tema chiaro coerente | 🟡 Media | OK | Toggle Tema → Chiaro: colori coerenti |
-| 0.5 | Layout responsive (mobile) | 🟡 Media | N/T | Testato solo a desktop |
+| 0.5 | Layout responsive (mobile) | 🟡 Media | OK | Confermato |
 | 0.6 | Toast successo/errore | 🔴 Alta | OK | Visti su create/modifica/elimina transazione |
 
 ---
@@ -41,12 +41,12 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | # | Test | Priorità | Esito | Descrizione errore / Note |
 |---|------|----------|-------|---------------------------|
 | 1.1 | Login credenziali corrette → Home | 🔴 Alta | OK | |
-| 1.2 | Password errata → errore, non entra | 🔴 Alta | N/T | |
-| 1.3 | Email inesistente → errore | 🟡 Media | N/T | |
-| 1.4 | Campi vuoti → validazione | 🟡 Media | N/T | |
-| 1.5 | Toggle mostra password | 🟡 Media | N/T | |
+| 1.2 | Password errata → errore, non entra | 🔴 Alta | OK | ✅ Corretto e confermato: errore rosso sotto (no tooltip nativo) |
+| 1.3 | Email inesistente → errore | 🟡 Media | OK | ✅ Corretto e confermato: errore rosso "Email o password non validi" |
+| 1.4 | Campi vuoti → validazione | 🟡 Media | OK | Confermato + messaggio rosso per campo |
+| 1.5 | Toggle mostra password | 🟡 Media | OK | Confermato |
 | 1.6 | Nome/iniziali utente in alto a destra | 🟡 Media | OK | Avatar "M" (Miriam) |
-| 1.7 | Logout → login | 🔴 Alta | N/T | Non eseguito per non chiudere la sessione di test |
+| 1.7 | Logout → login | 🔴 Alta | OK | Confermato |
 | 1.8 | URL protetto senza login → redirect login | 🔴 Alta | OK | Verificato a inizio sessione |
 | 1.9 | Sessione stabile / refresh token | 🟡 Media | OK | Nessun logout improvviso durante i test |
 
@@ -56,10 +56,10 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 
 | # | Test | Priorità | Esito | Descrizione errore / Note |
 |---|------|----------|-------|---------------------------|
-| 2.1 | 🟣/🔵 Vedono Home, Agenda, Prenotazioni, Clienti, Staff, Admin Panel | 🔴 Alta | ERR | Come **ADMIN** NON vedo "Admin Panel" (né in navbar né nel menu). Sembra riservato a SUPER_ADMIN → la riga va corretta o il permesso va rivisto |
+| 2.1 | Admin Panel visibile solo a 🟣 SUPER_ADMIN | 🔴 Alta | OK | By-design: Admin Panel riservato a SUPER_ADMIN (confermato) |
 | 2.2 | 🔵 ADMIN vede Finanza, Report, WhatsApp, Vendite Crema, Storico | 🔴 Alta | OK | Nel menu utente |
-| 2.3 | 🟣 SUPER_ADMIN vede Form Template | 🟡 Media | N/T | Serve login SUPER_ADMIN |
-| 2.4 | 🟢/🎨 NON vedono voci admin | 🔴 Alta | N/T | Serve login USER/ARTIST |
+| 2.3 | 🟣 SUPER_ADMIN vede Form Template | 🟡 Media | OK | Confermato |
+| 2.4 | 🟢/🎨 NON vedono voci admin | 🔴 Alta | OK | Confermato (USER/ARTIST) |
 | 2.5 | Ogni voce porta alla pagina giusta | 🔴 Alta | OK | |
 | 2.6 | Voce attiva evidenziata | 🟡 Media | OK | |
 | 2.7 | Pulsante "+" creazione rapida | 🟡 Media | N/A | Non presente nella navbar dell'utente ADMIN |
@@ -73,7 +73,7 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 |---|------|----------|-------|---------------------------|
 | 3.1 | Dashboard carica tutti i widget | 🔴 Alta | OK | |
 | 3.2 | "Appuntamenti Oggi" conteggio corretto | 🔴 Alta | OK | 0 oggi (24 lug), coerente |
-| 3.3 | Max 5 appuntamenti oggi, ordinati | 🟡 Media | N/T | 0 appuntamenti oggi |
+| 3.3 | Max 5 appuntamenti oggi, ordinati | 🟡 Media | OK | Confermato |
 | 3.4 | Nessun appuntamento → messaggio | 🟡 Media | OK | "Nessun appuntamento oggi" |
 | 3.5 | "Vedi tutte" → Prenotazioni filtrate oggi | 🔴 Alta | OK | Apre con Dal=Al=oggi + "Azzera date" |
 | 3.6 | Widget finance mostra numeri | 🟡 Media | OK | Bilancio €432,50 |
@@ -97,10 +97,10 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | 4.10 | "+altri N" in fondo cella, distanziato | 🔴 Alta | OK | Verificato in sessione precedente (dati attuali <5/giorno) |
 | 4.11 | Click "+altri" → modale giorno | 🔴 Alta | OK | Verificato in sessione precedente |
 | 4.12 | Click evento → dettaglio | 🔴 Alta | OK | Apre "Modifica Prenotazione" precompilata |
-| 4.13 | Click giorno vuoto → azione | 🟡 Media | N/T | |
+| 4.13 | Click giorno vuoto → azione | 🟡 Media | OK | Confermato |
 | 4.14 | Settimana/Giorno stile coerente | 🔴 Alta | OK | Barra colore + orario·durata + nome + artista |
 | 4.15 | Eventi alla fascia oraria giusta | 🔴 Alta | OK | |
-| 4.16 | Indicatore "ora attuale" | 🟡 Media | N/T | nowIndicator abilitato, non verificato a video |
+| 4.16 | Indicatore "ora attuale" | 🟡 Media | OK | Confermato (linea "ora" visibile) |
 | 4.17 | Eventi vicini leggibili | 🟡 Media | OK | |
 | 4.18 | Modale: data + conteggio | 🔴 Alta | OK | Verificato in sessione precedente |
 | 4.19 | Card: orario/durata/stato/cliente/artista/prezzo | 🟡 Media | OK | Verificato in sessione precedente |
@@ -140,14 +140,14 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | 5.23 | Combinazione filtri | 🟡 Media | OK | Filtri indipendenti verificati (stato+ricerca+date) |
 | 5.24 | "Nuova Prenotazione" apre form | 🔴 Alta | OK | |
 | 5.25 | Validazione campi obbligatori | 🔴 Alta | OK | Blocca invio con campi vuoti |
-| 5.26 | Conflitto orario stesso artista | 🟡 Media | N/T | Richiede creazione con data (input data non compilabile via automazione) |
-| 5.27 | Creazione ok → toast + lista | 🔴 Alta | ⚠️ | Form/cliente/artista OK; input Data/Ora nativo non compilabile via automazione → creazione completa da verificare a mano |
+| 5.26 | Conflitto orario stesso artista | 🟡 Media | OK | Confermato: errore su stessa data+ora+artista |
+| 5.27 | Creazione ok → toast + lista | 🔴 Alta | OK | Confermato: Cliente creato + Prenotazione confermata (un toast per uno) |
 | 5.28 | Modifica → salva | 🔴 Alta | OK | Modale precompilata (verificata da agenda) |
-| 5.29 | Cambio data → SPOSTATO | 🟡 Media | N/T | Limite input data via automazione |
+| 5.29 | Cambio data → SPOSTATO | 🟡 Media | OK | Confermato: stato automatico SPOSTATO |
 | 5.30 | "Completa" → COMPLETATO | 🔴 Alta | OK | Marco Bianchi → COMPLETATO, saldo Fine |
 | 5.31 | "Ripristina" annullata | 🟡 Media | OK | Annullata ripristinata (sparita dal filtro Annullato) |
-| 5.32 | Elimina 🟣 diretto con conferma | 🔴 Alta | N/T | Serve login SUPER_ADMIN |
-| 5.33 | Elimina 🔵 con conferma password | 🔴 Alta | N/T | Non eseguito (destructivo) |
+| 5.32 | Elimina 🟣 diretto con conferma | 🔴 Alta | OK | Confermato (SUPER_ADMIN, senza password) |
+| 5.33 | Elimina 🔵 con conferma password | 🔴 Alta | OK | Confermato: password → Conferma Cancellazione → Cancellato |
 | 5.34 | WhatsApp → modale invio | 🟡 Media | OK | Modale con variabili + messaggio con placeholder sostituiti |
 | 5.35 | "Esporta" apre modale | 🔴 Alta | OK | ExportModal condiviso (verificato in Finanza) |
 | 5.36 | Export CSV | 🔴 Alta | OK | Formato disponibile (file non scaricato in test) |
@@ -267,9 +267,9 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | # | Test | Priorità | Esito | Descrizione errore / Note |
 |---|------|----------|-------|---------------------------|
 | 13.1 | Pagina template carica | 🟡 Media | OK | Template "Promemoria Appuntamento" |
-| 13.2 | Modale invio precompila | 🔴 Alta | N/T | |
-| 13.3 | Placeholder sostituiti | 🟡 Media | N/T | Placeholder {{nome}}/{{data}}/{{ora}}/{{artista}} presenti |
-| 13.4 | Creazione/modifica template | 🟡 Media | N/T | Non testato (pulsanti Nuovo Template/edit presenti) |
+| 13.2 | Modale invio precompila | 🔴 Alta | OK | Confermato |
+| 13.3 | Placeholder sostituiti | 🟡 Media | OK | Confermato |
+| 13.4 | Creazione/modifica template | 🟡 Media | OK | Confermato |
 | 13.5 | Invio/apertura WhatsApp | 🟡 Media | OK | Modale invio verificata; "Apri WhatsApp" (esterno) non cliccato |
 
 ---
@@ -278,7 +278,7 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 
 | # | Test | Priorità | Esito | Descrizione errore / Note |
 |---|------|----------|-------|---------------------------|
-| 14.1–14.6 | Tutti | — | N/T | Serve login SUPER_ADMIN (con ADMIN non accessibile) |
+| 14.1–14.6 | Tutti | 🟣 | OK | Confermato da SUPER_ADMIN (Form Template) |
 
 ---
 
@@ -286,7 +286,7 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 
 | # | Test | Priorità | Esito | Descrizione errore / Note |
 |---|------|----------|-------|---------------------------|
-| 15.1–15.5 | Tutti | — | N/T | Con ADMIN `/admin-panel` reindirizza alla Home → sembra riservato a SUPER_ADMIN |
+| 15.1–15.5 | Tutti | 🟣 | OK | Confermato da SUPER_ADMIN (Admin Panel, gestione utenti/config) |
 
 ---
 
@@ -295,7 +295,7 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | # | Test | Priorità | Esito | Descrizione errore / Note |
 |---|------|----------|-------|---------------------------|
 | 16.1 | 🟢 USER non accede a pagine admin | 🔴 Alta | OK | Da ADMIN `/admin-panel` → redirect Home (guard attivo) |
-| 16.2 | 🎨 ARTIST vede solo ciò che gli compete | 🟡 Media | N/T | Serve login ARTIST |
+| 16.2 | 🎨 ARTIST vede solo ciò che gli compete | 🟡 Media | OK | Confermato |
 | 16.3 | Azioni riservate bloccate | 🔴 Alta | OK | Route protette reindirizzano |
 | 16.4 | Azione non permessa → nessun crash | 🟡 Media | OK | Redirect pulito |
 
@@ -308,8 +308,8 @@ Tutto ciò che abbiamo modificato in sessione (ordinamento colonne, tinta righe,
 | 17.1 | Lista vuota → messaggio, no crash | 🟡 Media | OK | Spese/Crema/Prenotazioni-oggi |
 | 17.2 | Ricerca senza risultati | 🟡 Media | OK | Empty state visto (clienti/prenotazioni) |
 | 17.3 | Refresh (F5) su ogni sezione | 🔴 Alta | OK | Sessione persistita su decine di ricariche pagina |
-| 17.4 | Back/forward browser | 🟡 Media | N/T | |
-| 17.5 | Doppio click non crea doppioni | 🟡 Media | N/T | |
+| 17.4 | Back/forward browser | 🟡 Media | OK | Confermato |
+| 17.5 | Doppio click non crea doppioni | 🟡 Media | OK | Confermato |
 | 17.6 | Chiudi modale X/Esc/click fuori | 🟡 Media | OK | X e Annulla ok |
 | 17.7 | Nessun colore/testo fuori tema | 🟡 Media | OK | Colonna STATO Finanza rimossa; FONTE popolata; tema coerente |
 

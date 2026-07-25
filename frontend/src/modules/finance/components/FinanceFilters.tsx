@@ -8,7 +8,7 @@ import {
   ToggleButtonGroup,
   useTheme
 } from '@mui/material';
-import Icon, { Search } from '@/common/components/ui/Icon';
+import { Search } from '@/common/components/ui/Icon';
 import type { TransactionFilterType } from '@/common/shared/types/transaction';
 
 interface FinanceFiltersProps {
@@ -45,7 +45,15 @@ export default function FinanceFilters({
       component="div"
     >
 
-      <Stack sx={{ flexDirection: 'row', gap: 2, flex: 1 }} component="div">
+      <Stack
+        sx={{
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          flex: 1,
+          minWidth: 0,
+        }}
+        component="div"
+      >
 
         <FormInput
           placeholder="Cerca per descrizione o categoria..."
@@ -53,7 +61,13 @@ export default function FinanceFilters({
           onChange={onSearchChange}
           size="sm"
           icon={Search}
-          sx={{ maxWidth: 400, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+          sx={{
+            flex: { xs: '1 1 100%', md: '1 1 520px' },
+            width: { xs: '100%', sm: 420, lg: 520 },
+            maxWidth: 560,
+            minWidth: 0,
+            '& .MuiOutlinedInput-root': { borderRadius: 2 },
+          }}
         />
 
         <MonthPicker value={month} onChange={onMonthChange} />

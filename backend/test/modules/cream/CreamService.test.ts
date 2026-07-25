@@ -8,6 +8,7 @@ const createMockPrisma = () => ({
     create: jest.fn(),
     findMany: jest.fn(),
     count: jest.fn(),
+    aggregate: jest.fn(),
     updateMany: jest.fn(),
   },
   staff: {
@@ -113,17 +114,20 @@ describe('CreamService', () => {
     it('should return paginated sales', async () => {
       mockPrisma.creamSale.findMany.mockResolvedValue([{ id: 1, quantity: 2 }]);
       mockPrisma.creamSale.count.mockResolvedValue(1);
+      mockPrisma.creamSale.aggregate.mockResolvedValue({ _sum: { quantity: 2 } });
       mockPrisma.$transaction.mockImplementation((arr: any[]) => Promise.all(arr));
 
       const result = await service.findSalesByCreamPaged(1, 1, 20);
 
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
+      expect(result.totalQuantity).toBe(2);
     });
 
     it('should filter by date range', async () => {
       mockPrisma.creamSale.findMany.mockResolvedValue([]);
       mockPrisma.creamSale.count.mockResolvedValue(0);
+      mockPrisma.creamSale.aggregate.mockResolvedValue({ _sum: { quantity: null } });
       mockPrisma.$transaction.mockImplementation((arr: any[]) => Promise.all(arr));
 
       await service.findSalesByCreamPaged(1, 1, 20, { startDate: '2026-01-01', endDate: '2026-12-31' });

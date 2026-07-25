@@ -13,9 +13,13 @@ export const updateWhatsAppTemplateSchema = z.object({
 });
 
 export const sendWhatsAppMessageSchema = z.object({
-  templateId: z.number(),
-  to: z.string().min(1, 'Numero di telefono obbligatorio'),
-  variables: z.record(z.string(), z.string()).optional(),
+  templateId: z.number().int().positive().optional(),
+  bookingId: z.number().int().positive().optional(),
+  customerId: z.number().int().positive().optional(),
+  recipientName: z.string().trim().optional(),
+  recipientPhone: z.string().trim().min(1, 'Numero di telefono obbligatorio'),
+  message: z.string().trim().optional(),
+  variables: z.record(z.string(), z.string()).default({}),
 });
 
 export const listWhatsAppLogsSchema = z.object({

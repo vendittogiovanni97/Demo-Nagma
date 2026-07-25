@@ -10,6 +10,9 @@ interface StaffMember {
 }
 
 interface CreamFiltersProps {
+  monthLabel: string;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
   startDate: string;
   onStartDateChange: (v: string) => void;
   endDate: string;
@@ -21,6 +24,9 @@ interface CreamFiltersProps {
 }
 
 export default function CreamFilters({
+  monthLabel,
+  onPrevMonth,
+  onNextMonth,
   startDate,
   onStartDateChange,
   endDate,
@@ -32,6 +38,11 @@ export default function CreamFilters({
 }: CreamFiltersProps) {
   return (
     <SmartFilters
+      monthPicker={{
+        label: monthLabel,
+        onPrev: onPrevMonth,
+        onNext: onNextMonth,
+      }}
       dateRange={{
         start: { value: startDate, onChange: onStartDateChange },
         end: { value: endDate, onChange: onEndDateChange },

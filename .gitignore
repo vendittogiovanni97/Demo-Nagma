@@ -36,6 +36,9 @@ out
 test-results/
 playwright-report/
 
+# Database backups
+backend/backups/
+
 
 .qwen
 image

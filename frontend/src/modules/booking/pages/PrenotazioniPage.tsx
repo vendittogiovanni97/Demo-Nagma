@@ -4,6 +4,7 @@ import PageHeader from '@/common/components/common/PageHeader';
 import BookingModal from '../components/modals/BookingModal';
 import ExportModal from '@/common/components/modals/ExportModal';
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
+import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import { useAuth } from '@/common/context/AuthContext';
 import { useBookings } from '../hooks/useBooking';
@@ -26,6 +27,7 @@ function PrenotazioniPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [attachmentsBooking, setAttachmentsBooking] = useState<Booking | null>(null);
+  const [refundOnDelete, setRefundOnDelete] = useState(false);
   const { confirmDialogProps } = useDeleteConfirm();
 
   const {
@@ -60,11 +62,14 @@ function PrenotazioniPageContent() {
 
   const {
     showDeletePasswordModal,
+    showDeleteConfirm,
     deletePasswordLoading,
     handleComplete,
     handleRestore,
     handleDelete,
     handlePasswordDelete,
+    confirmSuperAdminDelete,
+    closeDeleteConfirm,
     closePendingDelete,
   } = useBookingActions({ mutate, onUpdateLocalState: updateBookingLocalState });
 
@@ -161,10 +166,38 @@ function PrenotazioniPageContent() {
       {!isSuperAdmin && (
         <PasswordConfirmModal
           isOpen={showDeletePasswordModal}
-          onClose={closePendingDelete}
-          onConfirm={handlePasswordDelete}
+          onClose={() => { closePendingDelete(); setRefundOnDelete(false); }}
+          onConfirm={(pwd) => handlePasswordDelete(pwd, refundOnDelete)}
           loading={deletePasswordLoading}
+          title="Conferma Cancellazione"
+          description="Inserisci la password per confermare la cancellazione della prenotazione."
+          extra={
+            <CheckboxInput
+              label="Rimborsa l'acconto al cliente"
+              checked={refundOnDelete}
+              onChange={setRefundOnDelete}
+              sx={{ mb: 1 }}
+            />
+          }
         />
+      )}
+
+      {isSuperAdmin && (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => { closeDeleteConfirm(); setRefundOnDelete(false); }}
+          onConfirm={() => { confirmSuperAdminDelete(refundOnDelete); setRefundOnDelete(false); }}
+          title="Conferma Cancellazione"
+          message="Vuoi cancellare questa prenotazione?"
+          confirmText="Cancella"
+          severity="error"
+        >
+          <CheckboxInput
+            label="Rimborsa l'acconto al cliente"
+            checked={refundOnDelete}
+            onChange={setRefundOnDelete}
+          />
+        </ConfirmDialog>
       )}
     </Box>
   );

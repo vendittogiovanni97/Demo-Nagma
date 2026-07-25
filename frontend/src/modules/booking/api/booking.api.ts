@@ -32,8 +32,11 @@ export const bookingApi = {
     return apiClient.put<BookingDTO>(ENDPOINTS.BOOKINGS.BY_ID(id), data);
   },
 
-  delete: async (id: number) => {
-    return apiClient.delete<void>(ENDPOINTS.BOOKINGS.BY_ID(id));
+  delete: async (id: number, refund: boolean = true) => {
+    const url = refund
+      ? ENDPOINTS.BOOKINGS.BY_ID(id)
+      : `${ENDPOINTS.BOOKINGS.BY_ID(id)}?refund=false`;
+    return apiClient.delete<void>(url);
   },
 
   getStats: async (month?: string): Promise<BookingStatsDTO> => {

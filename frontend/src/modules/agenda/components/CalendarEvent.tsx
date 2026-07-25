@@ -17,7 +17,7 @@ const STATUS_CONFIG = {
   COMPLETATO: { label: '✓', glow: true, dimmed: true },
   ANNULLATO:  { label: 'Ann', glow: false, dimmed: true, isError: true },
   CANCELLATO: { label: 'Canc', glow: false, dimmed: true, isError: true },
-  SPOSTATO:   { label: 'Risc', glow: false, dimmed: false, isWarning: true },
+  SPOSTATO:   { label: 'Spost.', glow: false, dimmed: false, isWarning: true },
   MODIFICATO: { label: 'Mod', glow: false, dimmed: false, isWarning: true },
 } as const;
 

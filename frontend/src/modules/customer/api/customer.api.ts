@@ -29,11 +29,19 @@ export const customerApi = {
   },
 
   create: async (data: CreateCustomerRequest) => {
-    return apiClient.post<CustomerDTO>(ENDPOINTS.CUSTOMERS.BASE, data);
+    const res = await apiClient.post<{ success: boolean; data: CustomerDTO }>(
+      ENDPOINTS.CUSTOMERS.BASE,
+      data
+    );
+    return res.data;
   },
 
   update: async (id: number, data: UpdateCustomerRequest) => {
-    return apiClient.put<CustomerDTO>(ENDPOINTS.CUSTOMERS.BY_ID(id), data);
+    const res = await apiClient.put<{ success: boolean; data: CustomerDTO }>(
+      ENDPOINTS.CUSTOMERS.BY_ID(id),
+      data
+    );
+    return res.data;
   },
 
   delete: async (id: number) => {

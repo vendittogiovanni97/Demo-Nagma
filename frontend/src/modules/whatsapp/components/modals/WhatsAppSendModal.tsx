@@ -133,7 +133,7 @@ export default function WhatsAppSendModal({
     mode: 'modal',
   });
 
-  const { isLoading, handleSubmit, handleChange, formData } = useFormModal<WhatsAppFormData>({
+  const { isLoading, handleSubmit } = useFormModal<WhatsAppFormData>({
     initial: {
       templateId: '',
       customerId: '',
@@ -182,15 +182,14 @@ export default function WhatsAppSendModal({
       return;
     }
 
-    // Update form data before submit
-    handleChange('templateId')(selectedTemplate.id.toString());
-    handleChange('customerId')(selectedCustomerId);
-    handleChange('recipientName')(recipientName);
-    handleChange('recipientPhone')(recipientPhone);
-    handleChange('message')(messageDraft);
-    handleChange('variables')(variables);
-
-    await handleSubmit();
+    await handleSubmit({
+      templateId: selectedTemplate.id.toString(),
+      customerId: payload.customerId?.toString() ?? '',
+      recipientName,
+      recipientPhone,
+      message: messageDraft,
+      variables,
+    });
   };
 
   return (

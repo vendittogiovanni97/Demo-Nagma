@@ -5,6 +5,7 @@ import { paginate, buildPagination } from '../../../core/shared/kernel/paginatio
 import { getMonthRange } from '../../../core/shared/utils/date-utils';
 import { config } from '../../../core/config/env';
 import bcrypt from 'bcryptjs';
+import { financeCache } from '../../finance/services/finance.cache';
 
 function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -248,7 +249,7 @@ export class BookingService {
       );
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const booking = await tx.booking.create({
         data: {
           customerId: data.customerId,
@@ -293,6 +294,8 @@ export class BookingService {
 
       return { ...booking, price: booking.price ? Number(booking.price) : null, deposit: booking.deposit ? Number(booking.deposit) : null };
     });
+    financeCache.clear();
+    return result;
   }
 
   async update(id: number, data: any, changedById?: number) {
@@ -333,7 +336,7 @@ export class BookingService {
       }
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const updated = await tx.booking.update({
         where: { id },
         data: {
@@ -366,14 +369,51 @@ export class BookingService {
         },
       });
 
+      const previousDeposit = Number(oldBooking.deposit ?? 0);
+      const currentDeposit = Number(updated.deposit ?? 0);
+      const depositDifference = currentDeposit - previousDeposit;
+      const customerName = updated.customer
+        ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
+        : 'Cliente';
+
+      if (depositDifference > 0) {
+        await tx.transaction.create({
+          data: {
+            type: 'ENTRATA',
+            category: 'Acconto',
+            description: `Acconto aggiuntivo prenotazione #${updated.id} - ${customerName}`,
+            amount: depositDifference,
+            date: new Date(),
+            sourceId: updated.id,
+            sourceType: 'BOOKING_DEPOSIT',
+          },
+        });
+      } else if (depositDifference < 0) {
+        await tx.transaction.create({
+          data: {
+            type: 'USCITA',
+            category: 'Acconto',
+            description: `Rimborso parziale acconto prenotazione #${updated.id} - ${customerName}`,
+            amount: Math.abs(depositDifference),
+            date: new Date(),
+            sourceId: updated.id,
+            sourceType: 'BOOKING_DEPOSIT_REFUND',
+          },
+        });
+      }
+
+      const isNewCancellation =
+        (data.status === 'ANNULLATO' || data.status === 'CANCELLATO') &&
+        oldBooking.status !== data.status;
+      if (isNewCancellation) {
+        await this.refundOutstandingDeposit(tx, updated);
+      }
+
       if (data.status === 'COMPLETATO' && oldBooking.status !== 'COMPLETATO' && updated.price) {
         const fd = (updated.formData || {}) as Record<string, unknown>;
         const artistPrice = typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
         const fullPrice = Number(updated.price) || 0;
-        const bookingDate = updated.date ?? new Date();
-        const customerName = updated.customer
-          ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
-          : 'Cliente';
+        const completionDate = new Date();
         const depositAmount = Number(updated.deposit) ?? 0;
         const finalIncomeAmount = fullPrice - depositAmount;
 
@@ -388,7 +428,7 @@ export class BookingService {
               category: 'Tatuaggio',
               description,
               amount: finalIncomeAmount,
-              date: bookingDate,
+              date: completionDate,
               sourceId: updated.id,
               sourceType: 'BOOKING',
             },
@@ -402,7 +442,7 @@ export class BookingService {
               category: 'Compenso Artista',
               description: `Compenso artista — prenotazione #${updated.id}`,
               amount: artistPrice,
-              date: bookingDate,
+              date: completionDate,
               sourceId: updated.id,
               sourceType: 'BOOKING_COMMISSION',
             },
@@ -412,10 +452,12 @@ export class BookingService {
 
       return { ...updated, price: updated.price ? Number(updated.price) : null, deposit: updated.deposit ? Number(updated.deposit) : null };
     });
+    financeCache.clear();
+    return result;
   }
 
-  async delete(id: number, changedById?: number) {
-    return prisma.$transaction(async (tx) => {
+  async delete(id: number, changedById?: number, refund: boolean = true) {
+    await prisma.$transaction(async (tx) => {
       const oldBooking = await tx.booking.findUnique({
         where: { id },
         include: { customer: true },
@@ -443,38 +485,19 @@ export class BookingService {
         },
       });
 
-      if (oldBooking.deposit && Number(oldBooking.deposit) > 0) {
-        const existingRefund = await tx.transaction.findFirst({
-          where: {
-            sourceId: id,
-            sourceType: 'BOOKING_REFUND',
-          },
-        });
-
-        if (!existingRefund) {
-          const customerName = oldBooking.customer
-            ? `${oldBooking.customer.firstName} ${oldBooking.customer.lastName || ''}`.trim()
-            : 'Cliente';
-
-          await tx.transaction.create({
-            data: {
-              type: 'USCITA',
-              category: 'Acconto',
-              description: `Rimborso acconto prenotazione #${oldBooking.id} - ${customerName}`,
-              amount: oldBooking.deposit,
-              date: new Date(),
-              sourceId: oldBooking.id,
-              sourceType: 'BOOKING_REFUND',
-            },
-          });
-        }
+      if (refund) {
+        await this.refundOutstandingDeposit(tx, oldBooking);
       }
     });
+    financeCache.clear();
   }
 
   async annul(id: number, changedById?: number) {
-    return prisma.$transaction(async (tx) => {
-      const oldBooking = await tx.booking.findUnique({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      const oldBooking = await tx.booking.findUnique({
+        where: { id },
+        include: { customer: true },
+      });
       if (!oldBooking) return;
 
       await tx.booking.update({
@@ -497,6 +520,52 @@ export class BookingService {
           sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
         },
       });
+
+      await this.refundOutstandingDeposit(tx, oldBooking);
+    });
+    financeCache.clear();
+  }
+
+  private async refundOutstandingDeposit(
+    tx: Prisma.TransactionClient,
+    booking: {
+      id: number;
+      deposit: Prisma.Decimal | number | null;
+      customer?: { firstName: string; lastName: string | null } | null;
+    },
+  ): Promise<void> {
+    const depositAmount = Number(booking.deposit ?? 0);
+    if (depositAmount <= 0) return;
+
+    const previousRefunds = await tx.transaction.findMany({
+      where: {
+        sourceId: booking.id,
+        sourceType: 'BOOKING_REFUND',
+        deletedAt: null,
+      },
+      select: { amount: true },
+    });
+    const refundedAmount = previousRefunds.reduce(
+      (total, transaction) => total + Number(transaction.amount),
+      0,
+    );
+    const outstandingAmount = depositAmount - refundedAmount;
+    if (outstandingAmount <= 0) return;
+
+    const customerName = booking.customer
+      ? `${booking.customer.firstName} ${booking.customer.lastName || ''}`.trim()
+      : 'Cliente';
+
+    await tx.transaction.create({
+      data: {
+        type: 'USCITA',
+        category: 'Acconto',
+        description: `Rimborso acconto prenotazione #${booking.id} - ${customerName}`,
+        amount: outstandingAmount,
+        date: new Date(),
+        sourceId: booking.id,
+        sourceType: 'BOOKING_REFUND',
+      },
     });
   }
 }

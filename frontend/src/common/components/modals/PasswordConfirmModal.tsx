@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { Typography, SxProps, Theme } from '@mui/material';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormInput from '@/common/components/forms/FormInput';
@@ -11,9 +11,20 @@ interface Props {
   onClose: () => void;
   onConfirm: (password: string) => Promise<void>;
   loading?: boolean;
+  title?: string;
+  description?: string;
+  extra?: ReactNode;
 }
 
-export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loading }: Props) {
+export default function PasswordConfirmModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  loading,
+  title = 'Conferma Modifica',
+  description = 'Inserisci la password per confermare la modifica della prenotazione.',
+  extra,
+}: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -34,18 +45,20 @@ export default function PasswordConfirmModal({ isOpen, onClose, onConfirm, loadi
   };
 
   return (
-    <SmartModal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title="Conferma Modifica" 
+    <SmartModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
       maxWidth="sm"
       onSave={handleSave}
       isSaving={loading}
       saveLabel="Conferma"
     >
       <Typography sx={styles.description}>
-        Inserisci la password per confermare la modifica della prenotazione.
+        {description}
       </Typography>
+
+      {extra}
 
       <FormInput
         label="Password"

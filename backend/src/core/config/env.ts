@@ -20,6 +20,11 @@ function envRequired(key: string): string {
   return val;
 }
 
+function envBool(key: string, fallback: boolean): boolean {
+  const val = process.env[key];
+  return val === undefined ? fallback : val.toLowerCase() === 'true';
+}
+
 export const config = {
   // JWT
   // FIX #4: JWT_SECRET deve essere 32+ characters. Genera con:
@@ -44,6 +49,13 @@ export const config = {
 
   // Resilienza
   restartDelayMs: envInt('RESTART_DELAY_MS', 10_000),
+
+  // Backup PostgreSQL
+  databaseBackupEnabled: envBool('DB_BACKUP_ENABLED', true),
+  databaseBackupPath: envStr('DB_BACKUP_PATH', './backups/database'),
+  databaseBackupDelayMinutes: Math.max(1, envInt('DB_BACKUP_DELAY_MINUTES', 10)),
+  databaseBackupRetention: Math.max(1, envInt('DB_BACKUP_RETENTION', 7)),
+  databaseBackupDockerContainer: envStr('DB_BACKUP_DOCKER_CONTAINER', 'nagma-postgres'),
 
   // Booking password — solo per seed iniziale in ClientConfig (via seed.ts)
   bookingUpdatePassword: envStr('BOOKING_UPDATE_PASSWORD', ''),

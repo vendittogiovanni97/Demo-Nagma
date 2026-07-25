@@ -32,7 +32,7 @@ export const creamService = {
     return apiClient.post(ENDPOINTS.CREAM.BASE, data);
   },
   getSales: async (creamId: number, page = 1, limit = 25, filters?: { startDate?: string; endDate?: string; artistId?: number }) => {
-    return apiClient.get<{ data: CreamSale[]; total: number; page: number; limit: number; totalPages: number }>(
+    return apiClient.get<{ data: CreamSale[]; total: number; totalQuantity: number; page: number; limit: number; totalPages: number }>(
       `${ENDPOINTS.CREAM.BASE}/${creamId}/sales`,
       { page, limit, ...filters }
     );

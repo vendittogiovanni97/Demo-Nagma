@@ -9,6 +9,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
+import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import { useAuth } from '@/common/context/AuthContext';
 import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import BookingModal from '@/modules/booking/components/modals/BookingModal';
@@ -28,6 +29,7 @@ export default function AgendaPage() {
   const { confirmDialogProps } = useDeleteConfirm();
 
   const [dayBookingsData, setDayBookingsData] = useState<{ date: Date; bookings: BookingModel[] } | null>(null);
+  const [refundOnDelete, setRefundOnDelete] = useState(false);
 
   const {
     bookings,
@@ -40,8 +42,11 @@ export default function AgendaPage() {
     initialDate,
     initialTime,
     showDeletePasswordModal,
+    showDeleteConfirm,
     deletePasswordLoading,
     handlePasswordDelete,
+    confirmSuperAdminDelete,
+    closeDeleteConfirm,
     handleDateClick,
     handleEventClick,
     setIsModalOpen,
@@ -179,15 +184,40 @@ export default function AgendaPage() {
         booking={whatsAppBooking}
       />
       <ConfirmDialog {...confirmDialogProps} />
-      {/* rendering-conditional-render (MEDIUM): explicit ternary is safer than && on boolean */}
       {!isSuperAdmin ? (
         <PasswordConfirmModal
           isOpen={showDeletePasswordModal}
-          onClose={() => { setShowDeletePasswordModal(false); setPendingDeleteId(null); }}
-          onConfirm={handlePasswordDelete}
+          onClose={() => { setShowDeletePasswordModal(false); setPendingDeleteId(null); setRefundOnDelete(false); }}
+          onConfirm={(pwd) => handlePasswordDelete(pwd, refundOnDelete)}
           loading={deletePasswordLoading}
+          title="Conferma Cancellazione"
+          description="Inserisci la password per confermare la cancellazione della prenotazione."
+          extra={
+            <CheckboxInput
+              label="Rimborsa l'acconto al cliente"
+              checked={refundOnDelete}
+              onChange={setRefundOnDelete}
+              sx={{ mb: 1 }}
+            />
+          }
         />
-      ) : null}
+      ) : (
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => { closeDeleteConfirm(); setRefundOnDelete(false); }}
+          onConfirm={() => { confirmSuperAdminDelete(refundOnDelete); setRefundOnDelete(false); }}
+          title="Conferma Cancellazione"
+          message="Vuoi cancellare questa prenotazione?"
+          confirmText="Cancella"
+          severity="error"
+        >
+          <CheckboxInput
+            label="Rimborsa l'acconto al cliente"
+            checked={refundOnDelete}
+            onChange={setRefundOnDelete}
+          />
+        </ConfirmDialog>
+      )}
     </Box>
   );
 }

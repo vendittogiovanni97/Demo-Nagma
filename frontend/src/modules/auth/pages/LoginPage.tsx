@@ -5,7 +5,7 @@ import { useAuth } from '@/common/context/AuthContext';
 import Icon, { Lock, Mail } from '@/common/components/ui/Icon';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
@@ -42,8 +42,15 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const errs: { email?: string; password?: string } = {};
+    if (!form.formData.email.trim()) errs.email = 'Email richiesta';
+    if (!form.formData.password) errs.password = 'Password richiesta';
+    setFieldErrors(errs);
+    if (errs.email || errs.password) return;
     form.handleSubmit(form.formData);
   };
 
@@ -131,6 +138,7 @@ export default function LoginPage() {
           <Box
             component="form"
             onSubmit={handleSubmit}
+            noValidate
             sx={{
               width: '100%',
               display: 'flex',
@@ -142,23 +150,23 @@ export default function LoginPage() {
             <FormInput
               type="email"
               placeholder="Email"
-              required
               value={form.formData.email}
-              onChange={(v: string) => form.setField('email', v)}
+              onChange={(v: string) => { form.setField('email', v); if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined })); }}
               icon={Mail}
               autoComplete="email"
               name="email"
+              error={fieldErrors.email}
             />
 
             <FormInput
               type="password"
               placeholder="Password"
-              required
               value={form.formData.password}
-              onChange={(v: string) => form.setField('password', v)}
+              onChange={(v: string) => { form.setField('password', v); if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined })); }}
               icon={Lock}
               autoComplete="current-password"
               name="password"
+              error={fieldErrors.password}
             />
 
             <Button

@@ -181,17 +181,20 @@ export function useBookingForm({
   // Build payload for API
   const buildPayload = useCallback((formData: BookingFormData): CreateBookingData & { status?: BookingStatus } => {
     const prezzoNum = Number(formData.price) || 0;
+    const artistPercentage = Number(formData.percentualeMode) || 0;
+    const artistPrice = Math.round((prezzoNum * artistPercentage / 100) * 100) / 100;
 
     const formDataObj: Record<string, unknown> = {
+      ...formData.dynamicValues,
       isNewCustomer: formData.isNewCustomer,
       newCustomerFirstName: formData.newCustomerFirstName,
       newCustomerLastName: formData.newCustomerLastName,
       newCustomerPhone: formData.newCustomerPhone,
       newCustomerEmail: formData.newCustomerEmail,
       percentualeMode: formData.percentualeMode,
+      artistPrice,
       selectedTemplateId: formData.selectedTemplateId,
     };
-    Object.entries(formData.dynamicValues).forEach(([k, v]) => { if (v) formDataObj[k] = v; });
 
     return {
       customerId: Number(formData.customerId),
@@ -244,7 +247,6 @@ export function useBookingForm({
           notes: form.formData.notes,
         });
       }
-      toast.success(booking ? 'Modifica salvata!' : 'Prenotazione confermata!');
       onSuccess?.();
       setShowSuccess(true);
       setTimeout(() => {
@@ -331,7 +333,9 @@ export function useBookingForm({
     if (isJustOpened || isDifferentBooking) {
       if (booking) {
         const d = new Date(booking.date);
-        const perc = booking.formData?.artistPercentage;
+        const perc =
+          booking.formData?.percentualeMode ??
+          booking.formData?.artistPercentage;
         let percentualeMode = '50';
         if (perc != null) {
           const found = (PERCENTUALE_OPTIONS_VALUES as readonly string[]).includes(perc.toString());
@@ -411,6 +415,7 @@ export function useBookingForm({
       });
 
       await mutateCustomers();
+      toast.success('Cliente creato');
       return newCustomer.id;
     } catch (err) {
       toast.error(extractErrorMessage(err, 'Errore creazione cliente'));
@@ -441,7 +446,33 @@ export function useBookingForm({
       finalCustomerId = newId.toString();
     }
 
-    const updatedFormData = { ...form.formData, customerId: finalCustomerId };
+    let updatedFormData = { ...form.formData, customerId: finalCustomerId };
+
+    // In modifica: stato automatico → SPOSTATO se cambiano data/ora, MODIFICATO se cambia altro.
+    // Le scelte esplicite (Annullato/Cancellato/Completato) non vengono sovrascritte.
+    // Confronto coi valori ORIGINALI della prenotazione (stesse formule usate per popolare il form).
+    if (booking?.id) {
+      const s = updatedFormData.status;
+      const isExplicit = s === 'ANNULLATO' || s === 'CANCELLATO' || s === 'COMPLETATO';
+      if (!isExplicit) {
+        const orig = new Date(booking.date);
+        const origDate = orig.toISOString().split('T')[0];
+        const origTime = orig.toTimeString().slice(0, 5);
+        const dateTimeChanged =
+          updatedFormData.date !== origDate || updatedFormData.time !== origTime;
+        const otherChanged =
+          updatedFormData.artistId !== booking.artistId?.toString() ||
+          updatedFormData.price !== (booking.price?.toString() || '') ||
+          updatedFormData.deposit !== (booking.deposit?.toString() || '') ||
+          updatedFormData.duration !== (booking.duration?.toString() || '120') ||
+          (updatedFormData.notes || '') !== (booking.notes || '');
+        if (dateTimeChanged) {
+          updatedFormData = { ...updatedFormData, status: 'SPOSTATO' };
+        } else if (otherChanged) {
+          updatedFormData = { ...updatedFormData, status: 'MODIFICATO' };
+        }
+      }
+    }
 
     if (booking?.id && !isSuperAdmin) {
       setPendingData(updatedFormData);

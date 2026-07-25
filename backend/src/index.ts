@@ -7,6 +7,7 @@ import { config } from './core/config/env';
 import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
 import { container } from './core/container';
 import { ConfigService } from './modules/config/services/configService';
+import { databaseBackupScheduler } from './core/backup/databaseBackup';
 const configService = container.get(ConfigService);
 
 const RESTART_DELAY_MS = config.restartDelayMs;
@@ -35,6 +36,8 @@ function validateEnv() {
 }
 
 async function stopServer() {
+  databaseBackupScheduler.stop();
+
   if (server) {
     await new Promise<void>((resolve, reject) => {
       server?.close((error) => {
@@ -80,6 +83,7 @@ async function startServer() {
         env: process.env.NODE_ENV || 'development',
         debugHttp: isDebugHttpEnabled(),
       });
+      databaseBackupScheduler.start();
       resolve();
     });
 

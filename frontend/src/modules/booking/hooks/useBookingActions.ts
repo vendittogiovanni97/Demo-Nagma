@@ -13,6 +13,7 @@ export function useBookingActions({ mutate, onUpdateLocalState }: UseBookingActi
   const { isSuperAdmin } = useAuth();
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [showDeletePasswordModal, setShowDeletePasswordModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePasswordLoading, setDeletePasswordLoading] = useState(false);
 
   const handleComplete = async (id: number) => {
@@ -35,22 +36,30 @@ export function useBookingActions({ mutate, onUpdateLocalState }: UseBookingActi
     }
   };
 
-  const handleSuperAdminDelete = async (id: number) => {
-    await bookingService.delete(id);
-    await mutate();
-  };
-
   const handleDelete = (id: number) => {
     setPendingDeleteId(id);
     if (isSuperAdmin) {
-      setShowDeletePasswordModal(false);
-      handleSuperAdminDelete(id);
+      setShowDeleteConfirm(true);
     } else {
       setShowDeletePasswordModal(true);
     }
   };
 
-  const handlePasswordDelete = async (password: string) => {
+  const confirmSuperAdminDelete = async (refund: boolean) => {
+    if (!pendingDeleteId) return;
+    const idToDelete = pendingDeleteId;
+    setShowDeleteConfirm(false);
+    setPendingDeleteId(null);
+    await bookingService.delete(idToDelete, refund);
+    await mutate();
+  };
+
+  const closeDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setPendingDeleteId(null);
+  };
+
+  const handlePasswordDelete = async (password: string, refund: boolean = true) => {
     if (!pendingDeleteId) return;
     setDeletePasswordLoading(true);
     try {
@@ -58,7 +67,7 @@ export function useBookingActions({ mutate, onUpdateLocalState }: UseBookingActi
       setShowDeletePasswordModal(false);
       const idToDelete = pendingDeleteId;
       setPendingDeleteId(null);
-      await bookingService.delete(idToDelete);
+      await bookingService.delete(idToDelete, refund);
       await mutate();
     } catch {
       throw new Error('Password non corretta');
@@ -75,11 +84,14 @@ export function useBookingActions({ mutate, onUpdateLocalState }: UseBookingActi
   return {
     pendingDeleteId,
     showDeletePasswordModal,
+    showDeleteConfirm,
     deletePasswordLoading,
     handleComplete,
     handleRestore,
     handleDelete,
     handlePasswordDelete,
+    confirmSuperAdminDelete,
+    closeDeleteConfirm,
     closePendingDelete,
   };
 }

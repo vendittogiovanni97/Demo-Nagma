@@ -24,6 +24,8 @@ import { useSWRConfig } from 'swr';
 import { useToast } from '@/common/hooks/useToast';
 import { getOperationalTodayBookings } from '@/modules/dashboard/utils/todayAgenda';
 import { getBookingStatusBadgeVariant, getBookingStatusLabel } from '@/common/config/status-config';
+import { isBookingCacheKey } from '@/modules/booking/api/booking.cache';
+import { isFinanceCacheKey } from '@/modules/finance/api/finance.cache';
 
 const MAX_VISIBLE_BOOKINGS = 5;
 const CLOCK_REFRESH_INTERVAL_MS = 30_000;
@@ -66,7 +68,8 @@ export default function TodayAgendaWidget({
   }, []);
 
   const handleModalSuccess = useCallback(() => {
-    mutate((key) => typeof key === 'string' && key.includes('/api/bookings'), undefined, { revalidate: true });
+    void mutate(isBookingCacheKey);
+    void mutate(isFinanceCacheKey);
     if (onSuccess) {
       onSuccess();
     }

@@ -64,7 +64,7 @@ export class CreamService {
     page: number,
     limit: number,
     filters?: { startDate?: string; endDate?: string; artistId?: number }
-  ): Promise<IPaginatedResponse<any>> {
+  ): Promise<IPaginatedResponse<any> & { totalQuantity: number }> {
     const where: Prisma.CreamSaleWhereInput = { creamId, deletedAt: null };
 
     if (filters?.startDate || filters?.endDate) {
@@ -77,7 +77,7 @@ export class CreamService {
       where.artistId = filters.artistId;
     }
 
-    const [raws, total] = await prisma.$transaction([
+    const [raws, total, agg] = await prisma.$transaction([
       prisma.creamSale.findMany({
         where,
         ...buildPagination(page, limit),
@@ -87,9 +87,10 @@ export class CreamService {
         },
       }),
       prisma.creamSale.count({ where }),
+      prisma.creamSale.aggregate({ where, _sum: { quantity: true } }),
     ]);
 
-    return paginate(raws, total, page, limit);
+    return { ...paginate(raws, total, page, limit), totalQuantity: agg._sum.quantity ?? 0 };
   }
 
   async getSalesSummary() {

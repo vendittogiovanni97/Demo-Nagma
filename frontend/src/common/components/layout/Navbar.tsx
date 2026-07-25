@@ -30,6 +30,7 @@ import {
   Package,
   Plus,
   Receipt,
+  Settings,
   Shield,
   Menu as MenuIcon,
   Sun,
@@ -43,6 +44,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSWRConfig } from 'swr';
+import { isBookingCacheKey } from '@/modules/booking/api/booking.cache';
+import { isFinanceCacheKey } from '@/modules/finance/api/finance.cache';
 
 function getInitials(name?: string, email?: string) {
   if (name) {
@@ -57,6 +61,7 @@ function getInitials(name?: string, email?: string) {
 export default function Navbar() {
   const pathname = usePathname();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const { mutate } = useSWRConfig();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, logout, user, isAdmin, isSuperAdmin } = useAuth();
@@ -98,6 +103,11 @@ export default function Navbar() {
   const handleUserMenuClose = useCallback(() => {
     setUserMenuAnchor(null);
   }, []);
+
+  const handleBookingSuccess = useCallback(() => {
+    void mutate(isBookingCacheKey);
+    void mutate(isFinanceCacheKey);
+  }, [mutate]);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -245,7 +255,12 @@ export default function Navbar() {
             onNewBookingClick={() => setIsBookingOpen(true)}
             onLogout={logout}
           />
-          <BookingModal isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} booking={null} />
+          <BookingModal
+            isOpen={isBookingOpen}
+            onClose={() => setIsBookingOpen(false)}
+            onSuccess={handleBookingSuccess}
+            booking={null}
+          />
         </>
       )}
     </nav>
@@ -480,6 +495,7 @@ function NavbarUserMenu({
       { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
+      { href: '/impostazioni', icon: Settings, label: 'Impostazioni', show: isAdmin },
     ],
     [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]
   );

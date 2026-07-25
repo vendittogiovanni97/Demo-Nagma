@@ -46,7 +46,6 @@ export default function FinancePage() {
       <PageHeader
         title="Storico Movimenti"
         subtitle="Cronologia completa di entrate e uscite dello studio"
-        icon={<Icon name="dollarSign" size={24} />}
         actions={
           <ExportModal
             filenameBase={`finanza_${format(month, 'yyyy_MM')}`}
@@ -123,4 +122,3 @@ export default function FinancePage() {
     </Box>
   );
 }
-

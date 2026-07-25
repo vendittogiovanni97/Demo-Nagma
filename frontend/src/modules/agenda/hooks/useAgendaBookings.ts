@@ -18,13 +18,15 @@ interface AgendaBookingsState {
   initialTime: string;
   currentMonth: string;
   showDeletePasswordModal: boolean;
+  showDeleteConfirm: boolean;
   deletePasswordLoading: boolean;
 }
 
 interface AgendaBookingsHandlers {
   handleDeleteBooking: (id: number) => Promise<void>;
-  handleSuperAdminDelete: (id: number) => Promise<void>;
-  handlePasswordDelete: (password: string) => Promise<void>;
+  confirmSuperAdminDelete: (refund: boolean) => Promise<void>;
+  closeDeleteConfirm: () => void;
+  handlePasswordDelete: (password: string, refund?: boolean) => Promise<void>;
   handleEditBooking: (booking: BookingModel) => void;
   handleDateClick: (arg: DateClickArg) => void;
   handleEventClick: (arg: EventClickArg) => void;
@@ -54,6 +56,7 @@ export function useAgendaBookings(): AgendaBookingsResult {
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [showDeletePasswordModal, setShowDeletePasswordModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePasswordLoading, setDeletePasswordLoading] = useState(false);
 
   const { data: bookingsResult, mutate, isLoading, error } = useBookings({ month: currentMonth });
@@ -62,20 +65,27 @@ export function useAgendaBookings(): AgendaBookingsResult {
   const handleDeleteBooking = useCallback(async (id: number) => {
     setPendingDeleteId(id);
     if (isSuperAdmin) {
-      setShowDeletePasswordModal(false);
-      await bookingService.delete(id);
-      await mutate();
+      setShowDeleteConfirm(true);
     } else {
       setShowDeletePasswordModal(true);
     }
-  }, [isSuperAdmin, mutate]);
+  }, [isSuperAdmin]);
 
-  const handleSuperAdminDelete = useCallback(async (id: number) => {
-    await bookingService.delete(id);
+  const confirmSuperAdminDelete = useCallback(async (refund: boolean) => {
+    if (!pendingDeleteId) return;
+    const idToDelete = pendingDeleteId;
+    setShowDeleteConfirm(false);
+    setPendingDeleteId(null);
+    await bookingService.delete(idToDelete, refund);
     await mutate();
-  }, [mutate]);
+  }, [pendingDeleteId, mutate]);
 
-  const handlePasswordDelete = useCallback(async (password: string) => {
+  const closeDeleteConfirm = useCallback(() => {
+    setShowDeleteConfirm(false);
+    setPendingDeleteId(null);
+  }, []);
+
+  const handlePasswordDelete = useCallback(async (password: string, refund: boolean = true) => {
     if (!pendingDeleteId) return;
     setDeletePasswordLoading(true);
     try {
@@ -83,7 +93,7 @@ export function useAgendaBookings(): AgendaBookingsResult {
       setShowDeletePasswordModal(false);
       const idToDelete = pendingDeleteId;
       setPendingDeleteId(null);
-      await bookingService.delete(idToDelete);
+      await bookingService.delete(idToDelete, refund);
       await mutate();
     } catch {
       throw new Error('Password non corretta');
@@ -127,9 +137,11 @@ export function useAgendaBookings(): AgendaBookingsResult {
     initialTime,
     currentMonth,
     showDeletePasswordModal,
+    showDeleteConfirm,
     deletePasswordLoading,
     handleDeleteBooking,
-    handleSuperAdminDelete,
+    confirmSuperAdminDelete,
+    closeDeleteConfirm,
     handlePasswordDelete,
     handleEditBooking,
     handleDateClick,

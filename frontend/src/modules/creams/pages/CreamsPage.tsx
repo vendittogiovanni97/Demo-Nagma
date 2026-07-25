@@ -4,6 +4,8 @@ import { useDateRangeFilters } from '@/common/hooks/useDateRangeFilters';
 import { Box } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
 
 import PageHeader from '@/common/components/common/PageHeader';
 import DataTable, { FetchParams } from '@/common/components/table/DataTable';
@@ -39,9 +41,17 @@ export default function CreamsPage() {
   const [artistFilter, setArtistFilter] = useState<number | ''>('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [salesCount, setSalesCount] = useState(0);
 
   const [creamData, setCreamData] = useState<CreamInfo | null>(null);
   const [teamMembers, setTeamMembers] = useState<StaffMember[]>([]);
+
+  const monthLabel = format(currentMonth, 'MMMM yyyy', { locale: it });
+  const monthStart = format(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1), 'yyyy-MM-dd');
+  const monthEnd = format(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0), 'yyyy-MM-dd');
+  const prevMonth = () => setCurrentMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
   const fetchActiveCream = useCallback(async () => {
     try {
@@ -88,19 +98,25 @@ export default function CreamsPage() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const hasCustomRange = Boolean(startDate || endDate);
+
   const fetchSales = useCallback(async (params: FetchParams) => {
     if (!creamData) return { data: [], total: 0 };
+    const period = hasCustomRange
+      ? { startDate: startDate || undefined, endDate: endDate || undefined }
+      : { startDate: monthStart, endDate: monthEnd };
     const res = await creamService.getSales(creamData.id, params.page, params.limit, {
-      startDate: startDate || undefined,
-      endDate: endDate || undefined,
+      ...period,
       artistId: artistFilter || undefined,
     });
+    setSalesCount(res.totalQuantity ?? 0);
     return res;
-  }, [creamData, startDate, endDate, artistFilter]);
+  }, [creamData, hasCustomRange, startDate, endDate, monthStart, monthEnd, artistFilter]);
 
   const refreshKey = useMemo(() => {
-    return `${creamData?.id || ''}_${startDate || ''}_${endDate || ''}_${artistFilter || ''}_${refreshTrigger}`;
-  }, [creamData, startDate, endDate, artistFilter, refreshTrigger]);
+    const period = hasCustomRange ? `${startDate || ''}_${endDate || ''}` : `${monthStart}_${monthEnd}`;
+    return `${creamData?.id || ''}_${period}_${artistFilter || ''}_${refreshTrigger}`;
+  }, [creamData, hasCustomRange, startDate, endDate, monthStart, monthEnd, artistFilter, refreshTrigger]);
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -108,6 +124,9 @@ export default function CreamsPage() {
         title="Vendite Crema Tattoo"
         filters={
           <CreamFilters
+            monthLabel={monthLabel}
+            onPrevMonth={prevMonth}
+            onNextMonth={nextMonth}
             startDate={startDate}
             onStartDateChange={setStartDate}
             endDate={endDate}
@@ -127,7 +146,7 @@ export default function CreamsPage() {
       {creamData && (
         <CreamInfoBanner
           creamData={creamData}
-          salesCount={0}
+          salesCount={salesCount}
         />
       )}
 

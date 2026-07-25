@@ -241,7 +241,6 @@ function CalendarToolbar({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function AgendaCalendar({
-  isLoading,
   error,
   events,
   renderEventContent,
@@ -286,15 +285,7 @@ export default function AgendaCalendar({
       role="grid"
       aria-label="Calendario appuntamenti"
     >
-      {isLoading ? (
-        <StatePanel
-          variant="loading"
-          fullPage
-          icon={(props: React.SVGProps<SVGSVGElement>) => <Icon name="clock" {...props} />}
-          title="Carico l'agenda"
-          description="Sto recuperando gli appuntamenti."
-        />
-      ) : error ? (
+      {error ? (
         <StatePanel
           variant="error"
           fullPage
@@ -314,7 +305,7 @@ export default function AgendaCalendar({
             isSmall={isSmall}
           />
 
-          {/* FullCalendar without native toolbar */}
+          {/* FullCalendar without native toolbar — kept mounted (no loading overlay) */}
           <Box sx={{ flex: 1, overflow: 'hidden', p: { xs: 0.5, md: 1 } }}>
             <FullCalendar
               ref={calendarRef}

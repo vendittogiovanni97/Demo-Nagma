@@ -3,9 +3,7 @@ import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
 import { getMonthRange } from '../../../core/shared/utils/date-utils';
-import { Cache } from '../../../core/shared/utils/cache';
-
-const financeCache = new Cache(60 * 1000);
+import { financeCache } from './finance.cache';
 
 export class TransactionService {
   async findAll(filters: {

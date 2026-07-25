@@ -30,10 +30,17 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
   const [price, setPrice] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
+  const handlePriceChange = (raw: string) => {
+    const cleaned = raw.replace(/\./g, ',');
+    if (cleaned === '' || /^\d*(,\d{0,2})?$/.test(cleaned)) {
+      setPrice(cleaned);
+    }
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !price) return;
-    const parsed = parseFloat(price);
+    const parsed = parseFloat(price.replace(',', '.'));
     if (isNaN(parsed) || parsed < 0) {
       toast.error('Prezzo non valido');
       return;
@@ -93,11 +100,11 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
         sx={{ flex: 1, width: '100%', ...inputSx }}
       />
       <InputBase
-        type="number"
+        type="text"
         placeholder="Prezzo €"
         value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        inputProps={{ step: '0.01', min: '0' }}
+        onChange={(e) => handlePriceChange(e.target.value)}
+        inputProps={{ inputMode: 'decimal' }}
         required
         sx={{ width: { xs: '100%', sm: 140 }, ...inputSx }}
       />

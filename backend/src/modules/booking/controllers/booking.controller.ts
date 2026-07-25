@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { BookingService } from '../services/bookingService';
-import { handleCreate, handleUpdate, handleDelete } from '../../../core/utils/handler';
+import { handleCreate, handleUpdate } from '../../../core/utils/handler';
 import { validate } from '../../../core/shared/utils/validation';
 import { verifyPasswordSchema } from './booking.schemas';
 import { parsePageQuery } from '../../../core/shared/utils/date-utils';
@@ -65,7 +65,13 @@ export class BookingController {
     res.json(result);
   });
 
-  delete = handleDelete(async (id, userId) => this.bookingService.delete(id, userId));
+  delete = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const id = parseId(req.params.id);
+    const userId = req.user?.id;
+    const refund = req.query.refund !== 'false';
+    await this.bookingService.delete(id, userId, refund);
+    res.status(204).send();
+  });
 
   annul = asyncHandler(async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;

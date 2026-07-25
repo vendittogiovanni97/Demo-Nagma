@@ -18,6 +18,7 @@ const createMockPrisma = () => ({
   transaction: {
     deleteMany: jest.fn(),
     findFirst: jest.fn(),
+    findMany: jest.fn(),
     create: jest.fn(),
   },
   config: {
@@ -78,6 +79,7 @@ function mockTx() {
       create: jest.fn(),
       deleteMany: jest.fn(),
       findFirst: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 }
@@ -88,6 +90,10 @@ describe('BookingService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     bookingService = new BookingService();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('create', () => {
@@ -159,6 +165,85 @@ describe('BookingService', () => {
       await expect(bookingService.update(1, {}))
         .rejects.toThrow(new AppError('Prenotazione non trovata', 404, 'NOT_FOUND'));
     });
+
+    it('records only the additional deposit using the payment date', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-08-05T09:30:00Z'));
+      const old = bookingRow({ deposit: 50, price: 300 });
+      mockPrisma.booking.findUnique.mockResolvedValue(old);
+      const tx = mockTx();
+      tx.booking.update.mockResolvedValue({ ...old, deposit: 100 });
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.update(1, { deposit: 100 }, 1);
+
+      expect(tx.transaction.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: 'ENTRATA',
+          amount: 50,
+          date: new Date('2026-08-05T09:30:00Z'),
+          sourceType: 'BOOKING_DEPOSIT',
+        }),
+      });
+      jest.useRealTimers();
+    });
+
+    it('records a partial refund when the cumulative deposit decreases', async () => {
+      const old = bookingRow({ deposit: 100, price: 300 });
+      mockPrisma.booking.findUnique.mockResolvedValue(old);
+      const tx = mockTx();
+      tx.booking.update.mockResolvedValue({ ...old, deposit: 60 });
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.update(1, { deposit: 60 }, 1);
+
+      expect(tx.transaction.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: 'USCITA',
+          amount: 40,
+          sourceType: 'BOOKING_DEPOSIT_REFUND',
+        }),
+      });
+    });
+
+    it('records the final balance using the completion date', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-08-20T16:00:00Z'));
+      const old = bookingRow({ deposit: 100, price: 300, status: 'CONFERMATO' });
+      mockPrisma.booking.findUnique.mockResolvedValue(old);
+      const tx = mockTx();
+      tx.booking.update.mockResolvedValue({ ...old, status: 'COMPLETATO' });
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.update(1, { status: 'COMPLETATO' }, 1);
+
+      expect(tx.transaction.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: 'ENTRATA',
+          amount: 200,
+          date: new Date('2026-08-20T16:00:00Z'),
+          sourceType: 'BOOKING',
+        }),
+      });
+      jest.useRealTimers();
+    });
+
+    it('records the outstanding deposit refund when update annuls the booking', async () => {
+      const old = bookingRow({ deposit: 80, price: 300, status: 'CONFERMATO' });
+      mockPrisma.booking.findUnique.mockResolvedValue(old);
+      const tx = mockTx();
+      tx.booking.update.mockResolvedValue({ ...old, status: 'ANNULLATO' });
+      tx.transaction.findMany.mockResolvedValue([]);
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.update(1, { status: 'ANNULLATO' }, 1);
+
+      expect(tx.transaction.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: 'USCITA',
+          amount: 80,
+          sourceType: 'BOOKING_REFUND',
+        }),
+      });
+    });
   });
 
   describe('delete', () => {
@@ -166,7 +251,7 @@ describe('BookingService', () => {
       const old = bookingRow({ deposit: 50, price: 200, status: 'CONFERMATO' });
       const tx = mockTx();
       tx.booking.findUnique.mockResolvedValue(old);
-      tx.transaction.findFirst.mockResolvedValue(null);
+      tx.transaction.findMany.mockResolvedValue([]);
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
       await bookingService.delete(1, 1);
@@ -194,6 +279,18 @@ describe('BookingService', () => {
       expect(tx.transaction.create).not.toHaveBeenCalled();
     });
 
+    it('should not duplicate a cancellation refund already recorded', async () => {
+      const old = bookingRow({ deposit: 50, price: 200 });
+      const tx = mockTx();
+      tx.booking.findUnique.mockResolvedValue(old);
+      tx.transaction.findMany.mockResolvedValue([{ amount: 50 }]);
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.delete(1);
+
+      expect(tx.transaction.create).not.toHaveBeenCalled();
+    });
+
     it('should do nothing when booking not found', async () => {
       const tx = mockTx();
       tx.booking.findUnique.mockResolvedValue(null);
@@ -202,6 +299,26 @@ describe('BookingService', () => {
       await bookingService.delete(999);
 
       expect(tx.booking.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('annul', () => {
+    it('records the refund of the remaining deposit', async () => {
+      const old = bookingRow({ deposit: 30, price: 200 });
+      const tx = mockTx();
+      tx.booking.findUnique.mockResolvedValue(old);
+      tx.transaction.findMany.mockResolvedValue([]);
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.annul(1, 1);
+
+      expect(tx.transaction.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: 'USCITA',
+          amount: 30,
+          sourceType: 'BOOKING_REFUND',
+        }),
+      });
     });
   });
 

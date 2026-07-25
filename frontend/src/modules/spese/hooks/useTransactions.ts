@@ -6,6 +6,7 @@ import { spesaLiberaApi } from '../api/spesa-libera.api';
 import type { FinanceSummary, Transaction, SpesaLibera } from '../model/spese.types';
 import type { TransactionType } from '@/common/shared/types/transaction';
 import type { PaginatedResponse } from '@/common/shared/types/pagination';
+import useSWR from 'swr';
 
 interface UseTransactionsOptions {
   month?: string;
@@ -50,29 +51,12 @@ export function useTransactions({
 }
 
 export function useTransactionSummary(month?: string, enabled = true) {
-  const [data, setData] = useState<FinanceSummary | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<unknown>(null);
+  const { data, isLoading, error, mutate } = useSWR<FinanceSummary>(
+    enabled ? ['/finance/transactions/summary', month] : null,
+    () => transactionApi.getSummary(month),
+  );
 
-  const fetchData = useCallback(async () => {
-    if (!enabled) return;
-    setIsLoading(true);
-    try {
-      const res = await transactionApi.getSummary(month);
-      setData(res);
-      setError(null);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [month, enabled]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return { data, isLoading, error, mutate: fetchData };
+  return { data, isLoading, error, mutate };
 }
 
 export function useSpeseLibere(monthStr: string) {

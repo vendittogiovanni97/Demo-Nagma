@@ -11,3 +11,5 @@ export enum TransactionType {
   ENTRATA = 'ENTRATA',
   USCITA = 'USCITA',
 }
+
+export type StaffType = 'COLLABORATORE' | 'APPRENDISTA';

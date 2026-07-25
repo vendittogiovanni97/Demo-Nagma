@@ -9,10 +9,12 @@ import { useFormModal } from '@/common/hooks/useFormModal';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 
+import type { StaffType } from '@/common/shared/types/enums';
+
 interface StaffMember {
   id: number;
   name: string;
-  type: 'COLLABORATORE' | 'APPRENDISTA';
+  type: StaffType;
   color?: string;
 }
 

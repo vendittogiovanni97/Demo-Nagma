@@ -17,10 +17,12 @@ import CreamInfoBanner from '../components/CreamInfoBanner';
 import SaleModal from '../components/modals/SaleModal';
 import { useCreamColumns } from '../hooks/useCreamColumns';
 
+import type { StaffType } from '@/common/shared/types/enums';
+
 interface StaffMember {
   id: number;
   name: string;
-  type: 'COLLABORATORE' | 'APPRENDISTA';
+  type: StaffType;
   color?: string;
 }
 

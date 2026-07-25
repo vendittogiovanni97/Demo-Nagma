@@ -1,11 +1,12 @@
 "use client";
 
 import SmartFilters from '@/common/components/common/SmartFilters';
+import type { StaffType } from '@/common/shared/types/enums';
 
 interface StaffMember {
   id: number;
   name: string;
-  type: 'COLLABORATORE' | 'APPRENDISTA';
+  type: StaffType;
   color?: string;
 }
 

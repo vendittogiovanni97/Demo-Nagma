@@ -1,5 +1,4 @@
-import { Role } from '@/common/shared/types/enums';
-export { Role };
+import { Role, StaffType } from '@/common/shared/types/enums';
 
 export interface User {
   id: number;
@@ -20,8 +19,6 @@ export interface CreateUserData {
   color?: string;
 }
 
-export type StaffType = 'COLLABORATORE' | 'APPRENDISTA';
-
 export interface Staff {
   id: number;
   name: string;
@@ -33,7 +30,7 @@ export interface Staff {
 
 export interface CreateStaffData {
   name: string;
-  type: string;
+  type: StaffType;
   color: string;
 }
 

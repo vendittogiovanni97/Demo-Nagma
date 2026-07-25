@@ -45,23 +45,16 @@ export function createApp() {
     }
   });
 
-  const productionWhitelist = ['https://nagma.it', 'https://www.nagma.it'];
+  const productionWhitelist = ['https://nagma.it', 'https://www.nagma.it', ...allowedOrigins, 'http://localhost:3000', 'http://127.0.0.1:3000'];
 
   const corsOptions = {
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? (origin: string | undefined, callback: (err: Error | null, allowed: boolean) => void) => {
-            if (!origin) {
-              callback(new Error('Not allowed by CORS'), false);
-              return;
-            }
-            if (productionWhitelist.includes(origin)) {
-              callback(null, true);
-            } else {
-              callback(new Error('Not allowed by CORS'), false);
-            }
-          }
-        : allowedOrigins,
+    origin: (origin: string | undefined, callback: (err: Error | null, allowed?: boolean) => void) => {
+      if (!origin || productionWhitelist.includes(origin) || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'), false);
+      }
+    },
     credentials: true,
   };
 

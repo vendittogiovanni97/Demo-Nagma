@@ -8,8 +8,14 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, '..'),
   },
-  // bundle-barrel-imports (CRITICAL): Next.js 13.5+ transforms barrel imports
-  // to direct imports at build time — no code changes needed.
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3001'}/api/:path*`,
+      },
+    ];
+  },
   experimental: {
     optimizePackageImports: [
       "@mui/material",

@@ -1,4 +1,6 @@
-import { Role, StaffType } from '@/common/shared/types/enums';
+import { Role, type StaffType } from '@/common/shared/types/enums';
+export { Role };
+export type { StaffType };
 
 export interface User {
   id: number;

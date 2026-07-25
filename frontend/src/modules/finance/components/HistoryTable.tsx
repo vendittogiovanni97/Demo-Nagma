@@ -1,8 +1,7 @@
 "use client";
 
 import SmartModal from '@/common/components/common/SmartModal';
-import DataTable, { ColumnDefinition as Column } from '@/common/components/table/DataTable';
-import type { TableAction } from '@/common/components/table/TableActions';
+import DataTable, { ColumnDefinition as Column, type TableAction } from '@/common/components/table/DataTable';
 import {
   Box,
   Stack,

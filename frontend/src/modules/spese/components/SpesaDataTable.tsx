@@ -1,7 +1,6 @@
 "use client";
 
-import DataTable from '@/common/components/table/DataTable';
-import type { TableAction } from '@/common/components/table/TableActions';
+import DataTable, { type TableAction } from '@/common/components/table/DataTable';
 import { formatPrice } from '@/common/shared/utils/format';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';

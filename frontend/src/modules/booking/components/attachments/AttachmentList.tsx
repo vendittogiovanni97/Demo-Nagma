@@ -6,7 +6,7 @@ import {
   TableContainer, TableHead, TableRow, SxProps, Theme, Typography
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import TableActions, { type TableAction } from '@/common/components/table/TableActions';
+import { TableActions, type TableAction } from '@/common/components/table/DataTable';
 
 // Hooks & Types
 import { useAttachments } from '@/common/hooks/domain/useAttachments';

@@ -1,7 +1,6 @@
 "use client";
 
-import DataTable, { type ColumnDefinition as Column } from '@/common/components/table/DataTable';
-import type { TableAction } from '@/common/components/table/TableActions';
+import DataTable, { type ColumnDefinition as Column, type TableAction } from '@/common/components/table/DataTable';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import WhatsAppSendModal from '@/modules/whatsapp/components/modals/WhatsAppSendModal';
 import { useTheme as useMuiTheme, alpha } from '@mui/material/styles';

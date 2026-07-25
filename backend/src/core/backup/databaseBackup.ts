@@ -134,6 +134,38 @@ export class DatabaseBackupScheduler {
     }
   }
 
+  private async findNativePgDump(): Promise<string | null> {
+    const customPath = (config as Record<string, unknown>).databaseBackupPgDumpPath as string | undefined;
+    const envPath = process.env.DB_BACKUP_PG_DUMP_PATH;
+
+    const candidates = [
+      customPath,
+      envPath,
+      'pg_dump',
+      'C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe',
+      'C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe',
+      'C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dump.exe',
+      'C:\\Program Files\\PostgreSQL\\15\\bin\\pg_dump.exe',
+      'C:\\Program Files\\PostgreSQL\\14\\bin\\pg_dump.exe',
+      'C:\\PostgreSQL\\18\\bin\\pg_dump.exe',
+      'C:\\PostgreSQL\\17\\bin\\pg_dump.exe',
+      'C:\\PostgreSQL\\16\\bin\\pg_dump.exe',
+      '/Library/PostgreSQL/18/bin/pg_dump',
+      '/Library/PostgreSQL/17/bin/pg_dump',
+      '/Library/PostgreSQL/16/bin/pg_dump',
+      '/opt/homebrew/bin/pg_dump',
+      '/usr/local/bin/pg_dump',
+      '/usr/bin/pg_dump',
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate && (await commandExists(candidate, ['--version']))) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
   private async createBackup(destination: string): Promise<void> {
     const connection = getDatabaseConnection();
     const pgDumpArgs = [
@@ -150,25 +182,41 @@ export class DatabaseBackupScheduler {
     ];
     const processEnv = { ...process.env, PGPASSWORD: connection.password };
 
-    if (await commandExists('pg_dump', ['--version'])) {
-      await writeCommandOutput('pg_dump', pgDumpArgs, destination, processEnv);
+    const nativePgDump = await this.findNativePgDump();
+    if (nativePgDump) {
+      await writeCommandOutput(nativePgDump, pgDumpArgs, destination, processEnv);
       return;
     }
 
-    const dockerArgs = [
-      'exec',
-      '--env',
-      'PGPASSWORD',
-      config.databaseBackupDockerContainer,
-      'pg_dump',
-      '--format=custom',
-      '--no-owner',
-      '--no-privileges',
-      '--username',
-      connection.user,
-      connection.database,
-    ];
-    await writeCommandOutput('docker', dockerArgs, destination, processEnv);
+    if (await commandExists('docker', ['--version'])) {
+      const containerName = config.databaseBackupDockerContainer || 'nagma-postgres';
+      const dockerArgs = [
+        'exec',
+        '--env',
+        'PGPASSWORD',
+        containerName,
+        'pg_dump',
+        '--format=custom',
+        '--no-owner',
+        '--no-privileges',
+        '--username',
+        connection.user,
+        connection.database,
+      ];
+      try {
+        await writeCommandOutput('docker', dockerArgs, destination, processEnv);
+        return;
+      } catch (dockerErr) {
+        logger.warn('Tentativo backup via Docker fallito, verificare che il container sia attivo', {
+          container: containerName,
+          error: String(dockerErr),
+        });
+      }
+    }
+
+    throw new Error(
+      'Nessun eseguibile pg_dump nativo o container Docker funzionante trovato. Installare PostgreSQL 18 o assicurarsi che pg_dump sia nel PATH.'
+    );
   }
 
   private async enforceRetention(backupDirectory: string): Promise<void> {

@@ -10,6 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import Icon from '@/common/components/ui/Icon';
 
 type ButtonVariant = 'primary' | 'secondary' | 'glass' | 'danger' | 'success' | 'ghost' | 'icon';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -290,5 +291,21 @@ export const SaveButton = ({
   </Button>
 );
 SaveButton.displayName = 'SaveButton';
+
+/**
+ * CreateButton — creazione nuovo elemento (+ icona di default).
+ * Default: variant="primary", icon={<Icon name="piu" size={16} />}, label="Crea"
+ */
+export const CreateButton = ({
+  children = 'Crea',
+  variant = 'primary',
+  icon = <Icon name="piu" size={16} />,
+  ...props
+}: ButtonProps) => (
+  <Button variant={variant} icon={icon} {...props}>
+    {children}
+  </Button>
+);
+CreateButton.displayName = 'CreateButton';
 
 export default Button;

@@ -56,6 +56,7 @@ export const config = {
   databaseBackupDelayMinutes: Math.max(1, envInt('DB_BACKUP_DELAY_MINUTES', 10)),
   databaseBackupRetention: Math.max(1, envInt('DB_BACKUP_RETENTION', 7)),
   databaseBackupDockerContainer: envStr('DB_BACKUP_DOCKER_CONTAINER', 'nagma-postgres'),
+  databaseBackupPgDumpPath: envStr('DB_BACKUP_PG_DUMP_PATH', 'pg_dump'),
 
   // Booking password — solo per seed iniziale in ClientConfig (via seed.ts)
   bookingUpdatePassword: envStr('BOOKING_UPDATE_PASSWORD', ''),

@@ -2,7 +2,6 @@
 
 import PageHeader from '@/common/components/common/PageHeader';
 import BookingModal from '../components/modals/BookingModal';
-import ExportModal from '@/common/components/modals/ExportModal';
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
@@ -95,20 +94,18 @@ function PrenotazioniPageContent() {
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
       <PageHeader
         title="Prenotazioni"
-        actions={
-          <ExportModal
-            filenameBase={`prenotazioni-${month}`}
-            title="Prenotazioni"
-            rows={bookings || []}
-            columns={exportColumns}
-            filters={exportFilters}
-            filtersLabel={`Mese: ${monthLabel}`}
-            resolveRows={async () => {
-              const res = await bookingApi.getAll({ month });
-              return res.data.map(bookingMapper.toModel) as unknown as Booking[];
-            }}
-          />
-        }
+        exportConfig={{
+          filenameBase: `prenotazioni-${month}`,
+          title: "Prenotazioni",
+          rows: bookings || [],
+          columns: exportColumns,
+          filters: exportFilters,
+          filtersLabel: `Mese: ${monthLabel}`,
+          resolveRows: async () => {
+            const res = await bookingApi.getAll({ month });
+            return res.data.map(bookingMapper.toModel) as unknown as Booking[];
+          },
+        }}
         showButton
         buttonLabel="Nuova Prenotazione"
         buttonIcon={<Icon name="plus" size={18} />}

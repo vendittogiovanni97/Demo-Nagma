@@ -36,7 +36,7 @@ export default function CreamInfoBanner({ creamData, salesCount }: CreamInfoBann
           width: 36,
           height: 36,
           borderRadius: 1.5,
-          bgcolor: `${theme.palette.primary.main}1a`,
+          bgcolor: alpha(theme.palette.primary.main, 0.1),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

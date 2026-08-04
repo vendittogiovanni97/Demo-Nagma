@@ -136,7 +136,6 @@ export default function FinanceDataTable({ data, isLoading }: FinanceDataTablePr
       baseColumns={[]}
       data={data}
       isLoading={isLoading}
-      hideState
       keyExtractor={(t) => t.id}
       emptyTitle="Nessuna transazione trovata"
       emptyDescription="Prova a cambiare i filtri impostati."

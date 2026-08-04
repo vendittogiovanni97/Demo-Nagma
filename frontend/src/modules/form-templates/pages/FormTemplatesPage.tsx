@@ -1,5 +1,6 @@
 "use client";
 
+import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
 import StatePanel from '@/common/components/feedback/StatePanel';
 import SmartFilters from '@/common/components/common/SmartFilters';
@@ -71,18 +72,10 @@ export default function FormTemplatesPage() {
     );
   }
 
+
+
   return (
-    <Box
-      sx={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 3,
-        width: '100%',
-        maxWidth: '100%',
-        overflow: { xs: 'visible', lg: 'hidden' },
-      }}
-    >
+    <PageContainer gap={3} sx={{ overflow: { xs: 'visible', lg: 'hidden' } }}>
       <PageHeader
         title="Template dei form"
         filters={
@@ -131,6 +124,6 @@ export default function FormTemplatesPage() {
         />
       </Box>
       <ConfirmDialog {...confirmDialogProps} />
-    </Box>
+    </PageContainer>
   );
 }

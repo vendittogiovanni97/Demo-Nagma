@@ -21,6 +21,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import {
   ClipboardList,
+  CreditCard,
   DollarSign,
   FileText,
   History,
@@ -29,6 +30,7 @@ import {
   MessageSquare,
   Package,
   Plus,
+  Banknote,
   Receipt,
   Settings,
   Shield,
@@ -495,6 +497,8 @@ function NavbarUserMenu({
       { href: '/creams', icon: Package, label: 'Vendite Crema', show: isAdmin },
       { href: '/booking-history', icon: History, label: 'Storico Prenotazioni', show: isAdmin },
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
+      { href: '/entrate-libere', icon: Banknote, label: 'Entrate Libere', show: true },
+      { href: '/acconti', icon: CreditCard, label: 'Acconti', show: true },
       { href: '/impostazioni', icon: Settings, label: 'Impostazioni', show: isAdmin },
     ],
     [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]

@@ -21,6 +21,10 @@ import TimeInput from '@/common/components/forms/TimeInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
 import Badge from '@/common/components/ui/Badge';
+import { CustomerSection } from './subcomponents/CustomerSection';
+import { FinancialSummaryRow } from './subcomponents/FinancialSummaryRow';
+import { DynamicFieldsSection } from './subcomponents/DynamicFieldsSection';
+import { BookingStatusSelector } from './subcomponents/BookingStatusSelector';
 
 // Types & Config
 import { useAuth } from '@/common/context/AuthContext';
@@ -99,95 +103,19 @@ export default function BookingModal({
       >
         <Box sx={styles.container}>
           <Grid container rowSpacing={5} columnSpacing={2.5}>
-            {/* ROW 1: CUSTOMER DETAILS (DISABLED) IF EDITING */}
-            {booking && (
-              <Grid size={12}>
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 3 }}>
-                    <FormInput label="Nome" value={booking.customer?.firstName || ''} disabled size="sm" onChange={() => {}} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 3 }}>
-                    <FormInput label="Cognome" value={booking.customer?.lastName || ''} disabled size="sm" onChange={() => {}} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 3 }}>
-                    <FormInput label="Telefono" value={booking.customer?.phone || ''} disabled size="sm" onChange={() => {}} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 3 }}>
-                    <FormInput label="Email" value={booking.customer?.email || '—'} disabled size="sm" onChange={() => {}} />
-                  </Grid>
-                </Grid>
-              </Grid>
-            )}
-
-            {/* ROW 2: CUSTOMER SELECTION IF NEW */}
-            {!booking && (
-              <>
-                {!form.formData.isNewCustomer && (
-                  <Grid size={12}>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, md: 5 }}>
-                        <FormAutocomplete
-                          label="Cerca Cliente *"
-                          value={form.formData.customerId}
-                          onChange={(val) => form.setField('customerId', val)}
-                          disabled={form.customersLoading}
-                          loading={form.customersLoading}
-                          placeholder="Cerca per nome o telefono..."
-                          options={form.customerOptions}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                )}
-
-                {/* NEW CUSTOMER FIELDS (ONLY VISIBLE IF TOGGLE IS ON) */}
-                {form.formData.isNewCustomer && (
-                  <Grid size={12}>
-                    <Box sx={styles.newCustomerFields(true)}>
-                      <Grid container spacing={2}>
-                        <Grid size={3}>
-                          <FormInput
-                            label="Nome *"
-                            value={form.formData.newCustomerFirstName}
-                            onChange={(v) => form.setField('newCustomerFirstName', v)}
-                            size="sm"
-                            placeholder="Nome"
-                          />
-                        </Grid>
-                        <Grid size={3}>
-                          <FormInput
-                            label="Cognome *"
-                            value={form.formData.newCustomerLastName}
-                            onChange={(v) => form.setField('newCustomerLastName', v)}
-                            size="sm"
-                            placeholder="Cognome"
-                          />
-                        </Grid>
-                        <Grid size={3}>
-                          <FormInput
-                            label="Telefono *"
-                            value={form.formData.newCustomerPhone}
-                            onChange={(v) => form.setField('newCustomerPhone', v)}
-                            size="sm"
-                            placeholder="Telefono"
-                          />
-                        </Grid>
-                        <Grid size={3}>
-                          <FormInput
-                            label="Email"
-                            value={form.formData.newCustomerEmail}
-                            onChange={(v) => form.setField('newCustomerEmail', v)}
-                            size="sm"
-                            type="email"
-                            placeholder="Email"
-                          />
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Grid>
-                )}
-              </>
-            )}
+            {/* ROW 1 & 2: CUSTOMER SECTION */}
+            <CustomerSection
+              booking={booking}
+              isNewCustomer={form.formData.isNewCustomer}
+              customerId={form.formData.customerId}
+              customerOptions={form.customerOptions}
+              customersLoading={form.customersLoading}
+              newCustomerFirstName={form.formData.newCustomerFirstName}
+              newCustomerLastName={form.formData.newCustomerLastName}
+              newCustomerPhone={form.formData.newCustomerPhone}
+              newCustomerEmail={form.formData.newCustomerEmail}
+              onChangeField={form.setField}
+            />
 
             {/* MAIN DATA ROW */}
             <Grid size={12}>
@@ -215,109 +143,33 @@ export default function BookingModal({
             </Grid>
 
             {/* ECONOMIC ROW */}
-            <Grid size={12}>
-              <Grid container spacing={2} sx={{ alignItems: 'flex-end' }}>
-                <Grid size={{ xs: 4, sm: 2 }}>
-                  <FormInput label="Prezzo" type="number" value={form.formData.price} onChange={(v) => form.setField('price', v)} size="sm" placeholder="€" />
-                </Grid>
-                <Grid size={{ xs: 4, sm: 2 }}>
-                  <FormInput label="Acconto" type="number" value={form.formData.deposit} onChange={(v) => form.setField('deposit', v)} size="sm" placeholder="€" />
-                </Grid>
-                <Grid size={{ xs: 4, sm: 2 }}>
-                  <FormSelect label="% Artista" value={form.formData.percentualeMode} onChange={(v) => form.setField('percentualeMode', v)} options={PERCENTUALE_OPTIONS} />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Box sx={styles.resultBoxArtist}>
-                    <Typography sx={styles.resultLabelArtist}>Artista</Typography>
-                    <Typography sx={styles.resultValueArtist}>€{form.prezzoArtista.toFixed(2)}</Typography>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Box sx={styles.resultBoxStudio}>
-                    <Typography sx={styles.resultLabelStudio}>Studio</Typography>
-                    <Typography sx={styles.resultValueStudio}>€{form.guadagno.toFixed(2)}</Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Grid>
+            <FinancialSummaryRow
+              price={form.formData.price}
+              deposit={form.formData.deposit}
+              percentualeMode={form.formData.percentualeMode}
+              prezzoArtista={form.prezzoArtista}
+              guadagno={form.guadagno}
+              percentualeOptions={PERCENTUALE_OPTIONS}
+              onChangeField={form.setField}
+            />
 
             {/* DYNAMIC FIELDS ROW */}
-            <Grid size={12}>
-              {form.templates && form.templates.length > 1 && (
-                <Box sx={{ mb: 1, maxWidth: 200 }}>
-                  <FormSelect
-                    label="Template"
-                    value={form.formData.selectedTemplateId ?? ''}
-                    onChange={(v) => form.setField('selectedTemplateId', Number(v))}
-                    options={form.templates.map(t => ({ value: t.id.toString(), label: t.name }))}
-                    size="small"
-                  />
-                </Box>
-              )}
-              <Grid container spacing={2}>
-                {form.dynamicFields.map(f => (
-                  <Grid key={f.name} size={{ xs: 12, sm: 3 }}>
-                    {f.type === 'select' ? (
-                      <FormSelect
-                        label={f.label}
-                        value={form.formData.dynamicValues[f.name] || ''}
-                        onChange={(v) => form.setField('dynamicValues', { ...form.formData.dynamicValues, [f.name]: v })}
-                        options={(f.options || []).map(o => ({ value: o, label: o }))}
-                        size="small"
-                        placeholder="Seleziona..."
-                      />
-                    ) : (
-                      <FormInput
-                        label={f.label}
-                        value={form.formData.dynamicValues[f.name] || ''}
-                        onChange={(v) => form.setField('dynamicValues', { ...form.formData.dynamicValues, [f.name]: v })}
-                        type={f.type === 'number' ? 'number' : 'text'}
-                        size="sm"
-                        placeholder={f.label}
-                      />
-                    )}
-                  </Grid>
-                ))}
-              </Grid>
-            </Grid>
+            <DynamicFieldsSection
+              templates={form.templates}
+              selectedTemplateId={form.formData.selectedTemplateId}
+              dynamicFields={form.dynamicFields}
+              dynamicValues={form.formData.dynamicValues}
+              onSelectTemplate={(id) => form.setField('selectedTemplateId', id)}
+              onChangeDynamicValues={(vals) => form.setField('dynamicValues', vals)}
+            />
 
             {/* STATUS & NOTES ROW */}
             <Grid size={12} container spacing={2}>
               {booking?.id && (
-                <Grid size={12}>
-                  <Box sx={styles.statusGroup}>
-                    {(Object.entries(BOOKING_STATUS_CONFIG) as Array<[
-                      BookingStatus,
-                      (typeof BOOKING_STATUS_CONFIG)[string],
-                    ]>).map(([status, config]) => (
-                      <Box
-                        key={status}
-                        component="button"
-                        type="button"
-                        aria-pressed={form.formData.status === status}
-                        aria-label={`Imposta stato ${config.label}`}
-                        onClick={() => form.setField('status', status)}
-                        sx={styles.statusButton(form.formData.status === status)}
-                      >
-                        <Badge
-                          variant={config.badgeVariant}
-                          size="lg"
-                          sx={{
-                            width: '100%',
-                            height: 40,
-                            pointerEvents: 'none',
-                            '& .MuiChip-label': {
-                              width: '100%',
-                              textAlign: 'center',
-                            },
-                          }}
-                        >
-                          {config.label}
-                        </Badge>
-                      </Box>
-                    ))}
-                  </Box>
-                </Grid>
+                <BookingStatusSelector
+                  status={form.formData.status}
+                  onChangeStatus={(status) => form.setField('status', status)}
+                />
               )}
               <Grid size={12}>
                 <Box

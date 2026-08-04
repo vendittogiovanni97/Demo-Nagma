@@ -1,5 +1,6 @@
 "use client";
 
+import DashboardWidgetCard from './DashboardWidgetCard';
 import Icon from '@/common/components/ui/Icon';
 
 import MonthPicker from '@/common/components/ui/MonthPicker';
@@ -35,7 +36,7 @@ export default function BookingStatsWidget({
   annullated,
   cancelled,
   completed,
-  isLoading,
+  isLoading = false,
   className,
 }: BookingStatsWidgetProps) {
   const theme = useTheme();
@@ -47,53 +48,14 @@ export default function BookingStatsWidget({
   const cancelledColor = theme.palette.text.secondary;
 
   return (
-    <Card
+    <DashboardWidgetCard
+      title="Prenotazioni"
+      icon="calendar"
+      headerActions={<MonthPicker value={monthDate} onChange={onMonthChange} />}
+      isLoading={isLoading}
       className={className}
-      variant="glass"
-      size="md"
-      sx={{
-        bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.5),
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
-        boxShadow: isLight
-          ? `0 2px 12px ${alpha(theme.palette.common.black, 0.08)}`
-          : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
-        transition: theme.transitions.create(['all'], { duration: 300 }),
-        '&:hover': {
-          borderColor: alpha(theme.palette.primary.main, 0.3),
-          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}`,
-        },
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
     >
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: { xs: 1, md: 1.5 }, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
-        <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center' }}>
-          <Box
-            sx={{
-              p: 0.75,
-              borderRadius: 1.25,
-              bgcolor: alpha(theme.palette.primary.main, 0.08),
-              color: theme.palette.primary.main,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name="calendar" size={18} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Prenotazioni
-          </Typography>
-        </Stack>
-        <MonthPicker value={monthDate} onChange={onMonthChange} />
-      </Box>
-
-      {/* Content */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', opacity: isLoading ? 0.65 : 1, transition: 'opacity 0.2s ease-in-out' }}>
-        <Stack useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, justifyContent: 'center', flex: 1 }}>
+      <Stack useFlexGap sx={{ gap: { xs: 1.5, md: 2 }, justifyContent: 'center', flex: 1 }}>
             <Box
               sx={{
                 textAlign: 'center',
@@ -235,7 +197,6 @@ export default function BookingStatsWidget({
               </Grid>
             </Grid>
           </Stack>
-      </Box>
-    </Card>
+    </DashboardWidgetCard>
   );
 }

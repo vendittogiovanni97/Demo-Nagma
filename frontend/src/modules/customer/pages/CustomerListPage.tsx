@@ -1,7 +1,10 @@
 "use client";
 
+import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
+import SmartFilters from '@/common/components/common/SmartFilters';
 import DataTable, { type FetchParams, type TableAction } from '@/common/components/table/DataTable';
+import { CancelButton } from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
 import { useAuth } from '@/common/context/AuthContext';
 import { Box } from '@mui/material';
@@ -9,7 +12,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { customerApi } from '../api/customer.api';
 import CustomerCard from '../components/CustomerCard';
 import CustomerDetailModal from '../components/modals/CustomerDetailModal';
-import CustomerFilters from '../components/CustomerFilters';
 import CustomerModal from '../components/modals/CustomerModal';
 import { useCustomerColumns } from '../hooks/useCustomerColumns';
 import { useCustomersFilter } from '../hooks/useCustomersFilter';
@@ -79,8 +81,10 @@ export default function CustomerListPage() {
     return `${filterState.debouncedSearch || ''}_${filterState.startDate || ''}_${filterState.endDate || ''}_${refreshTrigger}`;
   }, [filterState.debouncedSearch, filterState.startDate, filterState.endDate, refreshTrigger]);
 
+
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 1.5, pt: 1 }}>
+    <PageContainer pt={1}>
       <PageHeader
         title="Clienti"
         showButton
@@ -89,15 +93,30 @@ export default function CustomerListPage() {
         buttonRequiresAdmin
         onButtonClick={() => openCustomerModal(null)}
         filters={
-          <CustomerFilters
-            search={filterState.search}
-            startDate={filterState.startDate}
-            endDate={filterState.endDate}
-            onSearchChange={filterState.setSearch}
-            onStartDateChange={filterState.setStartDate}
-            onEndDateChange={filterState.setEndDate}
-            onResetDates={filterState.resetDates}
-          />
+          <SmartFilters
+            alignWithMonthPicker
+            search={{
+              value: filterState.search,
+              onChange: filterState.setSearch,
+              placeholder: "Cerca cliente...",
+            }}
+            dateRange={{
+              start: { value: filterState.startDate, onChange: filterState.setStartDate },
+              end: { value: filterState.endDate, onChange: filterState.setEndDate },
+            }}
+          >
+            {(filterState.startDate || filterState.endDate) && (
+              <CancelButton
+                variant="ghost"
+                size="sm"
+                onClick={filterState.resetDates}
+                icon={<Icon name="x" size={14} />}
+                sx={{ fontSize: '0.75rem', px: 1 }}
+              >
+                Reset
+              </CancelButton>
+            )}
+          </SmartFilters>
         }
       />
 
@@ -105,7 +124,6 @@ export default function CustomerListPage() {
         <DataTable<Customer>
           columns={columns}
           baseColumns={['id']}
-          hideState={true}
           fetchData={fetchCustomers}
           refreshKey={refreshKey}
           keyExtractor={(c) => c.id}
@@ -142,6 +160,6 @@ export default function CustomerListPage() {
           setRefreshTrigger((current) => current + 1);
         }}
       />
-    </Box>
+    </PageContainer>
   );
 }

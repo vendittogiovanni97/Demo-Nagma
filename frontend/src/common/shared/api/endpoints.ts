@@ -50,6 +50,10 @@ export const ENDPOINTS = {
     BASE: '/api/finance/spese-libere',
     BY_ID: (id: string | number) => `/api/finance/spese-libere/${id}`,
   },
+  ENTRATE_LIBERE: {
+    BASE: '/api/finance/entrate-libere',
+    BY_ID: (id: string | number) => `/api/finance/entrate-libere/${id}`,
+  },
   TEAM: {
     MEMBERS: '/api/staff/members',
     MEMBER_BY_ID: (id: string | number) => `/api/staff/members/${id}`,

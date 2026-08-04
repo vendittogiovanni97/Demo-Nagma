@@ -8,16 +8,14 @@ import { DEBOUNCE_SEARCH_DELAY } from '@/common/config/env';
 import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 import type { BookingStatus } from '@/modules/booking/model/booking.types';
 
-function monthKey(date: Date) {
-  return format(date, 'yyyy-MM');
-}
+import { useMonthNavigation } from '@/common/hooks/useMonthNavigation';
 
 export function useBookingFilters() {
   const searchParams = useSearchParams();
   const urlStartDate = searchParams.get('startDate') ?? '';
   const urlEndDate = searchParams.get('endDate') ?? '';
 
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { currentMonth, setCurrentMonth, monthStr: month, monthLabel, prevMonth, nextMonth } = useMonthNavigation();
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState(urlStartDate);
   const [endDate, setEndDate] = useState(urlEndDate);
@@ -25,12 +23,6 @@ export function useBookingFilters() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // 'desc' = più recente per primo
 
   const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
-
-  const month = monthKey(currentMonth);
-  const monthLabel = format(currentMonth, 'MMMM yyyy', { locale: it });
-
-  const prevMonth = () => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
-  const nextMonth = () => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
   const resetDateRange = () => {
     setStartDate('');

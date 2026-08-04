@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme, alpha } from '@mui/material';
 import type { ColumnDefinition as Column } from '@/common/components/table/DataTable';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -60,7 +60,7 @@ export function useCreamColumns(): Column<CreamSale>[] {
             width: 32,
             height: 32,
             borderRadius: 1.5,
-            bgcolor: `${theme.palette.primary.main}26`,
+            bgcolor: alpha(theme.palette.primary.main, 0.15),
             color: theme.palette.primary.main,
             fontWeight: 700,
             fontSize: '0.875rem',

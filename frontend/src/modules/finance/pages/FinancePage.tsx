@@ -10,7 +10,6 @@ import { it } from 'date-fns/locale';
 import Icon from '@/common/components/ui/Icon';
 
 import PageHeader from '@/common/components/common/PageHeader';
-import ExportModal from '@/common/components/modals/ExportModal';
 import { formatPrice } from '@/common/shared/utils/format';
 import { financeApi, Transaction } from '../api/finance.api';
 import FinanceDataTable from '../components/FinanceDataTable';
@@ -46,33 +45,31 @@ export default function FinancePage() {
       <PageHeader
         title="Storico Movimenti"
         subtitle="Cronologia completa di entrate e uscite dello studio"
-        actions={
-          <ExportModal
-            filenameBase={`finanza_${format(month, 'yyyy_MM')}`}
-            title={`Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`}
-            rows={transactions}
-            columns={exportColumns}
-            resolveRows={async () => {
-              const res = await financeApi.getAll({
-                month: format(month, 'yyyy-MM'),
-                type: type === 'ALL' ? undefined : type,
-                search,
-                limit: 1000,
-              });
-              return res.data;
-            }}
-            getPdfSummary={(rows) => ({
-              label: 'Totale netto',
-              value: formatPrice(
-                rows.reduce(
-                  (total, transaction) =>
-                    total + (transaction.type === 'ENTRATA' ? transaction.amount : -transaction.amount),
-                  0,
-                ),
+        exportConfig={{
+          filenameBase: `finanza_${format(month, 'yyyy_MM')}`,
+          title: `Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`,
+          rows: transactions,
+          columns: exportColumns,
+          resolveRows: async () => {
+            const res = await financeApi.getAll({
+              month: format(month, 'yyyy-MM'),
+              type: type === 'ALL' ? undefined : type,
+              search,
+              limit: 1000,
+            });
+            return res.data;
+          },
+          getPdfSummary: (rows) => ({
+            label: 'Totale netto',
+            value: formatPrice(
+              rows.reduce(
+                (total, transaction) =>
+                  total + (transaction.type === 'ENTRATA' ? transaction.amount : -transaction.amount),
+                0,
               ),
-            })}
-          />
-        }
+            ),
+          }),
+        }}
       />
 
       <Grid container spacing={3} sx={{ mb: 1, mt: 0.5 }}>

@@ -2,16 +2,14 @@
 
 import StatePanel from '@/common/components/feedback/StatePanel';
 import { useAuth } from '@/common/context/AuthContext';
-import { useFormModal } from '@/common/hooks/useFormModal';
-import { useToast } from '@/common/hooks/useToast';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import { createStaffSchema } from '@/modules/staff/model/staff.schema';
 import { staffApi } from '@/modules/staff/api/staff.api';
 import type { Staff, StaffType } from '@/modules/staff/model/staff.types';
 import { validateData } from '@/common/shared/utils/validation';
-import { useEffect } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import SmartModal from '@/common/components/common/SmartModal';
+import FormModal from '@/common/components/common/FormModal';
 import Avatar from '@/common/components/ui/Avatar';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
@@ -38,64 +36,46 @@ interface StaffFormData {
 }
 
 export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props) {
-  const toast = useToast();
   const { isAdmin } = useAuth();
   const theme = useTheme();
   const isEditing = member !== null && member !== undefined;
 
-  const {
-    isLoading,
-    handleSubmit,
-    handleChange,
-    formData,
-    replaceFormData,
-    resetState,
-  } = useFormModal<StaffFormData>({
-    initial: { name: '', type: 'COLLABORATORE', color: theme.palette.primary.main },
-    onSubmit: async (data) => {
-      const payload = { name: data.name, type: data.type, color: data.color };
-      if (member) {
-        await staffApi.update(member.id, payload);
+  const form = useEntityForm<Staff | null, StaffFormData>({
+    entity: member ?? null,
+    open: isOpen,
+    initial: (entity) => ({
+      name: entity?.name ?? '',
+      type: entity?.type ?? 'COLLABORATORE',
+      color: entity?.color ?? theme.palette.primary.main,
+    }),
+    buildPayload: (data) => data,
+    persist: async (payload, entity) => {
+      const validationError = validateData(createStaffSchema, payload);
+      if (validationError) {
+        throw new Error(validationError);
+      }
+      if (entity) {
+        await staffApi.update(entity.id, payload);
       } else {
         await staffApi.create(payload);
       }
     },
-    onClose,
-    onSuccess,
     successMessage: isEditing ? 'Staff modificato con successo!' : 'Staff aggiunto al team!',
-    errorMessage: isEditing ? 'Errore durante la modifica' : "Errore durante l'inserimento",
+    onSuccess,
+    onClose,
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    replaceFormData({
-      name: member?.name ?? '',
-      type: member?.type ?? 'COLLABORATORE',
-      color: member?.color ?? theme.palette.primary.main,
-    });
-    resetState();
-  }, [isOpen, member, replaceFormData, resetState, theme.palette.primary.main]);
-
-  const handleSave = async () => {
-    const payload = { name: formData.name, type: formData.type, color: formData.color };
-    const validationError = validateData(createStaffSchema, payload);
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-    await handleSubmit();
-  };
+  const { formData, setField, isLoading } = form;
 
   return (
-    <SmartModal
+    <FormModal
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? 'Modifica Staff' : 'Aggiungi Staff'}
       maxWidth="sm"
-      onSave={handleSave}
-      isSaving={isLoading}
-      saveLabel={isEditing ? 'Salva Modifiche' : 'Crea Profilo Staff'}
+      onSubmit={() => form.handleSubmit()}
+      isSubmitting={isLoading}
+      submitLabel={isEditing ? 'Salva Modifiche' : 'Crea Profilo Staff'}
     >
       {!isAdmin ? (
         <StatePanel
@@ -135,7 +115,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
           <FormInput
             label="Nome"
             value={formData.name}
-            onChange={handleChange('name')}
+            onChange={(val) => setField('name', val)}
             placeholder="Nome del collaboratore..."
             required
           />
@@ -143,7 +123,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
           <FormSelect
             label="Tipo"
             value={formData.type}
-            onChange={(value) => handleChange('type')(value as StaffType)}
+            onChange={(val) => setField('type', val as StaffType)}
             options={STAFF_TYPE_OPTIONS}
             required
           />
@@ -168,7 +148,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
                     key={preset}
                     component="button"
                     type="button"
-                    onClick={() => handleChange('color')(preset)}
+                    onClick={() => setField('color', preset)}
                     aria-label={`Seleziona colore ${preset}`}
                     sx={{
                       width: 32,
@@ -204,14 +184,14 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
                 '&:hover': {
                   backgroundColor: alpha(theme.palette.common.white, 0.05),
                   borderColor: formData.color,
-                  boxShadow: `0 0 15px ${formData.color}1a`,
+                  boxShadow: `0 0 15px ${alpha(formData.color, 0.1)}`,
                 }
               }}
             >
               <input
                 type="color"
                 value={formData.color}
-                onChange={(e) => handleChange('color')(e.target.value)}
+                onChange={(e) => setField('color', e.target.value)}
                 style={{
                   position: 'absolute',
                   width: 0,
@@ -231,7 +211,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: `0 4px 12px ${formData.color}4d`,
+                  boxShadow: `0 4px 12px ${alpha(formData.color, 0.3)}`,
                   flexShrink: 0,
                   transition: 'transform 0.2s',
                 }}
@@ -253,6 +233,6 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
           </Box>
         </Box>
       )}
-    </SmartModal>
+    </FormModal>
   );
 }

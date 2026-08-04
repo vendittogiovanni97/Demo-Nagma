@@ -4,6 +4,8 @@ import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
 import { useMemo, useState } from 'react';
 
+import { useDateRangeFilters } from '@/common/hooks/useDateRangeFilters';
+
 export interface CustomersFilterState {
   search: string;
   startDate: string;
@@ -27,8 +29,7 @@ export interface UseCustomersFilterResult extends CustomersFilterState, Customer
 export function useCustomersFilter(): UseCustomersFilterResult {
   const [search, setSearchRaw] = useState('');
   const [page, setPage] = useState(1);
-  const [startDate, setStartDateRaw] = useState('');
-  const [endDate, setEndDateRaw] = useState('');
+  const { startDate, setStartDate: setStartDateState, endDate, setEndDate: setEndDateState, resetDateRange: resetDates } = useDateRangeFilters();
 
   const debouncedSearch = useDebouncedValue(search, DEBOUNCE_SEARCH_DELAY);
 
@@ -38,18 +39,13 @@ export function useCustomersFilter(): UseCustomersFilterResult {
   };
 
   const setStartDate = (value: string) => {
-    setStartDateRaw(value);
+    setStartDateState(value);
     setPage(1);
   };
 
   const setEndDate = (value: string) => {
-    setEndDateRaw(value);
+    setEndDateState(value);
     setPage(1);
-  };
-
-  const resetDates = () => {
-    setStartDateRaw('');
-    setEndDateRaw('');
   };
 
   const exportFilters: ExportFilter<Customer>[] = useMemo(

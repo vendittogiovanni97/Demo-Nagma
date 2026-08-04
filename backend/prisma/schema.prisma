@@ -234,6 +234,19 @@ model SpesaLibera {
   @@map("spese_libere")
 }
 
+model EntrataLibera {
+  id        Int      @id @default(autoincrement())
+  name      String
+  amount    Decimal  @db.Decimal(10, 2)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("entrate_libere")
+}
+
 model WhatsAppTemplate {
   id        Int                  @id @default(autoincrement())
   name      String

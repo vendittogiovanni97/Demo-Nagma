@@ -6,53 +6,53 @@ import { useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import InputBase from '@mui/material/InputBase';
 import { alpha, useTheme } from '@mui/material/styles';
-import { spesaLiberaApi } from '../api/spesa-libera.api';
 import { useToast } from '@/common/hooks/useToast';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
-interface SpesaFormProps {
-  monthStr: string;
-  onSuccess?: () => void;
+
+export interface InlineAddFormProps {
+  namePlaceholder: string;
+  amountPlaceholder?: string;
+  submitLabel?: string;
+  onAdd: (data: { name: string; amount: number }) => Promise<void>;
+  successMessage?: string;
 }
 
-const formContainerSx = {
-  display: 'flex',
-  flexDirection: { xs: 'column', sm: 'row' },
-  gap: 1.5,
-  width: '100%',
-  alignItems: 'center',
-};
-
-export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
+export default function InlineAddForm({
+  namePlaceholder,
+  amountPlaceholder = 'Importo €',
+  submitLabel = 'Aggiungi',
+  onAdd,
+  successMessage = 'Aggiunto con successo',
+}: InlineAddFormProps) {
   const theme = useTheme();
   const toast = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
+  const [amount, setAmount] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const handlePriceChange = (raw: string) => {
+  const handleAmountChange = (raw: string) => {
     const cleaned = raw.replace(/\./g, ',');
     if (cleaned === '' || /^\d*(,\d{0,2})?$/.test(cleaned)) {
-      setPrice(cleaned);
+      setAmount(cleaned);
     }
   };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !price) return;
-    const parsed = parseFloat(price.replace(',', '.'));
+    if (!name.trim() || !amount) return;
+    const parsed = parseFloat(amount.replace(',', '.'));
     if (isNaN(parsed) || parsed < 0) {
-      toast.error('Prezzo non valido');
+      toast.error('Importo non valido');
       return;
     }
     setIsAdding(true);
     try {
-      await spesaLiberaApi.create({ name: name.trim(), price: parsed });
-      onSuccess?.();
+      await onAdd({ name: name.trim(), amount: parsed });
       setName('');
-      setPrice('');
+      setAmount('');
       nameRef.current?.focus();
-      toast.success('Spesa aggiunta');
+      toast.success(successMessage);
     } catch (e) {
       toast.error(extractErrorMessage(e, 'Errore nel salvataggio'));
     } finally {
@@ -88,12 +88,18 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
     <Box
       component="form"
       onSubmit={handleAdd}
-      sx={formContainerSx}
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 1.5,
+        width: '100%',
+        alignItems: 'center',
+      }}
     >
       <InputBase
         inputRef={nameRef}
         type="text"
-        placeholder="Nome spesa (es. Caffè, Affitto...)"
+        placeholder={namePlaceholder}
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
@@ -101,9 +107,9 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
       />
       <InputBase
         type="text"
-        placeholder="Prezzo €"
-        value={price}
-        onChange={(e) => handlePriceChange(e.target.value)}
+        placeholder={amountPlaceholder}
+        value={amount}
+        onChange={(e) => handleAmountChange(e.target.value)}
         inputProps={{ inputMode: 'decimal' }}
         required
         sx={{ width: { xs: '100%', sm: 140 }, ...inputSx }}
@@ -123,7 +129,7 @@ export default function SpesaForm({ monthStr, onSuccess }: SpesaFormProps) {
           fontWeight: 600,
         }}
       >
-        Aggiungi
+        {submitLabel}
       </SaveButton>
     </Box>
   );

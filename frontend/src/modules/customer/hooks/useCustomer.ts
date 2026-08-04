@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+"use client";
+
+import useSWR from 'swr';
 import { customerApi } from '../api/customer.api';
 import { customerMapper } from '../api/customer.mapper';
 import type { CustomerModel, CustomerSummaryModel } from '../model/customer.model';
@@ -14,102 +16,62 @@ interface UseCustomersParams {
 }
 
 export function useCustomers(params: UseCustomersParams = {}) {
-  const { enabled = true, ...apiParams } = params;
-  
-  const [data, setData] = useState<PaginatedResponse<CustomerModel> | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
+  const { enabled = true, search, page, limit, startDate, endDate } = params;
+  const key = enabled ? ['/api/customers', search, page, limit, startDate, endDate] : null;
 
-  const fetchCustomers = useCallback(async () => {
-    if (!enabled) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await customerApi.getAll(apiParams);
-      setData({
+  const { data, isLoading, error, mutate } = useSWR<PaginatedResponse<CustomerModel>>(
+    key,
+    async () => {
+      const response = await customerApi.getAll({ search, page, limit, startDate, endDate });
+      return {
         ...response,
         data: response.data.map(customerMapper.toModel),
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An error occurred'));
-    } finally {
-      setIsLoading(false);
+      };
     }
-  }, [enabled, JSON.stringify(apiParams)]); // Assuming params are simple primitives
-
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+  );
 
   return {
     data,
     isLoading,
     error,
-    mutate: fetchCustomers
+    mutate,
   };
 }
 
 export function useCustomer(id?: number) {
-  const [data, setData] = useState<CustomerModel | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
+  const key = id ? ['/api/customers', id] : null;
 
-  const fetchCustomer = useCallback(async () => {
-    if (!id) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await customerApi.getById(id);
-      setData(customerMapper.toModel(response));
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An error occurred'));
-    } finally {
-      setIsLoading(false);
+  const { data, isLoading, error, mutate } = useSWR<CustomerModel>(
+    key,
+    async () => {
+      const response = await customerApi.getById(id!);
+      return customerMapper.toModel(response);
     }
-  }, [id]);
-
-  useEffect(() => {
-    fetchCustomer();
-  }, [fetchCustomer]);
+  );
 
   return {
     data,
     isLoading,
     error,
-    mutate: fetchCustomer
+    mutate,
   };
 }
 
 export function useCustomerSummary(id?: number) {
-  const [data, setData] = useState<CustomerSummaryModel | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
+  const key = id ? ['/api/customers/summary', id] : null;
 
-  const fetchSummary = useCallback(async () => {
-    if (!id) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await customerApi.getSummary(id);
-      setData(customerMapper.toSummaryModel(response));
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('An error occurred'));
-    } finally {
-      setIsLoading(false);
+  const { data, isLoading, error, mutate } = useSWR<CustomerSummaryModel>(
+    key,
+    async () => {
+      const response = await customerApi.getSummary(id!);
+      return customerMapper.toSummaryModel(response);
     }
-  }, [id]);
-
-  useEffect(() => {
-    fetchSummary();
-  }, [fetchSummary]);
+  );
 
   return {
     data,
     isLoading,
     error,
-    mutate: fetchSummary
+    mutate,
   };
 }

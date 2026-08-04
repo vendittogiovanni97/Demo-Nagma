@@ -114,7 +114,6 @@ function BookingDataTable({
         keyExtractor={(b) => b.id}
         getRowStyle={getRowStyle}
         hideToolbar
-        hideState={true}
         renderCard={(booking: Booking) => (
           <BookingCard
             booking={booking}

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from 'react';
 import Icon, { Hash, User } from '@/common/components/ui/Icon';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, alpha } from '@mui/material';
 
-import SmartModal from '@/common/components/common/SmartModal';
-import { useFormModal } from '@/common/hooks/useFormModal';
+import FormModal from '@/common/components/common/FormModal';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 
@@ -32,33 +31,33 @@ interface SaleModalProps {
   onSubmit: (artistId: number, quantity: number) => Promise<void>;
 }
 
+interface SaleFormData {
+  artistId: number;
+  quantity: number;
+}
+
 export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmit }: SaleModalProps) {
   const theme = useTheme();
-  const [selectedArtistId, setSelectedArtistId] = useState(0);
-  const [quantity, setQuantity] = useState(1);
 
-  const handleClose = () => {
-    onClose();
-    setSelectedArtistId(0);
-    setQuantity(1);
-  };
-
-  const { isLoading, handleSubmit } = useFormModal({
-    initial: {},
-    onSubmit: async () => {
-      await onSubmit(selectedArtistId, quantity);
-      setSelectedArtistId(0);
-      setQuantity(1);
+  const form = useEntityForm<null, SaleFormData>({
+    entity: null,
+    open: isOpen,
+    initial: () => ({
+      artistId: 0,
+      quantity: 1,
+    }),
+    buildPayload: (data) => data,
+    persist: async (payload) => {
+      if (!payload.artistId) {
+        throw new Error('Seleziona un artista');
+      }
+      await onSubmit(payload.artistId, payload.quantity);
     },
-    onClose,
     successMessage: 'Vendita registrata',
-    errorMessage: 'Errore durante la registrazione della vendita',
+    onClose,
   });
 
-  const handleSave = async () => {
-    if (!selectedArtistId) return;
-    await handleSubmit();
-  };
+  const { formData, setField, isLoading } = form;
 
   const staffOptions = (teamMembers || []).map(m => ({
     value: m.id,
@@ -66,13 +65,13 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
   }));
 
   return (
-    <SmartModal
+    <FormModal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title="Registra Vendita Crema"
-      onSave={handleSave}
-      isSaving={isLoading}
-      saveLabel="Registra Vendita"
+      onSubmit={() => form.handleSubmit()}
+      isSubmitting={isLoading}
+      submitLabel="Registra Vendita"
       maxWidth="sm"
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -84,8 +83,8 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
             gap: 2,
             p: 2,
             borderRadius: 2,
-            border: `1px solid ${theme.palette.primary.main}20`,
-            backgroundColor: `${theme.palette.primary.main}08`,
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+            backgroundColor: alpha(theme.palette.primary.main, 0.04),
           }}
         >
           <Box
@@ -96,7 +95,7 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
               width: 40,
               height: 40,
               borderRadius: 1.5,
-              backgroundColor: `${theme.palette.primary.main}15`,
+              backgroundColor: alpha(theme.palette.primary.main, 0.08),
             }}
           >
             <Icon name="package" size={20} color={theme.palette.primary.main} />
@@ -113,8 +112,8 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
 
         <FormSelect
           label="Artista"
-          value={selectedArtistId}
-          onChange={(v) => setSelectedArtistId(Number(v))}
+          value={formData.artistId}
+          onChange={(v) => setField('artistId', Number(v))}
           options={staffOptions}
           placeholder="Seleziona artista..."
           icon={User}
@@ -124,12 +123,12 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
         <FormInput
           label="Quantità"
           type="number"
-          value={quantity}
-          onChange={(v) => setQuantity(Math.max(1, Number(v)))}
+          value={formData.quantity}
+          onChange={(v) => setField('quantity', Math.max(1, Number(v)))}
           icon={Hash}
           required
         />
       </Box>
-    </SmartModal>
+    </FormModal>
   );
 }

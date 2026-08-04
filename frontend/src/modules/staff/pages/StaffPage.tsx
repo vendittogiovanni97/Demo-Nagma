@@ -3,7 +3,6 @@
 import PageHeader from '@/common/components/common/PageHeader';
 import StatePanel from '@/common/components/feedback/StatePanel';
 import WeekNavigator from '@/common/components/layout/WeekNavigator';
-import ExportModal from '@/common/components/modals/ExportModal';
 import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import { useAuth } from '@/common/context/AuthContext';
 import { useStaffMembers, useStaffShifts } from '../hooks/useStaff';
@@ -128,37 +127,35 @@ export default function StaffPage() {
             variant="header"
           />
         }
-        actions={
-          <ExportModal
-            filenameBase="turni"
-            title="Turni Settimanali"
-            rows={shifts || []}
-            columns={[
-              { label: 'Collaboratore', value: (shift: Shift) => shift.staff?.name || '' },
-              { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
-              {
-                label: 'Giorno',
-                value: (shift: Shift) => {
-                  const DAYS = [
-                    'Lunedì',
-                    'Martedì',
-                    'Mercoledì',
-                    'Giovedì',
-                    'Venerdì',
-                    'Sabato',
-                    'Domenica',
-                  ];
-                  return DAYS[shift.dayOfWeek] || '';
-                },
+        exportConfig={{
+          filenameBase: "turni",
+          title: "Turni Settimanali",
+          rows: shifts || [],
+          columns: [
+            { label: 'Collaboratore', value: (shift: Shift) => shift.staff?.name || '' },
+            { label: 'Settimana', value: (shift: Shift) => shift.weekStart },
+            {
+              label: 'Giorno',
+              value: (shift: Shift) => {
+                const DAYS = [
+                  'Lunedì',
+                  'Martedì',
+                  'Mercoledì',
+                  'Giovedì',
+                  'Venerdì',
+                  'Sabato',
+                  'Domenica',
+                ];
+                return DAYS[shift.dayOfWeek] || '';
               },
-              {
-                label: 'Orario',
-                value: (shift: Shift) =>
-                  shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`,
-              },
-            ]}
-          />
-        }
+            },
+            {
+              label: 'Orario',
+              value: (shift: Shift) =>
+                shift.isOff ? 'Giorno libero' : `${shift.startTime} - ${shift.endTime}`,
+            },
+          ],
+        }}
         showSecondaryButton
         secondaryButtonLabel="Turno"
         secondaryButtonIcon={<Icon name="plus" size={14} />}

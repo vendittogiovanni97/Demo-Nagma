@@ -32,7 +32,7 @@ interface SelectConfig extends FilterConfig {
   options: { label: string; value: string }[];
 }
 
-interface SmartFiltersProps {
+export interface SmartFiltersProps {
   search?: FilterConfig;
   dateRange?: {
     start: FilterConfig;

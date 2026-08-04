@@ -6,6 +6,24 @@ import { useBreakpointContext } from '@/common/context/BreakpointContext';
 import type { ReactNode } from 'react';
 import PermissionGate from '@/common/components/auth/PermissionGate';
 import Button from '@/common/components/ui/Button';
+import ExportModal, { type ExportColumn, type ExportFilter, type ExportFilters } from '@/common/components/modals/ExportModal';
+import SmartFilters, { type SmartFiltersProps } from '@/common/components/common/SmartFilters';
+
+export type { ExportColumn, ExportFilter, ExportFilters, SmartFiltersProps };
+
+export interface HeaderExportConfig<T = any> {
+  filenameBase: string;
+  title: string;
+  rows: T[];
+  columns: ExportColumn<T>[];
+  filters?: ExportFilter<T>[];
+  filtersLabel?: string;
+  resolveRows?: () => Promise<T[]>;
+  useBackendFilters?: boolean;
+  getFilterParams?: () => ExportFilters;
+  getPdfSummary?: (rows: T[]) => { label: string; value: string };
+  getPdfRowVariant?: (row: T) => 'success' | undefined;
+}
 
 interface PageHeaderProps {
   title: string;
@@ -23,10 +41,14 @@ interface PageHeaderProps {
   onSecondaryButtonClick?: () => void;
   secondaryButtonRequiresAdmin?: boolean;
   showSecondaryButton?: boolean;
+  /** Direct SmartFilters configuration to automatically render SmartFilters */
+  smartFilters?: SmartFiltersProps;
   /** Custom filter bar (usually SmartFilters) */
   filters?: ReactNode;
   /** Let the filter area consume the remaining horizontal space. */
   expandFilters?: boolean;
+  /** Direct export configuration to automatically render ExportModal */
+  exportConfig?: HeaderExportConfig;
   /** Other actions like Export, etc. */
   actions?: ReactNode;
   /** Legacy support or extra content */
@@ -47,13 +69,18 @@ export default function PageHeader({
   onSecondaryButtonClick,
   secondaryButtonRequiresAdmin = false,
   showSecondaryButton = false,
+  smartFilters,
   filters,
   expandFilters = false,
+  exportConfig,
   actions,
   children,
 }: PageHeaderProps) {
   const { isXLarge, isLarge } = useBreakpointContext();
   const muiTheme = useMuiTheme();
+
+  const exportBtn = exportConfig ? <ExportModal {...exportConfig} /> : null;
+  const filterContent = filters ?? (smartFilters ? <SmartFilters {...smartFilters} /> : null);
 
   const primaryBtn = showButton && buttonLabel ? (
     <Button
@@ -144,13 +171,14 @@ export default function PageHeader({
           minWidth: 0,
         }}
       >
-        {filters && (
-          <Box sx={{ minWidth: 0, flex: expandFilters ? 1 : '0 1 auto' }}>
-            {filters}
+        {filterContent && (
+          <Box sx={{ minWidth: 0, flex: (expandFilters || smartFilters) ? 1 : '0 1 auto' }}>
+            {filterContent}
           </Box>
         )}
         
         <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', flexShrink: 0 }}>
+          {exportBtn}
           {actions}
           {children}
           

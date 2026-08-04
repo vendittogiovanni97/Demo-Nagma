@@ -45,6 +45,7 @@ import {
 export { buildAllColumns, columnPresets, DEFAULT_BASE_COLUMNS, DEFAULT_COL_DEF, mapToAgGridColDefs };
 export type { BaseColumnKey, ColumnAlign, ColumnDefinition };
 export { TableActions };
+export { default as TableFooterTotal } from './TableFooterTotal';
 export type {
   DataTableProps,
   DataTableResponse,
@@ -66,7 +67,7 @@ export function DataTable<E>(props: DataTableProps<E>) {
     deleteConfirmTitle,
     deleteConfirmMessage,
     renderCard,
-    hideState = false,
+    hideState = true,
     isLoading,
     pageSize,
     getRowStyle,
@@ -326,3 +327,4 @@ export function DataTable<E>(props: DataTableProps<E>) {
 }
 
 export default DataTable;
+export { createDateColumn, createPriceColumn, createStatusColumn } from './TableColumns';

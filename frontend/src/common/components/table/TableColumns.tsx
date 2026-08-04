@@ -1,8 +1,9 @@
-'use client';
-
 import { MonoText } from '@/common/components/ui/MonoText';
 import { StatusChip } from '@/common/components/ui/StatusChip';
-import { formatDate } from '@/common/shared/utils/format';
+import { formatDate, formatPrice } from '@/common/shared/utils/format';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import Typography from '@mui/material/Typography';
 import type { ColDef, ICellRendererParams, ValueGetterParams } from 'ag-grid-community';
 import React from 'react';
 
@@ -210,4 +211,75 @@ export function mapToAgGridColDefs<E>({
   }
 
   return defs;
+}
+
+// ─── 4. STRONGLY-TYPED COLUMN BUILDERS ─────────────────────────────────────────
+
+export function createDateColumn<E>(
+  key: keyof E | string,
+  label: string = 'Data',
+  options?: Partial<ColumnDefinition<E>>
+): ColumnDefinition<E> {
+  return {
+    key,
+    label,
+    minWidth: 140,
+    flex: 1,
+    align: 'center',
+    render: (row: E) => {
+      const val = (row as any)[key];
+      if (!val) return '—';
+      return format(new Date(val), 'd MMMM yyyy', { locale: it });
+    },
+    ...options,
+  };
+}
+
+export function createPriceColumn<E>(
+  key: keyof E | string,
+  label: string = 'Importo',
+  colorTone: 'primary' | 'success' | 'error' = 'primary',
+  options?: Partial<ColumnDefinition<E>>
+): ColumnDefinition<E> {
+  return {
+    key,
+    label,
+    align: 'center',
+    minWidth: 110,
+    flex: 0.8,
+    render: (row: E) => {
+      const amount = Number((row as any)[key] ?? 0);
+      return (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            color: (theme) =>
+              colorTone === 'primary'
+                ? theme.palette.primary.main
+                : colorTone === 'success'
+                ? theme.palette.success.main
+                : theme.palette.error.main,
+          }}
+        >
+          {formatPrice(amount)}
+        </Typography>
+      );
+    },
+    ...options,
+  };
+}
+
+export function createStatusColumn<E>(
+  key: keyof E | string = 'status',
+  label: string = 'Stato',
+  options?: Partial<ColumnDefinition<E>>
+): ColumnDefinition<E> {
+  return {
+    key,
+    label,
+    minWidth: 110,
+    align: 'center',
+    render: (row: E) => <StatusChip status={(row as any)[key]} />,
+    ...options,
+  };
 }

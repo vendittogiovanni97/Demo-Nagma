@@ -6,8 +6,7 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import PageHeader from '@/common/components/common/PageHeader';
 import SmartFilters from '@/common/components/common/SmartFilters';
 import FormSelect from '@/common/components/forms/FormSelect';
-import ExportModal from '@/common/components/modals/ExportModal';
-import DataTable from '@/common/components/table/DataTable';
+import DataTable, { type FetchParams } from '@/common/components/table/DataTable';
 import { useDateRangeFilters } from '@/common/hooks/useDateRangeFilters';
 import { useDebouncedValue } from '@/common/hooks/useDebouncedValue';
 import { DEBOUNCE_SEARCH_DELAY } from '@/common/config/env';
@@ -31,8 +30,7 @@ export default function BookingHistoryPage() {
   const { data: artists } = useStaffForSelect();
   const columns = useBookingHistoryColumns();
 
-  const [rows, setRows] = useState<BookingHistoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [rowsForExport, setRowsForExport] = useState<BookingHistoryEntry[]>([]);
 
   const artistOptions = useMemo(() => [
     { label: 'Tutti gli artisti', value: '' },
@@ -50,29 +48,24 @@ export default function BookingHistoryPage() {
     { label: 'Cancellato', value: 'CANCELLATO' },
   ], []);
 
-  const loadHistory = useCallback(async () => {
-    setIsLoading(true);
-    try {
+  const fetchHistory = useCallback(
+    async (params: FetchParams) => {
       const res = await bookingHistoryService.getAll({
-        page: 1,
-        limit: 500,
+        page: params.page + 1,
+        limit: params.limit,
         search: debouncedSearch || undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         action: action || undefined,
         artistId: artistId ? Number(artistId) : undefined,
       });
-      setRows(res.data);
-    } catch {
-      setRows([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [debouncedSearch, startDate, endDate, action, artistId]);
+      setRowsForExport(res.data);
+      return { data: res.data, total: res.total };
+    },
+    [debouncedSearch, startDate, endDate, action, artistId]
+  );
 
-  useEffect(() => {
-    loadHistory();
-  }, [loadHistory]);
+  const refreshKey = `${debouncedSearch}-${startDate}-${endDate}-${action}-${artistId}`;
 
   const exportColumns = useMemo(() => [
     { label: 'Registrato il', value: (e: BookingHistoryEntry) => formatDate(e.changedAt, 'dd/MM/yyyy HH:mm') },
@@ -94,17 +87,13 @@ export default function BookingHistoryPage() {
       <PageHeader
         title="Storico Prenotazioni"
         subtitle={user ? `Accesso come ${user.name}` : undefined}
-        actions={
-          <ExportModal
-            filenameBase="storico-prenotazioni"
-            title="Storico Prenotazioni"
-            rows={rows}
-            columns={exportColumns}
-            getPdfRowVariant={(entry) =>
-              entry.action === 'COMPLETATO' ? 'success' : undefined
-            }
-          />
-        }
+        exportConfig={{
+          filenameBase: "storico-prenotazioni",
+          title: "Storico Prenotazioni",
+          rows: rowsForExport,
+          columns: exportColumns,
+          getPdfRowVariant: (entry) => (entry.action === 'COMPLETATO' ? 'success' : undefined),
+        }}
         filters={
           <SmartFilters
             search={{
@@ -155,10 +144,9 @@ export default function BookingHistoryPage() {
       <Box sx={{ flex: 1 }}>
         <DataTable<BookingHistoryEntry>
           columns={columns}
-          data={rows}
-          isLoading={isLoading}
+          fetchData={fetchHistory}
+          refreshKey={refreshKey}
           keyExtractor={(entry) => entry.id}
-          hideState
           emptyTitle="Nessuna modifica"
           emptyDescription="Nessuna modifica trovata per i filtri selezionati."
           renderCard={(entry) => <BookingHistoryCard entry={entry} />}

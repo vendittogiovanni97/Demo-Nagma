@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import DashboardWidgetCard from './DashboardWidgetCard';
 import type { Booking } from '@/modules/booking/model/booking.types';
 import {
   Box,
@@ -92,107 +93,65 @@ export default function TodayAgendaWidget({
 
   const isLight = theme.palette.mode === 'light';
 
-  return (
-    <Card
-      className={className}
-      variant="glass"
-      size="md"
-      sx={{
-        bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.5),
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
-        boxShadow: isLight
-          ? `0 2px 12px ${alpha(theme.palette.common.black, 0.08)}`
-          : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
-        transition: theme.transitions.create(['all'], { duration: 300 }),
-        '&:hover': {
-          borderColor: alpha(theme.palette.primary.main, 0.3),
-          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}`,
-        },
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1.5, borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
-        <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
-          <Box
-            sx={{
-              p: 1,
-              borderRadius: '10px',
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              color: 'primary.main',
-              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Icon name="calendar" size={18} />
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', letterSpacing: '-0.3px' }}>
-              Appuntamenti Oggi
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize', fontWeight: 500 }}>
-              {format(new Date(), 'EEEE dd MMMM', { locale: it })}
-            </Typography>
-          </Box>
-        </Stack>
-        <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mt: 0.5, mr: 0.5 }}>
-          <Box
-            sx={{
-              px: 2.5,
-              py: 1,
-              borderRadius: '12px',
-              backgroundColor: alpha(theme.palette.primary.main, isLight ? 0.15 : 0.25),
-              border: `2px solid ${alpha(theme.palette.primary.main, 0.45)}`,
-              boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.15)}`,
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}
-          >
-            <Typography
-              sx={{
-                color: theme.palette.primary.main,
-                fontWeight: 900,
-                fontSize: '1.125rem',
-                lineHeight: 1,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {operationalTodayBookings.length} {operationalTodayBookings.length === 1 ? 'prenotazione' : 'prenotazioni'}
-            </Typography>
-          </Box>
-          <Tooltip title="Vedi tutte le prenotazioni">
-            <Button
-              variant="icon"
-              aria-label="Vedi tutte le prenotazioni"
-              icon={<Icon name="externalLink" size={15} />}
-              onClick={() => {
-                const today = format(new Date(), 'yyyy-MM-dd');
-                router.push(`/prenotazioni?startDate=${today}&endDate=${today}`);
-              }}
-              sx={{
-                minWidth: 44,
-                minHeight: 44,
-                color: 'primary.main',
-                bgcolor: alpha(theme.palette.primary.main, 0.05),
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                '&:hover': {
-                  bgcolor: alpha(theme.palette.primary.main, 0.15),
-                  color: isLight ? 'primary.dark' : 'common.white',
-                  borderColor: 'primary.main'
-                },
-              }}
-            />
-          </Tooltip>
-        </Stack>
+  const headerActions = (
+    <Stack direction="row" useFlexGap sx={{ gap: 1, alignItems: 'center', mt: 0.5, mr: 0.5 }}>
+      <Box
+        sx={{
+          px: 2.5,
+          py: 1,
+          borderRadius: '12px',
+          backgroundColor: alpha(theme.palette.primary.main, isLight ? 0.15 : 0.25),
+          border: `2px solid ${alpha(theme.palette.primary.main, 0.45)}`,
+          boxShadow: `0 2px 10px ${alpha(theme.palette.primary.main, 0.15)}`,
+          display: 'inline-flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: 900,
+            fontSize: '1.125rem',
+            lineHeight: 1,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {operationalTodayBookings.length} {operationalTodayBookings.length === 1 ? 'prenotazione' : 'prenotazioni'}
+        </Typography>
       </Box>
+      <Tooltip title="Vedi tutte le prenotazioni">
+        <Button
+          variant="icon"
+          aria-label="Vedi tutte le prenotazioni"
+          icon={<Icon name="externalLink" size={15} />}
+          onClick={() => {
+            const today = format(new Date(), 'yyyy-MM-dd');
+            router.push(`/prenotazioni?startDate=${today}&endDate=${today}`);
+          }}
+          sx={{
+            minWidth: 44,
+            minHeight: 44,
+            borderRadius: '12px',
+            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+            color: theme.palette.primary.main,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.18),
+            },
+          }}
+        />
+      </Tooltip>
+    </Stack>
+  );
 
-      {/* Content */}
+  return (
+    <DashboardWidgetCard
+      title="Appuntamenti Oggi"
+      subtitle={format(new Date(), 'EEEE dd MMMM', { locale: it })}
+      icon="calendar"
+      headerActions={headerActions}
+      isLoading={isLoading}
+      className={className}
+    >
       <Box
         sx={{
           flex: 1,
@@ -451,6 +410,6 @@ export default function TodayAgendaWidget({
         onSuccess={handleModalSuccess}
         booking={selectedBooking}
       />
-    </Card>
+    </DashboardWidgetCard>
   );
 }

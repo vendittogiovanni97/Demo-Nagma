@@ -37,13 +37,7 @@ interface WhatsAppFormData {
   variables: Record<string, string>;
 }
 
-const QUICK_VARIABLES = [
-  { label: '👤 Nome Cliente', value: '{{nome}}', color: '#00e5ff' },
-  { label: '📅 Data Appt.', value: '{{data}}', color: '#ff007f' },
-  { label: '⏰ Ora Appt.', value: '{{ora}}', color: '#7000ff' },
-  { label: '🎨 Artista', value: '{{artista}}', color: '#ffaa00' },
-  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}', color: '#00ff66' },
-];
+import { WHATSAPP_QUICK_VARIABLES } from '../../model/whatsapp.constants';
 
 export default function WhatsAppSendModal({
   isOpen,

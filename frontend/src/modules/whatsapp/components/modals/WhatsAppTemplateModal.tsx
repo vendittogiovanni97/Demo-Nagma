@@ -14,20 +14,14 @@ import type { CreateWhatsAppTemplateData, WhatsAppTemplate } from '../../model/w
 import SwitchInput from '@/common/components/forms/SwitchInput';
 import { validateData } from '@/common/shared/utils/validation';
 
+import { QuickVariablesBar } from '../QuickVariablesBar';
+
 interface WhatsAppTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   template?: WhatsAppTemplate | null;
 }
-
-const QUICK_VARIABLES = [
-  { label: '👤 Nome Cliente', value: '{{nome}}' },
-  { label: '📅 Data Appt.', value: '{{data}}' },
-  { label: '⏰ Ora Appt.', value: '{{ora}}' },
-  { label: '🎨 Artista', value: '{{artista}}' },
-  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}' },
-];
 
 interface TemplateFormData {
   name: string;
@@ -169,51 +163,7 @@ export default function WhatsAppTemplateModal({
               py: 2,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.75rem',
-                color: 'text.secondary',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                mb: 1.5,
-              }}
-            >
-              🪄 Variabili Rapide (Fai click per inserire nel testo)
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {QUICK_VARIABLES.map((v) => (
-                <Tooltip key={v.value} title={`Inserisci ${v.value}`} arrow>
-                  <Button
-                    onClick={() => insertVariable(v.value)}
-                    variant="ghost"
-                    size="sm"
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: '8px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      backgroundColor: 'background.paper',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      '&:hover': {
-                        borderColor: 'primary.main',
-                        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                        transform: 'translateY(-2px)',
-                        boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
-                      },
-                      '&:active': {
-                        transform: 'translateY(0)',
-                      }
-                    }}
-                  >
-                    {v.label}
-                  </Button>
-                </Tooltip>
-              ))}
-            </Box>
+            <QuickVariablesBar onInsertVariable={(val) => insertVariable(val)} />
             <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 1.5, opacity: 0.8 }}>
               Le variabili racchiuse tra doppi baffi <code>{'{{...}}'}</code> verranno compilate in automatico da Nagma prendendo i dati effettivi dell'appuntamento o del cliente al momento dell'invio.
             </Typography>

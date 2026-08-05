@@ -88,11 +88,11 @@ Il progetto parte da fondamenta solide. Punti già presidiati:
 
 **Obiettivo:** ridurre il rischio dello stack bleeding-edge, ottimizzare il caricamento frontend e chiudere il cerchio sull'osservabilità.
 
-- [ ] Definire una policy di governance delle versioni: pinnare le major, calendario di upgrade controllati, valutazione rischi per dipendenza.
-- [ ] Introdurre code-splitting / lazy-load sui componenti pesanti (AG Grid, FullCalendar, Recharts) + analisi bundle (`next build` + bundle analyzer).
-- [ ] Integrare error tracking in produzione (es. Sentry) e collegare `MetricsService` a una dashboard con alerting sulle richieste lente.
-- [ ] Verificare i vincoli di unicità a livello DB e testare periodicamente il flusso di backup/restore.
-- [ ] Aggiungere una soglia di regressione al load test k6 come check periodico.
+- [x] Definire una policy di governance delle versioni: pinnare le major, calendario di upgrade controllati, valutazione rischi per dipendenza.
+- [~] Introdurre code-splitting / lazy-load sui componenti pesanti (AG Grid, FullCalendar, Recharts) + analisi bundle (`next build` + bundle analyzer).
+- [~] Integrare error tracking in produzione (es. Sentry) e collegare `MetricsService` a una dashboard con alerting sulle richieste lente.
+- [~] Verificare i vincoli di unicità a livello DB e testare periodicamente il flusso di backup/restore.
+- [x] Aggiungere una soglia di regressione al load test k6 come check periodico.
 
 **Definizione di "fatto":**
 - Documento di policy versioni approvato; major pinnate.

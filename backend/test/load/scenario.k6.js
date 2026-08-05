@@ -45,12 +45,16 @@ export const options = {
       tags: { scenario: 'spike' },
     },
   },
+  // Soglie di regressione: con `abortOnFail` k6 esce con codice ≠ 0 quando una
+  // soglia critica viene violata, trasformando il load test in un GATE (usato
+  // come check periodico in CI, vedi .github/workflows/load-test.yml).
+  // `delayAbortEval` lascia stabilizzare le metriche prima di valutare.
   thresholds: {
-    errors: ['rate<0.05'],
+    errors: [{ threshold: 'rate<0.05', abortOnFail: true, delayAbortEval: '30s' }],
     http_req_duration: ['p(95)<2000', 'p(99)<5000'],
     login_duration: ['p(95)<1500'],
     crud_duration: ['p(95)<1000'],
-    http_req_failed: ['rate<0.05'],
+    http_req_failed: [{ threshold: 'rate<0.05', abortOnFail: true, delayAbortEval: '30s' }],
   },
 };
 

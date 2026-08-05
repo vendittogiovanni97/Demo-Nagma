@@ -11,8 +11,9 @@ import { Box } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 import { customerApi } from '../api/customer.api';
 import CustomerCard from '../components/CustomerCard';
-import CustomerDetailModal from '../components/modals/CustomerDetailModal';
+import CustomerDetail from '../components/CustomerDetail';
 import CustomerModal from '../components/modals/CustomerModal';
+import SmartModal from '@/common/components/common/SmartModal';
 import { useCustomerColumns } from '../hooks/useCustomerColumns';
 import { useCustomersFilter } from '../hooks/useCustomersFilter';
 import type { CustomerModel as Customer } from '../model/customer.model';
@@ -130,7 +131,6 @@ export default function CustomerListPage() {
           hideToolbar
           onDelete={isAdmin ? handleDelete : undefined}
           rowActions={getRowActions}
-          deleteConfirmMessage="Sei sicuro di voler eliminare questo cliente?"
           emptyTitle="Nessun cliente presente"
           emptyDescription="Clicca 'Nuovo Cliente' per aggiungere il primo contatto."
           renderCard={(customer) => (
@@ -143,14 +143,27 @@ export default function CustomerListPage() {
         />
       </Box>
 
-      <CustomerDetailModal
-        id={viewId}
+      <SmartModal
         isOpen={viewId !== null}
         onClose={() => {
           setViewId(null);
           setRefreshTrigger((t) => t + 1);
         }}
-      />
+        title="Scheda Cliente"
+        maxWidth="lg"
+        showFooter={false}
+      >
+        {viewId != null && (
+          <CustomerDetail
+            id={viewId}
+            embedded
+            onClose={() => {
+              setViewId(null);
+              setRefreshTrigger((t) => t + 1);
+            }}
+          />
+        )}
+      </SmartModal>
 
       <CustomerModal
         isOpen={isCustomerModalOpen}

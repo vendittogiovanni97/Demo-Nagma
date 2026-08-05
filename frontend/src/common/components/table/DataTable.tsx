@@ -246,7 +246,7 @@ export function DataTable<E>(props: DataTableProps<E>) {
     <Box
       className="table-container"
       sx={{
-        p: 3,
+        p: hideToolbar ? 0 : 3,
         display: 'flex',
         flexDirection: 'column',
         height: 'calc(100vh - 110px)',

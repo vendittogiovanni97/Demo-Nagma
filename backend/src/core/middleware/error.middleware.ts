@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { AppError } from '../shared/errors/AppError';
 import { logger, getRequestContext, isDebugHttpEnabled, sanitizeForLog } from '../shared/utils/logger';
+import { captureException } from '../observability/errorTracking';
 
 export function globalErrorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   // 1. AppError (Expected/application errors)
@@ -113,6 +114,14 @@ export function globalErrorHandler(err: unknown, req: Request, res: Response, _n
       ...(isDebugHttpEnabled() ? { requestId: req.requestId, body: sanitizeForLog(req.body) } : {}),
     },
   );
+
+  // Error tracking esterno (Sentry) — no-op se non configurato.
+  captureException(err, {
+    requestId: req.requestId,
+    method: req.method,
+    path: req.originalUrl,
+    userId: req.user?.id,
+  });
 
   return res.status(500).json({
     success: false,

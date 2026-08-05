@@ -1,18 +1,15 @@
 "use client";
 
 import Box from '@mui/material/Box';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
 import DataTable, { TableFooterTotal, createDateColumn, createPriceColumn, type ColumnDefinition } from '@/common/components/table/DataTable';
-import SmartModal from '@/common/components/common/SmartModal';
-import FormInput from '@/common/components/forms/FormInput';
 import Icon from '@/common/components/ui/Icon';
-import { useMonthNavigation } from '@/common/hooks/useMonthNavigation';
+import { useModalState } from '@/common/hooks/useModalState';
 import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
-import { useToast } from '@/common/hooks/useToast';
-import { extractErrorMessage } from '@/common/shared/utils/extract-error';
+import SpesaModal from '../components/modals/SpesaModal';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
 import { useSpeseLibere } from '../hooks/useTransactions';
 import type { SpesaLibera } from '../model/spese.types';
@@ -28,12 +25,12 @@ const columns: ColumnDefinition<SpesaLibera>[] = [
 // ─── Pagina ───────────────────────────────────────────────────────────────────
 
 export default function SpesePage() {
+  const modal = useModalState();
   const filters = useSmartFiltersState({
     searchPlaceholder: 'Cerca spesa...',
     enableMonthPicker: true,
   });
   const { monthStr, monthLabel, debouncedSearch, smartFiltersProps } = filters;
-  const toast = useToast();
 
   const { data: allSpese, isLoading, mutate } = useSpeseLibere(monthStr);
 
@@ -44,50 +41,6 @@ export default function SpesePage() {
     return allMonthSpese.filter((s) => s.name.toLowerCase().includes(q));
   }, [allMonthSpese, debouncedSearch]);
   const total = spese.reduce((acc, s) => acc + s.price, 0);
-
-  // ─── Modale Aggiungi ────────────────────────────────────────────────
-  const [modalOpen, setModalOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  const resetForm = () => {
-    setName('');
-    setAmount('');
-  };
-
-  const handleOpenModal = () => {
-    resetForm();
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    resetForm();
-  };
-
-  const handleSave = async () => {
-    if (!name.trim()) {
-      toast.error('Inserisci il nome della spesa');
-      return;
-    }
-    const parsed = parseFloat(amount.replace(',', '.'));
-    if (isNaN(parsed) || parsed <= 0) {
-      toast.error('Inserisci un importo valido');
-      return;
-    }
-    setIsSaving(true);
-    try {
-      await spesaLiberaApi.create({ name: name.trim(), price: parsed });
-      await mutate();
-      toast.success('Spesa aggiunta');
-      handleCloseModal();
-    } catch (e) {
-      toast.error(extractErrorMessage(e, 'Errore nel salvataggio'));
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleDelete = async (spesa: SpesaLibera) => {
     await spesaLiberaApi.delete(spesa.id);
@@ -103,7 +56,7 @@ export default function SpesePage() {
         buttonLabel="Aggiungi"
         buttonIcon={<Icon name="plus" size={16} />}
         buttonRequiresAdmin
-        onButtonClick={handleOpenModal}
+        onButtonClick={modal.openCreate}
       />
 
       <Box sx={{ flex: 1, minHeight: 0 }}>
@@ -116,44 +69,15 @@ export default function SpesePage() {
           emptyTitle={`Nessuna spesa per ${monthLabel}`}
           emptyDescription="Registra la tua prima spesa per questo mese."
           onDelete={handleDelete}
-          deleteConfirmTitle="Elimina spesa"
-          deleteConfirmMessage="Sei sicuro di voler eliminare questa spesa libera?"
           footerContent={<TableFooterTotal total={total} label={`Totale ${monthLabel}`} color="primary" />}
         />
       </Box>
 
-      {/* Modale Aggiungi Spesa */}
-      <SmartModal
-        isOpen={modalOpen}
-        onClose={handleCloseModal}
-        title="Nuova Spesa"
-        maxWidth="xs"
-        onSave={handleSave}
-        isSaving={isSaving}
-        saveLabel="Aggiungi Spesa"
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <FormInput
-            label="Nome spesa"
-            value={name}
-            onChange={setName}
-            placeholder="es. Caffè, Affitto, Materiale..."
-            required
-          />
-          <FormInput
-            label="Importo (€)"
-            value={amount}
-            onChange={(val) => {
-              const cleaned = val.replace(/\./g, ',');
-              if (cleaned === '' || /^\d*(,\d{0,2})?$/.test(cleaned)) {
-                setAmount(cleaned);
-              }
-            }}
-            placeholder="0,00"
-            required
-          />
-        </Box>
-      </SmartModal>
+      <SpesaModal
+        isOpen={modal.isOpen}
+        onClose={modal.close}
+        onSuccess={() => void mutate()}
+      />
     </PageContainer>
   );
 }

@@ -8,6 +8,7 @@ import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
 import { container } from './core/container';
 import { ConfigService } from './modules/config/services/configService';
 import { databaseBackupScheduler } from './core/backup/databaseBackup';
+import { initErrorTracking } from './core/observability/errorTracking';
 const configService = container.get(ConfigService);
 
 const RESTART_DELAY_MS = config.restartDelayMs;
@@ -27,7 +28,7 @@ function validateEnv() {
     throw new Error('JWT_SECRET troppo corto (minimo 32 caratteri richiesti per HS256)');
   }
   if (/change-this|your-super-secret|placeholder|example/i.test(jwtSecret)) {
-    logger.warn('⚠️  ATTENZIONE: JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
+    console.warn('⚠️  ATTENZIONE: JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
   }
 
   if (!process.env.DATABASE_URL) {
@@ -145,6 +146,7 @@ async function shutdown(signal: string) {
 async function boot() {
   try {
     logger.info('Avvio backend in corso');
+    initErrorTracking();
     await startServer();
   } catch (error) {
     await scheduleRestart('errore durante l\'avvio', error);

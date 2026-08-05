@@ -4,20 +4,15 @@ import SmartModal from '@/common/components/common/SmartModal';
 import StatePanel from '@/common/components/feedback/StatePanel';
 import { useAuth } from '@/common/context/AuthContext';
 import { useEntityForm } from '@/common/hooks/useEntityForm';
-import { useToast } from '@/common/hooks/useToast';
 import { createCustomerSchema } from '@/modules/customer/model/customer.schema';
 import { customerApi as customerService } from '@/modules/customer/api/customer.api';
 import type { CreateCustomerRequest as CreateCustomerData } from '@/modules/customer/api/customer.types';
 import type { CustomerModel as Customer } from '@/modules/customer/model/customer.model';
-import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import { validateData } from '@/common/shared/utils/validation';
-import Icon, { Mail, Phone, User } from '@/common/components/ui/Icon';
-import { useEffect, useState } from 'react';
+import { Mail, Phone, User } from '@/common/components/ui/Icon';
 import { Box } from '@mui/material';
 import FormInput from '@/common/components/forms/FormInput';
 import TextareaInput from '@/common/components/forms/TextareaInput';
-
-import { configService } from '@/common/shared/services/config.service';
 
 interface Props {
   isOpen: boolean;
@@ -27,8 +22,15 @@ interface Props {
 }
 
 export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: Props) {
-  const toast = useToast();
   const { isAdmin } = useAuth();
+
+  const formatPhone = (rawPhone: string) => {
+    let clean = rawPhone.trim().replace(/\s+/g, '');
+    if (clean && !clean.startsWith('+') && !clean.startsWith('00')) {
+      clean = '+39' + clean;
+    }
+    return clean;
+  };
 
   const form = useEntityForm<Customer | null, CreateCustomerData>({
     entity: customer ?? null,
@@ -43,7 +45,14 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
             notes: entity.notes ?? '',
           }
         : { firstName: '', lastName: '', phone: '', email: '', notes: '' },
-    buildPayload: (data) => data,
+    validate: (formData) => {
+      const dataToValidate = { ...formData, phone: formatPhone(formData.phone) };
+      return validateData(createCustomerSchema, dataToValidate);
+    },
+    buildPayload: (formData) => ({
+      ...formData,
+      phone: formatPhone(formData.phone),
+    }),
     persist: async (payload, entity) => {
       if (entity) {
         await customerService.update(entity.id, payload);
@@ -56,37 +65,12 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
     onClose,
   });
 
-  const handleSave = async () => {
-    let cleanPhone = form.formData.phone.trim().replace(/\s+/g, '');
-    if (cleanPhone && !cleanPhone.startsWith('+') && !cleanPhone.startsWith('00')) {
-      try {
-        const res = await configService.getConfig();
-        const prefix = res.DEFAULT_PHONE_PREFIX || '+39';
-        cleanPhone = prefix + cleanPhone;
-      } catch {
-        cleanPhone = '+39' + cleanPhone;
-      }
-    }
-
-    const updatedData = {
-      ...form.formData,
-      phone: cleanPhone,
-    };
-
-    const validationError = validateData(createCustomerSchema, updatedData);
-    if (validationError) {
-      toast.error(extractErrorMessage(new Error(validationError), validationError));
-      return;
-    }
-    await form.handleSubmit(updatedData);
-  };
-
   return (
     <SmartModal
       isOpen={isOpen}
       onClose={onClose}
       title={customer ? 'Modifica Cliente' : 'Nuovo Cliente'}
-      onSave={handleSave}
+      onSave={form.handleSubmit}
       isSaving={form.isLoading}
       saveLabel={customer ? 'Salva Modifiche' : 'Crea Cliente'}
       maxWidth="sm"

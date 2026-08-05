@@ -172,8 +172,6 @@ export default function CreamsPage() {
           emptyDescription={hasFilters ? "Prova a cambiare i filtri impostati." : "Clicca su \"Nuova Vendita\" per registrare la prima transazione."}
           keyExtractor={(row) => row.id}
           onDelete={handleDeleteSale}
-          deleteConfirmTitle="Elimina vendita"
-          deleteConfirmMessage="Vuoi eliminare questa vendita di crema?"
         />
       </Box>
 

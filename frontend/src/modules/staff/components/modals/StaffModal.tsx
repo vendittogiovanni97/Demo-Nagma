@@ -1,6 +1,7 @@
 "use client";
 
 import StatePanel from '@/common/components/feedback/StatePanel';
+import SmartModal from '@/common/components/common/SmartModal';
 import { useAuth } from '@/common/context/AuthContext';
 import { useEntityForm } from '@/common/hooks/useEntityForm';
 import { createStaffSchema } from '@/modules/staff/model/staff.schema';
@@ -9,7 +10,6 @@ import type { Staff, StaffType } from '@/modules/staff/model/staff.types';
 import { validateData } from '@/common/shared/utils/validation';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import FormModal from '@/common/components/common/FormModal';
 import Avatar from '@/common/components/ui/Avatar';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
@@ -48,12 +48,9 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
       type: entity?.type ?? 'COLLABORATORE',
       color: entity?.color ?? theme.palette.primary.main,
     }),
+    validate: (data) => validateData(createStaffSchema, data),
     buildPayload: (data) => data,
     persist: async (payload, entity) => {
-      const validationError = validateData(createStaffSchema, payload);
-      if (validationError) {
-        throw new Error(validationError);
-      }
       if (entity) {
         await staffApi.update(entity.id, payload);
       } else {
@@ -68,14 +65,14 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
   const { formData, setField, isLoading } = form;
 
   return (
-    <FormModal
+    <SmartModal
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? 'Modifica Staff' : 'Aggiungi Staff'}
       maxWidth="sm"
-      onSubmit={() => form.handleSubmit()}
-      isSubmitting={isLoading}
-      submitLabel={isEditing ? 'Salva Modifiche' : 'Crea Profilo Staff'}
+      onSave={form.handleSubmit}
+      isSaving={isLoading}
+      saveLabel={isEditing ? 'Salva Modifiche' : 'Crea Profilo Staff'}
     >
       {!isAdmin ? (
         <StatePanel
@@ -233,6 +230,6 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
           </Box>
         </Box>
       )}
-    </FormModal>
+    </SmartModal>
   );
 }

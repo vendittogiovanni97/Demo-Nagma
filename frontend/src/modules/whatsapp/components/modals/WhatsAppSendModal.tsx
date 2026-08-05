@@ -11,9 +11,8 @@ import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
 import { useAuth } from '@/common/context/AuthContext';
 import { useCustomers } from '@/modules/customer/hooks/useCustomer';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsApp';
-import { useToast } from '@/common/hooks/useToast';
 import { useWhatsAppComposer } from '@/common/hooks/useWhatsAppComposer';
-import { useFormModal } from '@/common/hooks/useFormModal';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import { sendWhatsAppMessageSchema } from '@/modules/whatsapp/model/whatsapp.schema';
 import { whatsappApi as whatsappService } from '../../api/whatsapp.api';
 import type { Booking } from '@/modules/booking/model/booking.types';
@@ -37,8 +36,6 @@ interface WhatsAppFormData {
   variables: Record<string, string>;
 }
 
-import { WHATSAPP_QUICK_VARIABLES } from '../../model/whatsapp.constants';
-
 export default function WhatsAppSendModal({
   isOpen,
   onClose,
@@ -47,7 +44,6 @@ export default function WhatsAppSendModal({
   booking,
 }: WhatsAppSendModalProps) {
   const theme = useTheme();
-  const toast = useToast();
   const { isAdmin } = useAuth();
   const canSend = isAdmin;
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
@@ -127,64 +123,52 @@ export default function WhatsAppSendModal({
     mode: 'modal',
   });
 
-  const { isLoading, handleSubmit } = useFormModal<WhatsAppFormData>({
-    initial: {
-      templateId: '',
-      customerId: '',
-      recipientName: '',
-      recipientPhone: '',
-      message: '',
-      variables: {},
+  const form = useEntityForm<null, WhatsAppFormData, any, { whatsappUrl: string }>({
+    entity: null,
+    open: isOpen,
+    initial: () => ({
+      templateId: selectedTemplateId,
+      customerId: selectedCustomerId,
+      recipientName,
+      recipientPhone,
+      message: messageDraft,
+      variables,
+    }),
+    validate: () => {
+      if (!selectedTemplate) return 'Seleziona un template';
+      const payload = {
+        templateId: selectedTemplate.id,
+        customerId: selectedCustomerId ? Number(selectedCustomerId) : (customer?.id || booking?.customer?.id || undefined),
+        bookingId: booking?.id || undefined,
+        recipientName: recipientName || undefined,
+        recipientPhone,
+        message: messageDraft,
+        variables,
+      };
+      return validateData(sendWhatsAppMessageSchema, payload);
     },
-    onSubmit: async (data) => {
-      const response = await whatsappService.sendManualMessage({
-        templateId: Number(data.templateId),
-        customerId: Number(data.customerId),
-        bookingId: booking?.id,
-        recipientName: data.recipientName || undefined,
-        recipientPhone: data.recipientPhone,
-        message: data.message,
-        variables: data.variables,
-      });
-      window.open(response.whatsappUrl, '_blank', 'noopener,noreferrer');
-      onSuccess?.();
-    },
-    onClose,
-    successMessage: 'Messaggio preparato. Apro WhatsApp Web.',
-    errorMessage: 'Errore durante la preparazione del messaggio',
-  });
-
-  const handleSend = async () => {
-    if (!selectedTemplate) {
-      toast.error('Seleziona un template');
-      return;
-    }
-
-    const payload = {
-      templateId: selectedTemplate.id,
+    buildPayload: () => ({
+      templateId: selectedTemplate ? selectedTemplate.id : 0,
       customerId: selectedCustomerId ? Number(selectedCustomerId) : (customer?.id || booking?.customer?.id || undefined),
       bookingId: booking?.id || undefined,
       recipientName: recipientName || undefined,
       recipientPhone,
       message: messageDraft,
       variables,
-    };
-
-    const validationError = validateData(sendWhatsAppMessageSchema, payload);
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-
-    await handleSubmit({
-      templateId: selectedTemplate.id.toString(),
-      customerId: payload.customerId?.toString() ?? '',
-      recipientName,
-      recipientPhone,
-      message: messageDraft,
-      variables,
-    });
-  };
+    }),
+    persist: async (payload) => {
+      return await whatsappService.sendManualMessage(payload);
+    },
+    successMessage: 'Messaggio preparato. Apro WhatsApp Web.',
+    errorMessage: 'Errore durante la preparazione del messaggio',
+    onClose,
+    onSuccess: (result) => {
+      if (result?.whatsappUrl) {
+        window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+      }
+      onSuccess?.();
+    },
+  });
 
   return (
     <SmartModal
@@ -192,8 +176,8 @@ export default function WhatsAppSendModal({
       onClose={onClose}
       title="Invio WhatsApp Manuale"
       maxWidth="md"
-      onSave={handleSend}
-      isSaving={isLoading}
+      onSave={form.handleSubmit}
+      isSaving={form.isLoading}
       saveLabel="Apri WhatsApp"
     >
       {!canSend ? (

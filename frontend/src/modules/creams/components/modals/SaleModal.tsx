@@ -3,7 +3,7 @@
 import Icon, { Hash, User } from '@/common/components/ui/Icon';
 import { Box, Typography, useTheme, alpha } from '@mui/material';
 
-import FormModal from '@/common/components/common/FormModal';
+import SmartModal from '@/common/components/common/SmartModal';
 import { useEntityForm } from '@/common/hooks/useEntityForm';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
@@ -46,11 +46,9 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
       artistId: 0,
       quantity: 1,
     }),
+    validate: (data) => (!data.artistId ? 'Seleziona un artista' : null),
     buildPayload: (data) => data,
     persist: async (payload) => {
-      if (!payload.artistId) {
-        throw new Error('Seleziona un artista');
-      }
       await onSubmit(payload.artistId, payload.quantity);
     },
     successMessage: 'Vendita registrata',
@@ -65,13 +63,13 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
   }));
 
   return (
-    <FormModal
+    <SmartModal
       isOpen={isOpen}
       onClose={onClose}
       title="Registra Vendita Crema"
-      onSubmit={() => form.handleSubmit()}
-      isSubmitting={isLoading}
-      submitLabel="Registra Vendita"
+      onSave={form.handleSubmit}
+      isSaving={isLoading}
+      saveLabel="Registra Vendita"
       maxWidth="sm"
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -129,6 +127,6 @@ export default function SaleModal({ isOpen, onClose, cream, teamMembers, onSubmi
           required
         />
       </Box>
-    </FormModal>
+    </SmartModal>
   );
 }

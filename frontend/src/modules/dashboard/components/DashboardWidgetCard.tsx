@@ -2,7 +2,7 @@
 
 import Icon from '@/common/components/ui/Icon';
 import Card from '@/common/components/ui/Card';
-import { Box, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Stack, Typography, useTheme, type SxProps, type Theme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { ReactNode } from 'react';
 
@@ -13,6 +13,7 @@ export interface DashboardWidgetCardProps {
   headerActions?: ReactNode;
   isLoading?: boolean;
   className?: string;
+  sx?: SxProps<Theme>;
   children: ReactNode;
 }
 
@@ -23,6 +24,7 @@ export default function DashboardWidgetCard({
   headerActions,
   isLoading = false,
   className,
+  sx,
   children,
 }: DashboardWidgetCardProps) {
   const theme = useTheme();
@@ -33,22 +35,25 @@ export default function DashboardWidgetCard({
       className={className}
       variant="glass"
       size="md"
-      sx={{
-        bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.5),
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
-        boxShadow: isLight
-          ? `0 2px 12px ${alpha(theme.palette.common.black, 0.08)}`
-          : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
-        transition: theme.transitions.create(['all'], { duration: 300 }),
-        '&:hover': {
-          borderColor: alpha(theme.palette.primary.main, 0.3),
-          boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}`,
+      sx={[
+        {
+          bgcolor: isLight ? 'background.paper' : alpha(theme.palette.background.default, 0.5),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+          boxShadow: isLight
+            ? `0 2px 12px ${alpha(theme.palette.common.black, 0.08)}`
+            : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
+          transition: theme.transitions.create(['all'], { duration: 300 }),
+          '&:hover': {
+            borderColor: alpha(theme.palette.primary.main, 0.3),
+            boxShadow: `0 12px 40px ${alpha(theme.palette.primary.main, 0.08)}`,
+          },
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
         },
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
     >
       {/* Header */}
       <Box

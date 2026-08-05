@@ -16,18 +16,29 @@ import Button from '@/common/components/ui/Button';
 interface MonthPickerProps {
   value: Date;
   onChange: (date: Date) => void;
+  size?: 'sm' | 'md';
   sx?: SxProps<Theme>;
 }
 
-export default function MonthPicker({ value, onChange, sx }: MonthPickerProps) {
+export default function MonthPicker({ value, onChange, size = 'md', sx }: MonthPickerProps) {
   const theme = useTheme();
-  const monthLabel = format(value, 'MMMM yyyy', { locale: it });
+  const isSm = size === 'sm';
+  const monthLabel = format(value, isSm ? 'MMM yyyy' : 'MMMM yyyy', { locale: it });
 
   return (
     <Stack
       direction="row"
       useFlexGap
-      sx={{ gap: 0.5, alignItems: 'center', bgcolor: alpha(theme.palette.primary.main, 0.03), borderRadius: 1, px: 1, py: 0.5, border: `1px solid ${alpha(theme.palette.primary.main, 0.125)}`, ...sx }}
+      sx={{
+        gap: isSm ? 0.25 : 0.5,
+        alignItems: 'center',
+        bgcolor: alpha(theme.palette.primary.main, 0.03),
+        borderRadius: 1,
+        px: isSm ? 0.5 : 1,
+        py: isSm ? 0.25 : 0.5,
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.125)}`,
+        ...sx,
+      }}
     >
       <Button
         variant="ghost"
@@ -36,22 +47,23 @@ export default function MonthPicker({ value, onChange, sx }: MonthPickerProps) {
         aria-label="Mese precedente"
         sx={{
           minWidth: 'auto',
-          p: 0.5,
+          p: isSm ? 0.25 : 0.5,
           color: theme.palette.primary.main,
         }}
       >
-        <ArrowLeft size={14} />
+        <ArrowLeft size={isSm ? 11 : 14} />
       </Button>
       <Typography
         variant="caption"
         sx={{
           fontWeight: 600,
           color: theme.palette.primary.main,
-          px: 1.5,
-          minWidth: 112,
+          px: isSm ? 0.25 : 1.5,
+          minWidth: isSm ? 62 : 112,
           textAlign: 'center',
           textTransform: 'capitalize',
-          fontSize: '0.75rem',
+          fontSize: isSm ? '0.6875rem' : '0.75rem',
+          whiteSpace: 'nowrap',
         }}
       >
         {monthLabel}
@@ -63,11 +75,11 @@ export default function MonthPicker({ value, onChange, sx }: MonthPickerProps) {
         aria-label="Mese successivo"
         sx={{
           minWidth: 'auto',
-          p: 0.5,
+          p: isSm ? 0.25 : 0.5,
           color: theme.palette.primary.main,
         }}
       >
-        <ArrowRight size={14} />
+        <ArrowRight size={isSm ? 11 : 14} />
       </Button>
     </Stack>
   );

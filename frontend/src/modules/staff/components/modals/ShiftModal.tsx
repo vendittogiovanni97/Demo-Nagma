@@ -4,11 +4,9 @@ import StatePanel from '@/common/components/feedback/StatePanel';
 import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
 import { useAuth } from '@/common/context/AuthContext';
 import { useStaffMembers } from '@/modules/staff/hooks/useStaff';
-import { useToast } from '@/common/hooks/useToast';
 import { staffApi } from '@/modules/staff/api/staff.api';
-import { useFormModal } from '@/common/hooks/useFormModal';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import type { CreateShiftData } from '@/modules/staff/model/staff.types';
-import { useState } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormSelect from '@/common/components/forms/FormSelect';
@@ -39,54 +37,44 @@ const SHIFT_OPTIONS = [
   { value: 'Riposo', label: 'Riposo' },
 ];
 
+interface ShiftFormData {
+  staffId: string;
+  dayOfWeek: string;
+  label: string;
+}
+
 export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, initialStaffId, initialDayOfWeek }: Props) {
-  const toast = useToast();
   const { isAdmin } = useAuth();
   const theme = useTheme();
-  const [staffId, setStaffId] = useState(initialStaffId !== undefined ? initialStaffId.toString() : '');
-  const [dayOfWeek, setDayOfWeek] = useState(initialDayOfWeek !== undefined ? initialDayOfWeek.toString() : '0');
-  const [label, setLabel] = useState('Mattina');
 
-  const { isLoading, handleSubmit } = useFormModal({
-    initial: { staffId, dayOfWeek, label },
-    onSubmit: async () => {
-      const data: CreateShiftData = {
-        staffId: Number(staffId),
-        weekStart,
-        dayOfWeek: Number(dayOfWeek),
-        label,
-        isOff: label === 'Riposo',
-      };
-      await staffApi.createShift(data);
-      setStaffId('');
-      setDayOfWeek('0');
-      setLabel('Mattina');
-      onSuccess();
+  const form = useEntityForm<null, ShiftFormData, CreateShiftData>({
+    entity: null,
+    open: isOpen,
+    initial: () => ({
+      staffId: initialStaffId !== undefined ? initialStaffId.toString() : '',
+      dayOfWeek: initialDayOfWeek !== undefined ? initialDayOfWeek.toString() : '0',
+      label: 'Mattina',
+    }),
+    validate: (data) => (!data.staffId ? 'Seleziona un collaboratore' : null),
+    buildPayload: (data) => ({
+      staffId: Number(data.staffId),
+      weekStart,
+      dayOfWeek: Number(data.dayOfWeek),
+      label: data.label,
+      isOff: data.label === 'Riposo',
+    }),
+    persist: async (payload) => {
+      await staffApi.createShift(payload);
     },
-    onClose,
     successMessage: 'Turno pianificato',
     errorMessage: 'Errore nella creazione turno',
+    onClose,
+    onSuccess,
   });
 
+  const { formData, setField, isLoading } = form;
   const { data: membersResult } = useStaffMembers({ page: 1, limit: EXPORT_FETCH_LIMIT, enabled: isOpen });
   const members = membersResult?.data;
-
-  // React to prop changes
-  if (isOpen && initialStaffId !== undefined && staffId !== initialStaffId.toString() && !isLoading) {
-    setStaffId(initialStaffId.toString());
-  }
-  if (isOpen && initialDayOfWeek !== undefined && dayOfWeek !== initialDayOfWeek.toString() && !isLoading) {
-    setDayOfWeek(initialDayOfWeek.toString());
-  }
-
-  const handleSave = async () => {
-    if (!staffId) {
-      toast.error('Seleziona un collaboratore');
-      return;
-    }
-    await handleSubmit();
-  };
-
   const staffOptions = (members || []).map(m => ({ value: m.id.toString(), label: m.name }));
 
   return (
@@ -94,7 +82,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
       isOpen={isOpen}
       onClose={onClose}
       title="Pianifica Turno"
-      onSave={handleSave}
+      onSave={form.handleSubmit}
       isSaving={isLoading}
       saveLabel="Salva Turno"
       maxWidth="sm"
@@ -125,8 +113,8 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
 
           <FormSelect
             label="Collaboratore"
-            value={staffId}
-            onChange={setStaffId}
+            value={formData.staffId}
+            onChange={(v) => setField('staffId', v)}
             options={staffOptions}
             required
             placeholder="Seleziona..."
@@ -134,16 +122,16 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
 
           <FormSelect
             label="Giorno"
-            value={dayOfWeek}
-            onChange={setDayOfWeek}
+            value={formData.dayOfWeek}
+            onChange={(v) => setField('dayOfWeek', v)}
             options={DAYS}
             required
           />
 
           <FormSelect
             label="Tipo di Turno"
-            value={label}
-            onChange={setLabel}
+            value={formData.label}
+            onChange={(v) => setField('label', v)}
             options={SHIFT_OPTIONS}
             required
           />

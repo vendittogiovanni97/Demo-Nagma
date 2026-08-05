@@ -5,15 +5,18 @@ import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import { useBreakpointContext } from '@/common/context/BreakpointContext';
 import {
+  Badge,
   Box,
+  Collapse,
   IconButton,
   Stack,
   Typography,
   useTheme as useMuiTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
-import { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 interface FilterConfig {
   value: string;
@@ -58,122 +61,217 @@ export default function SmartFilters({
   children,
 }: SmartFiltersProps) {
   const muiTheme = useMuiTheme();
-  const { isXLarge, isLarge, isSmall, isMedium } = useBreakpointContext();
+  const { isXLarge, isLarge } = useBreakpointContext();
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const isDesktop = isLarge || isXLarge;
+  const isDesktop = isXLarge;
 
-  // Responsive sizes - more compact for desktop to fit in one row
-  const searchWidth = { xs: '100%', sm: 240, md: isXLarge ? 320 : 260 };
+  // Count active secondary filters (dateRange, select)
+  const activeSecondaryCount =
+    (dateRange?.start.value ? 1 : 0) +
+    (dateRange?.end.value ? 1 : 0) +
+    (select?.value && select.value !== 'ALL' && select.value !== '' ? 1 : 0);
+
+  const hasSecondaryFilters = Boolean(dateRange || select || children);
+
+  // Responsive sizes
+  const searchWidth = { xs: '100%', sm: 220, md: isXLarge ? 300 : 240 };
   const dateWidth = { xs: 'calc(50% - 6px)', sm: 150, md: isXLarge ? 165 : 150 };
   const selectWidth = { xs: '100%', sm: 160, md: isXLarge ? 180 : 150 };
   const gap = isXLarge ? 1.5 : 0.75;
 
   return (
-    <Stack
-      direction="row"
-      useFlexGap
-      sx={{
-        gap,
-        alignItems: 'center',
-        flexWrap: isDesktop ? 'nowrap' : 'wrap',
-        minWidth: 0,
-      }}
-    >
-      {/* 1. Month Picker or Alignment Spacer */}
-      {monthPicker ? (
-        <Stack direction="row" useFlexGap sx={{ gap: 0.25, alignItems: 'center', flexShrink: 0 }}>
-          <IconButton size="small" onClick={monthPicker.onPrev} sx={{ p: 0.25 }}>
-            <Icon name="chevronLeft" size={14} />
-          </IconButton>
-          <Typography
+    <Stack direction="column" sx={{ width: '100%', minWidth: 0 }}>
+      {/* Primary Row */}
+      <Stack
+        direction="row"
+        useFlexGap
+        sx={{
+          gap,
+          alignItems: 'center',
+          flexWrap: isDesktop ? 'nowrap' : 'wrap',
+          minWidth: 0,
+        }}
+      >
+        {/* Month Picker */}
+        {monthPicker ? (
+          <Stack direction="row" useFlexGap sx={{ gap: 0.25, alignItems: 'center', flexShrink: 0 }}>
+            <IconButton size="small" onClick={monthPicker.onPrev} sx={{ p: 0.25 }}>
+              <Icon name="chevronLeft" size={14} />
+            </IconButton>
+            <Typography
+              sx={{
+                fontSize: isXLarge ? '1.25rem' : isLarge ? '1.125rem' : '0.875rem',
+                lineHeight: 1.2,
+                fontWeight: 800,
+                color: muiTheme.palette.primary.main,
+                letterSpacing: isXLarge ? '-0.02em' : 0,
+                textTransform: 'capitalize',
+                minWidth: { xs: 80, sm: 100, md: isXLarge ? 160 : isLarge ? 140 : 100 },
+                textAlign: 'center',
+              }}
+            >
+              {monthPicker.label}
+            </Typography>
+            <IconButton size="small" onClick={monthPicker.onNext} sx={{ p: 0.25 }}>
+              <Icon name="chevronRight" size={14} />
+            </IconButton>
+          </Stack>
+        ) : alignWithMonthPicker ? (
+          <Box sx={{ width: isXLarge ? 140 : 120, display: { xs: 'none', lg: 'block' } }} />
+        ) : null}
+
+        {/* Search Input */}
+        {search && (
+          <Box sx={{ width: searchWidth, flexShrink: 1, minWidth: { xs: '100%', sm: 120 } }}>
+            <SearchInput
+              value={search.value}
+              onChange={search.onChange}
+              placeholder={search.placeholder || "Cerca..."}
+              sx={{
+                width: '100%',
+                '& .MuiInputBase-root': { height: 36 }
+              }}
+            />
+          </Box>
+        )}
+
+        {/* Desktop View: Render secondary filters inline */}
+        {isDesktop && (
+          <>
+            {dateRange && (
+              <Stack direction="row" useFlexGap sx={{ gap: 0.75, flexShrink: 0 }}>
+                <FormInput
+                  label={dateRange.start.label || "Dal"}
+                  type="date"
+                  value={dateRange.start.value}
+                  onChange={dateRange.start.onChange}
+                  size="sm"
+                  hideLabel
+                  sx={{ width: dateWidth }}
+                />
+                <FormInput
+                  label={dateRange.end.label || "Al"}
+                  type="date"
+                  value={dateRange.end.value}
+                  onChange={dateRange.end.onChange}
+                  size="sm"
+                  hideLabel
+                  sx={{ width: dateWidth }}
+                />
+              </Stack>
+            )}
+
+            {select && (
+              <Box sx={{ width: selectWidth, flexShrink: 1, minWidth: { xs: '100%', sm: 100 } }}>
+                <FormSelect
+                  label={select.label}
+                  value={select.value}
+                  onChange={select.onChange}
+                  options={select.options}
+                  placeholder={select.placeholder}
+                  hideLabel
+                  sx={{ '& .MuiInputBase-root': { height: 36 } }}
+                />
+              </Box>
+            )}
+
+            {children}
+
+            {submitAction && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={submitAction.onClick}
+                sx={{ px: 1.5, height: 36, fontSize: '0.75rem' }}
+              >
+                {submitAction.label}
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Mobile/Tablet View: Toggle button for secondary filters */}
+        {!isDesktop && hasSecondaryFilters && (
+          <Badge badgeContent={activeSecondaryCount} color="primary">
+            <Button
+              variant={isExpanded ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setIsExpanded((prev) => !prev)}
+              icon={<Icon name="slidersHorizontal" size={14} />}
+              sx={{ height: 36, px: 1.5, fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              Filtri
+            </Button>
+          </Badge>
+        )}
+      </Stack>
+
+      {/* Mobile/Tablet View: Collapsible Secondary Filters */}
+      {!isDesktop && hasSecondaryFilters && (
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+          <Box
             sx={{
-              fontSize: isXLarge ? '1.375rem' : isLarge ? '1.125rem' : '0.875rem',
-              lineHeight: 1.2,
-              fontWeight: 800,
-              color: muiTheme.palette.primary.main,
-              letterSpacing: isXLarge ? '-0.02em' : 0,
-              textTransform: 'capitalize',
-              minWidth: { xs: 80, sm: 100, md: isXLarge ? 180 : isLarge ? 150 : 100 },
-              textAlign: 'center',
+              mt: 1.5,
+              p: 2,
+              borderRadius: 2.5,
+              border: `1px solid ${alpha(muiTheme.palette.divider, 0.15)}`,
+              backgroundColor: alpha(muiTheme.palette.background.paper, 0.6),
+              backdropFilter: 'blur(12px)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              alignItems: 'center',
             }}
           >
-            {monthPicker.label}
-          </Typography>
-          <IconButton size="small" onClick={monthPicker.onNext} sx={{ p: 0.25 }}>
-            <Icon name="chevronRight" size={14} />
-          </IconButton>
-        </Stack>
-      ) : alignWithMonthPicker ? (
-        <Box sx={{ width: isXLarge ? 140 : 120, display: { xs: 'none', lg: 'block' } }} />
-      ) : null}
+            {dateRange && (
+              <Stack direction="row" useFlexGap sx={{ gap: 1, width: { xs: '100%', sm: 'auto' } }}>
+                <FormInput
+                  label={dateRange.start.label || "Dal"}
+                  type="date"
+                  value={dateRange.start.value}
+                  onChange={dateRange.start.onChange}
+                  size="sm"
+                  sx={{ flex: 1, minWidth: 130 }}
+                />
+                <FormInput
+                  label={dateRange.end.label || "Al"}
+                  type="date"
+                  value={dateRange.end.value}
+                  onChange={dateRange.end.onChange}
+                  size="sm"
+                  sx={{ flex: 1, minWidth: 130 }}
+                />
+              </Stack>
+            )}
 
-      {/* 2. Search Input */}
-      {search && (
-        <Box sx={{ width: searchWidth, flexShrink: 1, minWidth: { xs: '100%', sm: 120 } }}>
-          <SearchInput
-            value={search.value}
-            onChange={search.onChange}
-            placeholder={search.placeholder || "Cerca..."}
-            sx={{ 
-              width: '100%',
-              '& .MuiInputBase-root': { height: 36 } 
-            }}
-          />
-        </Box>
-      )}
+            {select && (
+              <Box sx={{ width: { xs: '100%', sm: 180 } }}>
+                <FormSelect
+                  label={select.label}
+                  value={select.value}
+                  onChange={select.onChange}
+                  options={select.options}
+                  placeholder={select.placeholder}
+                  sx={{ '& .MuiInputBase-root': { height: 36 } }}
+                />
+              </Box>
+            )}
 
-      {/* 3. Date Range */}
-      {dateRange && (
-        <Stack direction="row" useFlexGap sx={{ gap: 0.75, flexShrink: 0 }}>
-          <FormInput
-            label={dateRange.start.label || "Dal"}
-            type="date"
-            value={dateRange.start.value}
-            onChange={dateRange.start.onChange}
-            size="sm"
-            hideLabel
-            sx={{ width: dateWidth }}
-          />
-          <FormInput
-            label={dateRange.end.label || "Al"}
-            type="date"
-            value={dateRange.end.value}
-            onChange={dateRange.end.onChange}
-            size="sm"
-            hideLabel
-            sx={{ width: dateWidth }}
-          />
-        </Stack>
-      )}
+            {children}
 
-      {/* 4. Select Dropdown */}
-      {select && (
-        <Box sx={{ width: selectWidth, flexShrink: 1, minWidth: { xs: '100%', sm: 100 } }}>
-          <FormSelect
-            label={select.label}
-            value={select.value}
-            onChange={select.onChange}
-            options={select.options}
-            placeholder={select.placeholder}
-            hideLabel
-            sx={{ '& .MuiInputBase-root': { height: 36 } }}
-          />
-        </Box>
-      )}
-
-      {/* 5. Extra Actions (Children) */}
-      {children}
-
-      {/* 6. Submit Action */}
-      {submitAction && (
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={submitAction.onClick}
-          sx={{ px: 1.5, height: 36, fontSize: '0.75rem' }}
-        >
-          {submitAction.label}
-        </Button>
+            {submitAction && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={submitAction.onClick}
+                sx={{ px: 2, height: 36, fontSize: '0.75rem' }}
+              >
+                {submitAction.label}
+              </Button>
+            )}
+          </Box>
+        </Collapse>
       )}
     </Stack>
   );

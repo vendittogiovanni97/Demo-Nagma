@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from 'react';
 import { Box } from '@mui/material';
-
-import { useFormModal } from '@/common/hooks/useFormModal';
-import { useToast } from '@/common/hooks/useToast';
+import { useEntityForm } from '@/common/hooks/useEntityForm';
 import { staffApi } from '@/modules/staff/api/staff.api';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormInput from '@/common/components/forms/FormInput';
-import Icon, { Lock } from '@/common/components/ui/Icon';
+import { Lock } from '@/common/components/ui/Icon';
 
 interface ResetPasswordModalProps {
   isOpen: boolean;
@@ -23,6 +20,11 @@ interface ResetPasswordFormData {
   confirmPassword: string;
 }
 
+const initialValues: ResetPasswordFormData = {
+  newPassword: '',
+  confirmPassword: '',
+};
+
 export default function ResetPasswordModal({
   isOpen,
   onClose,
@@ -30,34 +32,38 @@ export default function ResetPasswordModal({
   memberId,
   userName,
 }: ResetPasswordModalProps) {
-  const toast = useToast();
-
-  const form = useFormModal<ResetPasswordFormData>({
-    initial: { newPassword: '', confirmPassword: '' },
-    onSubmit: async (data) => {
-      await staffApi.resetMemberPassword(memberId, data.newPassword);
-      onSuccess();
+  const form = useEntityForm<null, ResetPasswordFormData, { password: string }>({
+    entity: null,
+    open: isOpen,
+    initial: () => initialValues,
+    validate: (data) => {
+      if (!data.newPassword || data.newPassword.length < 6) {
+        return 'La password deve contenere almeno 6 caratteri';
+      }
+      if (data.newPassword !== data.confirmPassword) {
+        return 'Le password inserite non sono uguali';
+      }
+      return null;
     },
-    onClose,
+    buildPayload: (data) => ({ password: data.newPassword }),
+    persist: async (payload) => {
+      await staffApi.resetMemberPassword(memberId, payload.password);
+    },
     successMessage: `Password di ${userName} resettata`,
     errorMessage: 'Errore durante il reset della password',
+    onClose,
+    onSuccess,
   });
 
-  const handleSave = async () => {
-    if (form.formData.newPassword !== form.formData.confirmPassword) {
-      toast.error('Le password inserite non sono uguali');
-      return;
-    }
-    await form.handleSubmit();
-  };
+  const { formData, handleChange, isLoading } = form;
 
   return (
     <SmartModal
       isOpen={isOpen}
       onClose={onClose}
       title={`Reset Password - ${userName}`}
-      onSave={handleSave}
-      isSaving={form.isLoading}
+      onSave={form.handleSubmit}
+      isSaving={isLoading}
       saveLabel="Resetta Password"
       maxWidth="sm"
     >
@@ -65,8 +71,8 @@ export default function ResetPasswordModal({
         <FormInput
           label="Nuova Password"
           type="password"
-          value={form.formData.newPassword}
-          onChange={form.handleChange('newPassword')}
+          value={formData.newPassword}
+          onChange={handleChange('newPassword')}
           placeholder="••••••••"
           icon={Lock}
           required
@@ -75,8 +81,8 @@ export default function ResetPasswordModal({
         <FormInput
           label="Conferma Password"
           type="password"
-          value={form.formData.confirmPassword}
-          onChange={form.handleChange('confirmPassword')}
+          value={formData.confirmPassword}
+          onChange={handleChange('confirmPassword')}
           placeholder="••••••••"
           icon={Lock}
           required

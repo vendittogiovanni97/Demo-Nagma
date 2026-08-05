@@ -1,0 +1,49 @@
+name: Load test (k6)
+
+# Check periodico di regressione performance.
+# - Schedulato ogni notte (03:00 UTC).
+# - Lanciabile a mano da Actions → "Load test (k6)" → Run workflow.
+# Richiede il secret LOADTEST_BASE_URL (URL di un ambiente staging/preview
+# raggiungibile). Le credenziali possono essere sovrascritte via secret.
+# Le soglie con abortOnFail nel k6 fanno fallire il job in caso di regressione.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL da testare (override del secret)'
+        required: false
+        type: string
+
+jobs:
+  k6:
+    name: k6 load & regression gate
+    runs-on: ubuntu-latest
+    # Non blocca la squadra se manca la configurazione: salta con un avviso.
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_LOAD_TEST == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Determina BASE_URL
+        id: cfg
+        run: |
+          URL="${{ github.event.inputs.base_url }}"
+          if [ -z "$URL" ]; then URL="${{ secrets.LOADTEST_BASE_URL }}"; fi
+          if [ -z "$URL" ]; then
+            echo "::error::Nessun BASE_URL: imposta il secret LOADTEST_BASE_URL o passa l'input base_url."
+            exit 1
+          fi
+          echo "base_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6
+        env:
+          BASE_URL: ${{ steps.cfg.outputs.base_url }}
+          EMAIL: ${{ secrets.LOADTEST_EMAIL }}
+          PASSWORD: ${{ secrets.LOADTEST_PASSWORD }}
+        run: k6 run backend/test/load/scenario.k6.js

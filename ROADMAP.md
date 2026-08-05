@@ -70,11 +70,11 @@ Il progetto parte da fondamenta solide. Punti già presidiati:
 
 **Obiettivo:** trasformare i controlli di qualità da "buona volontà" a gate obbligatori della pipeline.
 
-- [ ] Introdurre ESLint sul backend (config condivisa con il frontend) e aggiungere lo step `lint` alla CI backend.
-- [ ] Impostare `coverageThreshold` in Jest (es. 70% sui moduli core: auth, booking, finance) come gate bloccante.
-- [ ] Avviare la riduzione mirata degli `any` partendo dai moduli sensibili, sfruttando i tipi inferiti da Zod (`z.infer`).
-- [ ] Sostituire `console.*` con il logger centralizzato; rimuovere i `try/catch` residui nei controller a favore della handler factory.
-- [ ] Attivare aggiornamenti automatici delle dipendenze (Dependabot / Renovate) e `npm audit` come step CI.
+- [x] Introdurre ESLint sul backend (config condivisa con il frontend) e aggiungere lo step `lint` alla CI backend.
+- [~] Impostare `coverageThreshold` in Jest (es. 70% sui moduli core: auth, booking, finance) come gate bloccante.
+- [~] Avviare la riduzione mirata degli `any` partendo dai moduli sensibili, sfruttando i tipi inferiti da Zod (`z.infer`).
+- [x] Sostituire `console.*` con il logger centralizzato; rimuovere i `try/catch` residui nei controller a favore della handler factory.
+- [x] Attivare aggiornamenti automatici delle dipendenze (Dependabot / Renovate) e `npm audit` come step CI.
 
 **Definizione di "fatto":**
 - Lint backend + frontend obbligatori e verdi in CI.

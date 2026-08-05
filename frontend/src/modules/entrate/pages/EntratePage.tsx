@@ -1,19 +1,20 @@
 "use client";
 
 import Box from '@mui/material/Box';
-import { Typography, useTheme } from '@mui/material';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { useState, useCallback, useEffect } from 'react';
-import React from 'react';
 
 import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
 import MonthPicker from '@/common/components/ui/MonthPicker';
 import DataTable, { TableFooterTotal, createDateColumn, createPriceColumn, type ColumnDefinition } from '@/common/components/table/DataTable';
-import InlineAddForm from '@/common/components/forms/InlineAddForm';
+import SmartModal from '@/common/components/common/SmartModal';
+import FormInput from '@/common/components/forms/FormInput';
+import Button from '@/common/components/ui/Button';
+import Icon from '@/common/components/ui/Icon';
 import PermissionGate from '@/common/components/auth/PermissionGate';
 import { useMonthNavigation } from '@/common/hooks/useMonthNavigation';
+import { useToast } from '@/common/hooks/useToast';
+import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import { entrataLiberaApi } from '../api/entrata-libera.api';
 import type { EntrataLibera } from '../model/entrate.types';
 
@@ -29,6 +30,7 @@ const columns: ColumnDefinition<EntrataLibera>[] = [
 
 export default function EntratePage() {
   const { currentMonth: currentDate, setCurrentMonth: setCurrentDate, monthStr, monthLabel } = useMonthNavigation();
+  const toast = useToast();
 
   const [allEntrate, setAllEntrate] = useState<EntrataLibera[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,9 +53,48 @@ export default function EntratePage() {
   const entrate = allEntrate.filter((e) => e.createdAt.startsWith(monthStr));
   const total = entrate.reduce((acc, e) => acc + e.amount, 0);
 
-  const handleAdd = async (data: { name: string; amount: number }) => {
-    await entrataLiberaApi.create({ name: data.name, amount: data.amount });
-    await fetchEntrate();
+  // ─── Modale Aggiungi ────────────────────────────────────────────────
+  const [modalOpen, setModalOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [amount, setAmount] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const resetForm = () => {
+    setName('');
+    setAmount('');
+  };
+
+  const handleOpenModal = () => {
+    resetForm();
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    resetForm();
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      toast.error('Inserisci il nome dell\'entrata');
+      return;
+    }
+    const parsed = parseFloat(amount.replace(',', '.'));
+    if (isNaN(parsed) || parsed <= 0) {
+      toast.error('Inserisci un importo valido');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await entrataLiberaApi.create({ name: name.trim(), amount: parsed });
+      await fetchEntrate();
+      toast.success('Entrata aggiunta');
+      handleCloseModal();
+    } catch (e) {
+      toast.error(extractErrorMessage(e, 'Errore nel salvataggio'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (entrata: EntrataLibera) => {
@@ -79,13 +120,14 @@ export default function EntratePage() {
           >
             <MonthPicker value={currentDate} onChange={setCurrentDate} />
             <PermissionGate requireAdmin>
-              <Box sx={{ flex: { xs: '1 1 100%', md: '0 1 1150px', xl: '0 1 1250px' }, width: '100%', minWidth: 0 }}>
-                <InlineAddForm
-                  namePlaceholder="Nome entrata (es. Rimborso, Extra...)"
-                  onAdd={handleAdd}
-                  successMessage="Entrata aggiunta"
-                />
-              </Box>
+              <Button
+                variant="secondary"
+                onClick={handleOpenModal}
+                sx={{ height: '42px', px: 3, borderRadius: 2, fontWeight: 600 }}
+              >
+                <Icon name="plus" size={16} />
+                Aggiungi
+              </Button>
             </PermissionGate>
           </Box>
         }
@@ -105,6 +147,39 @@ export default function EntratePage() {
           footerContent={<TableFooterTotal total={total} label={`Totale ${monthLabel}`} color="primary" />}
         />
       </Box>
+
+      {/* Modale Aggiungi Entrata */}
+      <SmartModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        title="Nuova Entrata"
+        maxWidth="xs"
+        onSave={handleSave}
+        isSaving={isSaving}
+        saveLabel="Aggiungi Entrata"
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <FormInput
+            label="Nome entrata"
+            value={name}
+            onChange={setName}
+            placeholder="es. Rimborso, Extra, Vendita..."
+            required
+          />
+          <FormInput
+            label="Importo (€)"
+            value={amount}
+            onChange={(val) => {
+              const cleaned = val.replace(/\./g, ',');
+              if (cleaned === '' || /^\d*(,\d{0,2})?$/.test(cleaned)) {
+                setAmount(cleaned);
+              }
+            }}
+            placeholder="0,00"
+            required
+          />
+        </Box>
+      </SmartModal>
     </PageContainer>
   );
 }

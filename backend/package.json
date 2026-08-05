@@ -12,9 +12,13 @@
     "start": "node dist/src/index.js",
     "build": "tsc",
     "postinstall": "prisma generate",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "test": "jest --runInBand --detectOpenHandles",
     "test:unit": "jest --selectProjects unit --runInBand",
     "test:integration": "jest --selectProjects integration --runInBand",
+    "test:coverage": "jest --selectProjects unit --coverage --runInBand",
+    "test:coverage:full": "jest --coverage --runInBand",
     "test:api": "tsx scripts/test-all-apis.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/seed_demo_data.ts",
@@ -51,6 +55,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
     "@jest/types": "^30.4.1",
     "@types/busboy": "^1.5.4",
     "@types/cors": "^2.8.19",
@@ -62,13 +67,16 @@
     "@types/pg": "^8.20.0",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
+    "eslint": "^9.15.0",
+    "globals": "^15.12.0",
     "jest": "^30.4.2",
     "nodemon": "^3.1.14",
     "prisma": "^7.8.0",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "tsx": "^4.0.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.15.0"
   },
   "allowScripts": {
     "esbuild@0.27.7": true,

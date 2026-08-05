@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { container } from '../../core/container';
 import { ConfigService } from '../../modules/config/services/configService';
+import { logger } from '../shared/utils/logger';
 
 export interface FeatureFlagOptions {
   feature: keyof ClientFeatures;
@@ -49,7 +50,7 @@ export function requireFeature(feature: keyof ClientFeatures) {
 
       next();
     } catch (error) {
-      console.error('[FeatureFlag] Errore controllo feature:', error);
+      logger.errorWithStack('[FeatureFlag] Errore controllo feature', error);
       res.status(500).json({
         success: false,
         error: 'FEATURE_CHECK_FAILED',
@@ -67,7 +68,7 @@ export function optionalFeature(feature: keyof ClientFeatures) {
       (req as any).featureEnabled = features[feature];
       next();
     } catch (error) {
-      console.error('[FeatureFlag] Errore controllo feature opzionale:', error);
+      logger.errorWithStack('[FeatureFlag] Errore controllo feature opzionale', error);
       (req as any).features = getDefaultFeatures();
       (req as any).featureEnabled = false;
       next();
@@ -82,7 +83,7 @@ export function getFeaturesMiddleware() {
       (req as any).features = features;
       next();
     } catch (error) {
-      console.error('[FeatureFlag] Errore caricamento features:', error);
+      logger.errorWithStack('[FeatureFlag] Errore caricamento features', error);
       (req as any).features = getDefaultFeatures();
       next();
     }

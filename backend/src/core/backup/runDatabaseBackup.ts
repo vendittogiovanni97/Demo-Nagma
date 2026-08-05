@@ -1,4 +1,5 @@
 import { databaseBackupScheduler } from './databaseBackup';
+import { logger } from '../shared/utils/logger';
 
 async function main(): Promise<void> {
   const backupFile = await databaseBackupScheduler.run();
@@ -8,7 +9,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`\nBackup salvato in:\n${backupFile}`);
+  logger.info(`Backup salvato in: ${backupFile}`);
 }
 
 void main();

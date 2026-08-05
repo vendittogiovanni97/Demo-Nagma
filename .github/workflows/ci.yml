@@ -1,8 +1,8 @@
 name: CI
 
 # Pipeline unica del progetto (consolida i precedenti ci.yml + test.yml).
-# Backend: typecheck, unit/integration/security test, build.
-# Frontend: lint, typecheck, build.
+# Backend: lint, typecheck, unit/integration/security test, build, audit.
+# Frontend: lint, typecheck, build, audit.
 
 on:
   push:
@@ -15,7 +15,7 @@ env:
 
 jobs:
   backend:
-    name: Backend — typecheck, test & build
+    name: Backend — lint, typecheck, test & build
     runs-on: ubuntu-latest
 
     services:
@@ -65,6 +65,9 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Lint
+        run: npm run lint
+
       - name: Run database migrations
         run: npx prisma migrate deploy
 
@@ -74,14 +77,18 @@ jobs:
       - name: Seed database (superadmin + config)
         run: npx tsx prisma/seed.ts
 
-      - name: Run unit tests
-        run: npm run test:unit -- --forceExit
+      - name: Run unit tests + coverage gate
+        run: npm run test:coverage -- --forceExit
 
       - name: Run integration + security tests
         run: npm run test:integration -- --forceExit
 
       - name: Build backend
         run: npm run build
+
+      - name: Security audit (non bloccante)
+        run: npm audit --audit-level=high
+        continue-on-error: true
 
   frontend:
     name: Frontend — lint, typecheck & build
@@ -114,3 +121,7 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+      - name: Security audit (non bloccante)
+        run: npm audit --audit-level=high
+        continue-on-error: true

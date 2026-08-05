@@ -27,7 +27,7 @@ function validateEnv() {
     throw new Error('JWT_SECRET troppo corto (minimo 32 caratteri richiesti per HS256)');
   }
   if (/change-this|your-super-secret|placeholder|example/i.test(jwtSecret)) {
-    console.warn('⚠️  ATTENZIONE: JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
+    logger.warn('⚠️  ATTENZIONE: JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
   }
 
   if (!process.env.DATABASE_URL) {

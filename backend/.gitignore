@@ -5,3 +5,5 @@ node_modules
 # Upload directories (local storage)
 /uploads/
 dist/
+
+coverage

@@ -6,6 +6,8 @@
  * stale entries and keep memory usage stable.
  */
 
+import { logger } from './logger';
+
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
@@ -66,7 +68,7 @@ export class Cache<T> {
 
     // Log cleanup activity (debug level to avoid noise in production)
     if (expiredKeys.length > 0) {
-      console.debug(`[Cache] Cleanup removed ${expiredKeys.length} expired entries (store size now: ${this.store.size})`);
+      logger.debug(`[Cache] Cleanup removed ${expiredKeys.length} expired entries (store size now: ${this.store.size})`);
     }
   }
 
@@ -149,6 +151,6 @@ export class Cache<T> {
       this.cleanupInterval = null;
     }
     this.store.clear();
-    console.debug('[Cache] Cache destroyed and resources cleaned up');
+    logger.debug('[Cache] Cache destroyed and resources cleaned up');
   }
 }

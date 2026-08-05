@@ -19,69 +19,69 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 export class AttachmentController {
   constructor(private attachmentService: AttachmentService) {}
 
-  upload = (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      const bookingIdParam = req.query.bookingId as string;
-      if (!bookingIdParam) throw new AppError('bookingId mancante', 400, 'MISSING_BOOKING_ID');
-      const bookingId = parseId(bookingIdParam);
+  // Upload multipart in streaming: gli errori di SETUP (bookingId mancante,
+  // parseId) sono propagati da asyncHandler → next; gli errori di STREAM sono
+  // gestiti dagli event handler di busboy (unico caso legittimo di try/catch
+  // interno, non delegabile alla handler factory CRUD).
+  upload = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const bookingIdParam = req.query.bookingId as string;
+    if (!bookingIdParam) throw new AppError('bookingId mancante', 400, 'MISSING_BOOKING_ID');
+    const bookingId = parseId(bookingIdParam);
 
-      const bb = busboy({ headers: req.headers });
-      const results: any[] = [];
-      let pendingUploads = 0;
-      let closed = false;
-      let errored: any = null;
-      let responded = false;
+    const bb = busboy({ headers: req.headers });
+    const results: any[] = [];
+    let pendingUploads = 0;
+    let closed = false;
+    let errored: any = null;
+    let responded = false;
 
-      const tryFinish = () => {
-        if (responded || !closed || pendingUploads > 0) return;
-        responded = true;
-        if (errored) return next(errored);
-        res.status(201).json({ success: true, data: results });
-      };
+    const tryFinish = () => {
+      if (responded || !closed || pendingUploads > 0) return;
+      responded = true;
+      if (errored) return next(errored);
+      res.status(201).json({ success: true, data: results });
+    };
 
-      bb.on('file', (fieldname, file, info) => {
-        pendingUploads++;
-        const chunks: Buffer[] = [];
+    bb.on('file', (fieldname, file, info) => {
+      pendingUploads++;
+      const chunks: Buffer[] = [];
 
-        file.on('data', (data) => {
-          const totalSize = chunks.reduce((sum, buf) => sum + buf.length, 0) + data.length;
-          if (totalSize > MAX_FILE_SIZE_BYTES) {
-            file.destroy();
-            errored = new AppError('File troppo grande', 413, 'FILE_TOO_LARGE');
-          }
-          chunks.push(data);
-        });
-
-        file.on('end', async () => {
-          try {
-            if (!ALLOWED_MIME_TYPES.has(info.mimeType)) {
-              throw new AppError(`Tipo non consentito: ${info.mimeType}`, 400, 'FILE_TYPE_NOT_ALLOWED');
-            }
-
-            const attachment = await this.attachmentService.upload({
-              bookingId,
-              fileName: info.filename,
-              buffer: Buffer.concat(chunks),
-              mimeType: info.mimeType,
-            });
-
-            results.push(attachment);
-          } catch (err) {
-            if (!errored) errored = err;
-          } finally {
-            pendingUploads--;
-            tryFinish();
-          }
-        });
+      file.on('data', (data) => {
+        const totalSize = chunks.reduce((sum, buf) => sum + buf.length, 0) + data.length;
+        if (totalSize > MAX_FILE_SIZE_BYTES) {
+          file.destroy();
+          errored = new AppError('File troppo grande', 413, 'FILE_TOO_LARGE');
+        }
+        chunks.push(data);
       });
 
-      bb.on('close', () => { closed = true; tryFinish(); });
-      bb.on('error', (err) => { if (!responded) { responded = true; next(err); } });
-      req.pipe(bb);
-    } catch (err) {
-      next(err);
-    }
-  };
+      file.on('end', async () => {
+        try {
+          if (!ALLOWED_MIME_TYPES.has(info.mimeType)) {
+            throw new AppError(`Tipo non consentito: ${info.mimeType}`, 400, 'FILE_TYPE_NOT_ALLOWED');
+          }
+
+          const attachment = await this.attachmentService.upload({
+            bookingId,
+            fileName: info.filename,
+            buffer: Buffer.concat(chunks),
+            mimeType: info.mimeType,
+          });
+
+          results.push(attachment);
+        } catch (err) {
+          if (!errored) errored = err;
+        } finally {
+          pendingUploads--;
+          tryFinish();
+        }
+      });
+    });
+
+    bb.on('close', () => { closed = true; tryFinish(); });
+    bb.on('error', (err) => { if (!responded) { responded = true; next(err); } });
+    req.pipe(bb);
+  });
 
   download = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { attachmentId } = req.params as { attachmentId: string };

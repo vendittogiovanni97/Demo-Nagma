@@ -1,18 +1,15 @@
 "use client";
 
 import Box from '@mui/material/Box';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
-import MonthPicker from '@/common/components/ui/MonthPicker';
 import DataTable, { TableFooterTotal, createDateColumn, createPriceColumn, type ColumnDefinition } from '@/common/components/table/DataTable';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormInput from '@/common/components/forms/FormInput';
-import Button from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
-import PermissionGate from '@/common/components/auth/PermissionGate';
-import { useMonthNavigation } from '@/common/hooks/useMonthNavigation';
+import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
 import { useToast } from '@/common/hooks/useToast';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import { entrataLiberaApi } from '../api/entrata-libera.api';
@@ -29,7 +26,11 @@ const columns: ColumnDefinition<EntrataLibera>[] = [
 // ─── Pagina ───────────────────────────────────────────────────────────────────
 
 export default function EntratePage() {
-  const { currentMonth: currentDate, setCurrentMonth: setCurrentDate, monthStr, monthLabel } = useMonthNavigation();
+  const filters = useSmartFiltersState({
+    searchPlaceholder: 'Cerca entrata...',
+    enableMonthPicker: true,
+  });
+  const { monthStr, monthLabel, debouncedSearch, smartFiltersProps } = filters;
   const toast = useToast();
 
   const [allEntrate, setAllEntrate] = useState<EntrataLibera[]>([]);
@@ -50,7 +51,12 @@ export default function EntratePage() {
 
   useEffect(() => { fetchEntrate(); }, [fetchEntrate]);
 
-  const entrate = allEntrate.filter((e) => e.createdAt.startsWith(monthStr));
+  const allMonthEntrate = allEntrate.filter((e) => e.createdAt.startsWith(monthStr));
+  const entrate = useMemo(() => {
+    if (!debouncedSearch) return allMonthEntrate;
+    const q = debouncedSearch.toLowerCase();
+    return allMonthEntrate.filter((e) => e.name.toLowerCase().includes(q));
+  }, [allMonthEntrate, debouncedSearch]);
   const total = entrate.reduce((acc, e) => acc + e.amount, 0);
 
   // ─── Modale Aggiungi ────────────────────────────────────────────────
@@ -106,31 +112,12 @@ export default function EntratePage() {
     <PageContainer>
       <PageHeader
         title="Entrate Libere"
-        expandFilters
-        filters={
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              flexDirection: { xs: 'column', md: 'row' },
-              gap: 1.5,
-              width: '100%',
-            }}
-          >
-            <MonthPicker value={currentDate} onChange={setCurrentDate} />
-            <PermissionGate requireAdmin>
-              <Button
-                variant="secondary"
-                onClick={handleOpenModal}
-                sx={{ height: '42px', px: 3, borderRadius: 2, fontWeight: 600 }}
-              >
-                <Icon name="plus" size={16} />
-                Aggiungi
-              </Button>
-            </PermissionGate>
-          </Box>
-        }
+        smartFilters={smartFiltersProps}
+        showButton
+        buttonLabel="Aggiungi"
+        buttonIcon={<Icon name="plus" size={16} />}
+        buttonRequiresAdmin
+        onButtonClick={handleOpenModal}
       />
 
       <Box sx={{ flex: 1, minHeight: 0 }}>

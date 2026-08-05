@@ -1,18 +1,16 @@
 "use client";
 
 import Box from '@mui/material/Box';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
-import MonthPicker from '@/common/components/ui/MonthPicker';
 import DataTable, { TableFooterTotal, createDateColumn, createPriceColumn, type ColumnDefinition } from '@/common/components/table/DataTable';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormInput from '@/common/components/forms/FormInput';
-import Button from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
-import PermissionGate from '@/common/components/auth/PermissionGate';
 import { useMonthNavigation } from '@/common/hooks/useMonthNavigation';
+import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
 import { useToast } from '@/common/hooks/useToast';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
@@ -30,12 +28,21 @@ const columns: ColumnDefinition<SpesaLibera>[] = [
 // ─── Pagina ───────────────────────────────────────────────────────────────────
 
 export default function SpesePage() {
-  const { currentMonth: currentDate, setCurrentMonth: setCurrentDate, monthStr, monthLabel } = useMonthNavigation();
+  const filters = useSmartFiltersState({
+    searchPlaceholder: 'Cerca spesa...',
+    enableMonthPicker: true,
+  });
+  const { monthStr, monthLabel, debouncedSearch, smartFiltersProps } = filters;
   const toast = useToast();
 
   const { data: allSpese, isLoading, mutate } = useSpeseLibere(monthStr);
 
-  const spese = allSpese?.filter((s) => s.createdAt.startsWith(monthStr)) ?? [];
+  const allMonthSpese = allSpese?.filter((s) => s.createdAt.startsWith(monthStr)) ?? [];
+  const spese = useMemo(() => {
+    if (!debouncedSearch) return allMonthSpese;
+    const q = debouncedSearch.toLowerCase();
+    return allMonthSpese.filter((s) => s.name.toLowerCase().includes(q));
+  }, [allMonthSpese, debouncedSearch]);
   const total = spese.reduce((acc, s) => acc + s.price, 0);
 
   // ─── Modale Aggiungi ────────────────────────────────────────────────
@@ -91,31 +98,12 @@ export default function SpesePage() {
     <PageContainer>
       <PageHeader
         title="Spese Libere"
-        expandFilters
-        filters={(
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              flexDirection: { xs: 'column', md: 'row' },
-              gap: 1.5,
-              width: '100%',
-            }}
-          >
-            <MonthPicker value={currentDate} onChange={setCurrentDate} />
-            <PermissionGate requireAdmin>
-              <Button
-                variant="secondary"
-                onClick={handleOpenModal}
-                sx={{ height: '42px', px: 3, borderRadius: 2, fontWeight: 600 }}
-              >
-                <Icon name="plus" size={16} />
-                Aggiungi
-              </Button>
-            </PermissionGate>
-          </Box>
-        )}
+        smartFilters={smartFiltersProps}
+        showButton
+        buttonLabel="Aggiungi"
+        buttonIcon={<Icon name="plus" size={16} />}
+        buttonRequiresAdmin
+        onButtonClick={handleOpenModal}
       />
 
       <Box sx={{ flex: 1, minHeight: 0 }}>

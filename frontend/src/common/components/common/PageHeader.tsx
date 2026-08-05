@@ -172,7 +172,7 @@ export default function PageHeader({
         }}
       >
         {filterContent && (
-          <Box sx={{ minWidth: 0, flex: (expandFilters || smartFilters) ? 1 : '0 1 auto' }}>
+          <Box sx={{ minWidth: 0, flex: expandFilters ? 1 : '0 1 auto' }}>
             {filterContent}
           </Box>
         )}

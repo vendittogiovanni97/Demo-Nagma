@@ -39,13 +39,35 @@ export function validateJwtSecret(): void {
   logger.info('JWT_SECRET validation passed', { length: secret.length });
 }
 
+/**
+ * SECURITY: rotte in cui è tollerato il token via query-param (?token=).
+ * Necessario solo per i download avviati dal browser (es. backup DB), dove
+ * non è possibile impostare l'header Authorization su un <a href> / window.open.
+ * Il token in query finisce nei log/proxy/cronologia: mantenere questa lista
+ * ridotta al minimo indispensabile. Tutte le altre rotte accettano SOLO il
+ * Bearer token nell'header Authorization.
+ */
+const QUERY_TOKEN_ALLOWED_ROUTES: ReadonlyArray<{ method: string; path: string }> = [
+  { method: 'GET', path: '/api/config/backup' },
+];
+
+function isQueryTokenAllowed(req: Request): boolean {
+  return QUERY_TOKEN_ALLOWED_ROUTES.some(
+    (r) => r.method === req.method && req.path === r.path,
+  );
+}
+
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   let token = '';
   const authHeader = req.headers.authorization;
 
   if (authHeader?.startsWith('Bearer ')) {
     token = authHeader.split(' ')[1];
-  } else if (req.query.token && typeof req.query.token === 'string') {
+  } else if (
+    req.query.token &&
+    typeof req.query.token === 'string' &&
+    isQueryTokenAllowed(req)
+  ) {
     token = req.query.token;
   }
 

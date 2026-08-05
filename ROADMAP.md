@@ -51,12 +51,12 @@ Il progetto parte da fondamenta solide. Punti già presidiati:
 
 **Obiettivo:** eliminare i segreti dal versionamento e ridurre la superficie di attacco, senza modifiche funzionali visibili all'utente.
 
-- [ ] Rimuovere i file `.env` dal tracking git, aggiungere la regola `.env` al `.gitignore`, mantenere solo i `.env.example`.
-- [ ] Ruotare **tutti** i segreti esposti: `JWT_SECRET`, password del database, credenziali di seed usate in ambienti reali.
+- [x] Rimuovere i file `.env` dal tracking git, aggiungere la regola `.env` al `.gitignore`, mantenere solo i `.env.example`.
+- [~] Ruotare **tutti** i segreti esposti (JWT_SECRET dev ruotato; prod/DB da fare in infra): `JWT_SECRET`, password del database, credenziali di seed usate in ambienti reali.
 - [ ] Purgare i segreti dalla cronologia git (BFG / `git-filter-repo`) e forzare il re-clone del team.
-- [ ] Rimuovere l'autenticazione via query-param `?token=`, o limitarla a URL firmati e a scadenza breve per i soli download.
-- [ ] Aggiungere una guardia `NODE_ENV` su `/api-docs` (Swagger disabilitato o protetto in produzione).
-- [ ] Consolidare i due workflow CI in un'unica pipeline coerente.
+- [x] Rimuovere l'autenticazione via query-param `?token=`, o limitarla a URL firmati e a scadenza breve per i soli download.
+- [x] Aggiungere una guardia `NODE_ENV` su `/api-docs` (Swagger disabilitato o protetto in produzione).
+- [x] Consolidare i due workflow CI in un'unica pipeline coerente.
 
 **Definizione di "fatto":**
 - Nessun file `.env` in `git ls-files`; segreti storici rimossi dalla history.

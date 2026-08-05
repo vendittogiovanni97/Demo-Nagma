@@ -116,17 +116,28 @@ export function createApp() {
 
   registerRoutes(app);
 
-  // Build the Swagger spec only when /api-docs is actually requested.
-  app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {
-    const swaggerSpec = getSwaggerSpec();
-    const swaggerHandler = swaggerUi.setup(swaggerSpec, {
-      explorer: true,
-      customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'Nagma Tattoo CRM - API Docs',
-    });
+  // SECURITY: la documentazione Swagger espone l'intera superficie API e non
+  // deve essere raggiungibile in produzione. La si monta solo fuori da
+  // NODE_ENV=production (override esplicito con ENABLE_API_DOCS=true se serve
+  // pubblicarla dietro protezione a livello di reverse-proxy).
+  const apiDocsEnabled =
+    process.env.NODE_ENV !== 'production' || process.env.ENABLE_API_DOCS === 'true';
 
-    swaggerHandler(req, res, next);
-  });
+  if (apiDocsEnabled) {
+    // Build the Swagger spec only when /api-docs is actually requested.
+    app.use('/api-docs', swaggerUi.serve, (req: Request, res: Response, next: NextFunction) => {
+      const swaggerSpec = getSwaggerSpec();
+      const swaggerHandler = swaggerUi.setup(swaggerSpec, {
+        explorer: true,
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'Nagma Tattoo CRM - API Docs',
+      });
+
+      swaggerHandler(req, res, next);
+    });
+  } else {
+    logger.info('Swagger /api-docs disabilitato (NODE_ENV=production)');
+  }
 
   app.use(globalErrorHandler);
 

@@ -167,6 +167,7 @@ export default function CreamsPage() {
           fetchData={fetchSales}
           refreshKey={refreshKey}
           columns={columns}
+          hideToolbar
           emptyTitle={hasFilters ? "Nessuna vendita trovata." : "Nessuna vendita registrata."}
           emptyDescription={hasFilters ? "Prova a cambiare i filtri impostati." : "Clicca su \"Nuova Vendita\" per registrare la prima transazione."}
           keyExtractor={(row) => row.id}

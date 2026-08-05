@@ -127,6 +127,7 @@ export default function CustomerListPage() {
           fetchData={fetchCustomers}
           refreshKey={refreshKey}
           keyExtractor={(c) => c.id}
+          hideToolbar
           onDelete={isAdmin ? handleDelete : undefined}
           rowActions={getRowActions}
           deleteConfirmMessage="Sei sicuro di voler eliminare questo cliente?"

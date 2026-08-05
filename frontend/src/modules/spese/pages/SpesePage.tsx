@@ -124,6 +124,7 @@ export default function SpesePage() {
           data={spese}
           isLoading={isLoading}
           keyExtractor={(s) => s.id}
+          hideToolbar
           emptyTitle={`Nessuna spesa per ${monthLabel}`}
           emptyDescription="Registra la tua prima spesa per questo mese."
           onDelete={handleDelete}

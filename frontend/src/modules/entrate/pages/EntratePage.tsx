@@ -139,6 +139,7 @@ export default function EntratePage() {
           data={entrate}
           isLoading={isLoading}
           keyExtractor={(e) => e.id}
+          hideToolbar
           emptyTitle={`Nessuna entrata per ${monthLabel}`}
           emptyDescription="Registra la tua prima entrata per questo mese."
           onDelete={handleDelete}

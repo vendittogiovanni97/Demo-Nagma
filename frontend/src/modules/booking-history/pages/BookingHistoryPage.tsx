@@ -147,6 +147,7 @@ export default function BookingHistoryPage() {
           fetchData={fetchHistory}
           refreshKey={refreshKey}
           keyExtractor={(entry) => entry.id}
+          hideToolbar
           emptyTitle="Nessuna modifica"
           emptyDescription="Nessuna modifica trovata per i filtri selezionati."
           renderCard={(entry) => <BookingHistoryCard entry={entry} />}

@@ -35,6 +35,12 @@ interface SelectConfig extends FilterConfig {
   options: { label: string; value: string }[];
 }
 
+interface SegmentedConfig {
+  value: string;
+  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+}
+
 export interface SmartFiltersProps {
   search?: FilterConfig;
   dateRange?: {
@@ -42,6 +48,7 @@ export interface SmartFiltersProps {
     end: FilterConfig;
   };
   select?: SelectConfig;
+  segmented?: SegmentedConfig;
   monthPicker?: MonthPickerConfig;
   /** If true and monthPicker is missing, adds a spacer to align with pages that have it */
   alignWithMonthPicker?: boolean;
@@ -55,6 +62,7 @@ export default function SmartFilters({
   search,
   dateRange,
   select,
+  segmented,
   monthPicker,
   alignWithMonthPicker = false,
   submitAction,
@@ -133,6 +141,47 @@ export default function SmartFilters({
                 '& .MuiInputBase-root': { height: 36 }
               }}
             />
+          </Box>
+        )}
+
+        {/* Segmented Control Filter (e.g., Tutti / Entrate / Uscite) */}
+        {segmented && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              p: 0.35,
+              borderRadius: 2.5,
+              bgcolor: alpha(muiTheme.palette.background.paper, 0.4),
+              border: `1px solid ${alpha(muiTheme.palette.primary.main, 0.15)}`,
+              backdropFilter: 'blur(10px)',
+              gap: 0.5,
+              flexShrink: 0,
+            }}
+          >
+            {segmented.options.map((opt) => {
+              const isActive = opt.value === segmented.value;
+              return (
+                <Button
+                  key={opt.value}
+                  variant={isActive ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => segmented.onChange(opt.value)}
+                  sx={{
+                    px: 1.5,
+                    height: 28,
+                    fontSize: '0.75rem',
+                    fontWeight: isActive ? 700 : 500,
+                    borderRadius: 2,
+                    ...(isActive && {
+                      boxShadow: `0 0 12px ${alpha(muiTheme.palette.primary.main, 0.4)}`,
+                    }),
+                  }}
+                >
+                  {opt.label}
+                </Button>
+              );
+            })}
           </Box>
         )}
 

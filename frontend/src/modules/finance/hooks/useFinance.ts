@@ -10,22 +10,26 @@ export function useFinance(initialMonth = new Date()) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [type, setType] = useState<TransactionFilterType>('ALL');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
 
   const monthStr = format(month, 'yyyy-MM');
 
   const { data, isLoading, mutate, error } = useSWR(
-    ['/finance/transactions', monthStr, page, debouncedSearch, type],
+    ['/finance/transactions', monthStr, page, debouncedSearch, type, startDate, endDate],
     () => financeApi.getAll({ 
       month: monthStr, 
       page, 
       search: debouncedSearch, 
-      type: type === 'ALL' ? undefined : type 
+      type: type === 'ALL' ? undefined : type,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
     })
   );
 
   const { data: summary, isLoading: isLoadingSummary, mutate: mutateSummary } = useSWR(
-    ['/finance/transactions/summary', monthStr],
+    ['/finance/transactions/summary', monthStr, startDate, endDate],
     () => financeApi.getSummary(monthStr)
   );
 
@@ -43,6 +47,14 @@ export function useFinance(initialMonth = new Date()) {
     setMonth,
     type,
     setType,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    resetDates: () => {
+      setStartDate('');
+      setEndDate('');
+    },
     refresh: () => { mutate(); mutateSummary(); }
   };
 }

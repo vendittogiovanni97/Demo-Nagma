@@ -1,7 +1,7 @@
 "use client";
 
 import SearchInput from '@/common/components/forms/SearchInput';
-import FormInput from '@/common/components/forms/FormInput';
+import DatePicker from '@/common/components/forms/DatePicker';
 import FormSelect from '@/common/components/forms/FormSelect';
 import { useBreakpointContext } from '@/common/context/BreakpointContext';
 import {
@@ -141,22 +141,22 @@ export default function SmartFilters({
           <>
             {dateRange && (
               <Stack direction="row" useFlexGap sx={{ gap: 0.75, flexShrink: 0 }}>
-                <FormInput
+                <DatePicker
                   label={dateRange.start.label || "Dal"}
-                  type="date"
                   value={dateRange.start.value}
                   onChange={dateRange.start.onChange}
                   size="sm"
                   hideLabel
+                  placeholder="Dal"
                   sx={{ width: dateWidth }}
                 />
-                <FormInput
+                <DatePicker
                   label={dateRange.end.label || "Al"}
-                  type="date"
                   value={dateRange.end.value}
                   onChange={dateRange.end.onChange}
                   size="sm"
                   hideLabel
+                  placeholder="Al"
                   sx={{ width: dateWidth }}
                 />
               </Stack>
@@ -226,20 +226,20 @@ export default function SmartFilters({
           >
             {dateRange && (
               <Stack direction="row" useFlexGap sx={{ gap: 1, width: { xs: '100%', sm: 'auto' } }}>
-                <FormInput
+                <DatePicker
                   label={dateRange.start.label || "Dal"}
-                  type="date"
                   value={dateRange.start.value}
                   onChange={dateRange.start.onChange}
                   size="sm"
+                  placeholder="Dal"
                   sx={{ flex: 1, minWidth: 130 }}
                 />
-                <FormInput
+                <DatePicker
                   label={dateRange.end.label || "Al"}
-                  type="date"
                   value={dateRange.end.value}
                   onChange={dateRange.end.onChange}
                   size="sm"
+                  placeholder="Al"
                   sx={{ flex: 1, minWidth: 130 }}
                 />
               </Stack>

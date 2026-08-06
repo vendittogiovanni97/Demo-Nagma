@@ -4,7 +4,7 @@ import DashboardWidgetCard from './DashboardWidgetCard';
 import Icon from '@/common/components/ui/Icon';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import MonthPicker from '@/common/components/ui/MonthPicker';
 import { formatPrice } from '@/common/shared/utils/format';
 import { alpha, useTheme } from '@mui/material/styles';
@@ -57,6 +57,48 @@ export default function FinanceOverviewWidget({
     { name: 'Entrate', value: showBilancioData ? (totalIncome || 0.01) : 0.01, color: theme.palette.primary.main },
     { name: 'Uscite', value: showBilancioData ? (totalExpense || 0.01) : 0.01, color: theme.palette.error.main },
   ], [totalIncome, totalExpense, showBilancioData, theme.palette.primary.main, theme.palette.error.main]);
+
+  // Tooltip custom in Glassmorphism per il grafico Recharts
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length && showBilancioData) {
+      const data = payload[0];
+      const isEntrate = data.name === 'Entrate';
+      const amount = isEntrate ? totalIncome : totalExpense;
+      const total = totalIncome + totalExpense;
+      const percentage = total > 0 ? ((amount / total) * 100).toFixed(1) : '0';
+
+      return (
+        <Box
+          sx={{
+            p: 1.25,
+            px: 1.75,
+            borderRadius: 2.5,
+            bgcolor: alpha(theme.palette.background.paper, 0.88),
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${alpha(data.payload.color || theme.palette.primary.main, 0.4)}`,
+            boxShadow: `0 8px 24px ${alpha(theme.palette.common.black, 0.4)}, 0 0 15px ${alpha(data.payload.color || theme.palette.primary.main, 0.2)}`,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: data.payload.color,
+              mb: 0.25,
+            }}
+          >
+            {data.name} ({percentage}%)
+          </Typography>
+          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 800, color: 'text.primary', fontFamily: 'Outfit, sans-serif' }}>
+            {formatPrice(amount)}
+          </Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
 
   // Header Actions per WIDGET 1: BILANCIO
   const bilancioHeaderActions = (
@@ -143,10 +185,14 @@ export default function FinanceOverviewWidget({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              '& *:focus, & *:focus-visible, & .recharts-surface, & .recharts-sector, & .recharts-pie-sector': {
+                outline: 'none !important',
+                boxShadow: 'none !important',
+              },
             }}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart accessibilityLayer={false}>
+              <PieChart accessibilityLayer={false} style={{ outline: 'none' }}>
                 <defs>
                   <linearGradient id="gradientEntrate" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
@@ -157,6 +203,11 @@ export default function FinanceOverviewWidget({
                     <stop offset="100%" stopColor={theme.palette.error.dark} stopOpacity={0.8} />
                   </linearGradient>
                 </defs>
+                <RechartsTooltip
+                  content={<CustomTooltip />}
+                  wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                  position={{ x: 10, y: 10 }}
+                />
                 <Pie
                   data={financeData}
                   innerRadius={58}
@@ -166,9 +217,10 @@ export default function FinanceOverviewWidget({
                   stroke="transparent"
                   animationDuration={1000}
                   cornerRadius={5}
+                  style={{ outline: 'none' }}
                 >
-                  <Cell fill="url(#gradientEntrate)" />
-                  <Cell fill="url(#gradientUscite)" />
+                  <Cell fill="url(#gradientEntrate)" style={{ outline: 'none' }} />
+                  <Cell fill="url(#gradientUscite)" style={{ outline: 'none' }} />
                 </Pie>
               </PieChart>
             </ResponsiveContainer>

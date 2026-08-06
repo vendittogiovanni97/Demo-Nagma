@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -55,6 +56,8 @@ export const ConfirmDialog = ({
   const resolvedCancelText = cancelText ?? t('Annulla');
   const resolvedSeverity = severity === 'primary' && isDangerous ? 'error' : severity;
   const severityColor = theme.palette[resolvedSeverity].main;
+  const isLight = theme.palette.mode === 'light';
+
   const ConfirmButton = resolvedSeverity === 'error'
     ? DeleteButton
     : resolvedSeverity === 'primary'
@@ -72,18 +75,23 @@ export const ConfirmDialog = ({
       slotProps={{
         backdrop: {
           sx: {
-            bgcolor: alpha(theme.palette.common.black, 0.72),
-            backdropFilter: 'blur(4px)',
+            bgcolor: alpha(theme.palette.common.black, 0.8),
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
           },
         },
         paper: {
           sx: {
             m: 2,
-            borderRadius: 3,
-            bgcolor: 'background.paper',
+            borderRadius: '18px',
+            bgcolor: isLight
+              ? 'rgba(255, 255, 255, 0.98)'
+              : alpha(theme.palette.background.paper, 0.9),
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
             backgroundImage: 'none',
-            border: `1px solid ${alpha(severityColor, 0.42)}`,
-            boxShadow: `0 24px 64px ${alpha(theme.palette.common.black, 0.5)}`,
+            border: `1px solid ${alpha(severityColor, 0.35)}`,
+            boxShadow: `0 24px 64px ${alpha(theme.palette.common.black, 0.6)}, 0 0 30px ${alpha(severityColor, 0.2)}`,
             overflow: 'hidden',
           },
         },
@@ -94,31 +102,40 @@ export const ConfirmDialog = ({
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          gap: 1.75,
           px: { xs: 2.5, sm: 3 },
-          py: 2.25,
+          py: 2.5,
           color: 'text.primary',
-          fontSize: '1.05rem',
+          fontSize: '1.1rem',
           fontWeight: 800,
-          borderBottom: `1px solid ${alpha(severityColor, 0.2)}`,
+          fontFamily: 'Outfit, sans-serif',
+          borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
         }}
       >
         <Box
           sx={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             flexShrink: 0,
-            display: 'grid',
-            placeItems: 'center',
-            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '12px',
             color: severityColor,
             bgcolor: alpha(severityColor, 0.12),
-            border: `1px solid ${alpha(severityColor, 0.28)}`,
+            border: `1px solid ${alpha(severityColor, 0.35)}`,
+            boxShadow: `0 0 20px ${alpha(severityColor, 0.3)}`,
+            animation: 'pulseDanger 2s infinite ease-in-out',
+            '@keyframes pulseDanger': {
+              '0%': { boxShadow: `0 0 10px ${alpha(severityColor, 0.2)}` },
+              '50%': { boxShadow: `0 0 26px ${alpha(severityColor, 0.5)}` },
+              '100%': { boxShadow: `0 0 10px ${alpha(severityColor, 0.2)}` },
+            },
           }}
         >
           <Icon
             name={resolvedSeverity === 'error' ? 'alertTriangle' : 'info'}
-            size={21}
+            size={22}
           />
         </Box>
         {resolvedTitle}
@@ -126,9 +143,8 @@ export const ConfirmDialog = ({
 
       <DialogContent
         sx={{
-          pl: { xs: 9, sm: 9.5 },
-          pr: { xs: 2.5, sm: 3 },
-          py: 2.25,
+          px: { xs: 2.5, sm: 3 },
+          py: 2.5,
           minHeight: 72,
           display: 'flex',
           flexDirection: 'column',
@@ -141,7 +157,7 @@ export const ConfirmDialog = ({
           sx={{
             m: 0,
             color: 'text.primary',
-            fontSize: '0.95rem',
+            fontSize: '0.9375rem',
             lineHeight: 1.6,
           }}
         >
@@ -155,7 +171,7 @@ export const ConfirmDialog = ({
           px: { xs: 2.5, sm: 3 },
           py: 2.25,
           gap: 1.25,
-          borderTop: `1px solid ${theme.palette.divider}`,
+          borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
         }}
       >
         <CancelButton

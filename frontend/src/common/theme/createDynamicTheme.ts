@@ -230,6 +230,28 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
             backgroundRepeat: 'no-repeat',
             pointerEvents: 'none',
           },
+          '*::-webkit-scrollbar': {
+            width: '6px',
+            height: '6px',
+          },
+          '*::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: hexToRgba(primaryColor, mode === 'light' ? 0.25 : 0.35),
+            borderRadius: '4px',
+            border: 'none',
+          },
+          '*::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: hexToRgba(primaryColor, mode === 'light' ? 0.5 : 0.65),
+          },
+          '*::-webkit-scrollbar-corner': {
+            backgroundColor: 'transparent',
+          },
+          '*': {
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${hexToRgba(primaryColor, mode === 'light' ? 0.25 : 0.35)} transparent`,
+          },
         },
       },
 
@@ -330,24 +352,77 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
       // ── Checkbox / Radio / Switch ────────────────────────────────────────────
       MuiCheckbox: {
         styleOverrides: {
-          root: { '&.Mui-checked': { color: primaryColor } },
+          root: {
+            color: mode === 'light' ? 'rgba(0,0,0,0.4)' : hexToRgba(primaryColor, 0.4),
+            padding: 6,
+            borderRadius: 6,
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              backgroundColor: hexToRgba(primaryColor, 0.12),
+              transform: 'scale(1.08)',
+            },
+            '&.Mui-checked': {
+              color: primaryColor,
+              filter: `drop-shadow(0 0 6px ${hexToRgba(primaryColor, 0.5)})`,
+              '&:hover': {
+                backgroundColor: hexToRgba(primaryColor, 0.18),
+              },
+            },
+            '&.Mui-disabled': {
+              opacity: 0.4,
+            },
+          },
         },
       },
       MuiRadio: {
         styleOverrides: {
-          root: { '&.Mui-checked': { color: primaryColor } },
+          root: {
+            color: mode === 'light' ? 'rgba(0,0,0,0.4)' : hexToRgba(primaryColor, 0.4),
+            padding: 6,
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              backgroundColor: hexToRgba(primaryColor, 0.12),
+              transform: 'scale(1.08)',
+            },
+            '&.Mui-checked': {
+              color: primaryColor,
+              filter: `drop-shadow(0 0 6px ${hexToRgba(primaryColor, 0.5)})`,
+              '&:hover': {
+                backgroundColor: hexToRgba(primaryColor, 0.18),
+              },
+            },
+            '&.Mui-disabled': {
+              opacity: 0.4,
+            },
+          },
         },
       },
       MuiSwitch: {
         styleOverrides: {
+          root: {
+            padding: 6,
+          },
           switchBase: {
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              backgroundColor: hexToRgba(primaryColor, 0.1),
+            },
             '&.Mui-checked': {
               color: primaryColor,
-              '& + .MuiSwitch-track': { backgroundColor: hexToRgba(primaryColor, 0.5) },
+              filter: `drop-shadow(0 0 6px ${hexToRgba(primaryColor, 0.6)})`,
+              '& + .MuiSwitch-track': {
+                backgroundColor: hexToRgba(primaryColor, 0.5),
+                opacity: 0.8,
+              },
+              '&:hover': {
+                backgroundColor: hexToRgba(primaryColor, 0.2),
+              },
             },
           },
           track: {
-            backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.38)',
+            borderRadius: 12,
+            backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(4px)',
           },
         },
       },
@@ -405,6 +480,57 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
             boxShadow: mode === 'light'
               ? '0 1px 4px 0 rgba(0,0,0,0.1)'
               : '0 4px 16px 0 rgba(0,0,0,0.3)',
+          },
+        },
+      },
+
+      // ── Menu / Dropdown ──────────────────────────────────────────────────────
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: mode === 'light'
+              ? 'rgba(255, 255, 255, 0.98)'
+              : hexToRgba(activePalette.background.paper, 0.88),
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: `1px solid ${hexToRgba(primaryColor, 0.25)}`,
+            borderRadius: 12,
+            boxShadow: mode === 'light'
+              ? '0 10px 30px rgba(0,0,0,0.1)'
+              : `0 16px 40px rgba(0,0,0,0.4), 0 0 20px ${hexToRgba(primaryColor, 0.15)}`,
+            padding: 0,
+            overflow: 'hidden',
+          },
+          list: {
+            padding: '4px',
+            '&::-webkit-scrollbar-track': {
+              marginTop: '8px',
+              marginBottom: '8px',
+            },
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            margin: '2px 4px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            transition: 'all 0.15s ease',
+            color: activePalette.text.primary,
+            '&:hover': {
+              backgroundColor: hexToRgba(primaryColor, 0.15),
+              color: primaryColor,
+            },
+            '&.Mui-selected': {
+              backgroundColor: hexToRgba(primaryColor, 0.2),
+              color: primaryColor,
+              fontWeight: 700,
+              '&:hover': {
+                backgroundColor: hexToRgba(primaryColor, 0.25),
+              },
+            },
           },
         },
       },
@@ -469,33 +595,7 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
         },
       },
 
-      // ── Menu / MenuItem ───────────────────────────────────────────────────────
-      MuiMenu: {
-        styleOverrides: {
-          paper: {
-            backgroundColor: mode === 'light' ? '#ffffff' : '#1a2332',
-            border: `1px solid ${mode === 'light' ? 'rgba(0,0,0,0.08)' : hexToRgba(primaryColor, 0.15)}`,
-            boxShadow: mode === 'light'
-              ? '0 4px 16px rgba(0,0,0,0.12)'
-              : '0 8px 32px rgba(0,0,0,0.4)',
-          },
-        },
-      },
-      MuiMenuItem: {
-        styleOverrides: {
-          root: {
-            color: mode === 'light' ? '#1a202c' : '#ffffff',
-            '&.Mui-selected': {
-              backgroundColor: hexToRgba(primaryColor, 0.12),
-              color: primaryColor,
-              '&:hover': { backgroundColor: hexToRgba(primaryColor, 0.18) },
-            },
-            '&:hover': {
-              backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)',
-            },
-          },
-        },
-      },
+
 
       // ── Chip ─────────────────────────────────────────────────────────────────
       MuiChip: {
@@ -515,27 +615,102 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            backgroundColor: mode === 'light' ? '#2d3748' : '#e2e8f0',
-            color: mode === 'light' ? '#ffffff' : '#1a202c',
+            backgroundColor: mode === 'light'
+              ? 'rgba(15, 23, 42, 0.92)'
+              : hexToRgba(activePalette.background.paper, 0.88),
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            color: '#ffffff',
             fontSize: '0.75rem',
-            borderRadius: 6,
+            fontWeight: 600,
+            borderRadius: 8,
+            border: `1px solid ${hexToRgba(primaryColor, 0.3)}`,
+            boxShadow: mode === 'light'
+              ? '0 6px 20px rgba(0,0,0,0.2)'
+              : `0 12px 32px rgba(0,0,0,0.4), 0 0 15px ${hexToRgba(primaryColor, 0.2)}`,
+            padding: '6px 10px',
           },
           arrow: {
-            color: mode === 'light' ? '#2d3748' : '#e2e8f0',
+            color: mode === 'light'
+              ? 'rgba(15, 23, 42, 0.92)'
+              : hexToRgba(activePalette.background.paper, 0.88),
           },
         },
       },
 
-      // ── Pagination ───────────────────────────────────────────────────────────
+      MuiTablePagination: {
+        styleOverrides: {
+          root: {
+            color: activePalette.text.secondary,
+            fontSize: '0.8125rem',
+            borderTop: 'none',
+            '& .MuiTablePagination-toolbar': {
+              minHeight: 44,
+              paddingLeft: '12px',
+              paddingRight: '12px',
+            },
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              color: activePalette.text.secondary,
+            },
+            '& .MuiTablePagination-select': {
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              color: primaryColor,
+              paddingLeft: '6px',
+              paddingRight: '22px !important',
+              backgroundColor: 'transparent !important',
+              borderRadius: 6,
+              '&:focus': {
+                backgroundColor: 'transparent !important',
+              },
+            },
+            '& .MuiTablePagination-selectIcon': {
+              color: primaryColor,
+              right: 0,
+            },
+            '& .MuiTablePagination-actions': {
+              marginLeft: '12px',
+              '& .MuiIconButton-root': {
+                color: primaryColor,
+                borderRadius: 8,
+                padding: '6px',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: hexToRgba(primaryColor, 0.15),
+                  transform: 'scale(1.05)',
+                },
+                '&.Mui-disabled': {
+                  color: activePalette.text.disabled,
+                  opacity: 0.3,
+                },
+              },
+            },
+          },
+        },
+      },
       MuiPagination: {
         styleOverrides: {
           root: {
             '& .MuiPaginationItem-root': {
-              color: mode === 'light' ? '#4a5568' : '#b0b0b0',
+              borderRadius: 8,
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: activePalette.text.secondary,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: hexToRgba(primaryColor, 0.12),
+                color: primaryColor,
+              },
               '&.Mui-selected': {
                 backgroundColor: primaryColor,
-                color: mode === 'light' ? '#ffffff' : '#0a1a26',
-                '&:hover': { backgroundColor: hexToRgba(primaryColor, 0.85) },
+                color: mode === 'light' ? '#ffffff' : '#000000',
+                boxShadow: `0 0 12px ${hexToRgba(primaryColor, 0.4)}`,
+                fontWeight: 700,
+                '&:hover': {
+                  backgroundColor: primaryColor,
+                },
               },
             },
           },

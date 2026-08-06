@@ -96,17 +96,37 @@ const icons: Record<string, LucideIcon> = {
   piu: Plus,
 };
 
-interface IconProps {
+export interface IconProps {
   name: string;
   size?: number;
+  strokeWidth?: number;
   className?: string;
   color?: string;
+  glow?: boolean;
 }
 
-export default function Icon({ name, size = 20, className, color }: IconProps) {
+export default function Icon({
+  name,
+  size = 20,
+  strokeWidth = 1.8,
+  className,
+  color,
+  glow = false,
+}: IconProps) {
   const IconComponent = icons[name];
   if (!IconComponent) return <></>;
-  return <IconComponent size={size} className={className} color={color} />;
+  return (
+    <IconComponent
+      size={size}
+      strokeWidth={strokeWidth}
+      className={className}
+      color={color}
+      style={{
+        filter: glow ? `drop-shadow(0 0 6px ${color || 'rgba(0, 191, 255, 0.6)'})` : undefined,
+        transition: 'all 0.2s ease',
+      }}
+    />
+  );
 }
 
 export { AlertCircle, AlertTriangle, ArrowLeft, ArrowRight, Calendar, CalendarDays, Check, CheckCircle, CheckCircle2, ChevronLeft, ChevronRight, Clock, Cloud, Copy, DollarSign, Download, Edit, Edit2, Edit3, ExternalLink, Eye, EyeOff, FileDown, FileSpreadsheet, FileText, Hash, Heart, HelpCircle, Home, Inbox, Info, Loader2, Lock, Mail, MapPin, Maximize2, MessageCircle, MoreVertical, Music, Package, Palette, Paperclip, PenTool, Pencil, Phone, Plus, PlusCircle, RefreshCw, RotateCcw, RotateCw, Save, Search, Settings, ShieldCheck, SlidersHorizontal, Star, Timer, Trash2, TrendingDown, TrendingUp, User, UserCheck, Wallet, X, XCircle, Zap, type LucideIcon } from 'lucide-react';

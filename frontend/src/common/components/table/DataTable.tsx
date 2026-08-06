@@ -14,7 +14,7 @@ import React, {
 import { useTranslation } from 'react-i18next';
 
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import TablePagination from '@mui/material/TablePagination';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -318,6 +318,28 @@ export function DataTable<E>(props: DataTableProps<E>) {
           if (type === 'last') return t('Ultima pagina');
           if (type === 'next') return t('Pagina successiva');
           return t('Pagina precedente');
+        }}
+        slotProps={{
+          select: {
+            MenuProps: {
+              slotProps: {
+                paper: {
+                  sx: {
+                    mt: 1,
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    bgcolor: (theme) => theme.palette.mode === 'light'
+                      ? 'rgba(255, 255, 255, 0.98)'
+                      : alpha(theme.palette.background.paper, 0.88),
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+                    boxShadow: (theme) => `0 16px 40px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
+                  },
+                },
+              },
+            },
+          },
         }}
         className="table-pagination"
         sx={{ mt: footerContent ? 0.5 : 2, flexShrink: 0 }}

@@ -8,21 +8,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { alpha } from '@mui/material/styles';
-import { X } from "lucide-react";
+import { AlertCircle, CheckCircle2, Info, Loader2, X } from "lucide-react";
 import { forwardRef, useEffect, useState, type ReactNode } from "react";
-
-/**
- * Toast Component - MUI Alert con design system personalizzato e auto-dismiss
- *
- * Variants: success, error, warning, info
- * Severity levels
- * Close button
- * Auto-dismiss timer (5s default)
- *
- * @example
- * <Toast severity="success" message="Operazione completata!" />
- * <Toast severity="error" message="Errore di connessione" autoClose={false} />
- */
 
 type ToastSeverity = "success" | "error" | "warning" | "info";
 
@@ -54,31 +41,27 @@ const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
     const severityConfig: Record<
       ToastSeverity,
-      { backgroundColor: string; borderColor: string; color: string; icon: string }
+      { borderColor: string; glowColor: string; icon: ReactNode }
     > = {
       success: {
-        backgroundColor: alpha(theme.palette.custom.whatsapp, 0.1),
-        borderColor: alpha(theme.palette.custom.whatsapp, 0.4),
-        color: theme.palette.custom.whatsapp,
-        icon: "✓",
+        borderColor: alpha(theme.palette.success.main, 0.4),
+        glowColor: alpha(theme.palette.success.main, 0.2),
+        icon: <CheckCircle2 size={20} color={theme.palette.success.main} />,
       },
       error: {
-        backgroundColor: alpha(theme.palette.error.main, 0.1),
         borderColor: alpha(theme.palette.error.main, 0.4),
-        color: theme.palette.error.main,
-        icon: "✕",
+        glowColor: alpha(theme.palette.error.main, 0.2),
+        icon: <AlertCircle size={20} color={theme.palette.error.main} />,
       },
       warning: {
-        backgroundColor: alpha(theme.palette.warning.main, 0.1),
         borderColor: alpha(theme.palette.warning.main, 0.4),
-        color: theme.palette.warning.main,
-        icon: "⚠",
+        glowColor: alpha(theme.palette.warning.main, 0.2),
+        icon: <AlertCircle size={20} color={theme.palette.warning.main} />,
       },
       info: {
-        backgroundColor: alpha(theme.palette.primary.main, 0.1),
         borderColor: alpha(theme.palette.primary.main, 0.4),
-        color: theme.palette.primary.main,
-        icon: "ℹ",
+        glowColor: alpha(theme.palette.primary.main, 0.2),
+        icon: <Info size={20} color={theme.palette.primary.main} />,
       },
     };
 
@@ -107,39 +90,33 @@ const Toast = forwardRef<HTMLDivElement, ToastProps>(
         ref={ref}
         severity={severity}
         variant="outlined"
+        icon={config.icon}
         sx={{
-          backgroundColor: config.backgroundColor,
+          backgroundColor: alpha(theme.palette.background.paper, 0.88),
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderColor: config.borderColor,
           border: `1px solid ${config.borderColor}`,
-          color: theme.palette.common.white,
-          borderRadius: "12px",
-          fontFamily: '"Outfit", sans-serif',
+          color: theme.palette.text.primary,
+          boxShadow: `0 12px 32px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${config.glowColor}`,
+          borderRadius: "14px",
+          fontFamily: '"Outfit", "Avenir Next", sans-serif',
           display: "flex",
           alignItems: "center",
-          padding: "12px 16px",
-          gap: 1,
+          padding: "12px 18px",
+          gap: 1.5,
           animation: "slideInUp 0.3s ease-out",
           "@keyframes slideInUp": {
-            from: {
-              transform: "translateY(20px)",
-              opacity: 0,
-            },
-            to: {
-              transform: "translateY(0)",
-              opacity: 1,
-            },
+            from: { transform: "translateY(20px)", opacity: 0 },
+            to: { transform: "translateY(0)", opacity: 1 },
           },
-          "& .MuiAlert-icon": {
-            color: config.color,
-            marginRight: "8px",
-          },
+          "& .MuiAlert-icon": { margin: 0, padding: 0 },
           "& .MuiAlert-message": {
             padding: 0,
-            fontSize: "0.95rem",
-            fontWeight: 500,
+            fontSize: "0.875rem",
+            fontWeight: 600,
           },
         }}
-        icon={<Box sx={{ color: config.color }}>✓</Box>}
         action={
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {action}
@@ -147,10 +124,11 @@ const Toast = forwardRef<HTMLDivElement, ToastProps>(
               size="small"
               onClick={handleClose}
               sx={{
-                color: "inherit",
+                color: theme.palette.text.secondary,
                 padding: "2px",
                 "&:hover": {
-                  backgroundColor: alpha(config.color, 0.125),
+                  color: theme.palette.text.primary,
+                  backgroundColor: alpha(theme.palette.common.white, 0.1),
                 },
               }}
             >

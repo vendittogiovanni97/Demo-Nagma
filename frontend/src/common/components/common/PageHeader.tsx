@@ -125,7 +125,21 @@ export default function PageHeader({
       <Box sx={{ minWidth: 0, flexShrink: 0 }}>
         <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
           {icon && (
-            <Box sx={{ color: muiTheme.palette.primary.main, display: 'flex', alignItems: 'center' }}>
+            <Box
+              sx={{
+                p: 1,
+                borderRadius: 2.5,
+                bgcolor: alpha(muiTheme.palette.primary.main, 0.08),
+                border: `1px solid ${alpha(muiTheme.palette.primary.main, 0.2)}`,
+                boxShadow: `0 0 15px ${alpha(muiTheme.palette.primary.main, 0.12)}`,
+                backdropFilter: 'blur(8px)',
+                color: muiTheme.palette.primary.main,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
               {icon}
             </Box>
           )}

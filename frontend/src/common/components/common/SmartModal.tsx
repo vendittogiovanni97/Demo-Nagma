@@ -20,6 +20,7 @@ import Button from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
 import { StatusChip } from '@/common/components/ui/StatusChip';
 import { ConfirmDialog } from '@/common/components/ui/ConfirmDialog';
+import { FormSkeleton } from '@/common/components/feedback/Skeleton';
 
 export type SmartModalMode = 'create' | 'edit' | 'read';
 
@@ -158,9 +159,7 @@ export default function SmartModal({
 
         <DialogContent sx={(t: Theme) => styles.content(t)}>
           {initialLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-              <CircularProgress size={40} sx={{ color: 'primary.main' }} />
-            </Box>
+            <FormSkeleton fields={4} />
           ) : (
             <>
               {error && <Box sx={(t: Theme) => styles.errorBox(t)}>{error}</Box>}

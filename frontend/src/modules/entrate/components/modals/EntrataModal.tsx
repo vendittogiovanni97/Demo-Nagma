@@ -76,6 +76,7 @@ export default function EntrataModal({ isOpen, onClose, onSuccess }: EntrataModa
             }
           }}
           placeholder="0,00"
+          inputMode="decimal"
           required
         />
       </Box>

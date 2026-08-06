@@ -10,6 +10,7 @@ import { alpha } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
 import { useThemeMode } from '@/common/providers/ThemeModeProvider';
+import EmptyState from '@/common/components/feedback/EmptyState';
 
 import type { RowWithId } from './DataTable.types';
 import { DEFAULT_COL_DEF } from './TableColumns';
@@ -35,11 +36,12 @@ const LoadingOverlay = () => (
 function NoRowsOverlay({ message }: { message?: string }) {
   const { t } = useTranslation();
   return (
-    <Box className="ag-custom-no-rows" sx={{ textAlign: 'center', py: 4 }}>
-      <Typography variant="body2" color="text.secondary">
-        {message || t('Nessun dato disponibile')}
-      </Typography>
-    </Box>
+    <EmptyState
+      title={message || t('Nessun dato disponibile')}
+      variant="flat"
+      height="auto"
+      sx={{ py: 3, border: 'none', bgcolor: 'transparent', boxShadow: 'none' }}
+    />
   );
 }
 

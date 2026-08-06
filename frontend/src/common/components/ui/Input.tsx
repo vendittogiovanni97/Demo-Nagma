@@ -52,7 +52,7 @@ export default function Input({
   step,
   className,
   pattern,
-  autoComplete,
+  autoComplete = 'off',
   hideLabel = false,
   name,
   onBlur,
@@ -140,6 +140,7 @@ export default function Input({
               step,
               pattern,
               inputMode,
+              autoComplete,
               style: {
                 cursor: (type === 'date' || type === 'time') ? 'pointer' : 'inherit',
               },

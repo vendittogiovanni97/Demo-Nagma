@@ -68,9 +68,12 @@ export default function DashboardWidgetCard({
         <Stack direction="row" useFlexGap sx={{ gap: 1.5, alignItems: 'center' }}>
           <Box
             sx={{
-              p: 0.75,
-              borderRadius: 1.25,
+              p: 1,
+              borderRadius: 2,
               bgcolor: alpha(theme.palette.primary.main, 0.08),
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.12)}`,
+              backdropFilter: 'blur(8px)',
               color: 'primary.main',
               display: 'flex',
               alignItems: 'center',

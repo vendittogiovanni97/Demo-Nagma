@@ -5,6 +5,7 @@ import {
   Button as MuiButton,
   type ButtonProps as MuiButtonProps,
   CircularProgress,
+  Tooltip,
   type SxProps,
   type Theme,
   useTheme,
@@ -35,6 +36,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth = false,
       disabled,
       children,
+      title,
       sx,
       ...props
     },
@@ -189,7 +191,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       return icon as ReactNode;
     };
 
-    return (
+    const buttonElement = (
       <MuiButton
         ref={ref}
         disabled={disabled || isLoading}
@@ -209,6 +211,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (loadingLabel || 'Caricamento...') : children}
       </MuiButton>
     );
+
+    if (title) {
+      return (
+        <Tooltip title={title} arrow placement="top">
+          <span style={{ display: 'inline-flex' }}>{buttonElement}</span>
+        </Tooltip>
+      );
+    }
+
+    return buttonElement;
   }
 );
 

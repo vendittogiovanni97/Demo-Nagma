@@ -84,6 +84,55 @@ function FormSelect({
         slotProps={{
           select: {
             displayEmpty: true,
+            MenuProps: {
+              slotProps: {
+                paper: {
+                  sx: {
+                    mt: 1,
+                    maxHeight: 280,
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    bgcolor: theme.palette.mode === 'light'
+                      ? 'rgba(255, 255, 255, 0.98)'
+                      : alpha(theme.palette.background.paper, 0.88),
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+                    boxShadow: `0 16px 40px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
+                    '& .MuiList-root': {
+                      p: 0.5,
+                      maxHeight: 270,
+                      overflowY: 'auto',
+                      '&::-webkit-scrollbar-track': {
+                        marginTop: '8px',
+                        marginBottom: '8px',
+                      },
+                    },
+                    '& .MuiMenuItem-root': {
+                      borderRadius: 1.5,
+                      mx: 0.5,
+                      my: 0.25,
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      color: theme.palette.text.primary,
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.15),
+                        color: theme.palette.primary.main,
+                      },
+                      '&.Mui-selected': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.2),
+                        color: theme.palette.primary.main,
+                        fontWeight: 700,
+                        '&:hover': {
+                          bgcolor: alpha(theme.palette.primary.main, 0.25),
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           input: {
             placeholder: placeholder,

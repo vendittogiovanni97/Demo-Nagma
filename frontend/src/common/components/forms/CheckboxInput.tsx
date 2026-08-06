@@ -1,5 +1,5 @@
 'use client';
-import { Checkbox as MuiCheckbox, FormControlLabel, type SxProps, type Theme } from '@mui/material';
+import { Checkbox as MuiCheckbox, FormControlLabel, useTheme, type SxProps, type Theme } from '@mui/material';
 
 interface CheckboxInputProps {
   label?: string;
@@ -10,6 +10,8 @@ interface CheckboxInputProps {
 }
 
 export default function CheckboxInput({ label, checked, onChange, disabled, sx }: CheckboxInputProps) {
+  const theme = useTheme();
+
   return (
     <FormControlLabel
       control={
@@ -17,11 +19,19 @@ export default function CheckboxInput({ label, checked, onChange, disabled, sx }
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           disabled={disabled}
-          sx={{ color: 'primary.main', '&.Mui-checked': { color: 'primary.main' }, ...sx }}
+          sx={sx}
         />
       }
       label={label || ''}
-      sx={{ '& .MuiTypography-root': { fontSize: '0.85rem' } }}
+      sx={{
+        userSelect: 'none',
+        '& .MuiTypography-root': {
+          fontSize: '0.875rem',
+          fontWeight: checked ? 600 : 500,
+          color: checked ? theme.palette.text.primary : theme.palette.text.secondary,
+          transition: 'color 0.2s ease',
+        },
+      }}
     />
   );
 }

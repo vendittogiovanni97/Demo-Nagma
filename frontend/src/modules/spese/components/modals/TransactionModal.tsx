@@ -1,11 +1,11 @@
 "use client";
 
 import { useAuth } from '@/common/context/AuthContext';
-import { useToast } from '@/common/hooks/useToast';
 import { useEntityForm } from '@/common/hooks/useEntityForm';
 import SmartModal from '@/common/components/common/SmartModal';
 import StatePanel from '@/common/components/feedback/StatePanel';
 import FormInput from '@/common/components/forms/FormInput';
+import DatePicker from '@/common/components/forms/DatePicker';
 import FormSelect from '@/common/components/forms/FormSelect';
 import { Box } from '@mui/material';
 import { financeApi } from '@/modules/finance/api/finance.api';
@@ -45,7 +45,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
 
   const buildPayload = (formData: TransactionFormData): CreateTransactionData => ({
     description: formData.description,
-    amount: Number(formData.amount),
+    amount: Number(formData.amount.replace(',', '.')),
     type: formData.type,
     category: formData.category,
     date: new Date(formData.date).toISOString(),
@@ -61,7 +61,7 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
 
   const validate = (formData: TransactionFormData): string | null => {
     if (!formData.description.trim()) return 'Descrizione obbligatoria';
-    const amount = Number(formData.amount);
+    const amount = Number(formData.amount.replace(',', '.'));
     if (isNaN(amount) || amount <= 0) return 'Importo deve essere maggiore di 0';
     return null;
   };
@@ -112,13 +112,16 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
             <FormInput
               label="Importo (€)"
-              type="number"
               required
+              inputMode="decimal"
               value={form.formData.amount}
-              onChange={form.handleChange('amount')}
-              placeholder="0.00"
-              step="0.01"
-              min={0}
+              onChange={(val) => {
+                const cleaned = val.replace(/\./g, ',');
+                if (cleaned === '' || /^\d*(,\d{0,2})?$/.test(cleaned)) {
+                  form.setField('amount', cleaned);
+                }
+              }}
+              placeholder="0,00"
             />
             <FormSelect
               label="Tipo"
@@ -138,12 +141,11 @@ export default function TransactionModal({ isOpen, onClose, onSuccess, transacti
               onChange={(v) => form.setField('category', v as string)}
               options={CATEGORIES[form.formData.type].map((c) => ({ value: c, label: c }))}
             />
-            <FormInput
+            <DatePicker
               label="Data"
-              type="date"
               required
               value={form.formData.date}
-              onChange={form.handleChange('date')}
+              onChange={(val) => form.setField('date', val)}
             />
           </Box>
         </Box>

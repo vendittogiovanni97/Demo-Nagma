@@ -76,6 +76,7 @@ export default function SpesaModal({ isOpen, onClose, onSuccess }: SpesaModalPro
             }
           }}
           placeholder="0,00"
+          inputMode="decimal"
           required
         />
       </Box>

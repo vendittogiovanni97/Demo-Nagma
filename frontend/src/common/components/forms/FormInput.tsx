@@ -27,6 +27,7 @@ interface FormInputProps {
   autoComplete?: string;
   hideLabel?: boolean;
   name?: string;
+  inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
   sx?: SxProps<Theme>;
 }
 
@@ -51,9 +52,10 @@ function FormInput({
   variant = 'default',
   className,
   pattern,
-  autoComplete,
+  autoComplete = 'off',
   hideLabel = false,
   name,
+  inputMode,
   sx,
 }: FormInputProps) {
   return (
@@ -78,6 +80,7 @@ function FormInput({
       autoComplete={autoComplete}
       hideLabel={hideLabel}
       name={name}
+      inputMode={inputMode}
       sx={sx}
     />
   );

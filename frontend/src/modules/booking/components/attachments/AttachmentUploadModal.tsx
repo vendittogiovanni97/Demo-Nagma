@@ -2,11 +2,18 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
-  Box, CircularProgress, useTheme, SxProps, Theme
+  Box,
+  CircularProgress,
+  LinearProgress,
+  Typography,
+  useTheme,
+  SxProps,
+  Theme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import SmartModal from '@/common/components/common/SmartModal';
-import { Cloud } from 'lucide-react';
+import { CloudUpload, FileText, Upload } from 'lucide-react';
 import { useAttachments } from '@/common/hooks/domain/useAttachments';
 import { useToast } from '@/common/hooks/useToast';
 
@@ -76,93 +83,129 @@ export default function AttachmentUploadModal({
     <SmartModal
       isOpen={open}
       onClose={onClose}
-      title="Carica allegati"
+      title="Carica allegato prenotazione"
       maxWidth="sm"
       showFooter={false}
     >
-      <Box sx={styles.content}>
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
         <Box
-          onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
           onClick={!uploading ? () => fileInputRef.current?.click() : undefined}
-          sx={styles.dropzone(dragActive, uploading)}
+          sx={{
+            position: 'relative',
+            borderRadius: 3,
+            p: 4,
+            textAlign: 'center',
+            cursor: uploading ? 'default' : 'pointer',
+            border: `2px dashed ${dragActive ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.3)}`,
+            bgcolor: dragActive
+              ? alpha(theme.palette.primary.main, 0.12)
+              : alpha(theme.palette.background.paper, 0.4),
+            backdropFilter: 'blur(16px)',
+            boxShadow: dragActive
+              ? `0 0 30px ${alpha(theme.palette.primary.main, 0.3)}`
+              : 'none',
+            transition: 'all 0.25s ease',
+            '&:hover': !uploading ? {
+              borderColor: theme.palette.primary.main,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              transform: 'scale(1.01)',
+            } : {},
+          }}
         >
           <input
-            ref={fileInputRef} type="file" onChange={handleInputChange}
-            disabled={uploading} style={{ display: 'none' }} accept={ALLOWED_TYPES.join(',')}
+            ref={fileInputRef}
+            type="file"
+            onChange={handleInputChange}
+            disabled={uploading}
+            style={{ display: 'none' }}
+            accept={ALLOWED_TYPES.join(',')}
           />
 
           {uploading ? (
-            <Box sx={styles.uploadState}>
-              <CircularProgress variant="determinate" value={uploadProgress} />
-              <Box sx={styles.progressText}>{uploadProgress}%</Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', py: 2 }}>
+              <CircularProgress
+                variant="determinate"
+                value={uploadProgress}
+                size={54}
+                thickness={4}
+                sx={{ color: theme.palette.primary.main }}
+              />
+              <Typography sx={{ fontSize: '0.9375rem', fontWeight: 700, color: 'text.primary' }}>
+                Caricamento in corso... {uploadProgress}%
+              </Typography>
+              <Box sx={{ width: '80%', mt: 1 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={uploadProgress}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    bgcolor: alpha(theme.palette.primary.main, 0.15),
+                    '& .MuiLinearProgress-bar': { borderRadius: 3 },
+                  }}
+                />
+              </Box>
             </Box>
           ) : (
-            <Box sx={styles.idleState}>
-              <Cloud size={48} strokeWidth={1.5} style={{ color: theme.palette.primary.main, opacity: 0.7 }} />
-              <Box>
-                <Box sx={styles.promptText}>Trascina file qui o clicca</Box>
-                <Box sx={styles.limitText}>Max 10MB — Supportati: PDF, immagini, video, audio, documenti</Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', py: 1 }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                  boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
+                }}
+              >
+                <CloudUpload size={32} style={{ color: theme.palette.primary.main }} />
               </Box>
+
+              <Box>
+                <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
+                  Trascina il file qui o clicca per sfogliare
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                  Supportati: PDF, Immagini, Video, Audio, Documenti (Max 10MB)
+                </Typography>
+              </Box>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Upload size={14} />}
+                sx={{ mt: 1, pointerEvents: 'none' }}
+              >
+                Seleziona File dal PC
+              </Button>
             </Box>
           )}
         </Box>
 
-        <Box sx={styles.infoBox}>
-          L'upload avviene automaticamente. Una volta completato, il file sarà disponibile nella lista allegati.
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: 2,
+            bgcolor: alpha(theme.palette.primary.main, 0.06),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <FileText size={18} style={{ color: theme.palette.primary.main, flexShrink: 0 }} />
+          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', lineHeight: 1.5 }}>
+            L'upload viene associato direttamente alla scheda prenotazione. I file saranno scaricabili e consultabili in qualsiasi momento.
+          </Typography>
         </Box>
       </Box>
     </SmartModal>
   );
 }
-
-const styles = {
-  paper: {
-    bgcolor: 'rgba(10, 26, 38, 0.95)', backdropFilter: 'blur(40px)',
-    border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 3,
-    boxShadow: '0px 18px 44px rgba(0, 0, 0, 0.58), 0px 0px 28px rgba(0, 191, 255, 0.07)',
-  } as SxProps<Theme>,
-  backdrop: {
-    bgcolor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(4px)',
-  } as SxProps<Theme>,
-  title: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    p: 2.5, borderBottom: '1px solid rgba(255, 255, 255, 0.06)', m: 0,
-    fontSize: '1.125rem', fontWeight: 600, color: 'text.primary'
-  } as SxProps<Theme>,
-  closeButton: {
-    ml: 1, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
-  } as SxProps<Theme>,
-  content: {
-    p: 3, display: 'flex', flexDirection: 'column', gap: 2.5
-  } as SxProps<Theme>,
-  dropzone: (isActive: boolean, isUploading: boolean) => ({
-    border: '2px dashed',
-    borderColor: isActive ? 'primary.main' : 'rgba(0, 191, 255, 0.3)',
-    borderRadius: 2, p: 4, textAlign: 'center',
-    cursor: isUploading ? 'default' : 'pointer',
-    transition: 'all 0.3s ease',
-    bgcolor: isActive ? 'rgba(0, 191, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-    opacity: isUploading ? 0.6 : 1,
-    pointerEvents: isUploading ? 'none' : 'auto',
-    '&:hover': !isUploading ? { borderColor: 'primary.main', bgcolor: 'rgba(0, 191, 255, 0.08)' } : {}
-  } as SxProps<Theme>),
-  uploadState: {
-    display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center'
-  } as SxProps<Theme>,
-  progressText: {
-    fontSize: '0.875rem', color: 'text.secondary'
-  } as SxProps<Theme>,
-  idleState: {
-    display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center'
-  } as SxProps<Theme>,
-  promptText: {
-    fontSize: '0.875rem', fontWeight: 600, color: 'text.primary'
-  } as SxProps<Theme>,
-  limitText: {
-    fontSize: '0.75rem', color: 'text.secondary', mt: 0.5
-  } as SxProps<Theme>,
-  infoBox: {
-    p: 1.5, bgcolor: 'rgba(0, 191, 255, 0.08)', borderRadius: 1.5,
-    fontSize: '0.75rem', color: 'text.secondary', lineHeight: 1.6
-  } as SxProps<Theme>,
-};

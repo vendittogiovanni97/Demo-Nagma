@@ -11,10 +11,13 @@ interface SkeletonProps {
   height?: string | number;
 }
 
-const pulseAnimation = keyframes`
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+const cyanShimmerAnimation = keyframes`
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 `;
 
 export const Skeleton: React.FC<SkeletonProps> = ({
@@ -30,23 +33,43 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     text: { borderRadius: 1, height: 16, width: '100%' }
   }[variant];
 
+  const primaryCyan = theme.palette.primary.main;
+  const isLight = theme.palette.mode === 'light';
+
   return (
     <Box
       sx={Object.assign(
         {
-          animation: `${pulseAnimation} 2s ease-in-out infinite`,
-          bgcolor: theme.palette.mode === 'light'
-            ? alpha(theme.palette.text.primary, 0.08)
-            : alpha(theme.palette.common.white, 0.05),
-          border: `1px solid ${theme.palette.mode === 'light'
-            ? alpha(theme.palette.text.primary, 0.04)
-            : alpha(theme.palette.common.white, 0.05)}`,
-          width, height,
+          position: 'relative',
+          overflow: 'hidden',
+          width,
+          height,
+          bgcolor: isLight
+            ? alpha(theme.palette.common.black, 0.04)
+            : alpha(theme.palette.common.white, 0.04),
+          backgroundImage: `linear-gradient(90deg, transparent 0%, ${alpha(primaryCyan, 0.18)} 50%, transparent 100%)`,
+          backgroundSize: '200% 100%',
+          animation: `${cyanShimmerAnimation} 2s infinite linear`,
+          border: `1px solid ${alpha(primaryCyan, 0.15)}`,
+          backdropFilter: 'blur(8px)',
         },
         variantStyle,
         sx as any,
       )}
     />
+  );
+};
+
+export const FormSkeleton = ({ fields = 4 }: { fields?: number }) => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 1, px: 0.5, width: '100%' }}>
+      {Array.from({ length: fields }).map((_, i) => (
+        <Box key={i} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Skeleton variant="text" width={100} height={14} />
+          <Skeleton variant="rect" width="100%" height={44} sx={{ borderRadius: 2 }} />
+        </Box>
+      ))}
+    </Box>
   );
 };
 
@@ -125,7 +148,6 @@ const styles = {
       display: 'flex',
       flexDirection: 'column',
       gap: 3,
-      animation: `${pulseAnimation} 2s ease-in-out infinite`,
     };
   },
   bentoHeader: {

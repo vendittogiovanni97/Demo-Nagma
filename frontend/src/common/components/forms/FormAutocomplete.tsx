@@ -102,12 +102,24 @@ const styles = {
     const isLight = theme.palette.mode === 'light';
     return {
       mt: 1,
-      bgcolor: isLight ? 'rgba(255, 255, 255, 0.98)' : alpha(theme.palette.background.default, 0.95),
-      backdropFilter: 'blur(12px)',
-      border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : alpha(theme.palette.primary.main, 0.2)}`,
-      boxShadow: isLight ? '0 4px 20px rgba(0, 0, 0, 0.1)' : `0 8px 32px ${alpha(theme.palette.common.black, 0.4)}`,
+      overflow: 'hidden',
+      bgcolor: isLight ? 'rgba(255, 255, 255, 0.98)' : alpha(theme.palette.background.paper, 0.88),
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : alpha(theme.palette.primary.main, 0.25)}`,
+      boxShadow: isLight
+        ? '0 4px 20px rgba(0, 0, 0, 0.1)'
+        : `0 16px 40px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
       borderRadius: '12px',
-      '& .MuiAutocomplete-listbox': { padding: '8px' },
+      '& .MuiAutocomplete-listbox': {
+        padding: '4px',
+        maxHeight: 270,
+        overflowY: 'auto',
+        '&::-webkit-scrollbar-track': {
+          marginTop: '8px',
+          marginBottom: '8px',
+        },
+      },
     };
   },
   input: (theme: Theme) => {
@@ -140,10 +152,22 @@ const styles = {
     };
   },
   option: (theme: Theme) => ({
-    borderRadius: '8px', mb: 0.5, fontSize: '0.875rem', fontWeight: 500, color: 'text.primary',
-    '&:last-child': { mb: 0 }, transition: 'all 0.2s ease',
-    '&.Mui-focused, &:hover': { bgcolor: `${alpha(theme.palette.primary.main, 0.12)} !important`, color: 'primary.main' },
-    '&[aria-selected="true"]': { bgcolor: `${alpha(theme.palette.primary.main, 0.2)} !important`, color: 'primary.main', fontWeight: 700 }
+    borderRadius: '8px',
+    mx: 0.5,
+    my: 0.25,
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: 'text.primary',
+    transition: 'all 0.15s ease',
+    '&.Mui-focused, &:hover': {
+      bgcolor: `${alpha(theme.palette.primary.main, 0.15)} !important`,
+      color: 'primary.main',
+    },
+    '&[aria-selected="true"]': {
+      bgcolor: `${alpha(theme.palette.primary.main, 0.2)} !important`,
+      color: 'primary.main',
+      fontWeight: 700,
+    },
   }),
   errorText: {
     color: 'error.main', fontSize: '0.75rem', px: 0.5

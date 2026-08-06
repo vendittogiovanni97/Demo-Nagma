@@ -104,9 +104,16 @@ export default function TimePicker({
                 size="small"
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   onChange('');
                 }}
-                sx={{ p: 0.5, color: theme.palette.text.secondary }}
+                sx={{
+                  p: 0.5,
+                  zIndex: 10,
+                  position: 'relative',
+                  color: theme.palette.text.secondary,
+                  '&:hover': { color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.1) },
+                }}
               >
                 <X size={14} />
               </IconButton>
@@ -126,7 +133,7 @@ export default function TimePicker({
             position: 'absolute',
             top: label && !hideLabel ? 28 : 0,
             left: 0,
-            right: 0,
+            right: value && !disabled ? 36 : 0,
             bottom: 0,
             zIndex: 1,
             opacity: 0,

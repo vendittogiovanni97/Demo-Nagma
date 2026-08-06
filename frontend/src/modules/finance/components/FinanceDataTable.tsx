@@ -177,7 +177,7 @@ export default function FinanceDataTable({
         emptyDescription="Prova a cambiare i filtri impostati."
       />
 
-      {!isLoading && data.length > 0 && (
+      {!isLoading && (
         <TableFooterTotal
           total={netTotal}
           label={label}

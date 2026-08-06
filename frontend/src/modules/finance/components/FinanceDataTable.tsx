@@ -49,6 +49,16 @@ export default function FinanceDataTable({
     return netTotal >= 0 ? 'success' : 'warning';
   }, [filterType, netTotal]);
 
+  const footer = !isLoading ? (
+    <TableFooterTotal
+      total={netTotal}
+      label={label}
+      color={color}
+      privacyToggle
+      defaultHidden
+    />
+  ) : null;
+
   const columns: Column<Transaction>[] = [
     {
       key: 'id',
@@ -165,27 +175,16 @@ export default function FinanceDataTable({
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <DataTable
-        columns={columns}
-        baseColumns={[]}
-        data={data}
-        isLoading={isLoading}
-        hideToolbar
-        keyExtractor={(t) => t.id}
-        emptyTitle="Nessuna transazione trovata"
-        emptyDescription="Prova a cambiare i filtri impostati."
-      />
-
-      {!isLoading && (
-        <TableFooterTotal
-          total={netTotal}
-          label={label}
-          color={color}
-          privacyToggle
-          defaultHidden
-        />
-      )}
-    </Box>
+    <DataTable
+      columns={columns}
+      baseColumns={[]}
+      data={data}
+      isLoading={isLoading}
+      hideToolbar
+      footerContent={footer}
+      keyExtractor={(t) => t.id}
+      emptyTitle="Nessuna transazione trovata"
+      emptyDescription="Prova a cambiare i filtri impostati."
+    />
   );
 }

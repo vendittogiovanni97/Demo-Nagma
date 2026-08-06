@@ -34,6 +34,7 @@ import {
   Receipt,
   Settings,
   Shield,
+  Building2,
   Menu as MenuIcon,
   Sun,
   Moon,
@@ -499,6 +500,7 @@ function NavbarUserMenu({
       { href: '/spese-libere', icon: Receipt, label: 'Spese Libere', show: true },
       { href: '/entrate-libere', icon: Banknote, label: 'Entrate Libere', show: true },
       { href: '/acconti', icon: CreditCard, label: 'Acconti', show: true },
+      { href: '/affitti', icon: Building2, label: 'Affitti Postazione', show: true },
       { href: '/impostazioni', icon: Settings, label: 'Impostazioni', show: isAdmin },
     ],
     [isAdmin, isSuperAdmin, SHOW_POSIZIONAMENTO, SHOW_CONSENSI]

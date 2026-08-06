@@ -13,6 +13,7 @@ import { alpha } from '@mui/material/styles';
 import Avatar from '@/common/components/ui/Avatar';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
+import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import Icon from '@/common/components/ui/Icon';
 
 const STAFF_TYPE_OPTIONS = [
@@ -33,6 +34,7 @@ interface StaffFormData {
   name: string;
   type: StaffType;
   color: string;
+  isRentPayee: boolean;
 }
 
 export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props) {
@@ -47,6 +49,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
       name: entity?.name ?? '',
       type: entity?.type ?? 'COLLABORATORE',
       color: entity?.color ?? theme.palette.primary.main,
+      isRentPayee: entity?.isRentPayee ?? false,
     }),
     validate: (data) => validateData(createStaffSchema, data),
     buildPayload: (data) => data,
@@ -105,6 +108,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
                 {STAFF_TYPE_OPTIONS.find((option) => option.value === formData.type)?.label ?? 'Collaboratore'}
+                {formData.isRentPayee ? ' • Affitto Postazione' : ''}
               </Typography>
             </Box>
           </Box>
@@ -124,6 +128,22 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
             options={STAFF_TYPE_OPTIONS}
             required
           />
+
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2.5,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              bgcolor: alpha(theme.palette.primary.main, 0.04),
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <CheckboxInput
+              label="Affitto Postazione (Paga affitto - escludi da uscite studio)"
+              checked={formData.isRentPayee}
+              onChange={(val) => setField('isRentPayee', val)}
+            />
+          </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             <Typography sx={{

@@ -11,12 +11,17 @@ export const bookingApi = {
     status?: string;
     search?: string;
     sortOrder?: 'asc' | 'desc';
+    isRentPayee?: boolean | string;
     page?: number;
     limit?: number;
   }) => {
+    const queryParams: Record<string, string | number | undefined> = {
+      ...params,
+      isRentPayee: params.isRentPayee !== undefined ? String(params.isRentPayee) : undefined,
+    };
     return apiClient.get<{ data: BookingDTO[]; total: number; hasMore: boolean }>(
       ENDPOINTS.BOOKINGS.BASE,
-      params
+      queryParams
     );
   },
 

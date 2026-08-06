@@ -151,6 +151,7 @@ export default function BookingModal({
               guadagno={form.guadagno}
               percentualeOptions={PERCENTUALE_OPTIONS}
               onChangeField={form.setField}
+              isRentPayeeArtist={form.isRentPayeeArtist}
             />
 
             {/* DYNAMIC FIELDS ROW */}

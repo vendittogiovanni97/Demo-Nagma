@@ -26,6 +26,7 @@ export interface Staff {
   name: string;
   type: StaffType;
   color?: string;
+  isRentPayee?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +35,7 @@ export interface CreateStaffData {
   name: string;
   type: StaffType;
   color: string;
+  isRentPayee?: boolean;
 }
 
 export interface Shift {

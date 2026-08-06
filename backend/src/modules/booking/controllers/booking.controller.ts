@@ -18,6 +18,7 @@ export class BookingController {
     const customLimit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
     const status = req.query.status as string | undefined;
+    const isRentPayee = req.query.isRentPayee as string | undefined;
     const sortOrder = req.query.sortOrder === 'asc' ? 'asc' : req.query.sortOrder === 'desc' ? 'desc' : undefined;
 
     const result = await this.bookingService.findAll({
@@ -30,6 +31,7 @@ export class BookingController {
       status,
       search,
       sortOrder,
+      isRentPayee,
     });
 
     res.json(result);

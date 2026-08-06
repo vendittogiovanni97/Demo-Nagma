@@ -102,13 +102,24 @@ export default function StaffMemberRow({
           >
             {member.name}
           </Typography>
-          <Badge
-            variant={member.type === 'COLLABORATORE' ? 'primary' : 'secondary'}
-            size="xs"
-            sx={{ width: 'fit-content', mt: 0.25 }}
-          >
-            {member.type}
-          </Badge>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap', mt: 0.25 }}>
+            <Badge
+              variant={member.type === 'COLLABORATORE' ? 'primary' : 'secondary'}
+              size="xs"
+              sx={{ width: 'fit-content' }}
+            >
+              {member.type}
+            </Badge>
+            {member.isRentPayee && (
+              <Badge
+                variant="warning"
+                size="xs"
+                sx={{ width: 'fit-content', fontWeight: 700 }}
+              >
+                Affitto Postazione
+              </Badge>
+            )}
+          </Box>
         </Box>
         <PermissionGate requireAdmin>
           <IconButton

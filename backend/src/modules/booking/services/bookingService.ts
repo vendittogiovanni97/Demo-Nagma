@@ -43,6 +43,11 @@ export class BookingService {
       where.status = { notIn: ['ANNULLATO', 'CANCELLATO'] };
     }
 
+    if (filters.isRentPayee !== undefined) {
+      const isRentBool = filters.isRentPayee === true || filters.isRentPayee === 'true';
+      where.artist = { is: { isRentPayee: isRentBool } };
+    }
+
     if (search) {
       where.OR = [
         { customer: { is: { firstName: { contains: search, mode: 'insensitive' } } } },
@@ -275,21 +280,32 @@ export class BookingService {
       });
 
       if (booking.deposit && Number(booking.deposit) > 0) {
-        const customerName = booking.customer
-          ? `${booking.customer.firstName} ${booking.customer.lastName || ''}`.trim()
-          : 'Cliente';
+        let isRentPayee = false;
+        if (booking.artistId && tx.staff) {
+          const artist = await tx.staff.findUnique({
+            where: { id: booking.artistId },
+            select: { isRentPayee: true },
+          });
+          if (artist?.isRentPayee) isRentPayee = true;
+        }
 
-        await tx.transaction.create({
-          data: {
-            type: 'ENTRATA',
-            category: 'Acconto',
-            description: `Acconto prenotazione #${booking.id} - ${customerName}`,
-            amount: booking.deposit,
-            date: new Date(),
-            sourceId: booking.id,
-            sourceType: 'BOOKING_DEPOSIT',
-          },
-        });
+        if (!isRentPayee) {
+          const customerName = booking.customer
+            ? `${booking.customer.firstName} ${booking.customer.lastName || ''}`.trim()
+            : 'Cliente';
+
+          await tx.transaction.create({
+            data: {
+              type: 'ENTRATA',
+              category: 'Acconto',
+              description: `Acconto prenotazione #${booking.id} - ${customerName}`,
+              amount: booking.deposit,
+              date: new Date(),
+              sourceId: booking.id,
+              sourceType: 'BOOKING_DEPOSIT',
+            },
+          });
+        }
       }
 
       return { ...booking, price: booking.price ? Number(booking.price) : null, deposit: booking.deposit ? Number(booking.deposit) : null };
@@ -369,37 +385,48 @@ export class BookingService {
         },
       });
 
-      const previousDeposit = Number(oldBooking.deposit ?? 0);
-      const currentDeposit = Number(updated.deposit ?? 0);
-      const depositDifference = currentDeposit - previousDeposit;
-      const customerName = updated.customer
-        ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
-        : 'Cliente';
+      let isRentPayeeDeposit = false;
+      if (updated.artistId && tx.staff) {
+        const artist = await tx.staff.findUnique({
+          where: { id: updated.artistId },
+          select: { isRentPayee: true },
+        });
+        if (artist?.isRentPayee) isRentPayeeDeposit = true;
+      }
 
-      if (depositDifference > 0) {
-        await tx.transaction.create({
-          data: {
-            type: 'ENTRATA',
-            category: 'Acconto',
-            description: `Acconto aggiuntivo prenotazione #${updated.id} - ${customerName}`,
-            amount: depositDifference,
-            date: new Date(),
-            sourceId: updated.id,
-            sourceType: 'BOOKING_DEPOSIT',
-          },
-        });
-      } else if (depositDifference < 0) {
-        await tx.transaction.create({
-          data: {
-            type: 'USCITA',
-            category: 'Acconto',
-            description: `Rimborso parziale acconto prenotazione #${updated.id} - ${customerName}`,
-            amount: Math.abs(depositDifference),
-            date: new Date(),
-            sourceId: updated.id,
-            sourceType: 'BOOKING_DEPOSIT_REFUND',
-          },
-        });
+      if (!isRentPayeeDeposit) {
+        const previousDeposit = Number(oldBooking.deposit ?? 0);
+        const currentDeposit = Number(updated.deposit ?? 0);
+        const depositDifference = currentDeposit - previousDeposit;
+        const customerName = updated.customer
+          ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
+          : 'Cliente';
+
+        if (depositDifference > 0) {
+          await tx.transaction.create({
+            data: {
+              type: 'ENTRATA',
+              category: 'Acconto',
+              description: `Acconto aggiuntivo prenotazione #${updated.id} - ${customerName}`,
+              amount: depositDifference,
+              date: new Date(),
+              sourceId: updated.id,
+              sourceType: 'BOOKING_DEPOSIT',
+            },
+          });
+        } else if (depositDifference < 0) {
+          await tx.transaction.create({
+            data: {
+              type: 'USCITA',
+              category: 'Acconto',
+              description: `Rimborso parziale acconto prenotazione #${updated.id} - ${customerName}`,
+              amount: Math.abs(depositDifference),
+              date: new Date(),
+              sourceId: updated.id,
+              sourceType: 'BOOKING_DEPOSIT_REFUND',
+            },
+          });
+        }
       }
 
       const isNewCancellation =
@@ -410,43 +437,60 @@ export class BookingService {
       }
 
       if (data.status === 'COMPLETATO' && oldBooking.status !== 'COMPLETATO' && updated.price) {
-        const fd = (updated.formData || {}) as Record<string, unknown>;
-        const artistPrice = typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
-        const fullPrice = Number(updated.price) || 0;
-        const completionDate = new Date();
-        const depositAmount = Number(updated.deposit) ?? 0;
-        const finalIncomeAmount = fullPrice - depositAmount;
-
-        if (finalIncomeAmount > 0) {
-          const description = depositAmount > 0
-            ? `Saldo prenotazione #${updated.id} - ${customerName}`
-            : `Incasso prenotazione #${updated.id} - ${customerName}`;
-
-          await tx.transaction.create({
-            data: {
-              type: 'ENTRATA',
-              category: 'Tatuaggio',
-              description,
-              amount: finalIncomeAmount,
-              date: completionDate,
-              sourceId: updated.id,
-              sourceType: 'BOOKING',
-            },
+        let isRentPayee = false;
+        if (updated.artistId && tx.staff) {
+          const artist = await tx.staff.findUnique({
+            where: { id: updated.artistId },
+            select: { isRentPayee: true },
           });
+          if (artist?.isRentPayee) {
+            isRentPayee = true;
+          }
         }
 
-        if (artistPrice > 0) {
-          await tx.transaction.create({
-            data: {
-              type: 'USCITA',
-              category: 'Compenso Artista',
-              description: `Compenso artista — prenotazione #${updated.id}`,
-              amount: artistPrice,
-              date: completionDate,
-              sourceId: updated.id,
-              sourceType: 'BOOKING_COMMISSION',
-            },
-          });
+        if (!isRentPayee) {
+          const customerName = updated.customer
+            ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
+            : 'Cliente';
+
+          const fd = (updated.formData || {}) as Record<string, unknown>;
+          const artistPrice = typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
+          const fullPrice = Number(updated.price) || 0;
+          const completionDate = new Date();
+          const depositAmount = Number(updated.deposit) ?? 0;
+          const finalIncomeAmount = fullPrice - depositAmount;
+
+          if (finalIncomeAmount > 0) {
+            const description = depositAmount > 0
+              ? `Saldo prenotazione #${updated.id} - ${customerName}`
+              : `Incasso prenotazione #${updated.id} - ${customerName}`;
+
+            await tx.transaction.create({
+              data: {
+                type: 'ENTRATA',
+                category: 'Tatuaggio',
+                description,
+                amount: finalIncomeAmount,
+                date: completionDate,
+                sourceId: updated.id,
+                sourceType: 'BOOKING',
+              },
+            });
+          }
+
+          if (artistPrice > 0) {
+            await tx.transaction.create({
+              data: {
+                type: 'USCITA',
+                category: 'Compenso Artista',
+                description: `Compenso artista — prenotazione #${updated.id}`,
+                amount: artistPrice,
+                date: completionDate,
+                sourceId: updated.id,
+                sourceType: 'BOOKING_COMMISSION',
+              },
+            });
+          }
         }
       }
 
@@ -530,12 +574,21 @@ export class BookingService {
     tx: Prisma.TransactionClient,
     booking: {
       id: number;
+      artistId?: number | null;
       deposit: Prisma.Decimal | number | null;
       customer?: { firstName: string; lastName: string | null } | null;
     },
   ): Promise<void> {
     const depositAmount = Number(booking.deposit ?? 0);
     if (depositAmount <= 0) return;
+
+    if (booking.artistId && tx.staff) {
+      const artist = await tx.staff.findUnique({
+        where: { id: booking.artistId },
+        select: { isRentPayee: true },
+      });
+      if (artist?.isRentPayee) return;
+    }
 
     const previousRefunds = await tx.transaction.findMany({
       where: {

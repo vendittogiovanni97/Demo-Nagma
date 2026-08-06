@@ -85,6 +85,7 @@ export class StaffService {
         name: data.name,
         type: data.type,
         color: data.color || '#00bfff',
+        isRentPayee: data.isRentPayee ?? false,
       },
     });
     return created;

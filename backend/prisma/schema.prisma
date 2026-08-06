@@ -36,16 +36,17 @@ enum ThemeMode {
 }
 
 model Staff {
-  id         Int         @id @default(autoincrement())
-  name       String
-  type       StaffType
-  color      String
-  deletedAt  DateTime?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  bookings   Booking[]
-  creamSales CreamSale[]
-  shifts     Shift[]
+  id          Int         @id @default(autoincrement())
+  name        String
+  type        StaffType
+  color       String
+  isRentPayee Boolean     @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  bookings    Booking[]
+  creamSales  CreamSale[]
+  shifts      Shift[]
 
   @@index([type])
   @@index([createdAt])

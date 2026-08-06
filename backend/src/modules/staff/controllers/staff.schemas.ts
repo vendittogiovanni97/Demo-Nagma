@@ -6,12 +6,14 @@ export const createStaffSchema = z.object({
   name: z.string().trim().min(1),
   type: staffTypeSchema,
   color: z.string().trim().min(1).optional(),
+  isRentPayee: z.boolean().optional(),
 });
 
 export const updateStaffSchema = z.object({
   name: z.string().trim().min(1).optional(),
   type: staffTypeSchema.optional(),
   color: z.string().trim().min(1).optional(),
+  isRentPayee: z.boolean().optional(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: 'Specificare almeno un campo da modificare',
 });

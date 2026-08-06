@@ -19,6 +19,7 @@ export interface ArtistOption {
   id: number;
   name: string;
   color?: string;
+  isRentPayee?: boolean;
 }
 
 export interface BookingFormData {
@@ -112,6 +113,7 @@ interface UseBookingFormReturn extends UseEntityFormReturn<BookingFormData> {
   prezzoNum: number;
   prezzoArtista: number;
   guadagno: number;
+  isRentPayeeArtist: boolean;
   activeTemplate: { id: number; schemaB64: string; name: string } | null;
   dynamicFields: FieldDef[];
   templates: any[];
@@ -284,10 +286,23 @@ export function useBookingForm({
     try { return JSON.parse(atob(activeTemplate.schemaB64)); } catch { return []; }
   }, [activeTemplate]);
 
-  const percentuale = Number(form.formData.percentualeMode) || 0;
+  const selectedArtist = useMemo(() => {
+    if (!form.formData.artistId) return null;
+    return artists.find(a => a.id.toString() === form.formData.artistId) || (booking?.artist?.id?.toString() === form.formData.artistId ? booking.artist : null);
+  }, [artists, booking, form.formData.artistId]);
+
+  const isRentPayeeArtist = Boolean((selectedArtist as any)?.isRentPayee);
+
+  useEffect(() => {
+    if (isRentPayeeArtist && form.formData.percentualeMode !== '100') {
+      form.setField('percentualeMode', '100');
+    }
+  }, [isRentPayeeArtist, form]);
+
+  const percentuale = isRentPayeeArtist ? 100 : (Number(form.formData.percentualeMode) || 0);
   const prezzoNum = Number(form.formData.price) || 0;
-  const prezzoArtista = Math.round((prezzoNum * percentuale / 100) * 100) / 100;
-  const guadagno = Math.round((prezzoNum - prezzoArtista) * 100) / 100;
+  const prezzoArtista = isRentPayeeArtist ? prezzoNum : Math.round((prezzoNum * percentuale / 100) * 100) / 100;
+  const guadagno = isRentPayeeArtist ? 0 : Math.round((prezzoNum - prezzoArtista) * 100) / 100;
 
   // Auto-select first template
   useEffect(() => {
@@ -302,7 +317,7 @@ export function useBookingForm({
     setLoadingArtists(true);
     try {
       const data = await staffService.getAllForSelect();
-      setArtists(data.map(m => ({ id: m.id, name: m.name, color: m.color || '#1976d2' })));
+      setArtists(data.map(m => ({ id: m.id, name: m.name, color: m.color || '#1976d2', isRentPayee: m.isRentPayee })));
       setInitialArtistLoaded(true);
     } catch (err) {
       toast.error(extractErrorMessage(err, 'Errore artisti'));
@@ -515,6 +530,7 @@ export function useBookingForm({
     prezzoNum,
     prezzoArtista,
     guadagno,
+    isRentPayeeArtist,
     activeTemplate,
     dynamicFields,
     templates: templates || [],

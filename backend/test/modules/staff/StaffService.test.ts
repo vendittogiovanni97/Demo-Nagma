@@ -95,7 +95,7 @@ describe('StaffService', () => {
       mockPrisma.staff.create.mockResolvedValue({ id: 1, name: 'Tizio', color: '#00bfff' });
       const result = await service.createMember({ name: 'Tizio', type: 'COLLABORATORE' });
       expect(mockPrisma.staff.create).toHaveBeenCalledWith({
-        data: { name: 'Tizio', type: 'COLLABORATORE', color: '#00bfff' },
+        data: { name: 'Tizio', type: 'COLLABORATORE', color: '#00bfff', isRentPayee: false },
       });
     });
   });

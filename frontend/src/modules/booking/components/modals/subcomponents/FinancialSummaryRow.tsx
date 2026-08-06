@@ -13,6 +13,7 @@ interface FinancialSummaryRowProps {
   guadagno: number;
   percentualeOptions: Array<{ label: string; value: number | string }>;
   onChangeField: (field: any, value: any) => void;
+  isRentPayeeArtist?: boolean;
 }
 
 export function FinancialSummaryRow({
@@ -23,8 +24,13 @@ export function FinancialSummaryRow({
   guadagno,
   percentualeOptions,
   onChangeField,
+  isRentPayeeArtist = false,
 }: FinancialSummaryRowProps) {
   const theme = useTheme();
+
+  const optionsToUse = isRentPayeeArtist
+    ? [{ label: '100% (Affitto Postazione)', value: 100 }]
+    : percentualeOptions;
 
   return (
     <Grid size={12}>
@@ -52,9 +58,10 @@ export function FinancialSummaryRow({
         <Grid size={{ xs: 4, sm: 2 }}>
           <FormSelect
             label="% Artista"
-            value={percentualeMode}
+            value={isRentPayeeArtist ? 100 : percentualeMode}
             onChange={(v) => onChangeField('percentualeMode', v)}
-            options={percentualeOptions}
+            options={optionsToUse}
+            disabled={isRentPayeeArtist}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
@@ -92,8 +99,8 @@ export function FinancialSummaryRow({
             <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.text.secondary, textTransform: 'uppercase' }}>
               Studio
             </Typography>
-            <Typography sx={{ fontSize: '1.125rem', fontWeight: 700, color: theme.palette.success.main }}>
-              €{guadagno.toFixed(2)}
+            <Typography sx={{ fontSize: '1.125rem', fontWeight: 700, color: isRentPayeeArtist ? theme.palette.text.secondary : theme.palette.success.main }}>
+              €{isRentPayeeArtist ? '0.00' : guadagno.toFixed(2)}
             </Typography>
           </Box>
         </Grid>

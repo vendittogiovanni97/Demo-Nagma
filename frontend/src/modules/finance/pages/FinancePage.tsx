@@ -94,7 +94,13 @@ export default function FinancePage() {
       />
 
       <Box sx={{ flex: 1, minHeight: 0 }}>
-        <FinanceDataTable data={transactions} isLoading={isLoading} filterType={type} />
+        <FinanceDataTable
+          data={transactions}
+          isLoading={isLoading}
+          filterType={type}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </Box>
     </PageContainer>
   );

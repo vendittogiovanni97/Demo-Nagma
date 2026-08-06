@@ -11,7 +11,7 @@ import {
   alpha,
 } from '@mui/material';
 import Badge from '@/common/components/ui/Badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
 import Icon, { TrendingDown, TrendingUp } from '@/common/components/ui/Icon';
 import { Transaction } from '../api/finance.api';
@@ -20,12 +20,16 @@ interface FinanceDataTableProps {
   data: Transaction[];
   isLoading: boolean;
   filterType?: 'ALL' | 'ENTRATA' | 'USCITA';
+  startDate?: string;
+  endDate?: string;
 }
 
 export default function FinanceDataTable({
   data,
   isLoading,
   filterType = 'ALL',
+  startDate,
+  endDate,
 }: FinanceDataTableProps) {
   const theme = useTheme();
 
@@ -38,10 +42,30 @@ export default function FinanceDataTable({
   }, [data]);
 
   const label = useMemo(() => {
-    if (filterType === 'ENTRATA') return 'Totale Entrate';
-    if (filterType === 'USCITA') return 'Totale Uscite';
-    return 'Totale Netto Movimenti';
-  }, [filterType]);
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const isTodayFilter = startDate === todayStr || endDate === todayStr;
+
+    let baseLabel = '';
+    if (filterType === 'ENTRATA') {
+      baseLabel = isTodayFilter ? 'Totale Entrate Oggi' : 'Totale Entrate';
+    } else if (filterType === 'USCITA') {
+      baseLabel = isTodayFilter ? 'Totale Uscite Oggi' : 'Totale Uscite';
+    } else {
+      baseLabel = isTodayFilter ? 'Totale Movimenti Oggi' : 'Totale Netto Movimenti';
+    }
+
+    if (!isTodayFilter && startDate && endDate && startDate === endDate) {
+      try {
+        baseLabel += ` (${format(parseISO(startDate), 'dd/MM/yyyy')})`;
+      } catch {
+        // Fallback
+      }
+    } else if (!isTodayFilter && (startDate || endDate)) {
+      baseLabel += ' del Periodo';
+    }
+
+    return baseLabel;
+  }, [filterType, startDate, endDate]);
 
   const color = useMemo(() => {
     if (filterType === 'ENTRATA') return 'success';

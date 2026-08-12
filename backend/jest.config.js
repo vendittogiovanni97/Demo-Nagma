@@ -91,6 +91,8 @@ module.exports = {
           diagnostics: { ignoreCodes: [151002] },
         }],
       },
+      // Carica backend/.env nel processo di test così JWT_SECRET coincide col server
+      setupFiles: ['<rootDir>/test/setup/loadEnv.ts'],
       // Avvia/arresta il server automaticamente prima/dopo i test di integrazione
       globalSetup: '<rootDir>/test/setup/globalSetup.ts',
       globalTeardown: '<rootDir>/test/setup/globalTeardown.ts',

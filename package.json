@@ -1,5 +1,6 @@
 {
   "name": "demo-nagma",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
@@ -22,7 +23,9 @@
     "test:unit": "npm run test:unit --prefix backend",
     "test:integration": "npm run test:integration --prefix backend",
     "test:frontend": "npm run test --prefix frontend",
-    "test:api": "npm run test:api --prefix backend"
+    "test:api": "npm run test:api --prefix backend",
+    "make:executable": "chmod +x starter.command aggiorna.command",
+    "postinstall": "chmod +x starter.command aggiorna.command 2>/dev/null || true"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

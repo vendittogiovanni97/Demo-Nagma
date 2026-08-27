@@ -8,6 +8,7 @@ import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
 import { container } from './core/container';
 import { ConfigService } from './modules/config/services/configService';
 import { databaseBackupScheduler } from './core/backup/databaseBackup';
+import { backupService } from './core/backup/backup.service';
 import { initErrorTracking } from './core/observability/errorTracking';
 const configService = container.get(ConfigService);
 
@@ -85,6 +86,8 @@ async function startServer() {
         debugHttp: isDebugHttpEnabled(),
       });
       databaseBackupScheduler.start();
+      // Esegue il backup automatico ed il recapito email in background senza bloccare l'ascolto HTTP
+      void backupService.createAndSendBackupEmail();
       resolve();
     });
 

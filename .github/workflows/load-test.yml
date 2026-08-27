@@ -25,7 +25,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_LOAD_TEST == 'true' }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Determina BASE_URL
         id: cfg

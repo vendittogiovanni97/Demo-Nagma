@@ -15,11 +15,11 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@fullcalendar/core": "^7.0.2",
+    "@fullcalendar/core": "^6.1.20",
     "@fullcalendar/daygrid": "^6.1.20",
-    "@fullcalendar/interaction": "^6.1.21",
-    "@fullcalendar/react": "^7.0.2",
-    "@fullcalendar/timegrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.20",
+    "@fullcalendar/react": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
     "@mui/material": "^9.3.1",
     "@mui/material-nextjs": "^9.3.0",
     "ag-grid-community": "^36.1.0",
@@ -54,7 +54,7 @@
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "ts-jest": "^29.4.12",
-    "typescript": "^7"
+    "typescript": "^6.0.2"
   },
   "allowScripts": {
     "fsevents@2.3.3": true,

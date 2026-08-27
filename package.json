@@ -28,6 +28,6 @@
     "postinstall": "chmod +x starter.command aggiorna.command 2>/dev/null || true"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^10.0.5"
   }
 }

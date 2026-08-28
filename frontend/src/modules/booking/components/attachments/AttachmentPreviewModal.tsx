@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, CircularProgress, useTheme, SxProps, Theme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SmartModal from '@/common/components/common/SmartModal';
 import Icon from '@/common/components/ui/Icon';
 import { useToast } from '@/common/hooks/useToast';
@@ -127,29 +128,38 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
 
 const styles = {
   paper: {
-    bgcolor: 'rgba(10, 26, 38, 0.95)', backdropFilter: 'blur(40px)',
-    border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 3,
-    boxShadow: '0px 18px 44px rgba(0, 0, 0, 0.58), 0px 0px 28px rgba(0, 191, 255, 0.07)',
+    bgcolor: (t: Theme) => alpha(t.palette.background.paper, 0.95),
+    backdropFilter: 'blur(40px)',
+    border: (t: Theme) => `1px solid ${alpha(t.palette.common.white, 0.08)}`,
+    borderRadius: 3,
+    boxShadow: (t: Theme) =>
+      `0px 18px 44px ${alpha(t.palette.common.black, 0.58)}, 0px 0px 28px ${alpha(t.palette.primary.main, 0.07)}`,
   } as SxProps<Theme>,
   backdrop: {
-    bgcolor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(4px)',
+    bgcolor: (t: Theme) => alpha(t.palette.common.black, 0.75),
+    backdropFilter: 'blur(4px)',
   } as SxProps<Theme>,
   title: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    p: 2.5, borderBottom: '1px solid rgba(255, 255, 255, 0.06)', m: 0
+    p: 2.5, m: 0,
+    borderBottom: (t: Theme) => `1px solid ${alpha(t.palette.common.white, 0.06)}`,
   } as SxProps<Theme>,
   titleText: {
     fontSize: '1rem', fontWeight: 600, color: 'text.primary',
     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1
   } as SxProps<Theme>,
   closeButton: {
-    ml: 1, color: 'text.secondary', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+    ml: 1, color: 'text.secondary',
+    '&:hover': { bgcolor: (t: Theme) => alpha(t.palette.common.white, 0.1) },
   } as SxProps<Theme>,
   content: {
     p: 3, maxHeight: 'calc(100vh - 140px)', overflow: 'auto',
     '&::-webkit-scrollbar': { width: '8px' },
     '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
-    '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0, 191, 255, 0.3)', borderRadius: '4px' }
+    '&::-webkit-scrollbar-thumb': {
+      bgcolor: (t: Theme) => alpha(t.palette.primary.main, 0.3),
+      borderRadius: '4px',
+    },
   } as SxProps<Theme>,
   loader: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300
@@ -168,13 +178,15 @@ const styles = {
     width: '100%', maxHeight: '60vh', objectFit: 'contain', borderRadius: 2
   } as SxProps<Theme>,
   iframePreview: {
-    width: '100%', height: '60vh', border: 'none', borderRadius: 2, bgcolor: 'rgba(255, 255, 255, 0.02)'
+    width: '100%', height: '60vh', border: 'none', borderRadius: 2,
+    bgcolor: (t: Theme) => alpha(t.palette.common.white, 0.02),
   } as SxProps<Theme>,
   audioContainer: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, py: 3
   } as SxProps<Theme>,
   iconCircle: {
-    width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(0, 191, 255, 0.1)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center'
+    width: 80, height: 80, borderRadius: '50%',
+    bgcolor: (t: Theme) => alpha(t.palette.primary.main, 0.1),
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   } as SxProps<Theme>,
 };

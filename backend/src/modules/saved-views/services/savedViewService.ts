@@ -1,6 +1,30 @@
 import prisma from '../../../core/shared/utils/prisma';
-import { CreateSavedViewDto, UpdateSavedViewDto, SavedViewDto } from '../types/savedView.types';
+import { Prisma, SavedView } from '@prisma/client';
+import { CreateSavedViewDto, UpdateSavedViewDto, SavedViewDto, FilterCondition } from '../types/savedView.types';
 import { AppError } from '../../../core/shared/errors/AppError';
+
+/** Converte l'output degli schemi Zod nel tipo InputJsonValue richiesto dalle colonne Json di Prisma. */
+const toInputJson = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
+
+/** Converte un JsonValue letto dal DB nel tipo del DTO (le colonne Json sono scritte solo da questi endpoint). */
+const fromJson = <T>(value: Prisma.JsonValue | null): T | undefined =>
+  value === null ? undefined : (value as unknown as T);
+
+function toDto(row: SavedView): SavedViewDto {
+  return {
+    id: row.id,
+    userId: row.userId,
+    module: row.module,
+    name: row.name,
+    filters: fromJson<FilterCondition[]>(row.filters) ?? [],
+    columns: fromJson<string[]>(row.columns),
+    sort: fromJson<SavedViewDto['sort']>(row.sort),
+    isDefault: row.isDefault,
+    isPublic: row.isPublic,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
 
 export class SavedViewService {
   async getSavedViews(userId: number, module: string): Promise<SavedViewDto[]> {
@@ -12,7 +36,7 @@ export class SavedViewService {
       orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
     });
 
-    return views as any;
+    return views.map(toDto);
   }
 
   async createSavedView(userId: number, data: CreateSavedViewDto): Promise<SavedViewDto> {
@@ -28,15 +52,15 @@ export class SavedViewService {
         userId,
         module: data.module,
         name: data.name,
-        filters: data.filters as any,
-        columns: data.columns as any,
-        sort: data.sort as any,
+        filters: toInputJson(data.filters),
+        ...(data.columns !== undefined && { columns: toInputJson(data.columns) }),
+        ...(data.sort !== undefined && { sort: toInputJson(data.sort) }),
         isDefault: data.isDefault ?? false,
         isPublic: data.isPublic ?? false,
       },
     });
 
-    return created as any;
+    return toDto(created);
   }
 
   async updateSavedView(userId: number, id: number, data: UpdateSavedViewDto): Promise<SavedViewDto> {
@@ -56,15 +80,15 @@ export class SavedViewService {
       where: { id },
       data: {
         ...(data.name && { name: data.name }),
-        ...(data.filters && { filters: data.filters as any }),
-        ...(data.columns !== undefined && { columns: data.columns as any }),
-        ...(data.sort !== undefined && { sort: data.sort as any }),
+        ...(data.filters && { filters: toInputJson(data.filters) }),
+        ...(data.columns !== undefined && { columns: toInputJson(data.columns) }),
+        ...(data.sort !== undefined && { sort: toInputJson(data.sort) }),
         ...(data.isDefault !== undefined && { isDefault: data.isDefault }),
         ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
       },
     });
 
-    return updated as any;
+    return toDto(updated);
   }
 
   async deleteSavedView(userId: number, id: number): Promise<void> {
@@ -92,6 +116,6 @@ export class SavedViewService {
       data: { isDefault: true },
     });
 
-    return updated as any;
+    return toDto(updated);
   }
 }

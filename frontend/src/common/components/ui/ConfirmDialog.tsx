@@ -85,7 +85,7 @@ export const ConfirmDialog = ({
             m: 2,
             borderRadius: '18px',
             bgcolor: isLight
-              ? 'rgba(255, 255, 255, 0.98)'
+              ? alpha(theme.palette.background.paper, 0.98)
               : alpha(theme.palette.background.paper, 0.9),
             backdropFilter: 'blur(30px)',
             WebkitBackdropFilter: 'blur(30px)',

@@ -210,7 +210,7 @@ function CalendarToolbar({
                   borderRadius: '7px',
                   fontSize: '0.75rem',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#ffffff' : 'text.secondary',
+                  color: isActive ? theme.palette.primary.contrastText : 'text.secondary',
                   backgroundColor: isActive
                     ? theme.palette.primary.main
                     : 'transparent',

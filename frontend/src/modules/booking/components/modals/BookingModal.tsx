@@ -115,6 +115,8 @@ export default function BookingModal({
               newCustomerPhone={form.formData.newCustomerPhone}
               newCustomerEmail={form.formData.newCustomerEmail}
               onChangeField={form.setField}
+              onCustomerSearchChange={form.onCustomerSearchChange}
+              onCustomerSelect={(val) => form.handleCustomerSelect(val)}
             />
 
             {/* MAIN DATA ROW */}

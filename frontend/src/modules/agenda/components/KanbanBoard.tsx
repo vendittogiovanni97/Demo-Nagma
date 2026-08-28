@@ -16,13 +16,14 @@ import { useKanbanBookings, KanbanStage, KanbanBookingItem } from '../hooks/useK
 import { KanbanCard } from './KanbanCard';
 import { useStaffMembers } from '@/modules/staff/hooks/useStaff';
 import { formatPrice } from '@/common/shared/utils/format';
+import { KANBAN_STAGE_COLORS } from '@/common/theme/colorTokens';
 
 const KANBAN_COLUMNS: { id: KanbanStage; title: string; icon: React.ReactNode; color: string }[] = [
-  { id: 'IN_ARRIVO', title: 'In Arrivo', icon: <Clock size={18} />, color: '#00e5ff' },
-  { id: 'IN_ATTESA', title: 'In Sala d\'Attesa', icon: <Armchair size={18} />, color: '#ab47bc' },
-  { id: 'IN_SEDUTA', title: 'In Seduta', icon: <Palette size={18} />, color: '#29b6f6' },
-  { id: 'DA_SALDARE', title: 'Da Saldare', icon: <CreditCard size={18} />, color: '#ffa726' },
-  { id: 'SALDATO', title: 'Saldato & Uscito', icon: <CheckCircle2 size={18} />, color: '#66bb6a' },
+  { id: 'IN_ARRIVO', title: 'In Arrivo', icon: <Clock size={18} />, color: KANBAN_STAGE_COLORS.IN_ARRIVO },
+  { id: 'IN_ATTESA', title: "In Sala d'Attesa", icon: <Armchair size={18} />, color: KANBAN_STAGE_COLORS.IN_ATTESA },
+  { id: 'IN_SEDUTA', title: 'In Seduta', icon: <Palette size={18} />, color: KANBAN_STAGE_COLORS.IN_SEDUTA },
+  { id: 'DA_SALDARE', title: 'Da Saldare', icon: <CreditCard size={18} />, color: KANBAN_STAGE_COLORS.DA_SALDARE },
+  { id: 'SALDATO', title: 'Saldato & Uscito', icon: <CheckCircle2 size={18} />, color: KANBAN_STAGE_COLORS.SALDATO },
 ];
 
 export function KanbanBoard() {
@@ -243,8 +244,8 @@ export function KanbanBoard() {
                           cursor: 'grabbing',
                           boxShadow: (t) =>
                             t.palette.mode === 'dark'
-                              ? '0 16px 36px rgba(0,0,0,0.6)'
-                              : '0 12px 28px rgba(0,0,0,0.15)',
+                              ? `0 16px 36px ${alpha(t.palette.common.black, 0.6)}`
+                              : `0 12px 28px ${alpha(t.palette.common.black, 0.15)}`,
                         }}
                       >
                         <KanbanCard booking={booking} />

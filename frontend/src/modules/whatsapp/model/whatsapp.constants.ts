@@ -1,3 +1,5 @@
+import { WHATSAPP_VARIABLE_COLORS } from '@/common/theme/colorTokens';
+
 export interface QuickVariable {
   label: string;
   value: string;
@@ -5,11 +7,11 @@ export interface QuickVariable {
 }
 
 export const WHATSAPP_QUICK_VARIABLES: QuickVariable[] = [
-  { label: '👤 Nome Cliente', value: '{{nome}}', color: '#00e5ff' },
-  { label: '📅 Data Appt.', value: '{{data}}', color: '#ff007f' },
-  { label: '⏰ Ora Appt.', value: '{{ora}}', color: '#7000ff' },
-  { label: '🎨 Artista', value: '{{artista}}', color: '#ffaa00' },
-  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}', color: '#00ff66' },
+  { label: '👤 Nome Cliente', value: '{{nome}}', color: WHATSAPP_VARIABLE_COLORS[0] },
+  { label: '📅 Data Appt.', value: '{{data}}', color: WHATSAPP_VARIABLE_COLORS[1] },
+  { label: '⏰ Ora Appt.', value: '{{ora}}', color: WHATSAPP_VARIABLE_COLORS[2] },
+  { label: '🎨 Artista', value: '{{artista}}', color: WHATSAPP_VARIABLE_COLORS[3] },
+  { label: '💰 Prezzo/Acconto', value: '{{prezzo}}', color: WHATSAPP_VARIABLE_COLORS[4] },
 ];
 
 export function extractVariables(text: string): string[] {

@@ -1,5 +1,6 @@
 'use client';
 
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   AlertCircle, AlertTriangle, ArrowLeft, ArrowRight,
   Calendar, CalendarDays, Check, CheckCircle, CheckCircle2,
@@ -113,6 +114,7 @@ export default function Icon({
   color,
   glow = false,
 }: IconProps) {
+  const theme = useTheme();
   const IconComponent = icons[name];
   if (!IconComponent) return <></>;
   return (
@@ -122,7 +124,7 @@ export default function Icon({
       className={className}
       color={color}
       style={{
-        filter: glow ? `drop-shadow(0 0 6px ${color || 'rgba(0, 191, 255, 0.6)'})` : undefined,
+        filter: glow ? `drop-shadow(0 0 6px ${color || alpha(theme.palette.primary.main, 0.6)})` : undefined,
         transition: 'all 0.2s ease',
       }}
     />

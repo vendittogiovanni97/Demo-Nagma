@@ -6,7 +6,7 @@ import Icon, { Lock, Mail } from '@/common/components/ui/Icon';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Button from '@/common/components/ui/Button';
 import FormInput from '@/common/components/forms/FormInput';
@@ -20,6 +20,7 @@ interface LoginFormData {
 const LOGIN_INITIAL: LoginFormData = { email: '', password: '' };
 
 export default function LoginPage() {
+  const theme = useTheme();
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
@@ -102,15 +103,15 @@ export default function LoginPage() {
             sx={{
               width: 72,
               height: 72,
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              backgroundColor: alpha(theme.palette.common.white, 0.03),
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mb: 4,
               border: 1,
-              borderColor: 'rgba(0, 191, 255, 0.15)',
-              boxShadow: '0 10px 30px -5px rgba(0, 191, 255, 0.15)',
+              borderColor: alpha(theme.palette.primary.main, 0.15),
+              boxShadow: `0 10px 30px -5px ${alpha(theme.palette.primary.main, 0.15)}`,
               overflow: 'hidden',
             }}
           >

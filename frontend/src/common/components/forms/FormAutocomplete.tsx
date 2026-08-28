@@ -24,6 +24,8 @@ interface FormAutocompleteProps {
   size?: 'small' | 'medium';
   sx?: SxProps<Theme>;
   loading?: boolean;
+  /** Callback invocato a ogni digitazione (per autocomplete server-side). */
+  onSearchChange?: (term: string) => void;
 }
 
 export default function FormAutocomplete({
@@ -40,6 +42,7 @@ export default function FormAutocomplete({
   size = 'small',
   sx,
   loading = false,
+  onSearchChange,
 }: FormAutocompleteProps) {
   const theme = useTheme();
   const selectedOption = options.find(opt => String(opt.value) === String(value)) || null;
@@ -55,6 +58,9 @@ export default function FormAutocomplete({
       <Autocomplete<Option, false, false, false>
         value={selectedOption}
         onChange={(_, newValue) => onChange(newValue ? String(newValue.value) : '')}
+        onInputChange={(_, inputValue, reason) => {
+          if (reason === 'input' && onSearchChange) onSearchChange(inputValue);
+        }}
         options={options}
         getOptionLabel={(option) => option.label}
         isOptionEqualToValue={(option, val) => String(option.value) === String(val.value)}
@@ -103,12 +109,12 @@ const styles = {
     return {
       mt: 1,
       overflow: 'hidden',
-      bgcolor: isLight ? 'rgba(255, 255, 255, 0.98)' : alpha(theme.palette.background.paper, 0.88),
+      bgcolor: isLight ? alpha(theme.palette.background.paper, 0.98) : alpha(theme.palette.background.paper, 0.88),
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : alpha(theme.palette.primary.main, 0.25)}`,
+      border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.1) : alpha(theme.palette.primary.main, 0.25)}`,
       boxShadow: isLight
-        ? '0 4px 20px rgba(0, 0, 0, 0.1)'
+        ? `0 4px 20px ${alpha(theme.palette.common.black, 0.1)}`
         : `0 16px 40px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
       borderRadius: '12px',
       '& .MuiAutocomplete-listbox': {
@@ -127,17 +133,17 @@ const styles = {
     return {
       '& .MuiOutlinedInput-root': {
         ...inputRootSx(theme),
-        backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : alpha(theme.palette.common.white, 0.05),
+        backgroundColor: isLight ? alpha(theme.palette.common.black, 0.03) : alpha(theme.palette.common.white, 0.05),
         borderRadius: '12px',
         fontSize: '0.9375rem',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         padding: '0 12px !important',
         minHeight: '44px',
         '&:hover': {
-          backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : alpha(theme.palette.common.white, 0.08),
+          backgroundColor: isLight ? alpha(theme.palette.common.black, 0.05) : alpha(theme.palette.common.white, 0.08),
         },
         '&.Mui-focused': {
-          backgroundColor: isLight ? 'rgba(0, 0, 0, 0.06)' : alpha(theme.palette.common.white, 0.1),
+          backgroundColor: isLight ? alpha(theme.palette.common.black, 0.06) : alpha(theme.palette.common.white, 0.1),
           borderColor: 'primary.main',
         },
       },

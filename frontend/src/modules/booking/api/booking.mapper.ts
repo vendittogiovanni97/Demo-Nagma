@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { BookingDTO } from './booking.types';
 import type { BookingModel } from '../model/booking.model';
+import { DEFAULT_ARTIST_COLOR } from '@/common/theme/colorTokens';
 
 export const bookingMapper = {
   toModel(dto: BookingDTO): BookingModel {
@@ -13,7 +14,7 @@ export const bookingMapper = {
       customerName: dto.customer ? `${dto.customer.firstName} ${dto.customer.lastName}`.trim() : 'Cliente Sconosciuto',
       artistId: dto.artistId,
       artistName: dto.artist ? dto.artist.name : 'Artista Sconosciuto',
-      artistColor: dto.artist?.color || '#000000',
+      artistColor: dto.artist?.color || DEFAULT_ARTIST_COLOR,
       date: dto.date,
       formattedDate: format(dateObj, 'dd MMM yyyy', { locale: it }),
       formattedTime: format(dateObj, 'HH:mm'),

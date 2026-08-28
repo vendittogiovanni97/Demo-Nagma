@@ -46,13 +46,13 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
         case 'glass':
           return {
             backgroundColor: isLight
-              ? 'rgba(255, 255, 255, 0.9)'
+              ? alpha(theme.palette.background.paper, 0.9)
               : alpha(theme.palette.common.white, 0.04),
             backdropFilter: 'blur(12px)',
-            border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : theme.palette.divider}`,
+            border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : theme.palette.divider}`,
             boxShadow: isLight
-              ? '0 2px 12px rgba(0, 0, 0, 0.04)'
-              : '0 8px 32px rgba(0, 0, 0, 0.25)',
+              ? `0 2px 12px ${alpha(theme.palette.common.black, 0.04)}`
+              : `0 8px 32px ${alpha(theme.palette.common.black, 0.25)}`,
           };
         case 'primary':
           return {
@@ -63,11 +63,11 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
           };
         case 'elevated':
           return {
-            backgroundColor: isLight ? '#ffffff' : alpha(theme.palette.common.white, 0.08),
-            border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : alpha(theme.palette.common.white, 0.15)}`,
+            backgroundColor: isLight ? theme.palette.background.paper : alpha(theme.palette.common.white, 0.08),
+            border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : alpha(theme.palette.common.white, 0.15)}`,
             boxShadow: isLight
-              ? '0 4px 20px rgba(0, 0, 0, 0.06)'
-              : '0 8px 32px rgba(0, 0, 0, 0.3)',
+              ? `0 4px 20px ${alpha(theme.palette.common.black, 0.06)}`
+              : `0 8px 32px ${alpha(theme.palette.common.black, 0.3)}`,
           };
         case 'minimal':
           return {

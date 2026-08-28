@@ -21,6 +21,7 @@ import { useClientConfig, useUpdateClientConfig, ClientConfig } from '@/common/h
 import { useToast } from '@/common/hooks/useToast';
 import { useAuth } from '@/common/context/AuthContext';
 import { inputSx } from '@/common/theme/inputStyles';
+import { DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR } from '@/common/theme/colorTokens';
 
 /**
  * Admin Settings Page — Configurazione client
@@ -139,7 +140,7 @@ export default function ClientSettingsPage() {
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <input
                       type="color"
-                      value={formData.primaryColor || '#00bfff'}
+                      value={formData.primaryColor || DEFAULT_PRIMARY_COLOR}
                       onChange={(e) => handleChange('primaryColor', e.target.value)}
                       style={{
                         width: 48,
@@ -151,7 +152,7 @@ export default function ClientSettingsPage() {
                       }}
                     />
                     <TextField
-                      value={formData.primaryColor || '#00bfff'}
+                      value={formData.primaryColor || DEFAULT_PRIMARY_COLOR}
                       onChange={(e) => handleChange('primaryColor', e.target.value)}
                       size="small"
                       sx={{ flex: 1, ...inputSx(theme) }}
@@ -165,7 +166,7 @@ export default function ClientSettingsPage() {
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <input
                       type="color"
-                      value={formData.secondaryColor || '#1a2332'}
+                      value={formData.secondaryColor || DEFAULT_SECONDARY_COLOR}
                       onChange={(e) => handleChange('secondaryColor', e.target.value)}
                       style={{
                         width: 48,
@@ -177,7 +178,7 @@ export default function ClientSettingsPage() {
                       }}
                     />
                     <TextField
-                      value={formData.secondaryColor || '#1a2332'}
+                      value={formData.secondaryColor || DEFAULT_SECONDARY_COLOR}
                       onChange={(e) => handleChange('secondaryColor', e.target.value)}
                       size="small"
                       sx={{ flex: 1, ...inputSx(theme) }}

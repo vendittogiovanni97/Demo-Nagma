@@ -1,9 +1,13 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, TransactionType } from '@prisma/client';
 import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
 import { getMonthRange } from '../../../core/shared/utils/date-utils';
 import { financeCache } from './finance.cache';
+
+/** Le colonne Json di TransactionHistory accettano InputJsonValue; i record Prisma
+ *  (con Decimal/Date) vengono serializzati correttamente al momento della scrittura. */
+const toJsonInput = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
 
 export class TransactionService {
   async findAll(filters: {
@@ -19,7 +23,7 @@ export class TransactionService {
     const { type, category, month, startDate, endDate, search, page = 1, limit = 25 } = filters;
     const where: Prisma.TransactionWhereInput = { deletedAt: null };
 
-    if (type) where.type = type as any;
+    if (type) where.type = type as TransactionType;
     if (category) where.category = category;
     if (search?.trim()) {
       where.OR = [
@@ -181,7 +185,7 @@ export class TransactionService {
   }
 
   async create(data: {
-    type: string;
+    type: TransactionType;
     category: string;
     description?: string;
     amount: number;
@@ -194,7 +198,7 @@ export class TransactionService {
     return prisma.$transaction(async (tx) => {
       const created = await tx.transaction.create({
         data: {
-          type: data.type as any,
+          type: data.type,
           category: data.category,
           description: data.description ?? '',
           amount: data.amount,
@@ -209,7 +213,7 @@ export class TransactionService {
           data: {
             transactionId: created.id,
             action: 'CREATED',
-            newData: created as any,
+            newData: toJsonInput(created),
             changedById: userId,
           },
         });
@@ -220,7 +224,7 @@ export class TransactionService {
   }
 
   async update(id: number, data: {
-    type?: string;
+    type?: TransactionType;
     category?: string;
     description?: string;
     amount?: number;
@@ -231,7 +235,7 @@ export class TransactionService {
     if (!existing) throw new AppError('Transazione non trovata', 404);
 
     return prisma.$transaction(async (tx) => {
-      const updateData: any = {};
+      const updateData: Prisma.TransactionUpdateInput = {};
       if (data.type) updateData.type = data.type;
       if (data.category) updateData.category = data.category;
       if (data.description !== undefined) updateData.description = data.description;
@@ -248,8 +252,8 @@ export class TransactionService {
           data: {
             transactionId: id,
             action: 'UPDATED',
-            oldData: existing as any,
-            newData: updated as any,
+            oldData: toJsonInput(existing),
+            newData: toJsonInput(updated),
             changedById: userId,
           },
         });
@@ -275,7 +279,7 @@ export class TransactionService {
           data: {
             transactionId: id,
             action: 'DELETED',
-            oldData: existing as any,
+            oldData: toJsonInput(existing),
             changedById: userId,
           },
         });

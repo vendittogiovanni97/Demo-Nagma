@@ -471,7 +471,9 @@ export class BookingService {
         where: { id },
         include: { customer: true },
       });
-      if (!oldBooking) return;
+      if (!oldBooking || oldBooking.deletedAt) {
+        throw new AppError('Prenotazione non trovata', 404, 'NOT_FOUND');
+      }
 
       await tx.booking.update({
         where: { id },
@@ -507,7 +509,9 @@ export class BookingService {
         where: { id },
         include: { customer: true },
       });
-      if (!oldBooking) return;
+      if (!oldBooking || oldBooking.deletedAt) {
+        throw new AppError('Prenotazione non trovata', 404, 'NOT_FOUND');
+      }
 
       await tx.booking.update({
         where: { id },

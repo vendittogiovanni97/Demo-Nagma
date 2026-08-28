@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import crypto from 'crypto';
 import express, { NextFunction, Request, Response } from 'express';
@@ -6,13 +7,14 @@ import swaggerUi from 'swagger-ui-express';
 
 import { config } from './core/config/env';
 import { getSwaggerSpec } from './core/config/swagger';
-import { bootstrapContainer } from './core/container/bootstrap';
 import { container } from './core/container';
-import { ConfigService } from './modules/config/services/configService';
+import { bootstrapContainer } from './core/container/bootstrap';
 import { globalErrorHandler } from './core/middleware/error.middleware';
-import { registerRoutes } from './routes';
+import { apiRateLimiter } from './core/middleware/rateLimiter';
 import { isDebugHttpEnabled, logger, sanitizeForLog } from './core/shared/utils/logger';
 import prisma from './core/shared/utils/prisma';
+import { ConfigService } from './modules/config/services/configService';
+import { registerRoutes } from './routes';
 
 import { MetricsService } from './modules/metrics/services/metrics.service';
 
@@ -59,6 +61,9 @@ export function createApp() {
   };
 
   app.use(cors(corsOptions));
+
+  // SECURITY (Audit M2): parsing dei cookie per la sessione httpOnly.
+  app.use(cookieParser());
 
   app.use(express.json({ limit: config.jsonPayloadLimit }));
 
@@ -113,6 +118,13 @@ export function createApp() {
 
     next();
   });
+
+  // SECURITY (Audit B5/Audit): rate limiter globale sull'intera superficie /api.
+  // Copre le chiamate non autenticate (per-IP) e, quando l'utente è già stato
+  // autenticato da un middleware precedente, per-utente. File/health oppure
+  // /api-docs non sono sotto /api e restano fuori dal limite. Il limite
+  // specifico di login resta gestito dai limiter dedicati sulle route auth.
+  app.use('/api', apiRateLimiter);
 
   registerRoutes(app);
 

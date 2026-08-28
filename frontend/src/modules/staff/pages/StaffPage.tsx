@@ -10,6 +10,7 @@ import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { staffApi } from '../api/staff.api';
 import type { Shift, Staff } from '../model/staff.types';
 import { Box, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import Paper from '@/common/components/ui/Paper';
 import { addWeeks, format, parseISO, startOfWeek, subWeeks } from 'date-fns';
 import Icon from '@/common/components/ui/Icon';
@@ -177,7 +178,7 @@ export default function StaffPage() {
           overflow: 'hidden',
           width: '100%',
           position: 'relative',
-          bgcolor: 'rgba(255, 255, 255, 0.04)',
+          bgcolor: alpha(theme.palette.common.white, 0.04),
           border: `1px solid ${theme.palette.divider}`,
         }}
       >

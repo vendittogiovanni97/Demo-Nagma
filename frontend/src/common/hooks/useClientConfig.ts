@@ -1,6 +1,7 @@
 import useSWR from 'swr';
 import { apiClient } from '@/common/shared/api/client';
 import { getToken } from '@/common/shared/utils/auth';
+import { DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR } from '@/common/theme/colorTokens';
 
 export interface ClientConfig {
   id: string;
@@ -31,8 +32,8 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfig = {
   clientName: 'Demo Nagma',
   clientTimeZone: 'Europe/Rome',
   clientLocale: 'it-IT',
-  primaryColor: '#1976d2',
-  secondaryColor: '#dc004e',
+  primaryColor: DEFAULT_PRIMARY_COLOR,
+  secondaryColor: DEFAULT_SECONDARY_COLOR,
   features: {
     enableCream: true,
     enableWhatsApp: true,

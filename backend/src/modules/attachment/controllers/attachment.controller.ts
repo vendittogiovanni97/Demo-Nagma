@@ -29,10 +29,10 @@ export class AttachmentController {
     const bookingId = parseId(bookingIdParam);
 
     const bb = busboy({ headers: req.headers });
-    const results: any[] = [];
+    const results: unknown[] = [];
     let pendingUploads = 0;
     let closed = false;
-    let errored: any = null;
+    let errored: unknown = null;
     let responded = false;
 
     const tryFinish = () => {
@@ -111,7 +111,7 @@ export class AttachmentController {
     const bookingId = parseId(req.params.bookingId);
     const attachments = await this.attachmentService.findByBooking(bookingId);
 
-    const data = await Promise.all(attachments.map(async (att: any) => ({
+    const data = await Promise.all(attachments.map(async (att) => ({
       ...att,
       preview: await this.attachmentService.getPreview(att.id)
     })));

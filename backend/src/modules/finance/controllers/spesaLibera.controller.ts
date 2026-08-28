@@ -16,7 +16,7 @@ export class SpesaLiberaController {
     res.json(result);
   });
 
-  create = handleCreate(async (data) => this.spesaLiberaService.create(data as any), createSpesaLiberaSchema);
+  create = handleCreate(async (data) => this.spesaLiberaService.create(data), createSpesaLiberaSchema);
 
   delete = asyncHandler(async (req: Request, res: Response) => {
     const id = parseId(req.params.id);

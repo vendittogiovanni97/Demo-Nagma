@@ -140,21 +140,21 @@ export default function Navbar() {
               maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
               right: 'auto',
               backgroundColor: resolvedTheme === 'light'
-                ? 'rgba(255, 255, 255, 0.92)'
+                ? alpha(muiTheme.palette.background.paper, 0.92)
                 : alpha(muiTheme.palette.background.default, 0.98),
               backdropFilter: 'blur(30px)',
               border: {
                 xs: 'none',
-                sm: `1px solid ${resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : alpha(muiTheme.palette.primary.main, 0.15)}`,
+                sm: `1px solid ${resolvedTheme === 'light' ? alpha(muiTheme.palette.common.black, 0.08) : alpha(muiTheme.palette.primary.main, 0.15)}`,
               },
               borderTop: 'none',
               borderRadius: { xs: 0, sm: '0 0 24px 24px' },
               boxShadow: resolvedTheme === 'light'
-                ? '0 4px 20px rgba(0, 0, 0, 0.08)'
+                ? `0 4px 20px ${alpha(muiTheme.palette.common.black, 0.08)}`
                 : `0 10px 40px ${alpha(muiTheme.palette.common.black, 0.6)}`,
               borderBottom: {
-                xs: `1px solid ${resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : alpha(muiTheme.palette.primary.main, 0.15)}`,
-                sm: `1px solid ${resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : alpha(muiTheme.palette.primary.main, 0.15)}`,
+                xs: `1px solid ${resolvedTheme === 'light' ? alpha(muiTheme.palette.common.black, 0.08) : alpha(muiTheme.palette.primary.main, 0.15)}`,
+                sm: `1px solid ${resolvedTheme === 'light' ? alpha(muiTheme.palette.common.black, 0.08) : alpha(muiTheme.palette.primary.main, 0.15)}`,
               },
             }}
           >

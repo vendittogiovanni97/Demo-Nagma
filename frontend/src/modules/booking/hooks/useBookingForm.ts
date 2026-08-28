@@ -1,17 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { format } from 'date-fns';
 import { useToast } from '@/common/hooks/useToast';
 import { useEntityForm, UseEntityFormReturn } from '@/common/hooks/useEntityForm';
 import { bookingApi as bookingService } from '@/modules/booking/api/booking.api';
 import { customerApi as customerService } from '@/modules/customer/api/customer.api';
-import { staffApi as staffService } from '@/modules/staff/api/staff.api';
 import { configService } from '@/common/shared/services/config.service';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import type { Booking, BookingStatus, CreateBookingData } from '@/modules/booking/model/booking.types';
 import { PERCENTUALE_OPTIONS_VALUES } from '../hooks/booking-config';
-import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
-import { useCustomers } from '@/modules/customer/hooks/useCustomer';
+import { DEFAULT_ARTIST_COLOR } from '@/common/theme/colorTokens';
+import { useCustomerAutocomplete } from '@/modules/customer/hooks/useCustomerAutocomplete';
+import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
 import { useFormTemplates } from '@/modules/form-templates/hooks/useFormTemplates';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 
@@ -120,7 +121,6 @@ interface UseBookingFormReturn extends UseEntityFormReturn<BookingFormData> {
   customersLoading: boolean;
 
   // Actions
-  handleArtistLoad: () => Promise<void>;
   handleNewCustomerCreate: () => Promise<number | null>;
   handleSave: () => Promise<void>;
   handlePasswordConfirm: (password: string) => Promise<void>;
@@ -136,12 +136,13 @@ interface UseBookingFormReturn extends UseEntityFormReturn<BookingFormData> {
   showSuccess: boolean;
   setShowSuccess: (show: boolean) => void;
 
-  // Extra state for artists
+  // Extra state for artists (caricati via SWR con chiave dedicata)
   artists: ArtistOption[];
-  setArtists: (artists: ArtistOption[]) => void;
   loadingArtists: boolean;
-  initialArtistLoaded: boolean;
-  setInitialArtistLoaded: (loaded: boolean) => void;
+
+  // Autocomplete clienti server-side
+  onCustomerSearchChange: (term: string) => void;
+  handleCustomerSelect: (value: string) => void;
 }
 
 export function useBookingForm({
@@ -157,10 +158,13 @@ export function useBookingForm({
   const toast = useToast();
 
   // External data hooks
-  const { data: customerResult, isLoading: customersLoading, mutate: mutateCustomers } = useCustomers({
-    page: 1,
-    limit: EXPORT_FETCH_LIMIT
-  });
+  const {
+    options: customerOptions,
+    isLoading: customersLoading,
+    setSearch: setCustomerSearch,
+    handleSelect: handleCustomerSelect,
+    mutate: mutateCustomers,
+  } = useCustomerAutocomplete({ enabled: isOpen });
   const { data: templates } = useFormTemplates();
 
   // Internal state for complex UI states - DECLARE FIRST
@@ -169,13 +173,29 @@ export function useBookingForm({
   const [pendingData, setPendingData] = useState<BookingFormData | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Computed data
-  const customers = customerResult?.data || [];
+  // Computed data — gli artisti sono caricati con SWR (chiave dedicata), senza
+  // la fragile cache imperativa basata su `artists.length > 1`.
+  const { data: staffForSelect, isLoading: loadingArtists } = useStaffForSelect({ enabled: isOpen });
 
-  // We need to track artists separately since they're loaded async
-  const [artists, setArtists] = useState<ArtistOption[]>([]);
-  const [loadingArtists, setLoadingArtists] = useState(false);
-  const [initialArtistLoaded, setInitialArtistLoaded] = useState(false);
+  const artists = useMemo<ArtistOption[]>(() => {
+    const list = (staffForSelect ?? []).map((m) => ({
+      id: m.id,
+      name: m.name,
+      color: m.color || DEFAULT_ARTIST_COLOR,
+      isRentPayee: m.isRentPayee,
+    }));
+    // In modifica: mantiene l'artista della prenotazione anche se non è nella
+    // lista (fallback già gestito anche da artistOptions/selectedArtist).
+    if (booking?.id && booking.artist && !list.some((a) => a.id === booking.artist!.id)) {
+      list.unshift({
+        id: booking.artist.id,
+        name: booking.artist.name,
+        color: booking.artist.color || DEFAULT_ARTIST_COLOR,
+        isRentPayee: false,
+      });
+    }
+    return list;
+  }, [staffForSelect, booking]);
 
   // Initial values for useEntityForm
   const initial = useCallback(() => INITIAL_FORM_DATA, []);
@@ -273,10 +293,6 @@ export function useBookingForm({
     return available;
   }, [artists, booking, form.formData.artistId]);
 
-  const customerOptions = useMemo(() =>
-    customers.map(c => ({ value: c.id.toString(), label: `${c.firstName} ${c.lastName}` }))
-  , [customers]);
-
   const activeTemplate = useMemo(() =>
     templates?.find(t => t.id === form.formData.selectedTemplateId) ?? null
   , [templates, form.formData.selectedTemplateId]);
@@ -311,25 +327,6 @@ export function useBookingForm({
     }
   }, [templates, form.formData.selectedTemplateId]);
 
-  // Load artists when modal opens
-  const handleArtistLoad = useCallback(async () => {
-    if (artists.length > 1) return;
-    setLoadingArtists(true);
-    try {
-      const data = await staffService.getAllForSelect();
-      setArtists(data.map(m => ({ id: m.id, name: m.name, color: m.color || '#1976d2', isRentPayee: m.isRentPayee })));
-      setInitialArtistLoaded(true);
-    } catch (err) {
-      toast.error(extractErrorMessage(err, 'Errore artisti'));
-    } finally {
-      setLoadingArtists(false);
-    }
-  }, [artists.length, toast]);
-
-  useEffect(() => {
-    if (isOpen) handleArtistLoad();
-  }, [isOpen, handleArtistLoad]);
-
   const { setFields, resetForm: formResetForm } = form;
 
   const prevOpenRef = useRef(isOpen);
@@ -358,14 +355,11 @@ export function useBookingForm({
           else percentualeMode = 'custom';
         }
 
-        let preLoadedArtists: ArtistOption[] = [];
-        if (booking.artist) preLoadedArtists = [{ id: booking.artist.id, name: booking.artist.name, color: booking.artist.color }];
-
         setFields({
           customerId: booking.customerId.toString(),
           artistId: booking.artistId.toString(),
-          date: d.toISOString().split('T')[0],
-          time: d.toTimeString().slice(0, 5),
+          date: format(d, 'yyyy-MM-dd'),
+          time: format(d, 'HH:mm'),
           duration: booking.duration?.toString() || '120',
           price: booking.price?.toString() || '',
           deposit: booking.deposit?.toString() || '',
@@ -374,10 +368,6 @@ export function useBookingForm({
           dynamicValues: booking.formData as Record<string, string> || {},
           status: booking.status ?? 'CONFERMATO',
         });
-
-        if (preLoadedArtists.length > 0) {
-          setArtists(preLoadedArtists);
-        }
       } else {
         formResetForm();
         setFields({
@@ -471,8 +461,8 @@ export function useBookingForm({
       const isExplicit = s === 'ANNULLATO' || s === 'CANCELLATO' || s === 'COMPLETATO';
       if (!isExplicit) {
         const orig = new Date(booking.date);
-        const origDate = orig.toISOString().split('T')[0];
-        const origTime = orig.toTimeString().slice(0, 5);
+        const origDate = format(orig, 'yyyy-MM-dd');
+        const origTime = format(orig, 'HH:mm');
         const dateTimeChanged =
           updatedFormData.date !== origDate || updatedFormData.time !== origTime;
         const otherChanged =
@@ -536,7 +526,6 @@ export function useBookingForm({
     templates: templates || [],
     customersLoading,
     // Actions
-    handleArtistLoad,
     handleNewCustomerCreate,
     handleSave,
     handlePasswordConfirm,
@@ -550,11 +539,10 @@ export function useBookingForm({
     setPendingData,
     showSuccess,
     setShowSuccess,
-    // Expose artists for sync
+    // Artists (SWR) e autocomplete clienti server-side
     artists,
-    setArtists,
     loadingArtists,
-    initialArtistLoaded,
-    setInitialArtistLoaded,
+    onCustomerSearchChange: setCustomerSearch,
+    handleCustomerSelect,
   };
 }

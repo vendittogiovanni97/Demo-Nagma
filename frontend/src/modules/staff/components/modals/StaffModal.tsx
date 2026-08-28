@@ -15,13 +15,12 @@ import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
 import CheckboxInput from '@/common/components/forms/CheckboxInput';
 import Icon from '@/common/components/ui/Icon';
+import { STAFF_COLOR_PRESETS } from '@/common/theme/colorTokens';
 
 const STAFF_TYPE_OPTIONS = [
   { value: 'COLLABORATORE', label: 'Collaboratore' },
   { value: 'APPRENDISTA', label: 'Apprendista' },
 ] as const;
-
-const STAFF_COLOR_PRESETS = ['#00BFFF', '#4F7CFF', '#25D366', '#FF6B6B', '#FFB020', '#9B6DFF'] as const;
 
 interface Props {
   isOpen: boolean;
@@ -233,7 +232,7 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
                   transition: 'transform 0.2s',
                 }}
               >
-                <Box sx={{ color: theme.palette.common.white, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))', display: 'inline-flex' }}>
+                <Box sx={{ color: theme.palette.common.white, filter: `drop-shadow(0 2px 4px ${alpha(theme.palette.common.black, 0.3)})`, display: 'inline-flex' }}>
                   <Icon name="palette" size={18} />
                 </Box>
               </Box>

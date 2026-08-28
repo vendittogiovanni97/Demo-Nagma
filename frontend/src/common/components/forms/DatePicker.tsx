@@ -217,7 +217,7 @@ export default function DatePicker({
                 border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                 '&:hover': {
                   bgcolor: theme.palette.primary.main,
-                  color: '#fff',
+                  color: 'common.white',
                 },
               }}
             />
@@ -248,14 +248,13 @@ export default function DatePicker({
                   fontSize: '0.7rem',
                   bgcolor: alpha(theme.palette.error.main, 0.1),
                   color: 'error.main',
-                  '&:hover': { bgcolor: theme.palette.error.main, color: '#fff' },
+                  '&:hover': { bgcolor: theme.palette.error.main, color: 'common.white' },
                 }}
               />
             )}
           </Stack>
         )}
 
-        {/* Header Calendario: Mese / Anno + Prev/Next */}
         <Stack direction="row" useFlexGap sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
           <Typography
             sx={{
@@ -338,7 +337,7 @@ export default function DatePicker({
                   fontSize: '0.8125rem',
                   fontWeight: isSelected ? 800 : isTodayDay ? 700 : 500,
                   color: isSelected
-                    ? '#ffffff'
+                    ? theme.palette.common.white
                     : !isCurrentMonth
                     ? alpha(theme.palette.text.secondary, 0.3)
                     : isTodayDay

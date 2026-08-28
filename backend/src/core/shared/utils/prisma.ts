@@ -3,7 +3,21 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { logger } from './logger';
 
-export const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://root:root123@localhost:5433/nagmadb?schema=public';
+// SECURITY (Audit H4): nessun fallback con credenziali note. Un DATABASE_URL
+// mancante in produzione non deve mai connettersi silenziosamente con
+// credenziali di default — fail-fast con messaggio d'aiuto.
+function requireDatabaseUrl(): string {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      'DATABASE_URL non configurata. ' +
+      'Copiare backend/.env.example in backend/.env e impostare la stringa di connessione PostgreSQL.'
+    );
+  }
+  return url;
+}
+
+export const DATABASE_URL = requireDatabaseUrl();
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -14,8 +28,11 @@ const prisma = new PrismaClient({ adapter, errorFormat: 'pretty' });
 // For production use, consider enabling query logging via LOG env var:
 // DATABASE_LOG=query,info LOG_QUERIES=true
 if (process.env.LOG_QUERIES === 'true') {
-  // @ts-ignore - Prisma query event typing limitation
-  prisma.$on('query', (e: any) => {
+  // Con il driver adapter Prisma non espone un tipo pubblico per l'evento 'query':
+  // si descrive localmente la shape minima usata per il log delle query lente.
+  type QueryEventLike = { duration: number; query?: string };
+
+  const logSlowQuery = (e: QueryEventLike): void => {
     const durationMs = e.duration;
 
     if (durationMs > 5000) {
@@ -29,7 +46,9 @@ if (process.env.LOG_QUERIES === 'true') {
         duration: durationMs,
       });
     }
-  });
+  };
+
+  (prisma.$on as unknown as (event: string, cb: (e: QueryEventLike) => void) => void)('query', logSlowQuery);
 }
 
 // Log database initialization

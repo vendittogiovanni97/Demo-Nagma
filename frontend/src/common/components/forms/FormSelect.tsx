@@ -93,7 +93,7 @@ function FormSelect({
                     borderRadius: 3,
                     overflow: 'hidden',
                     bgcolor: theme.palette.mode === 'light'
-                      ? 'rgba(255, 255, 255, 0.98)'
+                      ? alpha(theme.palette.background.paper, 0.98)
                       : alpha(theme.palette.background.paper, 0.88),
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',

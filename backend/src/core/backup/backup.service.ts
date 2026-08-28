@@ -12,7 +12,7 @@ export interface BackupMetadata {
 
 export interface BackupDumpPayload {
   metadata: BackupMetadata;
-  data: Record<string, any[]>;
+  data: Record<string, unknown[]>;
 }
 
 export interface BackupResult {
@@ -64,12 +64,12 @@ export class BackupService {
       'savedView',
     ];
 
-    const dataSnapshot: Record<string, any[]> = {};
+    const dataSnapshot: Record<string, unknown[]> = {};
     let totalDocuments = 0;
     let totalCollections = 0;
 
     for (const modelKey of modelNames) {
-      const clientModel = (prisma as any)[modelKey];
+      const clientModel = (prisma as unknown as Record<string, { findMany: () => Promise<unknown[]> } | undefined>)[modelKey];
       if (clientModel && typeof clientModel.findMany === 'function') {
         try {
           const records = await clientModel.findMany();

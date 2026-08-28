@@ -58,7 +58,7 @@ export class BookingController {
     const filters = {
       startDate: req.query.startDate as string | undefined,
       endDate: req.query.endDate as string | undefined,
-      action: req.query.action as any,
+      action: req.query.action as BookingStatus | undefined,
       userId: req.query.userId ? Number(req.query.userId) : undefined,
       artistId: req.query.artistId ? Number(req.query.artistId) : undefined,
       search: req.query.search as string | undefined,

@@ -1,7 +1,7 @@
-import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
-import { logger } from '../shared/utils/logger';
+import rateLimit from 'express-rate-limit';
 import { config } from '../config/env';
+import { logger } from '../shared/utils/logger';
 
 // FIX B5: Helper to get client IP with IPv6 support
 const getClientIP = (req: Request): string => {
@@ -33,20 +33,27 @@ const getOrCreateBucket = (key: string, windowMs: number) => {
 // Login rate limiter - reads LOGIN_RATE_LIMIT_WINDOW_MINUTES and LOGIN_RATE_LIMIT_MAX_ATTEMPTS from environment
 const loginWindowMs = config.loginRateLimitWindowMs;
 const loginMaxAttempts = config.loginRateLimitMaxAttempts;
+// SECURITY (Audit H3): limite per-IP anti email-rotation
+const loginIpMaxAttempts = config.loginIpRateLimitMaxAttempts;
 
+/**
+ * SECURITY (Audit H3): rate limiter per-account (email).
+ * Nessun bypass basato su email hardcoded: l'indirizzo dell'account admin
+ * non deve essere enumerabile dal comportamento del rate limiter, e nessun
+ * account deve essere brute-forzabile senza limiti.
+ * I tentativi riusciti non consumano budget (skipSuccessfulRequests).
+ */
 export const loginRateLimiter = rateLimit({
   windowMs: loginWindowMs,
   limit: loginMaxAttempts,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,
-  skip: (req: Request) => req.body?.email === 'superadmin@nagma.it' || req.user?.role === 'SUPER_ADMIN',
-  // FIX B5: Use user ID if authenticated, fallback to IP (with IPv6 support)
   keyGenerator: (req: Request) => {
     return `login:${req.body?.email || getClientIP(req)}`;
   },
   handler: (req: Request, res: Response) => {
-    logger.warn('Rate limit exceeded for login', {
+    logger.warn('Rate limit exceeded for login (per-account)', {
       key: req.ip,
       userId: req.user?.id,
     });
@@ -59,6 +66,37 @@ export const loginRateLimiter = rateLimit({
   message: {
     success: false,
     message: 'Troppi tentativi di accesso. Riprova tra qualche minuto.',
+    error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
+  },
+});
+
+/**
+ * SECURITY (Audit H3): rate limiter per-IP sul login.
+ * Mitiga l'email-rotation (brute-force distribuito su molti account dallo
+ * stesso IP). Soglia più alta del limite per-account per non penalizzare
+ * NAT/uffici condivisi. Configurabile via LOGIN_IP_RATE_LIMIT_MAX_ATTEMPTS.
+ */
+export const loginIpRateLimiter = rateLimit({
+  windowMs: loginWindowMs,
+  limit: loginIpMaxAttempts,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req: Request) => `login-ip:${getClientIP(req)}`,
+  handler: (req: Request, res: Response) => {
+    logger.warn('Rate limit exceeded for login (per-IP)', {
+      key: req.ip,
+      userId: req.user?.id,
+    });
+    res.status(429).json({
+      success: false,
+      message: 'Troppi tentativi di accesso da questa rete. Riprova tra qualche minuto.',
+      error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
+    });
+  },
+  message: {
+    success: false,
+    message: 'Troppi tentativi di accesso da questa rete. Riprova tra qualche minuto.',
     error: { code: 'RATE_LIMIT_EXCEEDED', statusCode: 429 },
   },
 });

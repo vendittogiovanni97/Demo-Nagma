@@ -2,14 +2,17 @@
 
 import Link from 'next/link';
 import { Box, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 
 export default function NotFound() {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: '#0f0f0f',
+        backgroundColor: theme.palette.background.default,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -29,7 +32,7 @@ export default function NotFound() {
         <Link
           href="/"
           style={{
-            color: 'rgba(255, 255, 255, 0.4)',
+            color: alpha(theme.palette.common.white, 0.4),
             transition: 'color 0.3s',
           }}
         >
@@ -59,7 +62,7 @@ export default function NotFound() {
       >
         <Typography
           sx={{
-            color: 'rgba(255, 255, 255, 0.1)',
+            color: alpha(theme.palette.common.white, 0.1),
             fontFamily: 'serif',
             fontSize: '25rem',
             lineHeight: 1,
@@ -99,8 +102,8 @@ export default function NotFound() {
             marginTop: 16,
             padding: '12px 32px',
             borderRadius: 8,
-            border: '1px solid #00bfff',
-            color: '#00bfff',
+            border: `1px solid ${theme.palette.primary.main}`,
+            color: theme.palette.primary.main,
             fontWeight: 500,
             transition: 'all 0.3s ease-out',
             textDecoration: 'none',

@@ -16,7 +16,7 @@ export class EntrataLiberaController {
     res.json(result);
   });
 
-  create = handleCreate(async (data) => this.entrataLiberaService.create(data as any), createEntrataLiberaSchema);
+  create = handleCreate(async (data) => this.entrataLiberaService.create(data), createEntrataLiberaSchema);
 
   delete = asyncHandler(async (req: Request, res: Response) => {
     const id = parseId(req.params.id);

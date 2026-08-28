@@ -17,6 +17,8 @@ interface CustomerSectionProps {
   newCustomerPhone: string;
   newCustomerEmail: string;
   onChangeField: (field: any, value: any) => void;
+  onCustomerSearchChange?: (term: string) => void;
+  onCustomerSelect?: (value: string) => void;
 }
 
 export function CustomerSection({
@@ -30,6 +32,8 @@ export function CustomerSection({
   newCustomerPhone,
   newCustomerEmail,
   onChangeField,
+  onCustomerSearchChange,
+  onCustomerSelect,
 }: CustomerSectionProps) {
   if (booking) {
     return (
@@ -61,7 +65,11 @@ export function CustomerSection({
               <FormAutocomplete
                 label="Cerca Cliente *"
                 value={customerId ?? ''}
-                onChange={(val) => onChangeField('customerId', val)}
+                onChange={(val) => {
+                  onChangeField('customerId', val);
+                  onCustomerSelect?.(val);
+                }}
+                onSearchChange={onCustomerSearchChange}
                 disabled={customersLoading}
                 loading={customersLoading}
                 placeholder="Cerca per nome o telefono..."

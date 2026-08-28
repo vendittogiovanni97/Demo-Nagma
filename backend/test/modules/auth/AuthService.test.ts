@@ -152,7 +152,7 @@ describe('AuthService', () => {
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { password: 'new-hashed' },
+        data: { password: 'new-hashed', tokenVersion: { increment: 1 } },
       });
     });
 

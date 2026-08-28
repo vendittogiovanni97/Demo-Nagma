@@ -1,4 +1,5 @@
 import prisma from '../../../core/shared/utils/prisma';
+import { Config, Prisma } from '@prisma/client';
 import { Cache } from '../../../core/shared/utils/cache';
 import { config } from '../../../core/config/env';
 
@@ -69,7 +70,7 @@ export class ConfigService {
     }
   }
 
-  async getAll(): Promise<any[]> {
+  async getAll(): Promise<Config[]> {
     return prisma.config.findMany({ where: { deletedAt: null } });
   }
 
@@ -178,11 +179,11 @@ export class ConfigService {
     maxAttachmentSizeMB: number;
     apiRateLimitPerMinute: number;
     bookingUpdatePassword: string;
-    customFields: Record<string, any>;
+    customFields: Record<string, Prisma.InputJsonValue>;
   }>) {
     const existing = await prisma.clientConfig.findFirst();
     if (!existing) {
-      return prisma.clientConfig.create({ data: data as any });
+      return prisma.clientConfig.create({ data: data as unknown as Prisma.ClientConfigCreateInput });
     }
     return prisma.clientConfig.update({
       where: { id: existing.id },

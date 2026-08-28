@@ -13,8 +13,14 @@
  */
 import { logger } from '../shared/utils/logger';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let sentry: any = null;
+// Shape minima dell'API Sentry usata dall'app: evita `any` mantenendo il
+// caricamento dinamico via require (il pacchetto può non essere installato).
+interface SentryClient {
+  init(options: Record<string, unknown>): void;
+  captureException(error: unknown, context?: Record<string, unknown>): void;
+}
+
+let sentry: SentryClient | null = null;
 
 export function initErrorTracking(): void {
   const dsn = process.env.SENTRY_DSN;
@@ -25,8 +31,10 @@ export function initErrorTracking(): void {
   }
 
   try {
+    // Shape dinamica: l'oggetto require() è tipizzato come SentryClient tramite
+    // asserzione; in mancanza del pacchetto il try/catch sotto gestisce l'errore.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    sentry = require('@sentry/node');
+    sentry = require('@sentry/node') as SentryClient;
     sentry.init({
       dsn,
       environment: process.env.NODE_ENV ?? 'development',

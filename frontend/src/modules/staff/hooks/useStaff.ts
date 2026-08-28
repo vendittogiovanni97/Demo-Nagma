@@ -46,13 +46,27 @@ export function useStaffShifts(weekStart?: string, options?: HookOptions) {
   return { data, isLoading, error, mutate };
 }
 
-export function useStaffForSelect() {
+/** Opzioni del selettore artisti per form/select (SWR con chiave dedicata). */
+interface StaffForSelectOptions {
+  /** Se false la richiesta non parte (es. modale chiusa). */
+  enabled?: boolean;
+}
+
+export function useStaffForSelect(options: StaffForSelectOptions = {}) {
+  const enabled = options.enabled ?? true;
+  const key = enabled ? '/api/staff/members/list' : null;
+
   const { data: rawData = [], isLoading, error } = useSWR<Staff[]>(
-    '/api/staff/members/list',
+    key,
     () => staffApi.getAllForSelect()
   );
 
-  const data = rawData.map((a) => ({ id: a.id, name: a.name }));
+  const data = rawData.map((a) => ({
+    id: a.id,
+    name: a.name,
+    color: a.color,
+    isRentPayee: a.isRentPayee,
+  }));
 
   return { data, isLoading, error };
 }

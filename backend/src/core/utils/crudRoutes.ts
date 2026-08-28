@@ -1,4 +1,4 @@
-import { Express, Router } from 'express';
+import { Express, Router, RequestHandler } from 'express';
 import { authMiddleware } from '../../core/middleware/auth.middleware';
 import { handleSearch, handleGetById, handleCreate, handleUpdate, handleDelete } from './handler';
 
@@ -14,11 +14,11 @@ interface CrudRoutesConfig {
   basePath: string;
   handlers: CrudHandlers;
   middlewares?: {
-    search?: any[];
-    getById?: any[];
-    create?: any[];
-    update?: any[];
-    delete?: any[];
+    search?: RequestHandler[];
+    getById?: RequestHandler[];
+    create?: RequestHandler[];
+    update?: RequestHandler[];
+    delete?: RequestHandler[];
   };
   requireAuth?: boolean;
 }

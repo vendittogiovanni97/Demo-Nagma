@@ -62,13 +62,13 @@ export class StaffController {
 
   createNewShift = asyncHandler(async (req: Request, res: Response) => {
     const data = validate(createShiftSchema, req.body);
-    const result = await this.staffService.createShift(data as any);
+    const result = await this.staffService.createShift(data);
     res.status(201).json({ data: result });
   });
 
   updateExistingShift = asyncHandler(async (req: Request, res: Response) => {
     const data = validate(updateShiftSchema, req.body);
-    const result = await this.staffService.updateShift(req.params.id as string, data as any);
+    const result = await this.staffService.updateShift(req.params.id as string, data);
     res.json(result);
   });
 

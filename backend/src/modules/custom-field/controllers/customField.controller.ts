@@ -3,9 +3,9 @@ import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { CustomFieldService, CustomFieldData } from '../services/customFieldService';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 
-function getParam(params: any, key: string): string {
+function getParam(params: Record<string, unknown>, key: string): string {
   const value = params[key];
-  return Array.isArray(value) ? value[0] : value;
+  return Array.isArray(value) ? String(value[0]) : String(value);
 }
 
 export class CustomFieldController {

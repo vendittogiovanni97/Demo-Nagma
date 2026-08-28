@@ -3,8 +3,9 @@ import jwt from 'jsonwebtoken';
 import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { config } from '../../../core/config/env';
+import { Role, ThemeMode } from '@prisma/client';
 
-function sanitizeUser(user: any) {
+function sanitizeUser<T extends Record<string, unknown>>(user: T): Omit<T, 'password'> {
   const { password, ...rest } = user;
   return rest;
 }
@@ -19,9 +20,9 @@ export class AuthService {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 },
       process.env.JWT_SECRET!,
-      { expiresIn: config.jwtExpiry as any }
+      { expiresIn: config.jwtExpiry }
     );
 
     return {
@@ -50,7 +51,7 @@ export class AuthService {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: data.role as any,
+        role: data.role as Role | undefined,
         phone: data.phone,
       },
     });
@@ -94,7 +95,7 @@ export class AuthService {
   async updateTheme(userId: number, theme: string) {
     const updated = await prisma.user.update({
       where: { id: userId },
-      data: { theme: theme.toUpperCase() as any },
+      data: { theme: theme.toUpperCase() as ThemeMode },
     });
     return {
       ...sanitizeUser(updated),
@@ -119,7 +120,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword },
+      data: { password: hashedPassword, tokenVersion: { increment: 1 } },
     });
   }
 
@@ -132,9 +133,9 @@ export class AuthService {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 },
       process.env.JWT_SECRET!,
-      { expiresIn: config.jwtExpiry as any }
+      { expiresIn: config.jwtExpiry }
     );
 
     return {

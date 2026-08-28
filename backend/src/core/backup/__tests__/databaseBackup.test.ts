@@ -16,14 +16,29 @@ jest.mock('child_process', () => {
 
 const { spawn } = require('child_process');
 
+/** Shape minima del ChildProcess mockato: stdout/stderr sono Duplex (PassThrough),
+ *  con emit per simulare gli eventi 'close'/'error'. */
+interface MockChildProcess {
+  stdout: PassThrough;
+  stderr: PassThrough;
+  emit(event: string, ...args: unknown[]): boolean;
+}
+
+const mockChild = (): MockChildProcess => {
+  const child = new EventEmitter() as unknown as MockChildProcess;
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+  return child;
+};
+
 describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
   const testBackupDir = path.resolve('./backups/test_backup_dir');
 
   beforeEach(async () => {
     jest.clearAllMocks();
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb';
-    (config as any).databaseBackupPath = testBackupDir;
-    (config as any).databaseBackupRetention = 7;
+    (config as { databaseBackupPath: string }).databaseBackupPath = testBackupDir;
+    (config as { databaseBackupRetention: number }).databaseBackupRetention = 7;
     await fs.mkdir(testBackupDir, { recursive: true }).catch(() => {});
   });
 
@@ -33,9 +48,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
 
   it('dovrebbe individuare pg_dump nativo ed eseguire il backup senza errori', async () => {
     spawn.mockImplementation((command: string, args: string[]) => {
-      const child = new EventEmitter() as any;
-      child.stdout = new PassThrough();
-      child.stderr = new PassThrough();
+      const child = mockChild();
 
       setTimeout(() => {
         if (args.includes('--version')) {
@@ -74,9 +87,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
     }
 
     spawn.mockImplementation((command: string, args: string[]) => {
-      const child = new EventEmitter() as any;
-      child.stdout = new PassThrough();
-      child.stderr = new PassThrough();
+      const child = mockChild();
 
       setTimeout(() => {
         if (args.includes('--version')) {
@@ -100,9 +111,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
 
   it('dovrebbe gestire con grazia l assenza sia di pg_dump che di docker', async () => {
     spawn.mockImplementation(() => {
-      const child = new EventEmitter() as any;
-      child.stdout = new PassThrough();
-      child.stderr = new PassThrough();
+      const child = mockChild();
 
       setTimeout(() => {
         child.emit('error', new Error('ENOENT: command not found'));

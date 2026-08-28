@@ -142,7 +142,7 @@ export class StaffService {
     });
   }
 
-  async createShift(data: any) {
+  async createShift(data: { staffId: number; label?: string; startTime?: string; endTime?: string; isOff?: boolean; date?: Date; weekStart?: string; dayOfWeek?: number; notes?: string }) {
     const resolved = resolveShiftLabel(data.label, data);
 
     let date: Date;
@@ -197,7 +197,7 @@ export class StaffService {
     return created;
   }
 
-  async updateShift(id: string, data: any) {
+  async updateShift(id: string, data: { label?: string; startTime?: string; endTime?: string; isOff?: boolean; weekStart?: string; dayOfWeek?: number; notes?: string }) {
     const existing = await prisma.shift.findUnique({ where: { id } });
     if (!existing) throw new AppError('Turno non trovato', 404);
 
@@ -208,7 +208,7 @@ export class StaffService {
       nextDate = buildShiftDate(data.weekStart, data.dayOfWeek);
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.ShiftUpdateInput = {};
     if (data.weekStart !== undefined && data.dayOfWeek !== undefined) {
       updateData.date = nextDate;
     }
@@ -244,7 +244,7 @@ export class StaffService {
     const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword },
+      data: { password: hashedPassword, tokenVersion: { increment: 1 } },
     });
   }
 }

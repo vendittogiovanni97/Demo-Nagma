@@ -181,11 +181,11 @@ export default function TimePicker({
                     fontWeight: value === preset ? 800 : 600,
                     fontSize: '0.7rem',
                     bgcolor: value === preset ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.08),
-                    color: value === preset ? '#fff' : 'text.primary',
+                    color: value === preset ? 'common.white' : 'text.primary',
                     border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                     '&:hover': {
                       bgcolor: theme.palette.primary.main,
-                      color: '#fff',
+                      color: 'common.white',
                     },
                   }}
                 />
@@ -242,7 +242,7 @@ export default function TimePicker({
                       textAlign: 'center',
                       fontSize: '0.875rem',
                       fontWeight: isSelected ? 800 : 500,
-                      color: isSelected ? '#ffffff' : 'text.primary',
+                      color: isSelected ? theme.palette.common.white : 'text.primary',
                       bgcolor: isSelected ? theme.palette.primary.main : 'transparent',
                       boxShadow: isSelected ? `0 2px 10px ${alpha(theme.palette.primary.main, 0.4)}` : 'none',
                       cursor: 'pointer',
@@ -300,7 +300,7 @@ export default function TimePicker({
                       textAlign: 'center',
                       fontSize: '0.875rem',
                       fontWeight: isSelected ? 800 : 500,
-                      color: isSelected ? '#ffffff' : 'text.primary',
+                      color: isSelected ? theme.palette.common.white : 'text.primary',
                       bgcolor: isSelected ? theme.palette.primary.main : 'transparent',
                       boxShadow: isSelected ? `0 2px 10px ${alpha(theme.palette.primary.main, 0.4)}` : 'none',
                       cursor: 'pointer',

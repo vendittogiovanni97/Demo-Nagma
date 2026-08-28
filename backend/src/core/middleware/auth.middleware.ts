@@ -1,13 +1,16 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
+import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import { getCookieToken } from '../shared/utils/cookieAuth';
 import { logger } from '../shared/utils/logger';
+import prisma from '../shared/utils/prisma';
 
 export interface AuthRequest extends Request {
   user?: {
     id: number;
     email: string;
     role: Role;
+    tokenVersion?: number;
   };
 }
 
@@ -57,7 +60,7 @@ function isQueryTokenAllowed(req: Request): boolean {
   );
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token = '';
   const authHeader = req.headers.authorization;
 
@@ -69,6 +72,14 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     isQueryTokenAllowed(req)
   ) {
     token = req.query.token;
+  } else {
+    // SECURITY (Audit M2): fallback sul cookie di sessione httpOnly.
+    // Il browser lo invia automaticamente (credentials: 'include'); non è
+    // leggibile da JavaScript, quindi un XSS non può esfiltrarlo.
+    const cookieToken = getCookieToken(req);
+    if (cookieToken) {
+      token = cookieToken;
+    }
   }
 
   if (!token) {
@@ -95,7 +106,21 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 
   try {
-    const decoded = jwt.verify(token, secret) as AuthRequest['user'];
+    const decoded = jwt.verify(token, secret) as NonNullable<AuthRequest['user']>;
+
+    const dbUser = await prisma.user.findFirst({
+      where: { id: decoded.id, deletedAt: null },
+      select: { tokenVersion: true },
+    });
+
+    if (!dbUser || (decoded.tokenVersion !== undefined && dbUser.tokenVersion !== decoded.tokenVersion)) {
+      logger.warn(`401 ${req.method} ${req.originalUrl} · REVOKED_TOKEN`);
+      return res.status(401).json({
+        message: 'Token revocato o non più valido.',
+        requestId: req.requestId,
+      });
+    }
+
     req.user = decoded;
     next();
   } catch {

@@ -64,13 +64,13 @@ export function optionalFeature(feature: keyof ClientFeatures) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const features = await getClientFeatures();
-      (req as any).features = features;
-      (req as any).featureEnabled = features[feature];
+      req.features = features;
+      req.featureEnabled = features[feature];
       next();
     } catch (error) {
       logger.errorWithStack('[FeatureFlag] Errore controllo feature opzionale', error);
-      (req as any).features = getDefaultFeatures();
-      (req as any).featureEnabled = false;
+      req.features = getDefaultFeatures();
+      req.featureEnabled = false;
       next();
     }
   };
@@ -80,11 +80,11 @@ export function getFeaturesMiddleware() {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const features = await getClientFeatures();
-      (req as any).features = features;
+      req.features = features;
       next();
     } catch (error) {
       logger.errorWithStack('[FeatureFlag] Errore caricamento features', error);
-      (req as any).features = getDefaultFeatures();
+      req.features = getDefaultFeatures();
       next();
     }
   };

@@ -1,15 +1,16 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../../../core/shared/utils/prisma';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
 import type { IPaginatedResponse } from '../../../core/shared/kernel/interfaces';
 import { AppError } from '../../../core/shared/errors/AppError';
 
 export class CustomerService {
-  async search(params: Record<string, unknown>): Promise<IPaginatedResponse<any>> {
-    const { search, page: pageStr = '1', limit: limitStr = '25' } = params as any;
+  async search(params: Record<string, unknown>): Promise<IPaginatedResponse<unknown>> {
+    const { search, page: pageStr = '1', limit: limitStr = '25' } = params as { search?: string; page?: string | number; limit?: string | number };
     const page = Number(pageStr);
     const limit = Number(limitStr);
 
-    const where: any = { deletedAt: null };
+    const where: Prisma.CustomerWhereInput = { deletedAt: null };
     if (search?.trim()) {
       where.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
@@ -126,7 +127,7 @@ export class CustomerService {
     return created;
   }
 
-  async update(id: number, data: any) {
+  async update(id: number, data: { firstName?: string; lastName?: string; phone?: string; email?: string | null; notes?: string | null }) {
     const currentCustomer = await prisma.customer.findFirst({
       where: { id, deletedAt: null },
     });

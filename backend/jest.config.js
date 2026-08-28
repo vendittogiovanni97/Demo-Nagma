@@ -67,6 +67,9 @@ module.exports = {
           diagnostics: { ignoreCodes: [151002] },
         }],
       },
+      // Carica backend/.env (se presente) + fallback test-safe per DATABASE_URL:
+      // prisma.ts ora richiede la variabile al momento dell'import (Audit H4).
+      setupFiles: ['<rootDir>/test/setup/loadEnv.ts'],
       clearMocks: true,
       restoreMocks: true,
     },

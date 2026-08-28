@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ReportsService } from '../services/reports.service';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
-import { ReportFilterDto } from '../types/reports.types';
+import { ReportFilterDto, ReportType } from '../types/reports.types';
 
 export class ReportsController {
   constructor(private reportsService: ReportsService) {}
@@ -10,7 +10,7 @@ export class ReportsController {
     const filters: ReportFilterDto = {
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
-      reportType: req.query.reportType as any,
+      reportType: req.query.reportType as ReportType,
       staffId: req.query.staffId ? Number(req.query.staffId) : undefined,
     };
 
@@ -25,7 +25,7 @@ export class ReportsController {
     const filters: ReportFilterDto = {
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
-      reportType: req.query.reportType as any,
+      reportType: req.query.reportType as ReportType,
       staffId: req.query.staffId ? Number(req.query.staffId) : undefined,
       page: req.query.page ? Number(req.query.page) : 1,
       limit: req.query.limit ? Number(req.query.limit) : 25,
@@ -48,7 +48,7 @@ export class ReportsController {
     const filters: ReportFilterDto = {
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
-      reportType: req.query.reportType as any,
+      reportType: req.query.reportType as ReportType,
       staffId: req.query.staffId ? Number(req.query.staffId) : undefined,
     };
 

@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "index.js",
   "engines": {
@@ -41,6 +41,7 @@
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
     "busboy": "^1.6.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
@@ -60,6 +61,7 @@
     "@eslint/js": "^10.0.1",
     "@jest/types": "^30.4.1",
     "@types/busboy": "^1.5.4",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",

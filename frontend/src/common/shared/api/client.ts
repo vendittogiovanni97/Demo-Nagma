@@ -133,19 +133,6 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry
   return response.json();
 }
 
-export const httpClient = {
-  get: <T>(url: string, params?: Record<string, string | number | undefined>) =>
-    apiFetch<T>(url, { method: 'GET', params }),
-  post: <T>(url: string, body?: unknown) =>
-    apiFetch<T>(url, { method: 'POST', body: body !== undefined ? JSON.stringify(body) : undefined }),
-  put: <T>(url: string, body?: unknown) =>
-    apiFetch<T>(url, { method: 'PUT', body: body !== undefined ? JSON.stringify(body) : undefined }),
-  patch: <T>(url: string, body?: unknown) =>
-    apiFetch<T>(url, { method: 'PATCH', body: body !== undefined ? JSON.stringify(body) : undefined }),
-  delete: <T>(url: string) =>
-    apiFetch<T>(url, { method: 'DELETE' }),
-};
-
 export const apiClient = {
   get: <T>(url: string, params?: Record<string, string | number | undefined>) =>
     apiFetch<T>(url, { method: 'GET', params }),

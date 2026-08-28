@@ -4,16 +4,18 @@ services:
     container_name: nagma-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nagmadb
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root123
+      # SECURITY (Audit H4): credenziali da variabili d'ambiente, nessun valore
+      # di default commesso. Impostarle in .env alla radice (vedi .env.example).
+      POSTGRES_DB: ${POSTGRES_DB:-nagmadb}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER mancante in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD mancante in .env}
     ports:
-      - '5433:5432'
+      - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - nagma_data:/var/lib/postgresql/data
       - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d nagmadb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-nagmadb}"]
       interval: 10s
       timeout: 5s
       retries: 5

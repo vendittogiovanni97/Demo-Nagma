@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { CreamSale, Prisma } from '@prisma/client';
 import prisma from '../../../core/shared/utils/prisma';
 import type { CreateCreamInput, CreateCreamSaleInput } from '../controllers/cream.schemas';
 import { IPaginatedResponse } from '../../../core/shared/kernel/interfaces';
@@ -64,7 +64,7 @@ export class CreamService {
     page: number,
     limit: number,
     filters?: { startDate?: string; endDate?: string; artistId?: number }
-  ): Promise<IPaginatedResponse<any> & { totalQuantity: number }> {
+  ): Promise<IPaginatedResponse<CreamSale & { artist: { id: number; name: string; color: string } }> & { totalQuantity: number }> {
     const where: Prisma.CreamSaleWhereInput = { creamId, deletedAt: null };
 
     if (filters?.startDate || filters?.endDate) {
@@ -108,7 +108,7 @@ export class CreamService {
       },
     });
 
-    return staff.map((s: any) => ({
+    return staff.map((s) => ({
       id: s.id,
       name: s.name,
       color: s.color,

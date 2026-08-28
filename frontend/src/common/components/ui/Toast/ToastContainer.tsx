@@ -1,82 +1,90 @@
 "use client";
 
 import { Toaster } from 'react-hot-toast';
+import { useTheme, alpha } from '@mui/material/styles';
 
 export function ToastContainer() {
+  const theme = useTheme();
+
+  const isLight = theme.palette.mode === 'light';
+  const bg = isLight ? alpha(theme.palette.background.paper, 0.95) : alpha(theme.palette.background.paper, 0.88);
+  const textColor = theme.palette.text.primary;
+  const paperBg = theme.palette.background.paper;
+
   return (
     <Toaster
       position="bottom-center"
       toastOptions={{
         duration: 3500,
         style: {
-          background: 'rgba(15, 23, 42, 0.88)',
+          background: bg,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          color: '#ffffff',
+          color: textColor,
           borderRadius: '14px',
           padding: '12px 18px',
           fontFamily: '"Outfit", "Avenir Next", sans-serif',
           fontSize: '0.875rem',
           fontWeight: 600,
-          border: '1px solid rgba(0, 191, 255, 0.25)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 191, 255, 0.15)',
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+          boxShadow: `0 12px 32px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
         },
         success: {
           style: {
-            background: 'rgba(15, 23, 42, 0.88)',
+            background: bg,
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            color: '#ffffff',
+            color: textColor,
             borderRadius: '14px',
             padding: '12px 18px',
             fontFamily: '"Outfit", "Avenir Next", sans-serif',
             fontSize: '0.875rem',
             fontWeight: 600,
-            border: '1px solid rgba(16, 185, 129, 0.35)',
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.2)',
+            border: `1px solid ${alpha(theme.palette.success.main, 0.35)}`,
+            boxShadow: `0 12px 32px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.success.main, 0.2)}`,
           },
           iconTheme: {
-            primary: '#10b981',
-            secondary: '#0f172a',
+            primary: theme.palette.success.main,
+            secondary: paperBg,
           },
         },
         error: {
           duration: 4500,
           style: {
-            background: 'rgba(15, 23, 42, 0.88)',
+            background: bg,
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            color: '#ffffff',
+            color: textColor,
             borderRadius: '14px',
             padding: '12px 18px',
             fontFamily: '"Outfit", "Avenir Next", sans-serif',
             fontSize: '0.875rem',
             fontWeight: 600,
-            border: '1px solid rgba(239, 68, 68, 0.35)',
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.2)',
+            border: `1px solid ${alpha(theme.palette.error.main, 0.35)}`,
+            boxShadow: `0 12px 32px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.error.main, 0.2)}`,
           },
           iconTheme: {
-            primary: '#ef4444',
-            secondary: '#0f172a',
+            primary: theme.palette.error.main,
+            secondary: paperBg,
           },
         },
         loading: {
           style: {
-            background: 'rgba(15, 23, 42, 0.88)',
+            background: bg,
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            color: '#ffffff',
+            color: textColor,
             borderRadius: '14px',
             padding: '12px 18px',
             fontFamily: '"Outfit", "Avenir Next", sans-serif',
             fontSize: '0.875rem',
             fontWeight: 600,
-            border: '1px solid rgba(0, 191, 255, 0.35)',
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 191, 255, 0.2)',
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+            boxShadow: `0 12px 32px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.2)}`,
           },
           iconTheme: {
-            primary: '#00bfff',
-            secondary: '#0f172a',
+            primary: theme.palette.primary.main,
+            secondary: paperBg,
           },
         },
       }}

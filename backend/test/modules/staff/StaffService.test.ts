@@ -202,7 +202,7 @@ describe('StaffService', () => {
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { password: 'hashed' },
+        data: { password: 'hashed', tokenVersion: { increment: 1 } },
       });
     });
 

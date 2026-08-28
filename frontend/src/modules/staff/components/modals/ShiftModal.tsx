@@ -8,6 +8,7 @@ import { staffApi } from '@/modules/staff/api/staff.api';
 import { useEntityForm } from '@/common/hooks/useEntityForm';
 import type { CreateShiftData } from '@/modules/staff/model/staff.types';
 import { Box, Typography, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormSelect from '@/common/components/forms/FormSelect';
 
@@ -100,7 +101,7 @@ export default function ShiftModal({ isOpen, onClose, onSuccess, weekStart, init
               p: 2,
               borderRadius: 2,
               border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              backgroundColor: alpha(theme.palette.common.white, 0.03),
             }}
           >
             <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary, mb: 0.5 }}>

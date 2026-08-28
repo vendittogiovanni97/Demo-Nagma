@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import { AppError } from '../../../src/core/shared/errors/AppError';
 
 const createMockPrisma = () => ({
@@ -291,14 +290,12 @@ describe('BookingService', () => {
       expect(tx.transaction.create).not.toHaveBeenCalled();
     });
 
-    it('should do nothing when booking not found', async () => {
+    it('should throw 404 when booking not found or soft-deleted', async () => {
       const tx = mockTx();
       tx.booking.findUnique.mockResolvedValue(null);
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
-      await bookingService.delete(999);
-
-      expect(tx.booking.update).not.toHaveBeenCalled();
+      await expect(bookingService.delete(999)).rejects.toThrow('Prenotazione non trovata');
     });
   });
 
@@ -405,7 +402,8 @@ describe('BookingService', () => {
       mockPrisma.booking.findUnique.mockResolvedValue(
         bookingRow({ id: 10, status: 'CREATO', formData: null })
       );
-      mockPrisma.booking.update.mockImplementation((args: any) =>
+      const tx = mockTx();
+      tx.booking.update.mockImplementation((args: any) =>
         Promise.resolve(
           bookingRow({
             id: 10,
@@ -414,11 +412,57 @@ describe('BookingService', () => {
           })
         )
       );
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
       const res = await bookingService.updateKanbanStatus(10, 'IN_SEDUTA', 1);
       expect(res.kanbanStage).toBe('IN_SEDUTA');
       expect(res.status).toBe('CONFERMATO');
-      expect(mockPrisma.bookingHistory.create).toHaveBeenCalled();
+      expect(tx.bookingHistory.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ action: 'CONFERMATO' }) })
+      );
+    });
+
+    it('records the balance transaction atomically when kanban completes the booking', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-08-28T15:00:00Z'));
+      mockPrisma.booking.findUnique.mockResolvedValue(
+        bookingRow({ id: 10, status: 'CONFERMATO', price: 300, deposit: 100, formData: null })
+      );
+      const tx = mockTx();
+      tx.booking.update.mockResolvedValue(
+        bookingRow({ id: 10, status: 'COMPLETATO', price: 300, deposit: 100 })
+      );
+      tx.transaction.findFirst.mockResolvedValue(null);
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      const res = await bookingService.updateKanbanStatus(10, 'SALDATO', 1);
+
+      expect(res.status).toBe('COMPLETATO');
+      // (Audit H2) Il saldo deve essere creato DENTRO la transazione (tx), non su prisma globale
+      expect(tx.transaction.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: 'ENTRATA',
+          amount: 200,
+          sourceType: 'BOOKING',
+          date: new Date('2026-08-28T15:00:00Z'),
+        }),
+      });
+      expect(mockPrisma.transaction.create).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('does not duplicate the balance transaction when booking is already completed', async () => {
+      mockPrisma.booking.findUnique.mockResolvedValue(
+        bookingRow({ id: 10, status: 'COMPLETATO', price: 300, deposit: 100, formData: null })
+      );
+      const tx = mockTx();
+      tx.booking.update.mockResolvedValue(
+        bookingRow({ id: 10, status: 'COMPLETATO', price: 300, deposit: 100 })
+      );
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
+
+      await bookingService.updateKanbanStatus(10, 'SALDATO', 1);
+
+      expect(tx.transaction.create).not.toHaveBeenCalled();
     });
   });
 });

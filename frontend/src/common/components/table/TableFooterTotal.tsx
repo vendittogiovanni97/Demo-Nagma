@@ -69,7 +69,7 @@ export default function TableFooterTotal({
         borderRadius: 2.5,
         border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
         bgcolor: isLight
-          ? 'rgba(255, 255, 255, 0.95)'
+          ? alpha(theme.palette.background.paper, 0.95)
           : alpha(theme.palette.background.paper, 0.75),
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',

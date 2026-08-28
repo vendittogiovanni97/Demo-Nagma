@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, WhatsAppMessageStatus } from '@prisma/client';
 import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
@@ -65,7 +65,7 @@ export class WhatsAppService {
     const limit = params.limit ? Number(params.limit) : 25;
 
     const where: Prisma.WhatsAppMessageLogWhereInput = {
-      ...(status ? { status: status as any } : {}),
+      ...(status ? { status: status as WhatsAppMessageStatus } : {}),
       ...(search
         ? {
             OR: [
@@ -98,7 +98,7 @@ export class WhatsAppService {
     return paginate(raws, total, page, limit);
   }
 
-  async createTemplate(data: any) {
+  async createTemplate(data: { name: string; category?: string | null; body: string; isActive?: boolean }) {
     const created = await prisma.whatsAppTemplate.create({
       data: {
         name: data.name,
@@ -110,13 +110,13 @@ export class WhatsAppService {
     return created;
   }
 
-  async updateTemplate(id: number, data: any) {
+  async updateTemplate(id: number, data: Prisma.WhatsAppTemplateUpdateInput) {
     const existing = await prisma.whatsAppTemplate.findUnique({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError('Template non trovato', 404, 'WHATSAPP_TEMPLATE_NOT_FOUND');
 
     const updated = await prisma.whatsAppTemplate.update({
       where: { id },
-      data: data as any,
+      data,
     });
     return updated;
   }
@@ -146,7 +146,7 @@ export class WhatsAppService {
     return created;
   }
 
-  async sendMessage(data: any, userId: number) {
+  async sendMessage(data: { recipientPhone?: string; phone?: string; customerId?: number; bookingId?: number; templateId?: number; message?: string; variables?: Record<string, string>; recipientName?: string }, userId: number) {
     let templateBody = data.message || '';
     let templateName: string | null = null;
 
@@ -168,8 +168,9 @@ export class WhatsAppService {
       throw new AppError('Il messaggio da inviare è obbligatorio', 400, 'WHATSAPP_MESSAGE_REQUIRED');
     }
 
-    const renderedMessage = renderTemplate(templateBody, data.variables);
-    const recipientPhone = normalizePhoneNumber(data.recipientPhone);
+    const renderedMessage = renderTemplate(templateBody, data.variables || {});
+    const phoneToUse = data.recipientPhone || data.phone || '';
+    const recipientPhone = normalizePhoneNumber(phoneToUse);
     const whatsappUrl = `https://wa.me/${recipientPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(renderedMessage)}`;
 
     const log = await prisma.whatsAppMessageLog.create({

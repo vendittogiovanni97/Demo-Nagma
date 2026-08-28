@@ -12,7 +12,7 @@ export type FilterOperator =
 export interface FilterCondition {
   field: string;
   operator: FilterOperator;
-  value: any;
+  value: unknown;
   logic?: 'AND' | 'OR';
 }
 

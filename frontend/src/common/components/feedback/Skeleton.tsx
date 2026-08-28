@@ -117,17 +117,17 @@ const styles = {
     const isLight = theme.palette.mode === 'light';
     return {
       width: '100%',
-      border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : alpha(theme.palette.common.white, 0.1)}`,
+      border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : alpha(theme.palette.common.white, 0.1)}`,
       borderRadius: 3,
       overflow: 'hidden',
-      bgcolor: isLight ? 'rgba(0,0,0,0.02)' : alpha(theme.palette.common.white, 0.02),
+      bgcolor: isLight ? alpha(theme.palette.common.black, 0.02) : alpha(theme.palette.common.white, 0.02),
     };
   },
   tableHeader: (theme: Theme) => {
     const isLight = theme.palette.mode === 'light';
     return {
       p: 3,
-      borderBottom: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : alpha(theme.palette.common.white, 0.1)}`,
+      borderBottom: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : alpha(theme.palette.common.white, 0.1)}`,
       display: 'flex',
       gap: 2,
     };
@@ -141,8 +141,8 @@ const styles = {
   bentoContainer: (theme: Theme) => {
     const isLight = theme.palette.mode === 'light';
     return {
-      bgcolor: isLight ? 'rgba(0,0,0,0.02)' : alpha(theme.palette.common.white, 0.03),
-      border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : alpha(theme.palette.common.white, 0.1)}`,
+      bgcolor: isLight ? alpha(theme.palette.common.black, 0.02) : alpha(theme.palette.common.white, 0.03),
+      border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : alpha(theme.palette.common.white, 0.1)}`,
       borderRadius: 3.75,
       p: 4,
       display: 'flex',

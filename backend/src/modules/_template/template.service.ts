@@ -29,8 +29,8 @@ export class TemplateService {
   async find(params: {
     skip?: number;
     take?: number;
-    where?: any;
-    orderBy?: any;
+    where?: Record<string, unknown>;
+    orderBy?: Record<string, 'asc' | 'desc'> | Array<Record<string, 'asc' | 'desc'>>;
   } = {}) {
     const { skip = 0, take = 20, where = {}, orderBy } = params;
 
@@ -46,7 +46,7 @@ export class TemplateService {
    * Count templates matching criteria
    */
   async count(params: {
-    where?: any;
+    where?: Record<string, unknown>;
   } = {}) {
     const { where = {} } = params;
 

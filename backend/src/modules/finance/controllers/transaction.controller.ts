@@ -11,7 +11,7 @@ export class TransactionController {
 
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const { search, month, page, limit, startDate, endDate } = parsePageQuery(req.query);
-    const type = req.query.type as any;
+    const type = req.query.type as string | undefined;
     const category = req.query.category as string | undefined;
     const result = await this.transactionService.findAll({ search, month, type, category, page, limit, startDate, endDate });
     res.json(result);
@@ -45,9 +45,9 @@ export class TransactionController {
     res.json(await this.transactionService.getArtistPerformance(month));
   });
 
-  create = handleCreate(async (data, userId) => this.transactionService.create(data as any, userId), createTransactionSchema);
+  create = handleCreate(async (data, userId) => this.transactionService.create(data, userId), createTransactionSchema);
 
-  update = handleUpdate(async (id, data, userId) => this.transactionService.update(id, data as any, userId));
+  update = handleUpdate(async (id, data, userId) => this.transactionService.update(id, data, userId));
 
   delete = handleDelete(async (id, userId) => this.transactionService.delete(id, userId));
 }

@@ -5,6 +5,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import './globals.css';
 import { AppProviders } from './providers';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
+import { BROWSER_THEME_COLOR } from '@/common/theme/colorTokens';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -19,7 +20,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#0F172A',
+  themeColor: BROWSER_THEME_COLOR,
 };
 
 export const metadata: Metadata = {

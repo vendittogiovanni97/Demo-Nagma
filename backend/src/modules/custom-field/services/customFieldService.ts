@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 
@@ -7,8 +8,8 @@ export interface CustomFieldData {
   fieldType: string;
   fieldLabel: string;
   isRequired?: boolean;
-  options?: Record<string, any>;
-  defaultValue?: any;
+  options?: Prisma.InputJsonValue;
+  defaultValue?: Prisma.InputJsonValue;
 }
 
 export class CustomFieldService {
@@ -63,7 +64,7 @@ export class CustomFieldService {
     });
   }
 
-  async validateCustomData(entityType: string, clientId: number, customData: Record<string, any>) {
+  async validateCustomData(entityType: string, clientId: number, customData: Record<string, unknown>) {
     const fields = await this.getAll(clientId, entityType);
     const errors: string[] = [];
 
@@ -93,12 +94,12 @@ export class CustomFieldService {
           }
           break;
         case 'date':
-          if (isNaN(Date.parse(value))) {
+          if (isNaN(Date.parse(String(value)))) {
             errors.push(`Campo "${field.fieldLabel}" deve essere una data valida`);
           }
           break;
         case 'select':
-          if (field.options && !Object.values(field.options).includes(value)) {
+          if (field.options && !(Object.values(field.options) as unknown[]).includes(value)) {
             errors.push(`Campo "${field.fieldLabel}" deve essere uno dei valori consentiti`);
           }
           break;
@@ -106,7 +107,7 @@ export class CustomFieldService {
           if (!Array.isArray(value)) {
             errors.push(`Campo "${field.fieldLabel}" deve essere un array`);
           } else if (field.options) {
-            const validValues = Object.values(field.options);
+            const validValues: unknown[] = Object.values(field.options);
             for (const v of value) {
               if (!validValues.includes(v)) {
                 errors.push(`Campo "${field.fieldLabel}" contiene valori non validi`);

@@ -77,8 +77,8 @@ export function KanbanCard({ booking, onOpenPayment }: KanbanCardProps) {
             : alpha(t.palette.common.black, 0.08),
         boxShadow: (t) =>
           t.palette.mode === 'dark'
-            ? '0 4px 20px rgba(0,0,0,0.4)'
-            : '0 4px 12px rgba(0,0,0,0.06)',
+            ? `0 4px 20px ${alpha(t.palette.common.black, 0.4)}`
+            : `0 4px 12px ${alpha(t.palette.common.black, 0.06)}`,
         transition: 'all 0.2s ease-in-out',
         '&:hover': {
           borderColor: artistColor,
@@ -134,9 +134,9 @@ export function KanbanCard({ booking, onOpenPayment }: KanbanCardProps) {
               onClick={handleWhatsApp}
               sx={{
                 p: 0.5,
-                color: '#25D366',
-                bgcolor: alpha('#25D366', 0.1),
-                '&:hover': { bgcolor: alpha('#25D366', 0.2) },
+                color: theme.palette.custom.whatsapp,
+                bgcolor: alpha(theme.palette.custom.whatsapp, 0.1),
+                '&:hover': { bgcolor: alpha(theme.palette.custom.whatsapp, 0.2) },
               }}
             >
               <MessageSquare size={14} />

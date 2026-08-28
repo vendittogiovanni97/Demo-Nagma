@@ -9,12 +9,18 @@ datasource db {
 model User {
   id                    Int                  @id @default(autoincrement())
   name                  String
-  email                 String               @unique
+  // NESSUN @unique globale sull'email: usiamo un indice UNICO PARZIALE
+  // (WHERE "deletedAt" IS NULL) creato via migration manuale, così un utente
+  // soft-deleted non blocca la re-registrazione dell'email.
+  // Il check applicativo (findFirst con deletedAt: null) garantisce l'unicità
+  // tra gli utenti attivi. Vedi 20260828120000_partial_unique_user_email.
+  email                 String
   password              String
   role                  Role                 @default(ADMIN)
   phone                 String?
   color                 String?
   theme                 ThemeMode            @default(SYSTEM)
+  tokenVersion          Int                  @default(0)
   deletedAt             DateTime?
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt
@@ -24,6 +30,7 @@ model User {
   preference            UserPreference?
   savedViews            SavedView[]
 
+  @@index([email])
   @@index([role])
   @@index([deletedAt])
   @@map("users")

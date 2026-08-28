@@ -51,7 +51,7 @@ export default function BookingHistoryPage() {
   const fetchHistory = useCallback(
     async (params: FetchParams) => {
       const res = await bookingHistoryService.getAll({
-        page: params.page + 1,
+        page: params.page,
         limit: params.limit,
         search: debouncedSearch || undefined,
         startDate: startDate || undefined,

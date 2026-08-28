@@ -39,7 +39,7 @@ export default function AccontiPage() {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         search: debouncedSearch || undefined,
-        page: params.page + 1,
+        page: params.page,
         limit: params.limit,
       });
       setTotal(res.data.reduce((acc, a) => acc + a.amount, 0));

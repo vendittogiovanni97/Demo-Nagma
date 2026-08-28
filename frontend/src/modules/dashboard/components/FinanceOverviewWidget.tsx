@@ -15,6 +15,9 @@ import {
   Typography,
 } from '@mui/material';
 import Button from '@/common/components/ui/Button';
+import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
+import { bookingApi } from '@/modules/booking/api/booking.api';
+import { useAuth } from '@/common/context/AuthContext';
 
 interface FinanceOverviewWidgetProps {
   totalIncome: number;
@@ -34,6 +37,7 @@ export default function FinanceOverviewWidget({
   onMonthChange,
 }: FinanceOverviewWidgetProps) {
   const theme = useTheme();
+  const { isSuperAdmin } = useAuth();
 
   // Independent state per ciascuno dei 3 widget (default: nascosti)
   const [showBilancioData, setShowBilancioData] = useState(false);
@@ -100,6 +104,53 @@ export default function FinanceOverviewWidget({
     return null;
   };
 
+  // Stato per la richiesta password di sblocco dati visivi
+  const [unlockTarget, setUnlockTarget] = useState<'BILANCIO' | 'ENTRATE' | 'USCITE' | null>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+
+  const handleToggleBilancio = () => {
+    if (showBilancioData) {
+      setShowBilancioData(false);
+    } else if (isSuperAdmin) {
+      setShowBilancioData(true);
+    } else {
+      setUnlockTarget('BILANCIO');
+    }
+  };
+
+  const handleToggleEntrate = () => {
+    if (showEntrateData) {
+      setShowEntrateData(false);
+    } else if (isSuperAdmin) {
+      setShowEntrateData(true);
+    } else {
+      setUnlockTarget('ENTRATE');
+    }
+  };
+
+  const handleToggleUscite = () => {
+    if (showUsciteData) {
+      setShowUsciteData(false);
+    } else if (isSuperAdmin) {
+      setShowUsciteData(true);
+    } else {
+      setUnlockTarget('USCITE');
+    }
+  };
+
+  const handleConfirmPassword = async (password: string) => {
+    setVerifyLoading(true);
+    try {
+      await bookingApi.verifyPassword(password);
+      if (unlockTarget === 'BILANCIO') setShowBilancioData(true);
+      if (unlockTarget === 'ENTRATE') setShowEntrateData(true);
+      if (unlockTarget === 'USCITE') setShowUsciteData(true);
+      setUnlockTarget(null);
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   // Header Actions per WIDGET 1: BILANCIO
   const bilancioHeaderActions = (
     <Stack direction="row" useFlexGap sx={{ gap: 0.25, alignItems: 'center' }}>
@@ -119,7 +170,7 @@ export default function FinanceOverviewWidget({
       <Button
         variant="icon"
         icon={showBilancioData ? <Icon name="eye" size={14} /> : <Icon name="eyeOff" size={14} />}
-        onClick={() => setShowBilancioData(!showBilancioData)}
+        onClick={handleToggleBilancio}
         title={showBilancioData ? 'Nascondi dati bilancio' : 'Mostra dati bilancio'}
         sx={{
           color: theme.palette.primary.main,
@@ -137,7 +188,7 @@ export default function FinanceOverviewWidget({
       <Button
         variant="icon"
         icon={showEntrateData ? <Icon name="eye" size={14} /> : <Icon name="eyeOff" size={14} />}
-        onClick={() => setShowEntrateData(!showEntrateData)}
+        onClick={handleToggleEntrate}
         title={showEntrateData ? 'Nascondi entrate' : 'Mostra entrate'}
         sx={{
           color: theme.palette.primary.main,
@@ -155,7 +206,7 @@ export default function FinanceOverviewWidget({
       <Button
         variant="icon"
         icon={showUsciteData ? <Icon name="eye" size={14} /> : <Icon name="eyeOff" size={14} />}
-        onClick={() => setShowUsciteData(!showUsciteData)}
+        onClick={handleToggleUscite}
         title={showUsciteData ? 'Nascondi uscite' : 'Mostra uscite'}
         sx={{
           color: theme.palette.error.main,
@@ -314,6 +365,18 @@ export default function FinanceOverviewWidget({
           </Box>
         </DashboardWidgetCard>
       </Grid>
+
+      {/* Modale di richiesta password per sbloccare i dati riservati */}
+      <PasswordConfirmModal
+        isOpen={!!unlockTarget}
+        onClose={() => setUnlockTarget(null)}
+        onConfirm={handleConfirmPassword}
+        loading={verifyLoading}
+        title="Visualizza Dati Riservati"
+        description={`Inserisci la password dello studio per mostrare i dati di ${
+          unlockTarget === 'BILANCIO' ? 'Bilancio' : unlockTarget === 'ENTRATE' ? 'Entrate' : 'Uscite'
+        }.`}
+      />
     </Grid>
   );
 }

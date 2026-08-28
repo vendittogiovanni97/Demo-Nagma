@@ -8,6 +8,7 @@ import { financeCache } from './finance.cache';
 export class TransactionService {
   async findAll(filters: {
     type?: string;
+    category?: string;
     month?: string;
     startDate?: string;
     endDate?: string;
@@ -15,10 +16,11 @@ export class TransactionService {
     page?: number;
     limit?: number;
   }) {
-    const { type, month, startDate, endDate, search, page = 1, limit = 25 } = filters;
+    const { type, category, month, startDate, endDate, search, page = 1, limit = 25 } = filters;
     const where: Prisma.TransactionWhereInput = { deletedAt: null };
 
     if (type) where.type = type as any;
+    if (category) where.category = category;
     if (search?.trim()) {
       where.OR = [
         { description: { contains: search, mode: 'insensitive' } },

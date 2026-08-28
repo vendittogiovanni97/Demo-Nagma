@@ -92,4 +92,18 @@ export class BookingController {
     await this.bookingService.verifyPassword(password);
     res.json({ message: 'Password corretta' });
   });
+
+  getTodayKanban = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const date = req.query.date as string | undefined;
+    const result = await this.bookingService.getTodayKanbanBookings(date);
+    res.json(result);
+  });
+
+  updateKanbanStatus = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const id = parseId(req.params.id);
+    const { stage } = req.body;
+    if (!stage) return res.status(400).json({ message: 'Stato kanban obbligatorio' });
+    const result = await this.bookingService.updateKanbanStatus(id, stage, req.user?.id);
+    res.json(result);
+  });
 }

@@ -11,6 +11,8 @@ export function registerBookingRoutes(app: Express): void {
   router.use(authMiddleware);
 
   router.get('/stats', controller.getStats);
+  router.get('/kanban/today', controller.getTodayKanban);
+  router.patch('/:id/kanban-status', controller.updateKanbanStatus);
   router.get('/available-artists', controller.getAvailable);
   router.post('/verify-password', authRateLimiter, controller.verifyPassword);
   router.get('/history', controller.getAllHistory);

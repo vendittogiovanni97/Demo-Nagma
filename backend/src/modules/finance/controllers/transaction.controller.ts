@@ -12,7 +12,8 @@ export class TransactionController {
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const { search, month, page, limit, startDate, endDate } = parsePageQuery(req.query);
     const type = req.query.type as any;
-    const result = await this.transactionService.findAll({ search, month, type, page, limit, startDate, endDate });
+    const category = req.query.category as string | undefined;
+    const result = await this.transactionService.findAll({ search, month, type, category, page, limit, startDate, endDate });
     res.json(result);
   });
 

@@ -56,6 +56,14 @@ export const bookingApi = {
     return apiClient.post<void>(`${ENDPOINTS.BOOKINGS.BASE}/verify-password`, { password });
   },
 
+  getTodayKanban: async (date?: string) => {
+    return apiClient.get<BookingDTO[]>(`${ENDPOINTS.BOOKINGS.BASE}/kanban/today`, { date });
+  },
+
+  updateKanbanStatus: async (id: number, stage: string) => {
+    return apiClient.patch<BookingDTO>(`${ENDPOINTS.BOOKINGS.BASE}/${id}/kanban-status`, { stage });
+  },
+
   downloadAttachment: async (id: string | number, mimeType: string) => {
     const token = getToken();
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.ATTACHMENTS.DOWNLOAD(id)}`, {

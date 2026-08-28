@@ -380,4 +380,45 @@ describe('BookingService', () => {
       expect(mockPrisma.booking.findMany.mock.calls.at(-1)![0].orderBy).toEqual({ date: 'desc' });
     });
   });
+
+  describe('Kanban methods', () => {
+    it('fetches today kanban bookings with calculated balance and kanbanStage', async () => {
+      mockPrisma.booking.findMany.mockResolvedValue([
+        bookingRow({
+          id: 10,
+          status: 'CREATO',
+          price: 200,
+          deposit: 50,
+          formData: { kanbanStage: 'IN_ATTESA' },
+        }),
+      ]);
+
+      const res = await bookingService.getTodayKanbanBookings('2026-08-28');
+      expect(res).toHaveLength(1);
+      expect(res[0].kanbanStage).toBe('IN_ATTESA');
+      expect(res[0].price).toBe(200);
+      expect(res[0].deposit).toBe(50);
+      expect(res[0].outstandingBalance).toBe(150);
+    });
+
+    it('updates kanban status and changes booking status appropriately', async () => {
+      mockPrisma.booking.findUnique.mockResolvedValue(
+        bookingRow({ id: 10, status: 'CREATO', formData: null })
+      );
+      mockPrisma.booking.update.mockImplementation((args: any) =>
+        Promise.resolve(
+          bookingRow({
+            id: 10,
+            status: args.data.status,
+            formData: args.data.formData,
+          })
+        )
+      );
+
+      const res = await bookingService.updateKanbanStatus(10, 'IN_SEDUTA', 1);
+      expect(res.kanbanStage).toBe('IN_SEDUTA');
+      expect(res.status).toBe('CONFERMATO');
+      expect(mockPrisma.bookingHistory.create).toHaveBeenCalled();
+    });
+  });
 });

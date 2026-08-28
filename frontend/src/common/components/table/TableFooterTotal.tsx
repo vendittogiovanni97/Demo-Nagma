@@ -5,6 +5,9 @@ import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatPrice } from '@/common/shared/utils/format';
 import Icon from '@/common/components/ui/Icon';
+import PasswordConfirmModal from '@/common/components/modals/PasswordConfirmModal';
+import { bookingApi } from '@/modules/booking/api/booking.api';
+import { useAuth } from '@/common/context/AuthContext';
 
 export interface TableFooterTotalProps {
   total: number;
@@ -12,6 +15,7 @@ export interface TableFooterTotalProps {
   color?: 'primary' | 'success' | 'info' | 'warning' | 'error';
   privacyToggle?: boolean;
   defaultHidden?: boolean;
+  requirePasswordToUnlock?: boolean;
 }
 
 export default function TableFooterTotal({
@@ -20,9 +24,34 @@ export default function TableFooterTotal({
   color = 'primary',
   privacyToggle = true,
   defaultHidden = true,
+  requirePasswordToUnlock = true,
 }: TableFooterTotalProps) {
   const theme = useTheme();
+  const { isSuperAdmin } = useAuth();
   const [isHidden, setIsHidden] = useState(defaultHidden);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [loadingPassword, setLoadingPassword] = useState(false);
+
+  const handleToggleClick = () => {
+    if (!isHidden) {
+      setIsHidden(true);
+    } else if (isSuperAdmin || !requirePasswordToUnlock) {
+      setIsHidden(false);
+    } else {
+      setIsPasswordModalOpen(true);
+    }
+  };
+
+  const handleConfirmPassword = async (password: string) => {
+    setLoadingPassword(true);
+    try {
+      await bookingApi.verifyPassword(password);
+      setIsHidden(false);
+      setIsPasswordModalOpen(false);
+    } finally {
+      setLoadingPassword(false);
+    }
+  };
 
   const textColor = theme.palette[color]?.main || theme.palette.primary.main;
   const isLight = theme.palette.mode === 'light';
@@ -78,7 +107,7 @@ export default function TableFooterTotal({
         {privacyToggle && (
           <IconButton
             size="small"
-            onClick={() => setIsHidden((prev) => !prev)}
+            onClick={handleToggleClick}
             aria-label={isHidden ? 'Mostra totale' : 'Nascondi totale'}
             sx={{
               color: isHidden ? 'text.secondary' : 'primary.main',
@@ -97,6 +126,17 @@ export default function TableFooterTotal({
           </IconButton>
         )}
       </Box>
+
+      {requirePasswordToUnlock && (
+        <PasswordConfirmModal
+          isOpen={isPasswordModalOpen}
+          onClose={() => setIsPasswordModalOpen(false)}
+          onConfirm={handleConfirmPassword}
+          loading={loadingPassword}
+          title="Visualizza Totale Riservato"
+          description={`Inserisci la password dello studio per mostrare il ${label.toLowerCase()}.`}
+        />
+      )}
     </Box>
   );
 }

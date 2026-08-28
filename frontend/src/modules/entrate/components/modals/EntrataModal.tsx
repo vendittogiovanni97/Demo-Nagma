@@ -10,6 +10,8 @@ interface EntrataModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialName?: string;
+  initialAmount?: number;
 }
 
 interface EntrataFormData {
@@ -17,16 +19,20 @@ interface EntrataFormData {
   amount: string;
 }
 
-const initialValues: EntrataFormData = {
-  name: '',
-  amount: '',
-};
-
-export default function EntrataModal({ isOpen, onClose, onSuccess }: EntrataModalProps) {
+export default function EntrataModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  initialName,
+  initialAmount,
+}: EntrataModalProps) {
   const form = useEntityForm<null, EntrataFormData, { name: string; amount: number }, void>({
     entity: null,
     open: isOpen,
-    initial: () => initialValues,
+    initial: () => ({
+      name: initialName || '',
+      amount: initialAmount ? String(initialAmount) : '',
+    }),
     validate: (data) => {
       if (!data.name.trim()) return "Inserisci il nome dell'entrata";
       const parsed = parseFloat(data.amount.replace(',', '.'));

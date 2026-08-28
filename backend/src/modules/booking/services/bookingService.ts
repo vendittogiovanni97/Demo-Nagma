@@ -621,4 +621,159 @@ export class BookingService {
       },
     });
   }
+
+  async getTodayKanbanBookings(dateStr?: string) {
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        deletedAt: null,
+        status: { notIn: ['ANNULLATO', 'CANCELLATO'] },
+        date: { gte: startOfDay, lte: endOfDay },
+      },
+      include: {
+        customer: true,
+        artist: true,
+        attachments: true,
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    return bookings.map((b) => {
+      const price = b.price ? Number(b.price) : 0;
+      const deposit = b.deposit ? Number(b.deposit) : 0;
+      const outstandingBalance = Math.max(0, price - deposit);
+      const formData = (b.formData as Record<string, any>) || {};
+
+      let kanbanStage = formData.kanbanStage;
+      if (!kanbanStage) {
+        if (b.status === 'COMPLETATO') {
+          kanbanStage = 'SALDATO';
+        } else if (b.status === 'CONFERMATO') {
+          kanbanStage = 'IN_SEDUTA';
+        } else {
+          kanbanStage = 'IN_ARRIVO';
+        }
+      }
+
+      return {
+        ...b,
+        price,
+        deposit,
+        outstandingBalance,
+        kanbanStage,
+        sessionStartedAt: formData.sessionStartedAt || null,
+      };
+    });
+  }
+
+  async updateKanbanStatus(id: number, stage: string, userId?: number) {
+    const existing = await prisma.booking.findUnique({
+      where: { id },
+      include: { customer: true, artist: true },
+    });
+
+    if (!existing || existing.deletedAt) {
+      throw new AppError('Prenotazione non trovata', 404);
+    }
+
+    const existingFormData = (existing.formData as Record<string, any>) || {};
+    const updatedFormData = {
+      ...existingFormData,
+      kanbanStage: stage,
+      ...(stage === 'IN_SEDUTA' && !existingFormData.sessionStartedAt
+        ? { sessionStartedAt: new Date().toISOString() }
+        : {}),
+    };
+
+    let newStatus = existing.status;
+    if (stage === 'SALDATO' && existing.status !== 'COMPLETATO') {
+      newStatus = 'COMPLETATO';
+    } else if (stage === 'IN_SEDUTA' && existing.status === 'CREATO') {
+      newStatus = 'CONFERMATO';
+    }
+
+    const updated = await prisma.booking.update({
+      where: { id },
+      data: {
+        status: newStatus,
+        formData: updatedFormData,
+      },
+      include: {
+        customer: true,
+        artist: true,
+        attachments: true,
+      },
+    });
+
+    if (userId) {
+      await prisma.bookingHistory.create({
+        data: {
+          bookingId: id,
+          action: newStatus,
+          changedById: userId,
+        },
+      });
+    }
+
+    if (newStatus === 'COMPLETATO' && existing.status !== 'COMPLETATO' && updated.price) {
+      let isRentPayee = false;
+      if (updated.artistId) {
+        const artist = await prisma.staff.findUnique({
+          where: { id: updated.artistId },
+          select: { isRentPayee: true },
+        });
+        if (artist?.isRentPayee) {
+          isRentPayee = true;
+        }
+      }
+
+      if (!isRentPayee) {
+        const customerName = updated.customer
+          ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
+          : 'Cliente';
+
+        const fullPrice = Number(updated.price) || 0;
+        const depositAmount = Number(updated.deposit) || 0;
+        const finalIncomeAmount = fullPrice - depositAmount;
+
+        if (finalIncomeAmount > 0) {
+          const description = depositAmount > 0
+            ? `Saldo prenotazione #${updated.id} - ${customerName}`
+            : `Incasso prenotazione #${updated.id} - ${customerName}`;
+
+          const existingTx = await prisma.transaction.findFirst({
+            where: { sourceId: updated.id, sourceType: 'BOOKING', deletedAt: null },
+          });
+
+          if (!existingTx) {
+            await prisma.transaction.create({
+              data: {
+                type: 'ENTRATA',
+                category: 'Tatuaggio',
+                description,
+                amount: finalIncomeAmount,
+                date: new Date(),
+                sourceId: updated.id,
+                sourceType: 'BOOKING',
+              },
+            });
+          }
+        }
+      }
+    }
+
+    const price = updated.price ? Number(updated.price) : 0;
+    const deposit = updated.deposit ? Number(updated.deposit) : 0;
+    return {
+      ...updated,
+      price,
+      deposit,
+      outstandingBalance: Math.max(0, price - deposit),
+      kanbanStage: stage,
+      sessionStartedAt: updatedFormData.sessionStartedAt || null,
+    };
+  }
 }

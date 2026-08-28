@@ -1,19 +1,36 @@
-import { Prisma } from '@prisma/client';
-import prisma from '../../../core/shared/utils/prisma';
-import { AppError } from '../../../core/shared/errors/AppError';
-import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
-import { getMonthRange } from '../../../core/shared/utils/date-utils';
-import { config } from '../../../core/config/env';
+import { BookingStatus, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { config } from '../../../core/config/env';
+import { AppError } from '../../../core/shared/errors/AppError';
+import { buildPagination, paginate } from '../../../core/shared/kernel/pagination';
+import { getMonthRange } from '../../../core/shared/utils/date-utils';
+import prisma from '../../../core/shared/utils/prisma';
 import { financeCache } from '../../finance/services/finance.cache';
 
-function timeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + (minutes || 0);
+export interface BookingFilters {
+  month?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+  offset?: number;
+  status?: BookingStatus | 'ALL';
+  search?: string;
+  sortOrder?: Prisma.SortOrder;
+  isRentPayee?: boolean | string;
+}
+
+export interface BookingHistoryFilters {
+  startDate?: string;
+  endDate?: string;
+  action?: BookingStatus;
+  userId?: number;
+  artistId?: number;
+  search?: string;
 }
 
 export class BookingService {
-  async findAll(filters: any) {
+  async findAll(filters: BookingFilters) {
     const { month, startDate, endDate, page, limit, offset, status, search, sortOrder } = filters;
     const where: Prisma.BookingWhereInput = {
       deletedAt: null,
@@ -133,7 +150,7 @@ export class BookingService {
     });
   }
 
-  async findAllHistory(page: number, limit: number, filters: any) {
+  async findAllHistory(page: number, limit: number, filters: BookingHistoryFilters) {
     const { startDate, endDate, action, userId, artistId, search } = filters;
     const where: Prisma.BookingHistoryWhereInput = {};
 
@@ -143,7 +160,7 @@ export class BookingService {
       if (endDate) where.changedAt.lte = new Date(endDate + 'T23:59:59');
     }
 
-    if (action) where.action = action as any;
+    if (action) where.action = action as BookingStatus;
     if (userId) where.changedById = userId;
 
     if (artistId || search) {
@@ -230,14 +247,14 @@ export class BookingService {
     }
   }
 
-  async create(data: any, changedById?: number) {
-    const startDate = new Date(data.date);
-    const duration = data.duration ?? 120;
+  async create(data: Record<string, unknown>, changedById?: number) {
+    const startDate = new Date(data.date as string | number | Date);
+    const duration = (data.duration as number) ?? 120;
     const endDate = new Date(startDate.getTime() + duration * 60_000);
 
     const conflictRows = await prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
       SELECT id FROM "bookings"
-      WHERE "artistId" = ${data.artistId}
+      WHERE "artistId" = ${data.artistId as number}
         AND "deletedAt" IS NULL
         AND "status" <> 'CANCELLATO'
         AND "date" < ${endDate}
@@ -257,15 +274,15 @@ export class BookingService {
     const result = await prisma.$transaction(async (tx) => {
       const booking = await tx.booking.create({
         data: {
-          customerId: data.customerId,
-          artistId: data.artistId,
+          customerId: data.customerId as number,
+          artistId: data.artistId as number,
           date: startDate,
           duration,
           status: 'CREATO',
-          price: data.price,
-          deposit: data.deposit,
-          notes: data.notes,
-          formData: data.formData as any,
+          price: data.price as number | Prisma.Decimal | null,
+          deposit: data.deposit as number | Prisma.Decimal | null,
+          notes: data.notes as string | null,
+          formData: (data.formData as Prisma.InputJsonValue) ?? Prisma.JsonNull,
         },
         include: { customer: true, artist: true },
       });
@@ -314,7 +331,7 @@ export class BookingService {
     return result;
   }
 
-  async update(id: number, data: any, changedById?: number) {
+  async update(id: number, data: Record<string, unknown>, changedById?: number) {
     const oldBooking = await prisma.booking.findUnique({
       where: { id },
       include: { customer: true, artist: true },
@@ -324,10 +341,10 @@ export class BookingService {
       throw new AppError('Prenotazione non trovata', 404, 'NOT_FOUND');
     }
 
-    const newDate = data.date ? new Date(data.date) : oldBooking.date;
-    const newDuration = data.duration ?? oldBooking.duration;
-    const newStatus = data.status ?? oldBooking.status;
-    const newArtistId = data.artistId ?? oldBooking.artistId;
+    const newDate = data.date ? new Date(data.date as string | number | Date) : oldBooking.date;
+    const newDuration = (data.duration as number) ?? oldBooking.duration;
+    const newStatus = (data.status as BookingStatus) ?? oldBooking.status;
+    const newArtistId = (data.artistId as number) ?? oldBooking.artistId;
     const endDate = new Date(newDate.getTime() + newDuration * 60_000);
 
     if (newStatus !== 'ANNULLATO' && newStatus !== 'CANCELLATO' && (data.date || data.duration || data.artistId)) {
@@ -356,15 +373,15 @@ export class BookingService {
       const updated = await tx.booking.update({
         where: { id },
         data: {
-          ...(data.date !== undefined ? { date: new Date(data.date) } : {}),
-          ...(data.artistId !== undefined ? { artistId: data.artistId } : {}),
-          ...(data.duration !== undefined ? { duration: data.duration } : {}),
-          ...(data.status !== undefined ? { status: data.status } : {}),
-          ...(data.price !== undefined ? { price: data.price } : {}),
-          ...(data.deposit !== undefined ? { deposit: data.deposit } : {}),
-          ...(data.notes !== undefined ? { notes: data.notes } : {}),
-          ...(data.formData !== undefined ? { formData: data.formData } : {}),
-          ...(data.customerId !== undefined ? { customerId: data.customerId } : {}),
+          ...(data.date !== undefined ? { date: new Date(data.date as string | number | Date) } : {}),
+          ...(data.artistId !== undefined ? { artistId: data.artistId as number } : {}),
+          ...(data.duration !== undefined ? { duration: data.duration as number } : {}),
+          ...(data.status !== undefined ? { status: data.status as BookingStatus } : {}),
+          ...(data.price !== undefined ? { price: data.price as number | Prisma.Decimal } : {}),
+          ...(data.deposit !== undefined ? { deposit: data.deposit as number | Prisma.Decimal } : {}),
+          ...(data.notes !== undefined ? { notes: data.notes as string | null } : {}),
+          ...(data.formData !== undefined ? { formData: data.formData as Prisma.InputJsonValue } : {}),
+          ...(data.customerId !== undefined ? { customerId: data.customerId as number } : {}),
         },
         include: { customer: true, artist: true },
       });
@@ -380,7 +397,7 @@ export class BookingService {
           bookingId: id,
           action,
           oldDate: oldBooking.date,
-          newDate: data.date ? new Date(data.date) : null,
+          newDate: data.date ? new Date(data.date as string | number | Date) : null,
           changedById: changedById ?? null,
         },
       });
@@ -436,62 +453,10 @@ export class BookingService {
         await this.refundOutstandingDeposit(tx, updated);
       }
 
-      if (data.status === 'COMPLETATO' && oldBooking.status !== 'COMPLETATO' && updated.price) {
-        let isRentPayee = false;
-        if (updated.artistId && tx.staff) {
-          const artist = await tx.staff.findUnique({
-            where: { id: updated.artistId },
-            select: { isRentPayee: true },
-          });
-          if (artist?.isRentPayee) {
-            isRentPayee = true;
-          }
-        }
-
-        if (!isRentPayee) {
-          const customerName = updated.customer
-            ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
-            : 'Cliente';
-
-          const fd = (updated.formData || {}) as Record<string, unknown>;
-          const artistPrice = typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
-          const fullPrice = Number(updated.price) || 0;
-          const completionDate = new Date();
-          const depositAmount = Number(updated.deposit) ?? 0;
-          const finalIncomeAmount = fullPrice - depositAmount;
-
-          if (finalIncomeAmount > 0) {
-            const description = depositAmount > 0
-              ? `Saldo prenotazione #${updated.id} - ${customerName}`
-              : `Incasso prenotazione #${updated.id} - ${customerName}`;
-
-            await tx.transaction.create({
-              data: {
-                type: 'ENTRATA',
-                category: 'Tatuaggio',
-                description,
-                amount: finalIncomeAmount,
-                date: completionDate,
-                sourceId: updated.id,
-                sourceType: 'BOOKING',
-              },
-            });
-          }
-
-          if (artistPrice > 0) {
-            await tx.transaction.create({
-              data: {
-                type: 'USCITA',
-                category: 'Compenso Artista',
-                description: `Compenso artista — prenotazione #${updated.id}`,
-                amount: artistPrice,
-                date: completionDate,
-                sourceId: updated.id,
-                sourceType: 'BOOKING_COMMISSION',
-              },
-            });
-          }
-        }
+      // (Audit H2) Logica finanziaria di completamento unificata e transazionale:
+      // booking COMPLETATO, saldo e compenso artista sono atomici.
+      if (data.status === 'COMPLETATO' && oldBooking.status !== 'COMPLETATO') {
+        await this.handleCompletionTransactions(tx, updated);
       }
 
       return { ...updated, price: updated.price ? Number(updated.price) : null, deposit: updated.deposit ? Number(updated.deposit) : null };
@@ -570,6 +535,86 @@ export class BookingService {
     financeCache.clear();
   }
 
+  /**
+   * (Audit H2) Logica finanziaria di completamento condivisa e transazionale.
+   * Chiamata DENTRO prisma.$transaction da update() e updateKanbanStatus():
+   * garantisce atomicità tra booking COMPLETATO, saldo/incasso e compenso artista.
+   * Include dedup della transazione "Saldo" (idempotenza su retry/concorrenza).
+   */
+  private async handleCompletionTransactions(
+    tx: Prisma.TransactionClient,
+    booking: {
+      id: number;
+      artistId?: number | null;
+      price: Prisma.Decimal | number | null;
+      deposit: Prisma.Decimal | number | null;
+      formData?: unknown;
+      customer?: { firstName: string; lastName: string | null } | null;
+    },
+  ): Promise<void> {
+    if (!booking.price) return;
+
+    let isRentPayee = false;
+    if (booking.artistId && tx.staff) {
+      const artist = await tx.staff.findUnique({
+        where: { id: booking.artistId },
+        select: { isRentPayee: true },
+      });
+      if (artist?.isRentPayee) isRentPayee = true;
+    }
+    if (isRentPayee) return;
+
+    const customerName = booking.customer
+      ? `${booking.customer.firstName} ${booking.customer.lastName || ''}`.trim()
+      : 'Cliente';
+
+    const fd = (booking.formData || {}) as Record<string, unknown>;
+    const artistPrice = typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
+    const fullPrice = Number(booking.price) || 0;
+    const completionDate = new Date();
+    const depositAmount = Number(booking.deposit) || 0;
+    const finalIncomeAmount = fullPrice - depositAmount;
+
+    if (finalIncomeAmount > 0) {
+      const description = depositAmount > 0
+        ? `Saldo prenotazione #${booking.id} - ${customerName}`
+        : `Incasso prenotazione #${booking.id} - ${customerName}`;
+
+      // Dedup: evita doppio incasso se il completamento viene ripetuto
+      const existingTx = await tx.transaction.findFirst({
+        where: { sourceId: booking.id, sourceType: 'BOOKING', deletedAt: null },
+      });
+
+      if (!existingTx) {
+        await tx.transaction.create({
+          data: {
+            type: 'ENTRATA',
+            category: 'Tatuaggio',
+            description,
+            amount: finalIncomeAmount,
+            date: completionDate,
+            sourceId: booking.id,
+            sourceType: 'BOOKING',
+          },
+        });
+      }
+    }
+
+    if (artistPrice > 0) {
+      await tx.transaction.create({
+        data: {
+          type: 'USCITA',
+          category: 'Compenso Artista',
+          description: `Compenso artista — prenotazione #${booking.id}`,
+          amount: artistPrice,
+          date: completionDate,
+          sourceId: booking.id,
+          sourceType: 'BOOKING_COMMISSION',
+        },
+      });
+    }
+  }
+
   private async refundOutstandingDeposit(
     tx: Prisma.TransactionClient,
     booking: {
@@ -645,7 +690,7 @@ export class BookingService {
       const price = b.price ? Number(b.price) : 0;
       const deposit = b.deposit ? Number(b.deposit) : 0;
       const outstandingBalance = Math.max(0, price - deposit);
-      const formData = (b.formData as Record<string, any>) || {};
+      const formData = (b.formData as Record<string, unknown>) || {};
 
       let kanbanStage = formData.kanbanStage;
       if (!kanbanStage) {
@@ -664,7 +709,7 @@ export class BookingService {
         deposit,
         outstandingBalance,
         kanbanStage,
-        sessionStartedAt: formData.sessionStartedAt || null,
+        sessionStartedAt: (formData.sessionStartedAt as string | null) || null,
       };
     });
   }
@@ -679,7 +724,7 @@ export class BookingService {
       throw new AppError('Prenotazione non trovata', 404);
     }
 
-    const existingFormData = (existing.formData as Record<string, any>) || {};
+    const existingFormData = (existing.formData as Record<string, unknown>) || {};
     const updatedFormData = {
       ...existingFormData,
       kanbanStage: stage,
@@ -695,75 +740,40 @@ export class BookingService {
       newStatus = 'CONFERMATO';
     }
 
-    const updated = await prisma.booking.update({
-      where: { id },
-      data: {
-        status: newStatus,
-        formData: updatedFormData,
-      },
-      include: {
-        customer: true,
-        artist: true,
-        attachments: true,
-      },
-    });
-
-    if (userId) {
-      await prisma.bookingHistory.create({
+    // (Audit H2) Tutto transazionale: update booking + history + transazioni
+    // finanziarie di completamento sono atomiche. Un crash a metà non può più
+    // lasciare un booking COMPLETATO senza incasso registrato.
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.booking.update({
+        where: { id },
         data: {
-          bookingId: id,
-          action: newStatus,
-          changedById: userId,
+          status: newStatus,
+          formData: updatedFormData,
+        },
+        include: {
+          customer: true,
+          artist: true,
+          attachments: true,
         },
       });
-    }
 
-    if (newStatus === 'COMPLETATO' && existing.status !== 'COMPLETATO' && updated.price) {
-      let isRentPayee = false;
-      if (updated.artistId) {
-        const artist = await prisma.staff.findUnique({
-          where: { id: updated.artistId },
-          select: { isRentPayee: true },
+      if (userId) {
+        await tx.bookingHistory.create({
+          data: {
+            bookingId: id,
+            action: newStatus,
+            changedById: userId,
+          },
         });
-        if (artist?.isRentPayee) {
-          isRentPayee = true;
-        }
       }
 
-      if (!isRentPayee) {
-        const customerName = updated.customer
-          ? `${updated.customer.firstName} ${updated.customer.lastName || ''}`.trim()
-          : 'Cliente';
-
-        const fullPrice = Number(updated.price) || 0;
-        const depositAmount = Number(updated.deposit) || 0;
-        const finalIncomeAmount = fullPrice - depositAmount;
-
-        if (finalIncomeAmount > 0) {
-          const description = depositAmount > 0
-            ? `Saldo prenotazione #${updated.id} - ${customerName}`
-            : `Incasso prenotazione #${updated.id} - ${customerName}`;
-
-          const existingTx = await prisma.transaction.findFirst({
-            where: { sourceId: updated.id, sourceType: 'BOOKING', deletedAt: null },
-          });
-
-          if (!existingTx) {
-            await prisma.transaction.create({
-              data: {
-                type: 'ENTRATA',
-                category: 'Tatuaggio',
-                description,
-                amount: finalIncomeAmount,
-                date: new Date(),
-                sourceId: updated.id,
-                sourceType: 'BOOKING',
-              },
-            });
-          }
-        }
+      if (newStatus === 'COMPLETATO' && existing.status !== 'COMPLETATO') {
+        await this.handleCompletionTransactions(tx, result);
       }
-    }
+
+      return result;
+    });
+    financeCache.clear();
 
     const price = updated.price ? Number(updated.price) : 0;
     const deposit = updated.deposit ? Number(updated.deposit) : 0;

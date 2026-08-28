@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { BookingStatus } from '@prisma/client';
 import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { BookingService } from '../services/bookingService';
 import { handleCreate, handleUpdate } from '../../../core/utils/handler';
@@ -17,7 +18,7 @@ export class BookingController {
     const endDate = req.query.endDate as string | undefined;
     const customLimit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
-    const status = req.query.status as string | undefined;
+    const status = req.query.status as BookingStatus | 'ALL' | undefined;
     const isRentPayee = req.query.isRentPayee as string | undefined;
     const sortOrder = req.query.sortOrder === 'asc' ? 'asc' : req.query.sortOrder === 'desc' ? 'desc' : undefined;
 

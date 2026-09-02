@@ -15,7 +15,6 @@ export function registerStaffRoutes(app: Express): void {
   router.post('/members', adminOnly, controller.createMember);
   router.put('/members/:id', adminOnly, controller.updateMember);
   router.delete('/members/:id', adminOnly, controller.deleteMember);
-  router.post('/members/:id/reset-password', adminOnly, controller.resetPassword);
 
   router.get('/shifts', controller.getAllShifts);
   router.get('/shifts/:staffId', controller.getStaffShifts);

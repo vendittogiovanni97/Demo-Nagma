@@ -52,10 +52,6 @@ export const updateUserSchema = z.object({
   color: z.string().optional(),
 });
 
-export const resetPasswordSchema = z.object({
-  newPassword: z.string().min(6, 'La password deve avere almeno 6 caratteri'),
-});
-
 export const updateMeSchema = z.object({
   name: nonEmptyString('Il nome è obbligatorio'),
   phone: z.string().optional(),

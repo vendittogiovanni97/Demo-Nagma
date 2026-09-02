@@ -35,7 +35,3 @@ export const updateShiftSchema = z.object({
   endTime: z.string().optional(),
   label: z.string().optional(),
 });
-
-export const resetPasswordSchema = z.object({
-  newPassword: z.string().min(6, 'Password deve essere almeno 6 caratteri'),
-});

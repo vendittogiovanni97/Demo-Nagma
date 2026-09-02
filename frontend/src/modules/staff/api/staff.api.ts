@@ -119,9 +119,6 @@ export const staffApi = {
   delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.TEAM.MEMBER_BY_ID(id));
   },
-  resetMemberPassword: async (id: number, newPassword: string): Promise<void> => {
-    return apiClient.put<void>(`${ENDPOINTS.TEAM.MEMBER_BY_ID(id)}/reset-password`, { newPassword });
-  },
   getShifts: async (weekStart: string): Promise<Shift[]> => {
     const response = await apiClient.get<unknown>(ENDPOINTS.TEAM.SHIFTS, { weekStart });
     const rawShifts = (Array.isArray(response) ? response : (response as { data?: BackendShift[] })?.data || []) as BackendShift[];

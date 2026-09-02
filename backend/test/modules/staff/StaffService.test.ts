@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import { AppError } from '../../../src/core/shared/errors/AppError';
 
 const createMockPrisma = () => ({
@@ -190,27 +189,6 @@ describe('StaffService', () => {
     it('should delete shift', async () => {
       await service.deleteShift('s1');
       expect(mockPrisma.shift.delete).toHaveBeenCalledWith({ where: { id: 's1' } });
-    });
-  });
-
-  describe('resetPassword', () => {
-    it('should reset user password', async () => {
-      mockPrisma.user.findFirst.mockResolvedValue({ id: 1 });
-      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed' as never);
-
-      await service.resetPassword(1, { newPassword: 'new123' });
-
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { password: 'hashed', tokenVersion: { increment: 1 } },
-      });
-    });
-
-    it('should throw when user not found', async () => {
-      mockPrisma.user.findFirst.mockResolvedValue(null);
-
-      await expect(service.resetPassword(999, { newPassword: 'x' }))
-        .rejects.toThrow(new AppError('Utente non trovato.', 404));
     });
   });
 });

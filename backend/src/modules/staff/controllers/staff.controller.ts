@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { handleSearch, handleGetById, handleCreate, handleUpdate, handleDelete } from '../../../core/utils/handler';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 import { validate } from '../../../core/shared/utils/validation';
@@ -11,7 +10,6 @@ import {
   updateStaffSchema,
   createShiftSchema,
   updateShiftSchema,
-  resetPasswordSchema,
 } from './staff.schemas';
 
 export class StaffController {
@@ -41,12 +39,6 @@ export class StaffController {
   }, updateStaffSchema);
 
   deleteMember = handleDelete(async (id) => this.staffService.deleteMember(id));
-
-  resetPassword = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const data = validate(resetPasswordSchema, req.body);
-    await this.staffService.resetPassword(parseId(req.params.id), data);
-    res.json({ message: 'Password aggiornata con successo.' });
-  });
 
   getAllShifts = asyncHandler(async (req: Request, res: Response) => {
     const weekStart = req.query.weekStart as string | undefined;

@@ -1,6 +1,4 @@
 import { Prisma, StaffType } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import { config } from '../../../core/config/env';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { buildPagination, paginate } from '../../../core/shared/kernel/pagination';
 import { parseUTCDate } from '../../../core/shared/utils/date-utils';
@@ -235,16 +233,5 @@ export class StaffService {
 
   async deleteShift(id: string) {
     await prisma.shift.delete({ where: { id } });
-  }
-
-  async resetPassword(userId: number, data: { newPassword: string }) {
-    const user = await prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
-    if (!user) throw new AppError('Utente non trovato.', 404);
-
-    const hashedPassword = await bcrypt.hash(data.newPassword, config.bcryptSaltRounds);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword, tokenVersion: { increment: 1 } },
-    });
   }
 }

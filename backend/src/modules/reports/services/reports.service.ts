@@ -180,11 +180,17 @@ export class ReportsService {
    */
   async exportCsv(filters: ReportFilterDto): Promise<string> {
     const details = await this.getDetails({ ...filters, page: 1, limit: 5000 });
+    // Anti CSV/formula injection: neutralizza le celle che iniziano con =,+,-,@,tab,CR
+    const cell = (val: unknown): string => {
+      let s = String(val ?? '');
+      if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+      return `"${s.replace(/"/g, '""')}"`;
+    };
     const header = 'ID,Data,Tipo,Categoria,Descrizione,Importo (€)\n';
     const rows = details.data
       .map(
         (item) =>
-          `"${item.id}","${item.date}","${item.type}","${item.category}","${item.description.replace(/"/g, '""')}",${item.amount}`
+          `${cell(item.id)},${cell(item.date)},${cell(item.type)},${cell(item.category)},${cell(item.description)},${item.amount}`
       )
       .join('\n');
 

@@ -87,17 +87,9 @@ function formatMeta(meta?: LogMeta): string {
  * Fallback a .env se config non ancora inizializzato
  */
 function getLogLevelSync(): LogLevel {
-  try {
-    const { configService } = require('@/services/config.service');
-    const level = configService.getLogLevelSync() as string;
-    if (level in LOG_LEVEL_PRIORITY) {
-      return level as LogLevel;
-    }
-  } catch {
-    const envLevel = process.env.LOG_LEVEL as string | undefined;
-    if (envLevel && envLevel in LOG_LEVEL_PRIORITY) {
-      return envLevel as LogLevel;
-    }
+  const envLevel = process.env.LOG_LEVEL as string | undefined;
+  if (envLevel && envLevel in LOG_LEVEL_PRIORITY) {
+    return envLevel as LogLevel;
   }
   return 'INFO';
 }
@@ -175,12 +167,7 @@ export const logger = {
  * Fallback a .env se config non ancora inizializzato
  */
 export function isDebugHttpEnabled(): boolean {
-  try {
-    const { configService } = require('@/services/config.service');
-    return configService.getDebugHttpSync();
-  } catch {
-    return process.env.DEBUG_HTTP === 'true';
-  }
+  return process.env.DEBUG_HTTP === 'true';
 }
 
 export function isDevelopmentEnv() {

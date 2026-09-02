@@ -90,7 +90,10 @@ export class ExportService {
       columns
         .map((col) => {
           const val = this.formatValue(row[col.key], col.type);
-          return `"${String(val).replace(/"/g, '""')}"`;
+          // Anti CSV/formula injection: neutralizza le celle che iniziano con =,+,-,@,tab,CR
+          let s = String(val);
+          if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+          return `"${s.replace(/"/g, '""')}"`;
         })
         .join(',')
     );

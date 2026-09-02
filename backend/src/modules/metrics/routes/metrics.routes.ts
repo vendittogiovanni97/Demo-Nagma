@@ -1,7 +1,7 @@
 import { Express, Router } from 'express';
 import { container } from '../../../core/container';
 import { MetricsController } from '../controllers/metrics.controller';
-import { authMiddleware } from '../../../core/middleware/auth.middleware';
+import { authMiddleware, requireRoles } from '../../../core/middleware/auth.middleware';
 
 export function registerMetricsRoutes(app: Express): void {
   const controller = container.get(MetricsController);
@@ -13,7 +13,7 @@ export function registerMetricsRoutes(app: Express): void {
   // Endpoints protetti per la dashboard Admin
   router.use(authMiddleware);
   router.get('/summary', controller.getSummary);
-  router.delete('/reset', controller.resetMetrics);
+  router.delete('/reset', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.resetMetrics);
 
   app.use('/api/metrics', router);
 }

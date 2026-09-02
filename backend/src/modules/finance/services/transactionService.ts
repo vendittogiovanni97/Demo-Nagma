@@ -36,7 +36,7 @@ export class TransactionService {
     } else if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate);
-      if (endDate) where.date.lte = new Date(endDate + 'T23:59:59');
+      if (endDate) where.date.lte = new Date(endDate + 'T23:59:59.999Z');
     }
 
     const [raws, total] = await prisma.$transaction([
@@ -68,7 +68,7 @@ export class TransactionService {
     if (startDate || endDate) {
       where.changedAt = {};
       if (startDate) where.changedAt.gte = new Date(startDate);
-      if (endDate) where.changedAt.lte = new Date(endDate + 'T23:59:59');
+      if (endDate) where.changedAt.lte = new Date(endDate + 'T23:59:59.999Z');
     }
 
     const [raws, total] = await prisma.$transaction([
@@ -87,13 +87,19 @@ export class TransactionService {
     return paginate(raws, total, page, limit);
   }
 
-  async getSummary(month?: string) {
-    const cacheKey = `summary_${month || 'all'}`;
+  async getSummary(month?: string, startDate?: string, endDate?: string) {
+    const cacheKey = `summary_${month || 'all'}_${startDate || ''}_${endDate || ''}`;
     const cached = financeCache.get(cacheKey);
     if (cached) return cached;
 
     const where: Prisma.TransactionWhereInput = { deletedAt: null };
-    if (month) where.date = getMonthRange(month);
+    if (month) {
+      where.date = getMonthRange(month);
+    } else if (startDate || endDate) {
+      where.date = {};
+      if (startDate) where.date.gte = new Date(startDate);
+      if (endDate) where.date.lte = new Date(endDate + 'T23:59:59.999Z');
+    }
 
     const rows = await prisma.transaction.groupBy({
       by: ['type'],
@@ -193,9 +199,7 @@ export class TransactionService {
     sourceId?: number;
     sourceType?: string;
   }, userId?: number) {
-    financeCache.clear();
-
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const created = await tx.transaction.create({
         data: {
           type: data.type,
@@ -221,6 +225,9 @@ export class TransactionService {
 
       return { ...created, amount: Number(created.amount) };
     });
+
+    financeCache.clear();
+    return result;
   }
 
   async update(id: number, data: {
@@ -230,11 +237,10 @@ export class TransactionService {
     amount?: number;
     date?: string;
   }, userId?: number) {
-    financeCache.clear();
     const existing = await prisma.transaction.findUnique({ where: { id } });
     if (!existing) throw new AppError('Transazione non trovata', 404);
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const updateData: Prisma.TransactionUpdateInput = {};
       if (data.type) updateData.type = data.type;
       if (data.category) updateData.category = data.category;
@@ -261,10 +267,12 @@ export class TransactionService {
 
       return { ...updated, amount: Number(updated.amount) };
     });
+
+    financeCache.clear();
+    return result;
   }
 
   async delete(id: number, userId?: number) {
-    financeCache.clear();
     const existing = await prisma.transaction.findUnique({ where: { id } });
     if (!existing) throw new AppError('Transazione non trovata', 404);
 
@@ -285,5 +293,7 @@ export class TransactionService {
         });
       }
     });
+
+    financeCache.clear();
   }
 }

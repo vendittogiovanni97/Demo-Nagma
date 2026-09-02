@@ -30,7 +30,7 @@ export function useFinance(initialMonth = new Date()) {
 
   const { data: summary, isLoading: isLoadingSummary, mutate: mutateSummary } = useSWR(
     ['/finance/transactions/summary', monthStr, startDate, endDate],
-    () => financeApi.getSummary(monthStr)
+    () => financeApi.getSummary(monthStr, startDate || undefined, endDate || undefined)
   );
 
   return {

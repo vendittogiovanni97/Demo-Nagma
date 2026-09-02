@@ -32,7 +32,9 @@ export class TransactionController {
 
   getSummary = asyncHandler(async (req: Request, res: Response) => {
     const month = req.query.month as string | undefined;
-    res.json(await this.transactionService.getSummary(month));
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+    res.json(await this.transactionService.getSummary(month, startDate, endDate));
   });
 
   getTrends = asyncHandler(async (req: Request, res: Response) => {

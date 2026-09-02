@@ -20,8 +20,8 @@ export const transactionApi = {
       ...params,
     }),
 
-  getSummary: (month?: string): Promise<FinanceSummary> =>
-    apiClient.get<FinanceSummary>(ENDPOINTS.TRANSACTIONS.SUMMARY, { month }),
+  getSummary: (month?: string, startDate?: string, endDate?: string): Promise<FinanceSummary> =>
+    apiClient.get<FinanceSummary>(ENDPOINTS.TRANSACTIONS.SUMMARY, { month, startDate, endDate }),
 
   getTrends: (months = 6): Promise<MonthlyTrend[]> =>
     apiClient.get<MonthlyTrend[]>(ENDPOINTS.TRANSACTIONS.TRENDS, { months }),
@@ -33,10 +33,10 @@ export const transactionApi = {
     apiClient.get<TransactionHistoryPage>(ENDPOINTS.TRANSACTIONS.HISTORY, params),
 
   create: (data: CreateTransactionData): Promise<Transaction> =>
-    apiClient.post<Transaction>(ENDPOINTS.TRANSACTIONS.BASE, data),
+    apiClient.post<{ data: Transaction }>(ENDPOINTS.TRANSACTIONS.BASE, data).then((r) => r.data),
 
   update: (id: number, data: UpdateTransactionData): Promise<Transaction> =>
-    apiClient.patch<Transaction>(ENDPOINTS.TRANSACTIONS.BY_ID(id), data),
+    apiClient.patch<{ data: Transaction }>(ENDPOINTS.TRANSACTIONS.BY_ID(id), data).then((r) => r.data),
 
   delete: (id: number): Promise<void> =>
     apiClient.delete<void>(ENDPOINTS.TRANSACTIONS.BY_ID(id)),

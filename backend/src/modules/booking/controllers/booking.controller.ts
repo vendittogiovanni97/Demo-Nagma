@@ -4,7 +4,7 @@ import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { BookingService } from '../services/bookingService';
 import { handleCreate, handleUpdate } from '../../../core/utils/handler';
 import { validate } from '../../../core/shared/utils/validation';
-import { verifyPasswordSchema } from './booking.schemas';
+import { verifyPasswordSchema, createBookingSchema, updateBookingSchema } from './booking.schemas';
 import { parsePageQuery } from '../../../core/shared/utils/date-utils';
 import { parseId } from '../../../core/shared/utils/parse-id';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
@@ -42,9 +42,9 @@ export class BookingController {
     res.json(await this.bookingService.findStats(req.query.month as string | undefined));
   });
 
-  create = handleCreate(async (data, userId) => this.bookingService.create(data, userId));
+  create = handleCreate(async (data, userId) => this.bookingService.create(data, userId), createBookingSchema);
 
-  update = handleUpdate(async (id, data, userId) => this.bookingService.update(id, data, userId));
+  update = handleUpdate(async (id, data, userId) => this.bookingService.update(id, data, userId), updateBookingSchema);
 
   getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
     const result = await this.bookingService.findHistory(parseId(req.params.id));

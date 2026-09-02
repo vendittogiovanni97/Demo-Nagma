@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/transactionService';
 import { handleCreate, handleUpdate, handleDelete } from '../../../core/utils/handler';
-import { createTransactionSchema } from './transaction.schemas';
+import { createTransactionSchema, updateTransactionSchema } from './transaction.schemas';
 import { parsePageQuery } from '../../../core/shared/utils/date-utils';
 import { config } from '../../../core/config/env';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
@@ -47,7 +47,7 @@ export class TransactionController {
 
   create = handleCreate(async (data, userId) => this.transactionService.create(data, userId), createTransactionSchema);
 
-  update = handleUpdate(async (id, data, userId) => this.transactionService.update(id, data, userId));
+  update = handleUpdate(async (id, data, userId) => this.transactionService.update(id, data, userId), updateTransactionSchema);
 
   delete = handleDelete(async (id, userId) => this.transactionService.delete(id, userId));
 }

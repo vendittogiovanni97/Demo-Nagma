@@ -9,3 +9,11 @@ export const createTransactionSchema = z.object({
   amount: z.number().positive('L\'importo deve essere positivo'),
   date: z.string().optional(),
 });
+
+export const updateTransactionSchema = z.object({
+  type: transactionTypeSchema.optional(),
+  category: nonEmptyString('La categoria è obbligatoria').optional(),
+  description: nonEmptyString('La descrizione è obbligatoria').optional(),
+  amount: z.number().positive('L\'importo deve essere positivo').optional(),
+  date: z.string().optional(),
+}).passthrough();

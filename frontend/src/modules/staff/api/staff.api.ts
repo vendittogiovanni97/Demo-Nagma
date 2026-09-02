@@ -29,8 +29,9 @@ function transformShiftFromBackend(rawShift: BackendShift): Shift {
   // Calcola weekStart (lunedì della settimana)
   const weekStart = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
-  // Calcola dayOfWeek (0 = lunedì, 6 = domenica)
-  const dayOfWeek = date.getUTCDay() === 0 ? 6 : date.getUTCDay() - 1;
+  // Calcola dayOfWeek (0 = lunedì, 6 = domenica) sulla stessa base LOCALE di weekStart
+  const localDay = date.getDay();
+  const dayOfWeek = localDay === 0 ? 6 : localDay - 1;
 
   // Determina label e isOff basandosi su startTime e endTime
   const startTime = rawShift.startTime || '';

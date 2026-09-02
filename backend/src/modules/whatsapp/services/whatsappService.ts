@@ -42,7 +42,7 @@ export class WhatsAppService {
     const where: Prisma.WhatsAppTemplateWhereInput = { deletedAt: null };
 
     if (startDate) where.createdAt = { gte: new Date(startDate) };
-    if (endDate) where.createdAt = { ...where.createdAt as object, lte: new Date(endDate + 'T23:59:59.999') };
+    if (endDate) where.createdAt = { ...where.createdAt as object, lte: new Date(endDate + 'T23:59:59.999Z') };
 
     if (search) {
       where.OR = [

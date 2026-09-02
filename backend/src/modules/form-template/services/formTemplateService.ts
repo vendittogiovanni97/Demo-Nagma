@@ -20,7 +20,7 @@ export class FormTemplateService {
     if (filters.startDate || filters.endDate) {
       where.createdAt = {};
       if (filters.startDate) (where.createdAt as Prisma.DateTimeFilter).gte = new Date(filters.startDate);
-      if (filters.endDate) (where.createdAt as Prisma.DateTimeFilter).lte = new Date(filters.endDate + 'T23:59:59.999');
+      if (filters.endDate) (where.createdAt as Prisma.DateTimeFilter).lte = new Date(filters.endDate + 'T23:59:59.999Z');
     }
     const raws = await prisma.formTemplate.findMany({ where, orderBy: { createdAt: 'desc' } });
     return raws.map(mapToData);

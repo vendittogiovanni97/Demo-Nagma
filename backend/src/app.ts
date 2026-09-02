@@ -47,15 +47,20 @@ export function createApp() {
     }
   });
 
-  const productionWhitelist = ['https://nagma.it', 'https://www.nagma.it', ...allowedOrigins, 'http://localhost:3000', 'http://127.0.0.1:3000'];
+  // localhost è ammesso solo fuori da produzione; in prod la whitelist deriva dai domini + CORS_ORIGINS.
+  const isProduction = process.env.NODE_ENV === 'production';
+  const localhostOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  const whitelist = [
+    'https://nagma.it',
+    'https://www.nagma.it',
+    ...allowedOrigins,
+    ...(isProduction ? [] : localhostOrigins),
+  ];
 
   const corsOptions = {
     origin: (origin: string | undefined, callback: (err: Error | null, allowed?: boolean) => void) => {
-      if (!origin || productionWhitelist.includes(origin) || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'), false);
-      }
+      // Origin non consentita: nega senza sollevare un Error (evita un 500, il browser blocca la risposta).
+      callback(null, !origin || whitelist.includes(origin));
     },
     credentials: true,
   };

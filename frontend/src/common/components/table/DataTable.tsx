@@ -269,7 +269,8 @@ export function DataTable<E>(props: DataTableProps<E>) {
           }}
         >
           {mobileRows.map((row, idx) => {
-            return <React.Fragment key={idx}>{renderCard(row as E)}</React.Fragment>;
+            const key = props.keyExtractor ? props.keyExtractor(row as E) : idx;
+            return <React.Fragment key={key}>{renderCard(row as E)}</React.Fragment>;
           })}
         </Box>
       ) : (

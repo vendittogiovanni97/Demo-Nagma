@@ -58,23 +58,3 @@ export function parsePageQuery(query: Record<string, unknown>) {
     endDate: query.endDate as string | undefined,
   };
 }
-
-
-/**
- * Crea un oggetto di risposta paginata standardizzato.
- */
-export function paginate<T>(data: T[], total: number, page: number = 1, limit: number = 25) {
-  const calcPages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
-  return {
-    data,
-    total,
-    page: Math.max(1, page),
-    limit: Math.max(1, limit),
-    pages: calcPages,
-    totalPages: calcPages,
-  };
-}
-
-export function buildPagination(page: number, limit: number) {
-  return { skip: (page - 1) * limit, take: limit };
-}

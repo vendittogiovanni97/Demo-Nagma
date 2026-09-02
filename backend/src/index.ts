@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 import type { Server } from 'http';
 import prisma, { closeDatabase } from './core/shared/utils/prisma';
+import { financeCache } from './modules/finance/services/finance.cache';
 import { createApp } from './app';
 import { config } from './core/config/env';
 import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
@@ -54,6 +55,8 @@ async function stopServer() {
     server = null;
     logger.info('HTTP server chiuso correttamente');
   }
+
+  financeCache.destroy();
 
   await closeDatabase();
   logger.info('Connessione Prisma chiusa');

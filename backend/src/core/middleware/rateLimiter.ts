@@ -14,22 +14,6 @@ const getClientIP = (req: Request): string => {
   return req.ip || req.socket.remoteAddress || 'unknown';
 };
 
-// FIX B5: Simple in-memory store (note: for production with multiple instances, use Redis)
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
-
-const getOrCreateBucket = (key: string, windowMs: number) => {
-  const now = Date.now();
-  const bucket = requestCounts.get(key);
-
-  if (bucket && bucket.resetAt > now) {
-    return bucket;
-  }
-
-  const newBucket = { count: 0, resetAt: now + windowMs };
-  requestCounts.set(key, newBucket);
-  return newBucket;
-};
-
 // Login rate limiter - reads LOGIN_RATE_LIMIT_WINDOW_MINUTES and LOGIN_RATE_LIMIT_MAX_ATTEMPTS from environment
 const loginWindowMs = config.loginRateLimitWindowMs;
 const loginMaxAttempts = config.loginRateLimitMaxAttempts;

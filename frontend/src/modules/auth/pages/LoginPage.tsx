@@ -126,7 +126,7 @@ export default function LoginPage() {
             />
           </Box>
 
-          <Typography variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1, fontFamily: 'Outfit, sans-serif' }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, color: 'common.white', mb: 1, fontFamily: 'Outfit, sans-serif' }}>
             Benvenuto
           </Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>

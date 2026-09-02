@@ -4,29 +4,49 @@ import Box from '@mui/material/Box';
 import SmartModal from '@/common/components/common/SmartModal';
 import FormInput from '@/common/components/forms/FormInput';
 import { useEntityForm } from '@/common/hooks/useEntityForm';
-import { entrataLiberaApi } from '../../api/entrata-libera.api';
 
-interface EntrataModalProps {
+interface LiberaMovimentoModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  title: string;
+  saveLabel: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  invalidNameMessage: string;
+  successMessage: string;
+  errorMessage: string;
+  onCreate: (values: { name: string; amount: number }) => Promise<unknown>;
   initialName?: string;
   initialAmount?: number;
 }
 
-interface EntrataFormData {
+interface FormData {
   name: string;
   amount: string;
 }
 
-export default function EntrataModal({
+/**
+ * Modale condiviso per aggiungere un movimento "libero" (spesa/entrata).
+ * La pagina fornisce testi e la funzione onCreate, che mappa l'importo sul
+ * campo del proprio dominio (price/amount).
+ */
+export default function LiberaMovimentoModal({
   isOpen,
   onClose,
   onSuccess,
+  title,
+  saveLabel,
+  nameLabel,
+  namePlaceholder,
+  invalidNameMessage,
+  successMessage,
+  errorMessage,
+  onCreate,
   initialName,
   initialAmount,
-}: EntrataModalProps) {
-  const form = useEntityForm<null, EntrataFormData, { name: string; amount: number }, void>({
+}: LiberaMovimentoModalProps) {
+  const form = useEntityForm<null, FormData, { name: string; amount: number }, void>({
     entity: null,
     open: isOpen,
     initial: () => ({
@@ -34,7 +54,7 @@ export default function EntrataModal({
       amount: initialAmount ? String(initialAmount) : '',
     }),
     validate: (data) => {
-      if (!data.name.trim()) return "Inserisci il nome dell'entrata";
+      if (!data.name.trim()) return invalidNameMessage;
       const parsed = parseFloat(data.amount.replace(',', '.'));
       if (isNaN(parsed) || parsed <= 0) return 'Inserisci un importo valido';
       return null;
@@ -44,10 +64,10 @@ export default function EntrataModal({
       amount: parseFloat(data.amount.replace(',', '.')),
     }),
     persist: async (payload) => {
-      await entrataLiberaApi.create(payload);
+      await onCreate(payload);
     },
-    successMessage: 'Entrata aggiunta',
-    errorMessage: 'Errore nel salvataggio dell\'entrata',
+    successMessage,
+    errorMessage,
     onClose,
     onSuccess,
   });
@@ -58,18 +78,18 @@ export default function EntrataModal({
     <SmartModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuova Entrata"
+      title={title}
       maxWidth="xs"
       onSave={() => form.handleSubmit()}
       isSaving={isLoading}
-      saveLabel="Aggiungi Entrata"
+      saveLabel={saveLabel}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
         <FormInput
-          label="Nome entrata"
+          label={nameLabel}
           value={formData.name}
           onChange={handleChange('name')}
-          placeholder="es. Rimborso, Extra, Vendita..."
+          placeholder={namePlaceholder}
           required
         />
         <FormInput

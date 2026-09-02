@@ -9,9 +9,9 @@ import DataTable, { TableFooterTotal, createDateColumn, createPriceColumn, type 
 import Icon from '@/common/components/ui/Icon';
 import { useModalState } from '@/common/hooks/useModalState';
 import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
-import SpesaModal from '../components/modals/SpesaModal';
+import { useLiberaMovimenti } from '@/common/hooks/useLiberaMovimenti';
+import LiberaMovimentoModal from '@/common/components/modals/LiberaMovimentoModal';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
-import { useSpeseLibere } from '../hooks/useTransactions';
 import type { SpesaLibera } from '../model/spese.types';
 
 // ─── Colonne tabella ──────────────────────────────────────────────────────────
@@ -32,7 +32,11 @@ export default function SpesePage() {
   });
   const { monthStr, monthLabel, debouncedSearch, smartFiltersProps } = filters;
 
-  const { data: allSpese, isLoading, mutate } = useSpeseLibere(monthStr);
+  const { data: allSpese, isLoading, mutate } = useLiberaMovimenti<SpesaLibera>(
+    '/api/finance/spese-libere',
+    spesaLiberaApi.getAll,
+    monthStr,
+  );
 
   const allMonthSpese = allSpese?.filter((s) => s.createdAt.startsWith(monthStr)) ?? [];
   const spese = useMemo(() => {
@@ -73,10 +77,18 @@ export default function SpesePage() {
         />
       </Box>
 
-      <SpesaModal
+      <LiberaMovimentoModal
         isOpen={modal.isOpen}
         onClose={modal.close}
         onSuccess={() => void mutate()}
+        title="Nuova Spesa"
+        saveLabel="Aggiungi Spesa"
+        nameLabel="Nome spesa"
+        namePlaceholder="es. Caffè, Affitto, Materiale..."
+        invalidNameMessage="Inserisci il nome della spesa"
+        successMessage="Spesa aggiunta"
+        errorMessage="Errore nel salvataggio della spesa"
+        onCreate={({ name, amount }) => spesaLiberaApi.create({ name, price: amount })}
       />
     </PageContainer>
   );

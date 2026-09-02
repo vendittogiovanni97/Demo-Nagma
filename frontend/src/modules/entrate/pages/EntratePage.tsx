@@ -1,7 +1,7 @@
 "use client";
 
 import Box from '@mui/material/Box';
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
@@ -9,7 +9,8 @@ import DataTable, { TableFooterTotal, createDateColumn, createPriceColumn, type 
 import Icon from '@/common/components/ui/Icon';
 import { useModalState } from '@/common/hooks/useModalState';
 import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
-import EntrataModal from '../components/modals/EntrataModal';
+import { useLiberaMovimenti } from '@/common/hooks/useLiberaMovimenti';
+import LiberaMovimentoModal from '@/common/components/modals/LiberaMovimentoModal';
 import { entrataLiberaApi } from '../api/entrata-libera.api';
 import type { EntrataLibera } from '../model/entrate.types';
 
@@ -31,25 +32,13 @@ export default function EntratePage() {
   });
   const { monthStr, monthLabel, debouncedSearch, smartFiltersProps } = filters;
 
-  const [allEntrate, setAllEntrate] = useState<EntrataLibera[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: allEntrate, isLoading, mutate } = useLiberaMovimenti<EntrataLibera>(
+    '/api/finance/entrate-libere',
+    entrataLiberaApi.getAll,
+    monthStr,
+  );
 
-  const fetchEntrate = useCallback(async () => {
-    if (!monthStr) return;
-    setIsLoading(true);
-    try {
-      const res = await entrataLiberaApi.getAll(monthStr);
-      setAllEntrate(res);
-    } catch {
-      setAllEntrate([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [monthStr]);
-
-  useEffect(() => { fetchEntrate(); }, [fetchEntrate]);
-
-  const allMonthEntrate = allEntrate.filter((e) => e.createdAt.startsWith(monthStr));
+  const allMonthEntrate = (allEntrate ?? []).filter((e) => e.createdAt.startsWith(monthStr));
   const entrate = useMemo(() => {
     if (!debouncedSearch) return allMonthEntrate;
     const q = debouncedSearch.toLowerCase();
@@ -59,7 +48,7 @@ export default function EntratePage() {
 
   const handleDelete = async (entrata: EntrataLibera) => {
     await entrataLiberaApi.delete(entrata.id);
-    await fetchEntrate();
+    await mutate();
   };
 
   return (
@@ -88,10 +77,18 @@ export default function EntratePage() {
         />
       </Box>
 
-      <EntrataModal
+      <LiberaMovimentoModal
         isOpen={modal.isOpen}
         onClose={modal.close}
-        onSuccess={() => void fetchEntrate()}
+        onSuccess={() => void mutate()}
+        title="Nuova Entrata"
+        saveLabel="Aggiungi Entrata"
+        nameLabel="Nome entrata"
+        namePlaceholder="es. Rimborso, Extra..."
+        invalidNameMessage="Inserisci il nome dell'entrata"
+        successMessage="Entrata aggiunta"
+        errorMessage="Errore nel salvataggio dell'entrata"
+        onCreate={({ name, amount }) => entrataLiberaApi.create({ name, amount })}
       />
     </PageContainer>
   );

@@ -5,6 +5,7 @@ import { paginate, buildPagination } from '../../../core/shared/kernel/paginatio
 import { getMonthRange } from '../../../core/shared/utils/date-utils';
 import { config } from '../../../core/config/env';
 import { financeCache } from './finance.cache';
+import { createMirrorTransaction, softDeleteMirrorTransactions } from './financeMirror';
 
 export class SpesaLiberaService {
   async findAll(month?: string, page: number = 1, limit?: number) {
@@ -30,16 +31,13 @@ export class SpesaLiberaService {
       const spesa = await tx.spesaLibera.create({
         data: { name: data.name, price: data.price },
       });
-      await tx.transaction.create({
-        data: {
-          type: 'USCITA',
-          category: 'Spese Libere',
-          description: `Spesa Libera: ${data.name}`,
-          amount: data.price,
-          date: new Date(),
-          sourceId: spesa.id,
-          sourceType: 'SPESA_LIBERA',
-        },
+      await createMirrorTransaction(tx, {
+        type: 'USCITA',
+        category: 'Spese Libere',
+        description: `Spesa Libera: ${data.name}`,
+        amount: data.price,
+        sourceId: spesa.id,
+        sourceType: 'SPESA_LIBERA',
       });
       return spesa;
     });
@@ -57,10 +55,7 @@ export class SpesaLiberaService {
         where: { id },
         data: { deletedAt: new Date() },
       });
-      await tx.transaction.updateMany({
-        where: { sourceId: id, sourceType: 'SPESA_LIBERA', deletedAt: null },
-        data: { deletedAt: new Date() },
-      });
+      await softDeleteMirrorTransactions(tx, id, 'SPESA_LIBERA');
     });
 
     financeCache.clear();

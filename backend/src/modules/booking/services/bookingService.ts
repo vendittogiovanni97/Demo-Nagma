@@ -6,6 +6,7 @@ import { buildPagination, paginate } from '../../../core/shared/kernel/paginatio
 import { getMonthRange } from '../../../core/shared/utils/date-utils';
 import prisma from '../../../core/shared/utils/prisma';
 import { financeCache } from '../../finance/services/finance.cache';
+import { softDeleteMirrorTransactions } from '../../finance/services/financeMirror';
 
 export interface BookingFilters {
   month?: string;
@@ -489,14 +490,7 @@ export class BookingService {
         },
       });
 
-      await tx.transaction.updateMany({
-        where: {
-          sourceId: id,
-          sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
-          deletedAt: null,
-        },
-        data: { deletedAt: new Date() },
-      });
+      await softDeleteMirrorTransactions(tx, id, ['BOOKING', 'BOOKING_COMMISSION']);
 
       if (refund) {
         await this.refundOutstandingDeposit(tx, oldBooking);
@@ -529,14 +523,7 @@ export class BookingService {
         },
       });
 
-      await tx.transaction.updateMany({
-        where: {
-          sourceId: id,
-          sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
-          deletedAt: null,
-        },
-        data: { deletedAt: new Date() },
-      });
+      await softDeleteMirrorTransactions(tx, id, ['BOOKING', 'BOOKING_COMMISSION']);
 
       await this.refundOutstandingDeposit(tx, oldBooking);
     });

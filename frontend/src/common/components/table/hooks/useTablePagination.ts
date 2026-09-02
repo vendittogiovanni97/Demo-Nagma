@@ -34,9 +34,10 @@ export function useTablePagination({
   const [localLimit, setLocalLimit] = useState(initialPageSize ?? preferredPageSize);
   const [displayedLocalTotal, setDisplayedLocalTotal] = useState(localTotal);
 
+  // Nessuno scroll qui: setRemotePage viene chiamato anche dai reset programmatici
+  // (ricerca/sort → pagina 0). Lo scroll avviene solo nella paginazione utente (onPageChange).
   const setRemotePage = useCallback((page: number) => {
     setRemotePageState(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const setLimitPreference = useCallback((limit: number) => {
@@ -79,6 +80,7 @@ export function useTablePagination({
     (_event: React.MouseEvent<HTMLButtonElement> | null, page: number) => {
       if (remote) {
         setRemotePage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       setLocalPage(page);

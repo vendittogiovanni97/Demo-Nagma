@@ -10,6 +10,7 @@ import Icon from '@/common/components/ui/Icon';
 import { useModalState } from '@/common/hooks/useModalState';
 import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
 import { useLiberaMovimenti } from '@/common/hooks/useLiberaMovimenti';
+import { normalizeSearch } from '@/common/shared/utils/normalizeSearch';
 import LiberaMovimentoModal from '@/common/components/modals/LiberaMovimentoModal';
 import { entrataLiberaApi } from '../api/entrata-libera.api';
 import type { EntrataLibera } from '../model/entrate.types';
@@ -41,8 +42,8 @@ export default function EntratePage() {
   const allMonthEntrate = (allEntrate ?? []).filter((e) => e.createdAt.startsWith(monthStr));
   const entrate = useMemo(() => {
     if (!debouncedSearch) return allMonthEntrate;
-    const q = debouncedSearch.toLowerCase();
-    return allMonthEntrate.filter((e) => e.name.toLowerCase().includes(q));
+    const q = normalizeSearch(debouncedSearch);
+    return allMonthEntrate.filter((e) => normalizeSearch(e.name).includes(q));
   }, [allMonthEntrate, debouncedSearch]);
   const total = entrate.reduce((acc, e) => acc + e.amount, 0);
 

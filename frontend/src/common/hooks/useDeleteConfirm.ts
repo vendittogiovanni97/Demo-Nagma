@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { useToast } from './useToast';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
+import type { ConfirmDialogProps } from '@/common/components/ui/ConfirmDialog';
 
 interface DeleteConfirmOptions {
   confirmMessage: string;
@@ -8,17 +9,6 @@ interface DeleteConfirmOptions {
   successMessage: string;
   errorMessage?: string;
   onSuccess?: (() => void) | (() => Promise<unknown>);
-}
-
-export interface ConfirmDialogProps {
-  isOpen: boolean;
-  title: string;
-  message: string;
-  confirmText: string;
-  severity: 'error';
-  loading: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
 }
 
 interface UseDeleteConfirmReturn {

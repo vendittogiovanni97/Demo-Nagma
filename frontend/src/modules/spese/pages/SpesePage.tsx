@@ -10,6 +10,7 @@ import Icon from '@/common/components/ui/Icon';
 import { useModalState } from '@/common/hooks/useModalState';
 import { useSmartFiltersState } from '@/common/hooks/useSmartFiltersState';
 import { useLiberaMovimenti } from '@/common/hooks/useLiberaMovimenti';
+import { normalizeSearch } from '@/common/shared/utils/normalizeSearch';
 import LiberaMovimentoModal from '@/common/components/modals/LiberaMovimentoModal';
 import { spesaLiberaApi } from '../api/spesa-libera.api';
 import type { SpesaLibera } from '../model/spese.types';
@@ -41,8 +42,8 @@ export default function SpesePage() {
   const allMonthSpese = allSpese?.filter((s) => s.createdAt.startsWith(monthStr)) ?? [];
   const spese = useMemo(() => {
     if (!debouncedSearch) return allMonthSpese;
-    const q = debouncedSearch.toLowerCase();
-    return allMonthSpese.filter((s) => s.name.toLowerCase().includes(q));
+    const q = normalizeSearch(debouncedSearch);
+    return allMonthSpese.filter((s) => normalizeSearch(s.name).includes(q));
   }, [allMonthSpese, debouncedSearch]);
   const total = spese.reduce((acc, s) => acc + s.price, 0);
 

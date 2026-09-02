@@ -2,20 +2,9 @@
 
 import { useToast } from '@/common/hooks/useToast';
 import { formTemplateService } from '@/modules/form-templates/api/form-template.api';
+import { decodeFields, encodeFields } from '@/common/shared/utils/formSchema';
 import type { FieldDef, FormTemplate } from '@/modules/form-templates/model/form-template.types';
 import { useState } from 'react';
-
-function decodeFields(schemaB64: string): FieldDef[] {
-  try {
-    return JSON.parse(atob(schemaB64));
-  } catch {
-    return [];
-  }
-}
-
-function encodeFields(fields: FieldDef[]): string {
-  return btoa(JSON.stringify(fields));
-}
 
 interface UseFormTemplateEditorOptions {
   onMutate: () => Promise<unknown>;

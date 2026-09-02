@@ -36,7 +36,11 @@ export function useChangePassword() {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Errore durante il cambio password';
       toast.error(message);
-      setErrors({ current: 'Password attuale non corretta' });
+      // Evidenzia il campo "password attuale" solo quando è davvero quella errata,
+      // non per errori di rete/validazione/server.
+      if (/attuale|current/i.test(message)) {
+        setErrors({ current: message });
+      }
     } finally {
       setSaving(false);
     }

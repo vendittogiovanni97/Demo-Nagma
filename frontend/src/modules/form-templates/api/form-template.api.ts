@@ -8,13 +8,16 @@ export const formTemplateService = {
     return res.data;
   },
   getById: async (id: number): Promise<FormTemplate> => {
-    return apiClient.get<FormTemplate>(ENDPOINTS.FORM_TEMPLATES.BY_ID(id));
+    const res = await apiClient.get<{ data: FormTemplate }>(ENDPOINTS.FORM_TEMPLATES.BY_ID(id));
+    return res.data;
   },
-  create: async (data: Partial<FormTemplate>) => {
-    return apiClient.post<FormTemplate>(ENDPOINTS.FORM_TEMPLATES.BASE, data);
+  create: async (data: Partial<FormTemplate>): Promise<FormTemplate> => {
+    const res = await apiClient.post<{ data: FormTemplate }>(ENDPOINTS.FORM_TEMPLATES.BASE, data);
+    return res.data;
   },
-  update: async (id: number, data: Partial<FormTemplate>) => {
-    return apiClient.put<FormTemplate>(ENDPOINTS.FORM_TEMPLATES.BY_ID(id), data);
+  update: async (id: number, data: Partial<FormTemplate>): Promise<FormTemplate> => {
+    const res = await apiClient.put<{ data: FormTemplate }>(ENDPOINTS.FORM_TEMPLATES.BY_ID(id), data);
+    return res.data;
   },
   delete: async (id: number) => {
     return apiClient.delete(ENDPOINTS.FORM_TEMPLATES.BY_ID(id));

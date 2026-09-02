@@ -1,14 +1,11 @@
 "use client";
 
-import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Card from '@/common/components/ui/Card';
 import FormInput from '@/common/components/forms/FormInput';
 import { SaveButton } from '@/common/components/ui/Button';
 import { Lock } from '@/common/components/ui/Icon';
 import { useChangePassword } from '../hooks/useChangePassword';
-
-const maskedSx = { '& input': { WebkitTextSecurity: 'disc' } as React.CSSProperties };
 
 export default function ChangePasswordCard() {
   const {
@@ -36,39 +33,36 @@ export default function ChangePasswordCard() {
 
       <FormInput
         label="Password attuale"
-        type="text"
+        type="password"
         value={currentPassword}
         onChange={setCurrentPassword}
         placeholder="Inserisci la password attuale..."
         icon={Lock}
         error={errors.current}
         name="settings-current-password"
-        autoComplete="off"
-        sx={maskedSx}
+        autoComplete="current-password"
       />
       <FormInput
         label="Nuova password"
-        type="text"
+        type="password"
         value={newPassword}
         onChange={setNewPassword}
         placeholder="Almeno 6 caratteri..."
         icon={Lock}
         error={errors.next}
         name="settings-new-password"
-        autoComplete="off"
-        sx={maskedSx}
+        autoComplete="new-password"
       />
       <FormInput
         label="Conferma nuova password"
-        type="text"
+        type="password"
         value={confirmPassword}
         onChange={setConfirmPassword}
         placeholder="Ripeti la nuova password..."
         icon={Lock}
         error={errors.confirm}
         name="settings-confirm-password"
-        autoComplete="off"
-        sx={maskedSx}
+        autoComplete="new-password"
       />
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

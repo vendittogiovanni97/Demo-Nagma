@@ -14,6 +14,7 @@ import { useCustomerAutocomplete } from '@/modules/customer/hooks/useCustomerAut
 import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
 import { useFormTemplates } from '@/modules/form-templates/hooks/useFormTemplates';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
+import { decodeFields } from '@/common/shared/utils/formSchema';
 
 export interface ArtistOption {
   id: number;
@@ -291,7 +292,7 @@ export function useBookingForm({
 
   const dynamicFields = useMemo<FieldDef[]>(() => {
     if (!activeTemplate) return [];
-    try { return JSON.parse(atob(activeTemplate.schemaB64)); } catch { return []; }
+    return decodeFields(activeTemplate.schemaB64);
   }, [activeTemplate]);
 
   const selectedArtist = useMemo(() => {

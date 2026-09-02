@@ -4,17 +4,14 @@ import Badge from '@/common/components/ui/Badge';
 import { DeleteButton } from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
 import type { FormTemplate } from '@/modules/form-templates/model/form-template.types';
+import { decodeFields } from '@/common/shared/utils/formSchema';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
 
 function decodeFieldCount(schemaB64: string): number {
-  try {
-    return JSON.parse(atob(schemaB64)).length;
-  } catch {
-    return 0;
-  }
+  return decodeFields(schemaB64).length;
 }
 
 interface TemplateListPanelProps {

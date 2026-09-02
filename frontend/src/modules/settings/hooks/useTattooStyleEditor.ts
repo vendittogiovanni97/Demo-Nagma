@@ -4,21 +4,10 @@ import { useEffect, useState } from 'react';
 import { useToast } from '@/common/hooks/useToast';
 import { formTemplateService } from '@/modules/form-templates/api/form-template.api';
 import { useFormTemplates } from '@/modules/form-templates/hooks/useFormTemplates';
+import { decodeFields, encodeFields } from '@/common/shared/utils/formSchema';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 
 const TATTOO_STYLE_FIELD = 'tattooStyle';
-
-function decodeFields(schemaB64: string): FieldDef[] {
-  try {
-    return JSON.parse(atob(schemaB64));
-  } catch {
-    return [];
-  }
-}
-
-function encodeFields(fields: FieldDef[]): string {
-  return btoa(JSON.stringify(fields));
-}
 
 export function useTattooStyleEditor() {
   const toast = useToast();

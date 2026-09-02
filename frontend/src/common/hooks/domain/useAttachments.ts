@@ -6,11 +6,13 @@
 import { useToast } from '@/common/hooks/useToast';
 import type { Attachment } from '@/modules/booking/model/attachment.types';
 import { getToken } from '@/common/shared/utils/auth';
+import { API_BASE_URL } from '@/common/shared/api/endpoints';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import axios from 'axios';
 import { useCallback, useState, useEffect } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Usa la stessa base del resto dell'app (NEXT_PUBLIC_API_BASE_URL), non una var inesistente.
+const API_BASE = `${API_BASE_URL}/api`;
 
 /**
  * Costruisce gli headers di autenticazione per le chiamate axios.

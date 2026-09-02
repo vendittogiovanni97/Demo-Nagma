@@ -266,19 +266,10 @@ const DURATION_OPTIONS = Array.from({ length: 32 }, (_, i) => {
   return { value: minutes.toString(), label: label.trim() };
 });
 
-const PERCENTUALE_OPTIONS = [
-  { value: '0', label: '0%' },
-  { value: '10', label: '10%' },
-  { value: '20', label: '20%' },
-  { value: '30', label: '30%' },
-  { value: '40', label: '40%' },
-  { value: '50', label: '50%' },
-  { value: '60', label: '60%' },
-  { value: '70', label: '70%' },
-  { value: '80', label: '80%' },
-  { value: '90', label: '90%' },
-  { value: '100', label: '100%' },
-];
+const PERCENTUALE_OPTIONS = Array.from({ length: 21 }, (_, i) => {
+  const v = (i * 5).toString(); // 0, 5, 10, ... 100
+  return { value: v, label: `${v}%` };
+});
 
 function createStyles(theme: any) {
   return {

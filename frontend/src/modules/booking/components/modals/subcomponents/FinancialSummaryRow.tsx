@@ -28,9 +28,14 @@ export function FinancialSummaryRow({
 }: FinancialSummaryRowProps) {
   const theme = useTheme();
 
-  const optionsToUse = isRentPayeeArtist
+  const baseOptions = isRentPayeeArtist
     ? [{ label: '100% (Affitto Postazione)', value: 100 }]
     : percentualeOptions;
+  // Garantisce che il valore corrente sia sempre presente tra le opzioni (es. percentuali
+  // non standard salvate in passato), così la select lo mostra e il calcolo non lo azzera.
+  const optionsToUse = baseOptions.some((o) => String(o.value) === String(percentualeMode))
+    ? baseOptions
+    : [{ label: `${percentualeMode}%`, value: percentualeMode }, ...baseOptions];
 
   return (
     <Grid size={12}>

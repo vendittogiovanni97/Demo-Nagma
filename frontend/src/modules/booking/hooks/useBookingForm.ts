@@ -9,7 +9,6 @@ import { customerApi as customerService } from '@/modules/customer/api/customer.
 import { configService } from '@/common/shared/services/config.service';
 import { extractErrorMessage } from '@/common/shared/utils/extract-error';
 import type { Booking, BookingStatus, CreateBookingData } from '@/modules/booking/model/booking.types';
-import { PERCENTUALE_OPTIONS_VALUES } from '../hooks/booking-config';
 import { DEFAULT_ARTIST_COLOR } from '@/common/theme/colorTokens';
 import { useCustomerAutocomplete } from '@/modules/customer/hooks/useCustomerAutocomplete';
 import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
@@ -81,19 +80,12 @@ const DURATION_OPTIONS = Array.from({ length: 32 }, (_, i) => {
   return { value: minutes.toString(), label: label.trim() };
 });
 
-const PERCENTUALE_OPTIONS = [
-  { value: '0', label: '0%' },
-  { value: '10', label: '10%' },
-  { value: '20', label: '20%' },
-  { value: '30', label: '30%' },
-  { value: '40', label: '40%' },
-  { value: '50', label: '50%' },
-  { value: '60', label: '60%' },
-  { value: '70', label: '70%' },
-  { value: '80', label: '80%' },
-  { value: '90', label: '90%' },
-  { value: '100', label: '100%' },
-];
+// Converte un importo in numero accettando anche la virgola decimale (paste / tastiere mobili),
+// coerente con Spese/Entrate. Ritorna 0 per valori vuoti o non numerici.
+const parseAmount = (v: unknown): number => {
+  const n = Number(String(v ?? '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+};
 
 interface UseBookingFormOptions {
   isOpen: boolean;
@@ -202,7 +194,7 @@ export function useBookingForm({
 
   // Build payload for API
   const buildPayload = useCallback((formData: BookingFormData): CreateBookingData & { status?: BookingStatus } => {
-    const prezzoNum = Number(formData.price) || 0;
+    const prezzoNum = parseAmount(formData.price);
     const artistPercentage = Number(formData.percentualeMode) || 0;
     const artistPrice = Math.round((prezzoNum * artistPercentage / 100) * 100) / 100;
 
@@ -224,7 +216,7 @@ export function useBookingForm({
       date: new Date(`${formData.date}T${formData.time}`).toISOString(),
       duration: Number(formData.duration) || undefined,
       price: prezzoNum || undefined,
-      deposit: Number(formData.deposit) || undefined,
+      deposit: parseAmount(formData.deposit) || undefined,
       notes: formData.notes.trim() || undefined,
       formData: formDataObj,
       status: formData.status,
@@ -263,8 +255,8 @@ export function useBookingForm({
       if (booking?.id) {
         onUpdateLocalState?.(booking.id, {
           status: form.formData.status,
-          price: Number(form.formData.price) || 0,
-          deposit: Number(form.formData.deposit) || 0,
+          price: parseAmount(form.formData.price),
+          deposit: parseAmount(form.formData.deposit),
           duration: Number(form.formData.duration) || 120,
           notes: form.formData.notes,
         });
@@ -316,7 +308,7 @@ export function useBookingForm({
   }, [isRentPayeeArtist, form]);
 
   const percentuale = isRentPayeeArtist ? 100 : (Number(form.formData.percentualeMode) || 0);
-  const prezzoNum = Number(form.formData.price) || 0;
+  const prezzoNum = parseAmount(form.formData.price);
   const prezzoArtista = isRentPayeeArtist ? prezzoNum : Math.round((prezzoNum * percentuale / 100) * 100) / 100;
   const guadagno = isRentPayeeArtist ? 0 : Math.round((prezzoNum - prezzoArtista) * 100) / 100;
 
@@ -348,11 +340,16 @@ export function useBookingForm({
         const perc =
           booking.formData?.percentualeMode ??
           booking.formData?.artistPercentage;
+        // Usa sempre il valore numerico reale. Per i dati legacy salvati come
+        // 'custom' ricava la percentuale da artistPrice/prezzo, così la tendina
+        // mostra un valore selezionabile e il calcolo non azzera l'artista.
         let percentualeMode = '50';
-        if (perc != null) {
-          const found = (PERCENTUALE_OPTIONS_VALUES as readonly string[]).includes(perc.toString());
-          if (found) percentualeMode = perc.toString();
-          else percentualeMode = 'custom';
+        if (perc != null && perc !== 'custom') {
+          percentualeMode = perc.toString();
+        } else if (perc === 'custom') {
+          const ap = Number(booking.formData?.artistPrice) || 0;
+          const pr = Number(booking.price) || 0;
+          percentualeMode = pr > 0 ? Math.round((ap / pr) * 100).toString() : '0';
         }
 
         setFields({

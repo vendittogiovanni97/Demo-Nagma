@@ -10,6 +10,7 @@ const createMockPrisma = () => ({
   booking: {
     aggregate: jest.fn(),
     findMany: jest.fn(),
+    count: jest.fn(),
   },
   $transaction: jest.fn(),
   $connect: jest.fn(),
@@ -80,6 +81,7 @@ describe('CustomerService', () => {
       mockPrisma.booking.findMany.mockResolvedValue([
         { date: new Date(), status: 'COMPLETATO', price: { toNumber: () => 300 }, artist: { name: 'Tizio' } },
       ]);
+      mockPrisma.booking.count.mockResolvedValue(0);
       mockPrisma.$transaction.mockImplementation((arr: any[]) => Promise.all(arr));
 
       const result = await service.getSummary(1);

@@ -114,6 +114,7 @@ export class StaffService {
   async listShifts(weekStart?: string) {
     if (!weekStart) {
       return prisma.shift.findMany({
+        where: { deletedAt: null },
         orderBy: { date: 'asc' },
         include: { staff: true },
       });
@@ -125,6 +126,7 @@ export class StaffService {
 
     return prisma.shift.findMany({
       where: {
+        deletedAt: null,
         date: { gte: startDate, lte: endDate },
       },
       orderBy: { date: 'asc' },
@@ -134,7 +136,7 @@ export class StaffService {
 
   async getStaffShifts(staffId: number) {
     return prisma.shift.findMany({
-      where: { staffId },
+      where: { staffId, deletedAt: null },
       orderBy: { date: 'asc' },
       include: { staff: true },
     });
@@ -232,6 +234,6 @@ export class StaffService {
   }
 
   async deleteShift(id: string) {
-    await prisma.shift.delete({ where: { id } });
+    await prisma.shift.update({ where: { id }, data: { deletedAt: new Date() } });
   }
 }

@@ -489,11 +489,13 @@ export class BookingService {
         },
       });
 
-      await tx.transaction.deleteMany({
+      await tx.transaction.updateMany({
         where: {
           sourceId: id,
           sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
+          deletedAt: null,
         },
+        data: { deletedAt: new Date() },
       });
 
       if (refund) {
@@ -527,11 +529,13 @@ export class BookingService {
         },
       });
 
-      await tx.transaction.deleteMany({
+      await tx.transaction.updateMany({
         where: {
           sourceId: id,
           sourceType: { in: ['BOOKING', 'BOOKING_COMMISSION'] },
+          deletedAt: null,
         },
+        data: { deletedAt: new Date() },
       });
 
       await this.refundOutstandingDeposit(tx, oldBooking);

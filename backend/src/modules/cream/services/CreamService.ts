@@ -70,7 +70,7 @@ export class CreamService {
     if (filters?.startDate || filters?.endDate) {
       where.soldAt = {};
       if (filters.startDate) where.soldAt.gte = new Date(filters.startDate);
-      if (filters.endDate) where.soldAt.lte = new Date(filters.endDate + 'T23:59:59');
+      if (filters.endDate) where.soldAt.lte = new Date(filters.endDate + 'T23:59:59.999Z');
     }
 
     if (filters?.artistId) {
@@ -103,8 +103,8 @@ export class CreamService {
         name: true,
         color: true,
         type: true,
-        _count: { select: { creamSales: true } },
-        creamSales: { select: { quantity: true } },
+        _count: { select: { creamSales: { where: { deletedAt: null } } } },
+        creamSales: { where: { deletedAt: null }, select: { quantity: true } },
       },
     });
 

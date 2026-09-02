@@ -129,7 +129,7 @@ describe('StaffService', () => {
       mockPrisma.shift.findMany.mockResolvedValue([]);
       await service.listShifts('2026-07-13');
       expect(mockPrisma.shift.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { date: expect.objectContaining({ gte: expect.any(Date), lte: expect.any(Date) }) } })
+        expect.objectContaining({ where: expect.objectContaining({ deletedAt: null, date: expect.objectContaining({ gte: expect.any(Date), lte: expect.any(Date) }) }) })
       );
     });
   });
@@ -186,9 +186,12 @@ describe('StaffService', () => {
   });
 
   describe('deleteShift', () => {
-    it('should delete shift', async () => {
+    it('should soft-delete shift', async () => {
       await service.deleteShift('s1');
-      expect(mockPrisma.shift.delete).toHaveBeenCalledWith({ where: { id: 's1' } });
+      expect(mockPrisma.shift.update).toHaveBeenCalledWith({
+        where: { id: 's1' },
+        data: { deletedAt: expect.any(Date) },
+      });
     });
   });
 });

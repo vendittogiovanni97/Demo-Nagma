@@ -65,7 +65,7 @@ export class CustomerService {
     });
     if (!customer) return null;
 
-    const [aggregateResult, bookingsResult] = await prisma.$transaction([
+    const [aggregateResult, bookingsResult, upcomingCount] = await prisma.$transaction([
       prisma.booking.aggregate({
         where: { customerId: id, status: 'COMPLETATO', deletedAt: null },
         _sum: { price: true },
@@ -76,12 +76,20 @@ export class CustomerService {
         orderBy: { date: 'desc' },
         take: 5,
       }),
+      prisma.booking.count({
+        where: {
+          customerId: id,
+          deletedAt: null,
+          OR: [
+            { status: { in: ['CREATO', 'CONFERMATO'] } },
+            { date: { gt: new Date() } },
+          ],
+        },
+      }),
     ]);
 
     const totalSpent = aggregateResult._sum.price ? aggregateResult._sum.price.toNumber() : 0;
-    const upcomingBookings = bookingsResult.filter(
-      (b) => b.status === 'CONFERMATO' || b.status === 'CREATO' || b.date > new Date()
-    ).length;
+    const upcomingBookings = upcomingCount;
     const lastBookingRaw = bookingsResult[0] ?? null;
     const lastBooking = lastBookingRaw
       ? { ...lastBookingRaw, price: lastBookingRaw.price ? lastBookingRaw.price.toNumber() : null }

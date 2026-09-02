@@ -77,6 +77,7 @@ function mockTx() {
     transaction: {
       create: jest.fn(),
       deleteMany: jest.fn(),
+      updateMany: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
     },

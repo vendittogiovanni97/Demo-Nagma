@@ -113,7 +113,9 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
       select: { tokenVersion: true },
     });
 
-    if (!dbUser || (decoded.tokenVersion !== undefined && dbUser.tokenVersion !== decoded.tokenVersion)) {
+    // Il claim tokenVersion è sempre emesso da login/refresh: la sua assenza (token legacy o forgiato)
+    // deve valere come revoca, non come bypass del controllo.
+    if (!dbUser || dbUser.tokenVersion !== decoded.tokenVersion) {
       logger.warn(`401 ${req.method} ${req.originalUrl} · REVOKED_TOKEN`);
       return res.status(401).json({
         message: 'Token revocato o non più valido.',

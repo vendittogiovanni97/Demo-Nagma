@@ -65,7 +65,9 @@ export class ConfigController {
       res.status(404).json({ success: false, error: 'ClientConfig non trovato' });
       return;
     }
-    res.json({ success: true, data: clientConfig });
+    // Non esporre il segreto: la password di modifica prenotazioni non deve mai uscire dall'API.
+    const { bookingUpdatePassword: _omit, ...safeConfig } = clientConfig;
+    res.json({ success: true, data: safeConfig });
   });
 
   updateClientConfig = asyncHandler(async (req: AuthRequest, res: Response) => {

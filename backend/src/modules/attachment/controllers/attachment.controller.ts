@@ -87,8 +87,10 @@ export class AttachmentController {
     const { attachmentId } = req.params as { attachmentId: string };
     const { attachment, buffer } = await this.attachmentService.download(attachmentId);
 
+    // Sanitizza il nome file per evitare header injection (virgolette/CR/LF nel nome utente)
+    const safeName = attachment.fileName.replace(/[\r\n"\\]/g, '_');
     res.setHeader('Content-Type', attachment.mimeType);
-    res.setHeader('Content-Disposition', `attachment; filename="${attachment.fileName}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"; filename*=UTF-8''${encodeURIComponent(attachment.fileName)}`);
     res.setHeader('Content-Length', buffer.length);
     res.send(buffer);
   });

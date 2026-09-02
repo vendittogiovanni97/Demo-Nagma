@@ -1,7 +1,10 @@
+import bcrypt from 'bcryptjs';
 import prisma from '../../../core/shared/utils/prisma';
 import { Config, Prisma } from '@prisma/client';
 import { Cache } from '../../../core/shared/utils/cache';
 import { config } from '../../../core/config/env';
+
+const BCRYPT_HASH_RE = /^\$2[aby]\$/;
 
 export interface ClientFeatures {
   enableCream: boolean;
@@ -104,17 +107,16 @@ export class ConfigService {
     const stored = clientConfig?.bookingUpdatePassword;
     if (!stored) return false;
 
-    const bcryptjs = require('bcryptjs');
-    if (!stored.startsWith('$2b$')) {
-      const salt = config.bcryptSaltRounds;
-      const hashed = await bcryptjs.hash(stored, salt);
+    // Legacy: valore salvato in chiaro (seed storici) → migra a hash al primo uso.
+    if (!BCRYPT_HASH_RE.test(stored)) {
+      const hashed = await bcrypt.hash(stored, config.bcryptSaltRounds);
       await prisma.clientConfig.update({
         where: { id: clientConfig!.id },
         data: { bookingUpdatePassword: hashed },
       });
-      return await bcryptjs.compare(plainPassword, hashed);
+      return bcrypt.compare(plainPassword, hashed);
     }
-    return await bcryptjs.compare(plainPassword, stored);
+    return bcrypt.compare(plainPassword, stored);
   }
 
   async getShowConsensi(): Promise<boolean> {
@@ -181,13 +183,25 @@ export class ConfigService {
     bookingUpdatePassword: string;
     customFields: Record<string, Prisma.InputJsonValue>;
   }>) {
+    // La password di modifica prenotazioni non deve mai essere persistita in chiaro.
+    const normalized = { ...data };
+    if (normalized.bookingUpdatePassword !== undefined) {
+      const pwd = normalized.bookingUpdatePassword;
+      if (!pwd) {
+        // Stringa vuota → non toccare il valore esistente.
+        delete normalized.bookingUpdatePassword;
+      } else if (!BCRYPT_HASH_RE.test(pwd)) {
+        normalized.bookingUpdatePassword = await bcrypt.hash(pwd, config.bcryptSaltRounds);
+      }
+    }
+
     const existing = await prisma.clientConfig.findFirst();
     if (!existing) {
-      return prisma.clientConfig.create({ data: data as unknown as Prisma.ClientConfigCreateInput });
+      return prisma.clientConfig.create({ data: normalized as unknown as Prisma.ClientConfigCreateInput });
     }
     return prisma.clientConfig.update({
       where: { id: existing.id },
-      data,
+      data: normalized,
     });
   }
 }

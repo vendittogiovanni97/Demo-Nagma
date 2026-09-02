@@ -36,7 +36,11 @@ export class FileSystemManager {
 
       // FIX #5: Validate extension is not dangerous (defense in depth)
       // Estensioni pericolose che potrebbero causare problemi anche se salvate
-      const DANGEROUS_EXTENSIONS = ['.exe', '.bat', '.cmd', '.dll', '.sh', '.bash', '.ps1', '.com', '.scr'];
+      const DANGEROUS_EXTENSIONS = [
+        '.exe', '.bat', '.cmd', '.dll', '.sh', '.bash', '.ps1', '.com', '.scr',
+        // Contenuti attivi (script/markup) che potrebbero eseguire se serviti inline
+        '.html', '.htm', '.svg', '.xml', '.xhtml', '.js', '.mjs', '.php',
+      ];
       if (DANGEROUS_EXTENSIONS.includes(ext)) {
         logger.warn('Tentativo upload file con estensione pericolosa', {
           originalFileName,

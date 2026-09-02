@@ -24,7 +24,7 @@ export async function getAdminAuth() {
   }
 
   const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    { id: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion },
     JWT_SECRET,
     { expiresIn: '1h' }
   );

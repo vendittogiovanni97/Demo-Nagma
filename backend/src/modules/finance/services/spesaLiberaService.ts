@@ -26,40 +26,43 @@ export class SpesaLiberaService {
   }
 
   async create(data: { name: string; price: number }) {
+    const created = await prisma.$transaction(async (tx) => {
+      const spesa = await tx.spesaLibera.create({
+        data: { name: data.name, price: data.price },
+      });
+      await tx.transaction.create({
+        data: {
+          type: 'USCITA',
+          category: 'Spese Libere',
+          description: `Spesa Libera: ${data.name}`,
+          amount: data.price,
+          date: new Date(),
+          sourceId: spesa.id,
+          sourceType: 'SPESA_LIBERA',
+        },
+      });
+      return spesa;
+    });
+
     financeCache.clear();
-
-    const created = await prisma.spesaLibera.create({
-      data: { name: data.name, price: data.price },
-    });
-
-    await prisma.transaction.create({
-      data: {
-        type: 'USCITA',
-        category: 'Spese Libere',
-        description: `Spesa Libera: ${data.name}`,
-        amount: data.price,
-        date: new Date(),
-        sourceId: created.id,
-        sourceType: 'SPESA_LIBERA',
-      },
-    });
-
     return { ...created, price: Number(created.price) };
   }
 
   async delete(id: number) {
-    financeCache.clear();
-    const existing = await prisma.spesaLibera.findUnique({ where: { id, deletedAt: null } });
+    const existing = await prisma.spesaLibera.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError('Spesa non trovata', 404, 'NOT_FOUND');
 
-    await prisma.spesaLibera.update({
-      where: { id },
-      data: { deletedAt: new Date() },
+    await prisma.$transaction(async (tx) => {
+      await tx.spesaLibera.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+      await tx.transaction.updateMany({
+        where: { sourceId: id, sourceType: 'SPESA_LIBERA', deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
 
-    await prisma.transaction.updateMany({
-      where: { sourceId: id, sourceType: 'SPESA_LIBERA', deletedAt: null },
-      data: { deletedAt: new Date() },
-    });
+    financeCache.clear();
   }
 }

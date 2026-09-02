@@ -3,7 +3,7 @@ import { AppError } from '../../../src/core/shared/errors/AppError';
 const createMockPrisma = () => ({
   entrataLibera: {
     findMany: jest.fn(),
-    findUnique: jest.fn(),
+    findFirst: jest.fn(),
     count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -33,6 +33,10 @@ describe('EntrataLiberaService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new EntrataLiberaService();
+    // Supporta sia la forma array (findAll) sia la forma callback (create/delete) di $transaction
+    mockPrisma.$transaction.mockImplementation((arg: any) =>
+      typeof arg === 'function' ? arg(mockPrisma) : Promise.all(arg)
+    );
   });
 
   describe('findAll', () => {
@@ -81,7 +85,7 @@ describe('EntrataLiberaService', () => {
 
   describe('delete', () => {
     it('should soft-delete income and linked transactions', async () => {
-      mockPrisma.entrataLibera.findUnique.mockResolvedValue({ id: 1, name: 'Rimborso' });
+      mockPrisma.entrataLibera.findFirst.mockResolvedValue({ id: 1, name: 'Rimborso' });
 
       await service.delete(1);
 
@@ -96,7 +100,7 @@ describe('EntrataLiberaService', () => {
     });
 
     it('should throw when income not found', async () => {
-      mockPrisma.entrataLibera.findUnique.mockResolvedValue(null);
+      mockPrisma.entrataLibera.findFirst.mockResolvedValue(null);
 
       await expect(service.delete(999))
         .rejects.toThrow(new AppError('Entrata non trovata', 404, 'NOT_FOUND'));

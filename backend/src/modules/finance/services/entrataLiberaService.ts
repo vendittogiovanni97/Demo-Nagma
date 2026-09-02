@@ -26,40 +26,43 @@ export class EntrataLiberaService {
   }
 
   async create(data: { name: string; amount: number }) {
+    const created = await prisma.$transaction(async (tx) => {
+      const entrata = await tx.entrataLibera.create({
+        data: { name: data.name, amount: data.amount },
+      });
+      await tx.transaction.create({
+        data: {
+          type: 'ENTRATA',
+          category: 'Entrate Libere',
+          description: `Entrata Libera: ${data.name}`,
+          amount: data.amount,
+          date: new Date(),
+          sourceId: entrata.id,
+          sourceType: 'ENTRATA_LIBERA',
+        },
+      });
+      return entrata;
+    });
+
     financeCache.clear();
-
-    const created = await prisma.entrataLibera.create({
-      data: { name: data.name, amount: data.amount },
-    });
-
-    await prisma.transaction.create({
-      data: {
-        type: 'ENTRATA',
-        category: 'Entrate Libere',
-        description: `Entrata Libera: ${data.name}`,
-        amount: data.amount,
-        date: new Date(),
-        sourceId: created.id,
-        sourceType: 'ENTRATA_LIBERA',
-      },
-    });
-
     return { ...created, amount: Number(created.amount) };
   }
 
   async delete(id: number) {
-    financeCache.clear();
-    const existing = await prisma.entrataLibera.findUnique({ where: { id, deletedAt: null } });
+    const existing = await prisma.entrataLibera.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError('Entrata non trovata', 404, 'NOT_FOUND');
 
-    await prisma.entrataLibera.update({
-      where: { id },
-      data: { deletedAt: new Date() },
+    await prisma.$transaction(async (tx) => {
+      await tx.entrataLibera.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+      await tx.transaction.updateMany({
+        where: { sourceId: id, sourceType: 'ENTRATA_LIBERA', deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
     });
 
-    await prisma.transaction.updateMany({
-      where: { sourceId: id, sourceType: 'ENTRATA_LIBERA', deletedAt: null },
-      data: { deletedAt: new Date() },
-    });
+    financeCache.clear();
   }
 }

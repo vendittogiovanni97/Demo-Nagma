@@ -605,17 +605,24 @@ export class BookingService {
     }
 
     if (artistPrice > 0) {
-      await tx.transaction.create({
-        data: {
-          type: 'USCITA',
-          category: 'Compenso Artista',
-          description: `Compenso artista — prenotazione #${booking.id}`,
-          amount: artistPrice,
-          date: completionDate,
-          sourceId: booking.id,
-          sourceType: 'BOOKING_COMMISSION',
-        },
+      // Dedup: evita doppio compenso se il completamento viene ripetuto
+      const existingCommission = await tx.transaction.findFirst({
+        where: { sourceId: booking.id, sourceType: 'BOOKING_COMMISSION', deletedAt: null },
       });
+
+      if (!existingCommission) {
+        await tx.transaction.create({
+          data: {
+            type: 'USCITA',
+            category: 'Compenso Artista',
+            description: `Compenso artista — prenotazione #${booking.id}`,
+            amount: artistPrice,
+            date: completionDate,
+            sourceId: booking.id,
+            sourceType: 'BOOKING_COMMISSION',
+          },
+        });
+      }
     }
   }
 

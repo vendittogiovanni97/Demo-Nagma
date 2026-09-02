@@ -3,7 +3,7 @@ import { AppError } from '../../../src/core/shared/errors/AppError';
 const createMockPrisma = () => ({
   spesaLibera: {
     findMany: jest.fn(),
-    findUnique: jest.fn(),
+    findFirst: jest.fn(),
     count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -33,6 +33,10 @@ describe('SpesaLiberaService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new SpesaLiberaService();
+    // Supporta sia la forma array (findAll) sia la forma callback (create/delete) di $transaction
+    mockPrisma.$transaction.mockImplementation((arg: any) =>
+      typeof arg === 'function' ? arg(mockPrisma) : Promise.all(arg)
+    );
   });
 
   describe('findAll', () => {
@@ -81,7 +85,7 @@ describe('SpesaLiberaService', () => {
 
   describe('delete', () => {
     it('should soft-delete expense and linked transactions', async () => {
-      mockPrisma.spesaLibera.findUnique.mockResolvedValue({ id: 1, name: 'Carta' });
+      mockPrisma.spesaLibera.findFirst.mockResolvedValue({ id: 1, name: 'Carta' });
 
       await service.delete(1);
 
@@ -96,7 +100,7 @@ describe('SpesaLiberaService', () => {
     });
 
     it('should throw when expense not found', async () => {
-      mockPrisma.spesaLibera.findUnique.mockResolvedValue(null);
+      mockPrisma.spesaLibera.findFirst.mockResolvedValue(null);
 
       await expect(service.delete(999))
         .rejects.toThrow(new AppError('Spesa non trovata', 404, 'NOT_FOUND'));

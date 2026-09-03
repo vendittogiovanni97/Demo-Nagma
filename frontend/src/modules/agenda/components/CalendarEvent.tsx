@@ -153,7 +153,7 @@ function CalendarEvent({ booking, isMonthView = false }: CalendarEventProps) {
         cursor: isCompleted ? 'default' : 'pointer',
         userSelect: 'none',
         borderRadius: '6px',
-        borderLeft: `3px solid ${color}`,
+        boxShadow: `inset 3px 0 0 0 ${color}`,
         backgroundColor: alpha(color, isLight ? 0.1 : 0.16),
         opacity,
         transition: 'background-color 0.15s ease',

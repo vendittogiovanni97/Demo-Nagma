@@ -222,10 +222,9 @@ export default function TodayAgendaWidget({
                     borderRadius: '14px',
                     backgroundColor: isLight ? alpha(theme.palette.primary.main, 0.03) : alpha(theme.palette.common.white, 0.03),
                     border: `1px solid ${artistColor}18`,
-                    borderLeft: `4px solid ${artistColor}`,
                     boxShadow: isLight
-                      ? `0 2px 8px ${alpha(theme.palette.common.black, 0.06)}`
-                      : `0 4px 12px ${alpha(theme.palette.common.black, 0.15)}`,
+                      ? `inset 4px 0 0 0 ${artistColor}, 0 2px 8px ${alpha(theme.palette.common.black, 0.06)}`
+                      : `inset 4px 0 0 0 ${artistColor}, 0 4px 12px ${alpha(theme.palette.common.black, 0.15)}`,
                     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',

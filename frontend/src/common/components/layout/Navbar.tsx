@@ -202,7 +202,7 @@ export default function Navbar() {
                   <Box sx={{ width: '1px', height: navConfig.dividerH, backgroundColor: 'divider' }} />
                 </>
               )}
-              {isXLarge && (
+              {!isSmall && (
                 <>
                   <IconButton
                     onClick={() => setIsBookingOpen(true)}

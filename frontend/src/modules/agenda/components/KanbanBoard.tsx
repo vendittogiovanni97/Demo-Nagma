@@ -9,6 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@/common/components/ui/Button';
+import { ConfirmDialog } from '@/common/components/ui/ConfirmDialog';
 import { alpha, useTheme } from '@mui/material/styles';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Clock, Armchair, Palette, CreditCard, CheckCircle2, Search, RefreshCw, Filter } from 'lucide-react';
@@ -34,6 +35,8 @@ export function KanbanBoard() {
 
   const [search, setSearch] = useState('');
   const [selectedArtistId, setSelectedArtistId] = useState<string>('ALL');
+  const [paymentPendingBooking, setPaymentPendingBooking] = useState<KanbanBookingItem | null>(null);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
@@ -86,7 +89,15 @@ export function KanbanBoard() {
   };
 
   const handleOpenPayment = (booking: KanbanBookingItem) => {
-    moveBooking(booking.id, 'SALDATO');
+    setPaymentPendingBooking(booking);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!paymentPendingBooking) return;
+    setIsPaymentLoading(true);
+    await moveBooking(paymentPendingBooking.id, 'SALDATO');
+    setIsPaymentLoading(false);
+    setPaymentPendingBooking(null);
   };
 
   return (
@@ -336,6 +347,19 @@ export function KanbanBoard() {
           })}
         </Box>
       </DragDropContext>
+
+      {paymentPendingBooking && (
+        <ConfirmDialog
+          open={true}
+          title="Conferma incasso"
+          message={`Stai per registrare l'incasso di ${formatPrice(paymentPendingBooking.outstandingBalance)} per ${paymentPendingBooking.customer ? `${paymentPendingBooking.customer.firstName} ${paymentPendingBooking.customer.lastName || ''}`.trim() : 'il cliente'}. L'importo verrà registrato automaticamente in contabilità.`}
+          confirmText="Incassa"
+          severity="primary"
+          loading={isPaymentLoading}
+          onConfirm={handleConfirmPayment}
+          onClose={() => setPaymentPendingBooking(null)}
+        />
+      )}
     </Box>
   );
 }

@@ -1,6 +1,6 @@
 import { authService } from '@/modules/auth/api/auth.api';
 import type { AuthUser, LoginCredentials } from '@/modules/auth/model/auth.types';
-import { clearSession, getToken, getUser, setToken, setUser } from '@/common/shared/utils/auth';
+import { clearSession, getUser, setUser } from '@/common/shared/utils/auth';
 import { isAdmin, isSuperAdmin } from '@/common/config/roles';
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback } from 'react';
@@ -24,46 +24,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = getToken();
     const savedUser = getUser();
     let isMounted = true;
 
-    if (token) {
+    if (savedUser) {
       setIsAuthenticated(true);
-      if (savedUser) {
-        setCurrentUser(savedUser);
-      }
-
-      const loadProfile = async () => {
-        try {
-          const profile = await authService.me();
-          if (!isMounted) return;
-          setUser(profile);
-          setCurrentUser(profile);
-          setIsAuthenticated(true);
-        } catch {
-          if (!isMounted) return;
-          // Try to refresh token
-          try {
-            const response = await authService.refresh();
-            setToken(response.token);
-            setUser(response.user);
-            setCurrentUser(response.user);
-            setIsAuthenticated(true);
-          } catch {
-            clearSession();
-            setCurrentUser(null);
-            setIsAuthenticated(false);
-          }
-        } finally {
-          if (isMounted) setIsLoading(false);
-        }
-      };
-
-      void loadProfile();
+      setCurrentUser(savedUser);
     } else {
       setIsLoading(false);
+      return () => {
+        isMounted = false;
+      };
     }
+
+    const loadProfile = async () => {
+      try {
+        const profile = await authService.me();
+        if (!isMounted) return;
+        setUser(profile);
+        setCurrentUser(profile);
+        setIsAuthenticated(true);
+      } catch {
+        if (!isMounted) return;
+        try {
+          const response = await authService.refresh();
+          setUser(response.user);
+          setCurrentUser(response.user);
+          setIsAuthenticated(true);
+        } catch {
+          clearSession();
+          setCurrentUser(null);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    void loadProfile();
 
     return () => {
       isMounted = false;
@@ -73,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {
       const response = await authService.login(credentials);
-      setToken(response.token);
       setUser(response.user);
       setCurrentUser(response.user);
       setIsAuthenticated(true);

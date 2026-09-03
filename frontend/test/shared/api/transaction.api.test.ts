@@ -38,6 +38,8 @@ describe('transactionApi', () => {
       description: 'Affitto luglio',
       amount: 1000,
     };
+    mockedClient.post.mockResolvedValue({ data: { id: 1 } } as any);
+    mockedClient.patch.mockResolvedValue({ data: { id: 7 } } as any);
 
     await transactionApi.create(payload);
     await transactionApi.update(7, { amount: 900 });

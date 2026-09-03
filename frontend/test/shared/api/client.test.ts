@@ -5,11 +5,10 @@ global.fetch = mockFetch;
 
 jest.mock('@/common/shared/utils/auth', () => ({
   getToken: jest.fn(),
-  setToken: jest.fn(),
   logout: jest.fn(),
 }));
 
-import { getToken, setToken, logout } from '@/common/shared/utils/auth';
+import { getToken, logout } from '@/common/shared/utils/auth';
 
 const mockedGetToken = getToken as jest.Mock;
 
@@ -102,14 +101,11 @@ describe('apiClient', () => {
   });
 
   it('should auto-refresh on 401 and retry', async () => {
-    mockedGetToken
-      .mockReturnValueOnce('expired-token')
-      .mockReturnValueOnce('expired-token')
-      .mockReturnValueOnce('new-token');
+    mockedGetToken.mockReturnValue('legacy-token');
 
     const refreshResponse = {
       ok: true,
-      json: async () => ({ token: 'new-token', user: { id: 1, name: 'Mario', email: 'm@t.it', role: 'ADMIN' } }),
+      json: async () => ({ user: { id: 1, name: 'Mario', email: 'm@t.it', role: 'ADMIN' } }),
     };
 
     const successResponse = {
@@ -130,7 +126,11 @@ describe('apiClient', () => {
     const result = await apiClient.get('/api/protected');
 
     expect(result).toEqual({ data: 'success' });
-    expect(setToken).toHaveBeenCalledWith('new-token');
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/api/auth/refresh'),
+      expect.objectContaining({ credentials: 'include', method: 'POST' })
+    );
   });
 
   it('should logout on failed refresh', async () => {

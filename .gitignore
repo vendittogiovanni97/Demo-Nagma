@@ -47,8 +47,6 @@ landing-page/assets/images/*.pdf
 .opencode
 
 # Environment files (mai committare — tenere solo i .env.example)
-.env
-.env.*
 !.env.example
 
 # Cartella temporanea per file da eliminare a mano (rm vietata sul mount Cowork)

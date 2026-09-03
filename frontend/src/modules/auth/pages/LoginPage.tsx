@@ -30,7 +30,7 @@ export default function LoginPage() {
       await login({ email: data.email, password: data.password });
     },
     onSuccess: () => {
-      window.location.href = '/';
+      router.replace('/');
     },
     successMessage: 'Accesso effettuato!',
     errorMessage: 'Email o password non validi',
@@ -39,9 +39,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      window.location.href = '/';
+      router.replace('/');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 

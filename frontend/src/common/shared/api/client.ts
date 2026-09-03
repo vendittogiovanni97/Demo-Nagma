@@ -1,4 +1,4 @@
-import { getToken, logout, setToken } from '@/common/shared/utils/auth';
+import { getToken, logout } from '@/common/shared/utils/auth';
 import { API_BASE_URL, ENDPOINTS } from './endpoints';
 
 type FetchOptions = RequestInit & {
@@ -15,7 +15,6 @@ interface ApiErrorResponse {
 }
 
 interface RefreshResponse {
-  token: string;
   user: {
     id: number;
     name: string;
@@ -25,16 +24,16 @@ interface RefreshResponse {
 }
 
 let isRefreshing = false;
-let refreshQueue: Array<(token: string | null) => void> = [];
+let refreshQueue: Array<(refreshed: boolean) => void> = [];
 
-function notifyRefreshQueue(token: string | null) {
-  refreshQueue.forEach(resolve => resolve(token));
+function notifyRefreshQueue(refreshed: boolean) {
+  refreshQueue.forEach(resolve => resolve(refreshed));
   refreshQueue = [];
 }
 
-async function attemptTokenRefresh(): Promise<string | null> {
+async function attemptTokenRefresh(): Promise<boolean> {
   if (isRefreshing) {
-    return new Promise<string | null>(resolve => {
+    return new Promise<boolean>(resolve => {
       refreshQueue.push(resolve);
     });
   }
@@ -42,32 +41,25 @@ async function attemptTokenRefresh(): Promise<string | null> {
   isRefreshing = true;
 
   try {
-    const currentToken = getToken();
-    if (!currentToken) {
-      notifyRefreshQueue(null);
-      return null;
-    }
-
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.AUTH.REFRESH}`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${currentToken}`,
       },
     });
 
     if (!response.ok) {
-      notifyRefreshQueue(null);
-      return null;
+      notifyRefreshQueue(false);
+      return false;
     }
 
-    const data = (await response.json()) as RefreshResponse;
-    setToken(data.token);
-    notifyRefreshQueue(data.token);
-    return data.token;
+    await response.json() as RefreshResponse;
+    notifyRefreshQueue(true);
+    return true;
   } catch {
-    notifyRefreshQueue(null);
-    return null;
+    notifyRefreshQueue(false);
+    return false;
   } finally {
     isRefreshing = false;
   }
@@ -96,6 +88,7 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry
   try {
     response = await fetch(url.toString(), {
       ...init,
+      credentials: 'include',
       headers,
     });
   } catch (error) {
@@ -111,9 +104,9 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry
     // L'errore verrà gestito dal blocco successivo come normale eccezione.
     if (!isAuthEndpoint) {
       if (!isRetry && !isRefreshEndpoint) {
-        const newToken = await attemptTokenRefresh();
+        const refreshed = await attemptTokenRefresh();
 
-        if (newToken) {
+        if (refreshed) {
           return apiFetch<T>(endpoint, options, true);
         }
       }

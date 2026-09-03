@@ -119,7 +119,7 @@ html[data-theme="light"] ::-webkit-calendar-picker-indicator {
   --ag-foreground-color: #ffffff;
   --ag-header-foreground-color: #d1d1d1;
   --ag-secondary-foreground-color: #d1d1d1;
-  --ag-font-family: "Inter", "Segoe UI", sans-serif;
+  --ag-font-family: "Outfit", "Segoe UI", sans-serif;
   --ag-font-size: 13px;
   --ag-cell-horizontal-padding: 16px;
   --ag-header-height: 44px;
@@ -148,7 +148,7 @@ html[data-theme="light"] ::-webkit-calendar-picker-indicator {
   --ag-foreground-color: #1a202c;
   --ag-header-foreground-color: #2d3748;
   --ag-secondary-foreground-color: #4a5568;
-  --ag-font-family: "Inter", "Segoe UI", sans-serif;
+  --ag-font-family: "Outfit", "Segoe UI", sans-serif;
   --ag-font-size: 13px;
   --ag-cell-horizontal-padding: 16px;
   --ag-header-height: 44px;
@@ -283,7 +283,7 @@ html[data-theme="light"] ::-webkit-calendar-picker-indicator {
   --fc-button-active-bg-color: rgba(0, 191, 255, 0.16);
   --fc-button-active-border-color: rgba(0, 191, 255, 0.5);
   --fc-button-text-color: var(--color-text-primary);
-  font-family: "Inter", "Segoe UI", sans-serif;
+  font-family: "Outfit", "Segoe UI", sans-serif;
   height: 100%;
 }
 

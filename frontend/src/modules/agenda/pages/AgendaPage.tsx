@@ -1,7 +1,8 @@
 "use client";
 
 import type { DatesSetArg, DayCellContentArg, EventContentArg, MoreLinkArg } from '@fullcalendar/core';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { format, subDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import dynamic from 'next/dynamic';
@@ -34,6 +35,7 @@ const AGENDA_VIEW_MODE_KEY = 'nagma_agenda_view_mode';
 export default function AgendaPage() {
   const { isSuperAdmin } = useAuth();
   const { confirmDialogProps } = useDeleteConfirm();
+  const theme = useTheme();
 
   const [viewMode, setViewMode] = useState<'CALENDAR' | 'KANBAN'>('CALENDAR');
 
@@ -219,8 +221,8 @@ export default function AgendaPage() {
             display: 'flex',
             flexDirection: 'row',
             width: '100%',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-surface-border)',
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
             borderRadius: 2,
             overflow: 'hidden',
             height: {

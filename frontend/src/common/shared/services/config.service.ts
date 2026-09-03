@@ -1,6 +1,5 @@
 import { apiClient } from '@/common/shared/api/client';
 import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
-import { getToken } from '@/common/shared/utils/auth';
 
 export interface ClientConfig {
   id: number;
@@ -42,8 +41,7 @@ export const configService = {
   },
 
   downloadBackup: () => {
-    const token = getToken() || '';
-    return `${API_BASE_URL}${ENDPOINTS.CONFIG.BACKUP}?token=${encodeURIComponent(token)}`;
+    return `${API_BASE_URL}${ENDPOINTS.CONFIG.BACKUP}`;
   },
 
   // New ClientConfig endpoints

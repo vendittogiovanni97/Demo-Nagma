@@ -1,4 +1,4 @@
-import { getToken, logout } from '@/common/shared/utils/auth';
+import { logout } from '@/common/shared/utils/auth';
 import { API_BASE_URL, ENDPOINTS } from './endpoints';
 
 type FetchOptions = RequestInit & {
@@ -77,12 +77,8 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}, isRetry
     });
   }
 
-  const token = getToken();
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
 
   let response: Response;
   try {

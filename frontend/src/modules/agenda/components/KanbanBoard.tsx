@@ -8,7 +8,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
-import Button from '@mui/material/Button';
+import Button from '@/common/components/ui/Button';
 import { alpha, useTheme } from '@mui/material/styles';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Clock, Armchair, Palette, CreditCard, CheckCircle2, Search, RefreshCw, Filter } from 'lucide-react';
@@ -153,8 +153,8 @@ export function KanbanBoard() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           {isLoading && <CircularProgress size={20} />}
           <Button
-            variant="outlined"
-            size="small"
+            variant="secondary"
+            size="sm"
             startIcon={<RefreshCw size={14} />}
             onClick={() => refresh()}
             sx={{ borderRadius: 2, textTransform: 'none' }}

@@ -21,4 +21,7 @@ export const authService = {
   refresh: async (): Promise<AuthResponse> => {
     return apiClient.post<AuthResponse>(ENDPOINTS.AUTH.REFRESH);
   },
+  logout: async (): Promise<void> => {
+    return apiClient.post<void>(ENDPOINTS.AUTH.LOGOUT);
+  },
 };

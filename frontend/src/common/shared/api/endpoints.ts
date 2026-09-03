@@ -6,6 +6,7 @@ export const ENDPOINTS = {
     REGISTER: '/api/auth/register',
     ME: '/api/auth/me',
     REFRESH: '/api/auth/refresh',
+    LOGOUT: '/api/auth/logout',
     THEME: '/api/auth/me/theme',
   },
   CUSTOMERS: {

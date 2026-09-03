@@ -81,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    void authService.logout().catch(() => {});
     clearSession();
     setCurrentUser(null);
     setIsAuthenticated(false);
@@ -88,13 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   }, [router]);
 
-  // Memoize role computations to avoid unnecessary recalculations
   const isAdminMemo = useMemo(() => isAdmin(user?.role), [user?.role]);
   const isSuperAdminMemo = useMemo(() => isSuperAdmin(user?.role), [user?.role]);
 
-  // Memoize context value to prevent full app re-renders on every render
-  // This is critical for performance: without memoization, a new object is created each render,
-  // triggering subscriber re-renders even if the values haven't changed
   const contextValue = useMemo(
     () => ({
       isAuthenticated,

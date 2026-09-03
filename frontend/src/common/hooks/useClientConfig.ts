@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import { apiClient } from '@/common/shared/api/client';
-import { getToken } from '@/common/shared/utils/auth';
+import { getUser } from '@/common/shared/utils/auth';
 import { DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR } from '@/common/theme/colorTokens';
 
 export interface ClientConfig {
@@ -54,10 +54,8 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfig = {
  * Cachea il risultato per evitare richieste multiple
  */
 export const useClientConfig = () => {
-  const token = getToken();
-
   const { data, error, isLoading, mutate } = useSWR<{ success: boolean; data: ClientConfig }>(
-    token ? '/api/client-config' : null,
+    getUser() ? '/api/client-config' : null,
     async (url) => {
       try {
         const response = await apiClient.get<{ success: boolean; data: ClientConfig }>(url);

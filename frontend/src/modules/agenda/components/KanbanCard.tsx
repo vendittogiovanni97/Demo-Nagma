@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
+import Button from '@/common/components/ui/Button';
 import Tooltip from '@mui/material/Tooltip';
 import { alpha, useTheme } from '@mui/material/styles';
 import { Clock, Phone, MessageSquare, CreditCard, User, Sparkles } from 'lucide-react';
@@ -197,9 +197,8 @@ export function KanbanCard({ booking, onOpenPayment }: KanbanCardProps) {
 
         {booking.kanbanStage === 'DA_SALDARE' && onOpenPayment && (
           <Button
-            variant="contained"
-            size="small"
-            color={booking.kanbanStage === 'DA_SALDARE' ? 'warning' : 'primary'}
+            variant="primary"
+            size="sm"
             startIcon={<CreditCard size={14} />}
             onClick={(e) => {
               e.stopPropagation();
@@ -212,6 +211,8 @@ export function KanbanCard({ booking, onOpenPayment }: KanbanCardProps) {
               fontWeight: 700,
               px: 1.5,
               py: 0.5,
+              bgcolor: 'warning.main',
+              '&:hover': { bgcolor: 'warning.dark' },
             }}
           >
             Incassa

@@ -1,6 +1,5 @@
 import { API_BASE_URL, ENDPOINTS } from '@/common/shared/api/endpoints';
 import { apiClient } from '@/common/shared/api/client';
-import { getToken } from '@/common/shared/utils/auth';
 import type { Booking } from '@/modules/booking/model/booking.types';
 
 export type ExportFormat = 'csv' | 'xlsx' | 'pdf';
@@ -59,10 +58,8 @@ function triggerDownload(blob: Blob, filename: string): void {
 async function download(options: ExportOptions): Promise<void> {
   const response = await fetch(`${API_BASE_URL}${ENDPOINTS.EXPORT.BASE}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getToken() ?? ''}`,
-    },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(options),
   });
 

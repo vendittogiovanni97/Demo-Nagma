@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
+import Button from '@/common/components/ui/Button';
 import Divider from '@mui/material/Divider';
 import Avatar from '@mui/material/Avatar';
 import { useTheme } from '@mui/material/styles';
@@ -121,8 +121,8 @@ export default function MobileDrawer({
         {/* Action Button: Nuova Prenotazione */}
         <Button
           fullWidth
-          variant="contained"
-          color="primary"
+          variant="primary"
+          size="lg"
           startIcon={<Plus size={18} />}
           onClick={() => {
             onClose();
@@ -190,8 +190,8 @@ export default function MobileDrawer({
       <Box sx={{ pt: 2, borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
         <Button
           fullWidth
-          variant="outlined"
-          color="error"
+          variant="danger"
+          size="md"
           startIcon={<LogOut size={18} />}
           onClick={() => {
             onClose();

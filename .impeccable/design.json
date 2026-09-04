@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "generated": "2026-09-03",
+  "source": ["frontend/src/common/theme/theme.ts", "frontend/src/common/theme/colorTokens.ts"],
+  "mode": "Operate",
+  "identity": {
+    "northStar": "L'Atelier del Tatuatore",
+    "colorNames": {
+      "#00bfff": "Inchiostro Elettrico",
+      "#0d1a28": "Notte da Studio",
+      "#1a2332": "Carta di Lavoro"
+    },
+    "componentFeel": "fluido-reattivo"
+  },
+  "tokens": {
+    "color": {
+      "background": {
+        "default": "#0d1a28",
+        "paper": "#1a2332"
+      },
+      "primary": {
+        "main": "#00bfff",
+        "light": "#33d4ff",
+        "dark": "#0095cc",
+        "contrastText": "#ffffff"
+      },
+      "secondary": {
+        "main": "#1a2332",
+        "light": "#2a3545",
+        "dark": "#0f1620"
+      },
+      "success": "#34d399",
+      "warning": "#fbbf24",
+      "error": "#f87171",
+      "info": "#38bdf8",
+      "custom": {
+        "purple": "#a855f7",
+        "emerald": "#34d399",
+        "whatsapp": "#25D366"
+      },
+      "text": {
+        "primary": "#ffffff",
+        "secondary": "#b0b0b0"
+      },
+      "divider": "rgba(0,191,255,0.12)",
+      "action": {
+        "hover": "rgba(0,191,255,0.08)",
+        "selected": "rgba(0,191,255,0.16)",
+        "active": "#00bfff"
+      }
+    },
+    "borderRadius": {
+      "default": 8,
+      "card": 12,
+      "chip": 999,
+      "tooltip": 4
+    },
+    "spacing": 8,
+    "typography": {
+      "fontFamily": "Outfit",
+      "button": {
+        "textTransform": "none",
+        "fontWeight": 600,
+        "fontSize": "0.8125rem"
+      }
+    },
+    "motion": {
+      "standard": "300ms ease",
+      "quick": "200ms ease"
+    }
+  },
+  "dataColors": {
+    "kanban": {
+      "IN_ARRIVO": "#00e5ff",
+      "IN_ATTESA": "#ab47bc",
+      "IN_SEDUTA": "#29b6f6",
+      "DA_SALDARE": "#ffa726",
+      "SALDATO": "#66bb6a"
+    },
+    "staffPresets": ["#00BFFF", "#4F7CFF", "#25D366", "#FF6B6B", "#FFB020", "#9B6DFF"],
+    "whatsappVariables": ["#00e5ff", "#ff007f", "#7000ff", "#ffaa00", "#00ff66"]
+  },
+  "bans": [
+    "hardcoded-hex-in-sx",
+    "hardcoded-rgba-in-sx",
+    "uppercase-button-text",
+    "glow-shadow-on-static-surface"
+  ]
+}

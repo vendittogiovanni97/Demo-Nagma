@@ -41,7 +41,6 @@ export default function LayoutContainer({
         flexDirection: 'column',
         minHeight: { xs: 'auto', md: '100vh' },
         overflowX: 'hidden',
-        transition: 'padding 0.2s ease-in-out',
         ...sx,
       }}
     >

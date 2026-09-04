@@ -44,13 +44,10 @@ export default function FinanceOverviewWidget({
   const [showEntrateData, setShowEntrateData] = useState(false);
   const [showUsciteData, setShowUsciteData] = useState(false);
 
-  // Independent dates per ciascuno dei 3 widget
-  const [bilancioMonth, setBilancioMonth] = useState<Date>(() => monthDate || new Date());
-  const [entrateMonth, setEntrateMonth] = useState<Date>(() => monthDate || new Date());
-  const [usciteMonth, setUsciteMonth] = useState<Date>(() => monthDate || new Date());
+  const [selectedMonth, setSelectedMonth] = useState<Date>(() => monthDate || new Date());
 
-  const handleBilancioMonthChange = (d: Date) => {
-    setBilancioMonth(d);
+  const handleMonthChange = (d: Date) => {
+    setSelectedMonth(d);
     onMonthChange?.(d);
   };
 
@@ -154,7 +151,7 @@ export default function FinanceOverviewWidget({
   // Header Actions per WIDGET 1: BILANCIO
   const bilancioHeaderActions = (
     <Stack direction="row" useFlexGap sx={{ gap: 0.25, alignItems: 'center' }}>
-      <MonthPicker value={bilancioMonth} onChange={handleBilancioMonthChange} size="sm" />
+      <MonthPicker value={selectedMonth} onChange={handleMonthChange} size="sm" />
       <Button
         variant="icon"
         icon={<Icon name="maximize2" size={14} />}
@@ -184,7 +181,7 @@ export default function FinanceOverviewWidget({
   // Header Actions per WIDGET 2: ENTRATE
   const entrateHeaderActions = (
     <Stack direction="row" useFlexGap sx={{ gap: 0.25, alignItems: 'center' }}>
-      <MonthPicker value={entrateMonth} onChange={setEntrateMonth} size="sm" />
+      <MonthPicker value={selectedMonth} onChange={handleMonthChange} size="sm" />
       <Button
         variant="icon"
         icon={showEntrateData ? <Icon name="eye" size={14} /> : <Icon name="eyeOff" size={14} />}
@@ -202,7 +199,7 @@ export default function FinanceOverviewWidget({
   // Header Actions per WIDGET 3: USCITE
   const usciteHeaderActions = (
     <Stack direction="row" useFlexGap sx={{ gap: 0.25, alignItems: 'center' }}>
-      <MonthPicker value={usciteMonth} onChange={setUsciteMonth} size="sm" />
+      <MonthPicker value={selectedMonth} onChange={handleMonthChange} size="sm" />
       <Button
         variant="icon"
         icon={showUsciteData ? <Icon name="eye" size={14} /> : <Icon name="eyeOff" size={14} />}

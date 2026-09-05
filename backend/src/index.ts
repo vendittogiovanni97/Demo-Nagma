@@ -87,8 +87,9 @@ async function startServer() {
         debugHttp: isDebugHttpEnabled(),
       });
       databaseBackupScheduler.start();
-      // Esegue il backup automatico ed il recapito email in background senza bloccare l'ascolto HTTP
-      void backupService.createAndSendBackupEmail();
+      if (process.env.NODE_ENV === 'production') {
+        void backupService.createAndSendBackupEmail();
+      }
       resolve();
     });
 

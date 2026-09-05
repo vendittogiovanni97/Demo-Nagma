@@ -12,15 +12,16 @@ interface CustomerCardProps {
   customer: Customer;
   onEdit: (customer: Customer) => void;
   onDelete: (id: number) => void;
+  onView?: (customer: Customer) => void;
 }
 
 export default function CustomerCard({
   customer,
   onEdit,
   onDelete,
+  onView,
 }: CustomerCardProps) {
   const theme = useTheme();
-  const router = useRouter();
 
   // Format registration date
   const registeredDate = new Date(customer.createdAt).toLocaleDateString('it-IT', {
@@ -169,7 +170,7 @@ export default function CustomerCard({
             size="sm"
             icon={<Icon name="eye" size={16} />}
             fullWidth
-            onClick={() => router.push(`/clienti/${customer.id}`)}
+            onClick={() => onView ? onView(customer) : undefined}
           >
             Dettagli
           </Button>

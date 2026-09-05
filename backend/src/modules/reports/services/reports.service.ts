@@ -16,25 +16,22 @@ export class ReportsService {
     const startDate = filters.startDate ? new Date(filters.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = filters.endDate ? new Date(filters.endDate + 'T23:59:59.999Z') : new Date();
 
-    // 1. Finanziario: Transazioni
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        deletedAt: null,
-        date: { gte: startDate, lte: endDate },
-      },
-    });
+    // 1. Finanziario: aggregazione server-side (evita di caricare tutti i record in memoria)
+    const transactionWhere = { deletedAt: null, date: { gte: startDate, lte: endDate } };
+    const [revenueAgg, expensesAgg, transactionCount] = await prisma.$transaction([
+      prisma.transaction.aggregate({
+        where: { ...transactionWhere, type: 'ENTRATA' },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: { ...transactionWhere, type: 'USCITA' },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.count({ where: transactionWhere }),
+    ]);
 
-    let totalRevenue = 0;
-    let totalExpenses = 0;
-
-    for (const t of transactions) {
-      const amount = Number(t.amount);
-      if (t.type === 'ENTRATA') {
-        totalRevenue += amount;
-      } else if (t.type === 'USCITA') {
-        totalExpenses += amount;
-      }
-    }
+    const totalRevenue = Number(revenueAgg._sum.amount ?? 0);
+    const totalExpenses = Number(expensesAgg._sum.amount ?? 0);
 
     // 2. Booking / Appuntamenti
     const bookingWhere: Prisma.BookingWhereInput = {
@@ -60,13 +57,6 @@ export class ReportsService {
     const completedBookings = bookings.filter((b) => b.status === 'COMPLETATO').length;
     const cancelledBookings = bookings.filter((b) => b.status === 'ANNULLATO').length;
     const completionRate = totalBookings > 0 ? Number(((completedBookings / totalBookings) * 100).toFixed(1)) : 0;
-
-    // Add booking revenues if needed
-    for (const b of bookings) {
-      if (b.status === 'COMPLETATO' && b.price) {
-        totalRevenue += Number(b.price);
-      }
-    }
 
     // 3. Clienti
     const totalActiveCustomers = await prisma.customer.count({
@@ -108,7 +98,7 @@ export class ReportsService {
         totalRevenue,
         totalExpenses,
         netProfit: totalRevenue - totalExpenses,
-        transactionCount: transactions.length,
+        transactionCount,
       },
       bookings: {
         totalBookings,

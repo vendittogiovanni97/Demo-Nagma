@@ -1,7 +1,23 @@
 import { Response } from 'express';
+import { z } from 'zod';
 import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { CustomFieldService, CustomFieldData } from '../services/customFieldService';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
+import { validate } from '../../../core/shared/utils/validation';
+
+const customFieldSchema = z.object({
+  entityType: z.string().min(1).max(100),
+  fieldName: z.string().min(1).max(100),
+  fieldType: z.enum(['text', 'number', 'boolean', 'date', 'select', 'textarea']),
+  fieldLabel: z.string().min(1).max(200),
+  isRequired: z.boolean().optional(),
+  defaultValue: z.unknown().optional(),
+  options: z.array(z.string()).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
+
+const customFieldUpdateSchema = customFieldSchema.partial();
 
 function getParam(params: Record<string, unknown>, key: string): string {
   const value = params[key];
@@ -33,7 +49,7 @@ export class CustomFieldController {
 
   create = asyncHandler(async (req: AuthRequest, res: Response) => {
     const clientId = 1;
-    const data: CustomFieldData = req.body;
+    const data = validate(customFieldSchema, req.body) as CustomFieldData;
 
     const field = await this.customFieldService.create(clientId, data);
     res.status(201).json({ success: true, data: field });
@@ -42,7 +58,7 @@ export class CustomFieldController {
   update = asyncHandler(async (req: AuthRequest, res: Response) => {
     const clientId = 1;
     const id = getParam(req.params, 'id');
-    const data: Partial<CustomFieldData> = req.body;
+    const data = validate(customFieldUpdateSchema, req.body) as Partial<CustomFieldData>;
 
     const field = await this.customFieldService.update(id, clientId, data);
     res.json({ success: true, data: field });

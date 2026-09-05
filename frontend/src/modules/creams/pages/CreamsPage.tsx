@@ -57,19 +57,19 @@ export default function CreamsPage() {
     try {
       const data = await creamService.getActive();
       setCreamData(data);
-    } catch (err) {
-      console.error('Error fetching active cream:', err);
+    } catch {
+      toast.error('Errore nel caricamento della crema attiva');
     }
-  }, []);
+  }, [toast]);
 
   const fetchTeam = useCallback(async () => {
     try {
       const res = await staffApi.getMembers({ limit: 100 });
       setTeamMembers(res.data as unknown as StaffMember[]);
-    } catch (err) {
-      console.error('Error fetching team:', err);
+    } catch {
+      toast.error('Errore nel caricamento del team');
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchActiveCream();

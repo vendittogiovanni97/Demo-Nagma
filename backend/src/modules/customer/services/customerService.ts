@@ -45,7 +45,7 @@ export class CustomerService {
           orderBy: { date: 'desc' },
           include: { artist: true },
         },
-        whatsappLogs: { orderBy: { createdAt: 'desc' } },
+        whatsappLogs: { orderBy: { createdAt: 'desc' }, take: 50 },
       },
     });
     if (!customer) return null;

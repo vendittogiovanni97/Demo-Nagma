@@ -88,7 +88,7 @@ export default function NotFound() {
           textAlign: 'center',
         }}
       >
-        <Typography variant="h3" sx={{ fontWeight: 700, color: 'white' }}>
+        <Typography variant="h3" sx={{ fontWeight: 700, color: 'common.white' }}>
           Pagina non trovata
         </Typography>
 

@@ -42,7 +42,7 @@ export default function AffittiPage() {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const isTodayFilter = startDate === todayStr || endDate === todayStr;
 
-    let base = isTodayFilter ? 'Totale Tatuaggi Affitti Oggi' : 'Totale Tatuaggi Affitti Postazione';
+    const base = isTodayFilter ? 'Totale Tatuaggi Affitti Oggi' : 'Totale Tatuaggi Affitti Postazione';
     return `${base} (${totalCount} sedut${totalCount === 1 ? 'a' : 'e'})`;
   }, [startDate, endDate, totalCount]);
 

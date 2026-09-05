@@ -60,7 +60,6 @@ export default function CreamsPage() {
     } catch {
       toast.error('Errore nel caricamento della crema attiva');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTeam = useCallback(async () => {
@@ -70,7 +69,6 @@ export default function CreamsPage() {
     } catch {
       toast.error('Errore nel caricamento del team');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

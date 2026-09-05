@@ -14,7 +14,15 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Playwright e2e tests — not React components, incompatible with react plugin
     "e2e/**",
+    // ESLint config file itself
+    "eslint.config.mjs",
   ]),
+  {
+    settings: {
+      // Pin React version to avoid auto-detection via getFilename() (removed in ESLint 10)
+      react: { version: "19.0.0" },
+    },
+  },
   {
     rules: {
       // ── TypeScript ────────────────────────────────────────────────

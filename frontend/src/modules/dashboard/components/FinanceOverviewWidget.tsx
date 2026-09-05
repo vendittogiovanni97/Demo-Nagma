@@ -28,6 +28,56 @@ interface FinanceOverviewWidgetProps {
   onMonthChange?: (date: Date) => void;
 }
 
+interface TooltipProps {
+  active?: boolean;
+  payload?: any[];
+  showBilancioData: boolean;
+  totalIncome: number;
+  totalExpense: number;
+}
+
+function CustomTooltip({ active, payload, showBilancioData, totalIncome, totalExpense }: TooltipProps) {
+  const theme = useTheme();
+  if (active && payload && payload.length && showBilancioData) {
+    const data = payload[0];
+    const isEntrate = data.name === 'Entrate';
+    const amount = isEntrate ? totalIncome : totalExpense;
+    const total = totalIncome + totalExpense;
+    const percentage = total > 0 ? ((amount / total) * 100).toFixed(1) : '0';
+
+    return (
+      <Box
+        sx={{
+          p: 1.25,
+          px: 1.75,
+          borderRadius: 2.5,
+          bgcolor: alpha(theme.palette.background.paper, 0.88),
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${alpha(data.payload.color || theme.palette.primary.main, 0.4)}`,
+          boxShadow: `0 8px 24px ${alpha(theme.palette.common.black, 0.4)}, 0 0 15px ${alpha(data.payload.color || theme.palette.primary.main, 0.2)}`,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: data.payload.color,
+            mb: 0.25,
+          }}
+        >
+          {data.name} ({percentage}%)
+        </Typography>
+        <Typography sx={{ fontSize: '0.9375rem', fontWeight: 800, color: 'text.primary', fontFamily: 'Outfit, sans-serif' }}>
+          {formatPrice(amount)}
+        </Typography>
+      </Box>
+    );
+  }
+  return null;
+}
+
 export default function FinanceOverviewWidget({
   totalIncome,
   totalExpense,
@@ -58,48 +108,6 @@ export default function FinanceOverviewWidget({
     { name: 'Entrate', value: showBilancioData ? (totalIncome || 0.01) : 0.01, color: theme.palette.primary.main },
     { name: 'Uscite', value: showBilancioData ? (totalExpense || 0.01) : 0.01, color: theme.palette.error.main },
   ], [totalIncome, totalExpense, showBilancioData, theme.palette.primary.main, theme.palette.error.main]);
-
-  // Tooltip custom in Glassmorphism per il grafico Recharts
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length && showBilancioData) {
-      const data = payload[0];
-      const isEntrate = data.name === 'Entrate';
-      const amount = isEntrate ? totalIncome : totalExpense;
-      const total = totalIncome + totalExpense;
-      const percentage = total > 0 ? ((amount / total) * 100).toFixed(1) : '0';
-
-      return (
-        <Box
-          sx={{
-            p: 1.25,
-            px: 1.75,
-            borderRadius: 2.5,
-            bgcolor: alpha(theme.palette.background.paper, 0.88),
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(data.payload.color || theme.palette.primary.main, 0.4)}`,
-            boxShadow: `0 8px 24px ${alpha(theme.palette.common.black, 0.4)}, 0 0 15px ${alpha(data.payload.color || theme.palette.primary.main, 0.2)}`,
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: data.payload.color,
-              mb: 0.25,
-            }}
-          >
-            {data.name} ({percentage}%)
-          </Typography>
-          <Typography sx={{ fontSize: '0.9375rem', fontWeight: 800, color: 'text.primary', fontFamily: 'Outfit, sans-serif' }}>
-            {formatPrice(amount)}
-          </Typography>
-        </Box>
-      );
-    }
-    return null;
-  };
 
   // Stato per la richiesta password di sblocco dati visivi
   const [unlockTarget, setUnlockTarget] = useState<'BILANCIO' | 'ENTRATE' | 'USCITE' | null>(null);
@@ -252,7 +260,7 @@ export default function FinanceOverviewWidget({
                   </linearGradient>
                 </defs>
                 <RechartsTooltip
-                  content={<CustomTooltip />}
+                  content={<CustomTooltip showBilancioData={showBilancioData} totalIncome={totalIncome} totalExpense={totalExpense} />}
                   wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
                   position={{ x: 10, y: 10 }}
                 />

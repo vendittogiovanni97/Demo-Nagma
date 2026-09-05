@@ -48,7 +48,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
   });
 
   it('dovrebbe individuare pg_dump nativo ed eseguire il backup senza errori', async () => {
-    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+    mockedSpawn.mockImplementation((command: string, args: readonly string[]) => {
       const child = mockChild();
 
       setTimeout(() => {
@@ -61,7 +61,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
         }
       }, 10);
 
-      return child;
+      return child as unknown as ReturnType<typeof spawn>;
     });
 
     const scheduler = new DatabaseBackupScheduler();
@@ -87,7 +87,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
       await fs.writeFile(path.join(testBackupDir, fakeName), 'fake content');
     }
 
-    mockedSpawn.mockImplementation((command: string, args: string[]) => {
+    mockedSpawn.mockImplementation((command: string, args: readonly string[]) => {
       const child = mockChild();
 
       setTimeout(() => {
@@ -100,7 +100,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
         }
       }, 20);
 
-      return child;
+      return child as unknown as ReturnType<typeof spawn>;
     });
 
     const scheduler = new DatabaseBackupScheduler();
@@ -118,7 +118,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
         child.emit('error', new Error('ENOENT: command not found'));
       }, 10);
 
-      return child;
+      return child as unknown as ReturnType<typeof spawn>;
     });
 
     const scheduler = new DatabaseBackupScheduler();

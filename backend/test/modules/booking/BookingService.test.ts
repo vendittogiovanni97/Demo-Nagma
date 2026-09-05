@@ -342,10 +342,10 @@ describe('BookingService', () => {
       return mockPrisma.booking.findMany.mock.calls.at(-1)![0].where;
     }
 
-    it('excludes ANNULLATO/CANCELLATO when status is ALL', async () => {
+    it('does not filter by status when status is ALL', async () => {
       setupList();
       await bookingService.findAll({ month: '2026-07', status: 'ALL' });
-      expect(lastWhere().status).toEqual({ notIn: ['ANNULLATO', 'CANCELLATO'] });
+      expect(lastWhere().status).toBeUndefined();
     });
 
     it('filters by explicit status', async () => {

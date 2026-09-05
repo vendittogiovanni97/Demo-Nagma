@@ -30,6 +30,7 @@ describe('BackupService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/nagmadb';
     backupService = new BackupService();
     delete process.env.BACKUP_EMAIL_ALL_AVVIO;
   });

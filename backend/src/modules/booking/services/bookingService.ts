@@ -57,9 +57,8 @@ export class BookingService {
 
     if (status && status !== 'ALL') {
       where.status = status;
-    } else if (status === 'ALL') {
-      where.status = { notIn: ['ANNULLATO', 'CANCELLATO'] };
     }
+    // status === 'ALL' → nessun filtro, mostra tutti gli stati
 
     if (filters.isRentPayee !== undefined) {
       const isRentBool = filters.isRentPayee === true || filters.isRentPayee === 'true';

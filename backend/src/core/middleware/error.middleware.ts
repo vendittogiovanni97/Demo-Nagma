@@ -35,7 +35,7 @@ export function globalErrorHandler(err: unknown, req: Request, res: Response, _n
 
   // 2. Prisma Known Request Errors
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    let message = 'Errore nei dati inviati.';
+    let message: string;
     let statusCode = 400;
     let code = 'DATABASE_ERROR';
 

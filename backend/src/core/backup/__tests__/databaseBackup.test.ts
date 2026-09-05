@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { PassThrough } from 'stream';
+import { spawn } from 'child_process';
 
 import { config } from '../../config/env';
 import { DatabaseBackupScheduler } from '../databaseBackup';
@@ -14,7 +15,7 @@ jest.mock('child_process', () => {
   };
 });
 
-const { spawn } = require('child_process');
+const mockedSpawn = jest.mocked(spawn);
 
 /** Shape minima del ChildProcess mockato: stdout/stderr sono Duplex (PassThrough),
  *  con emit per simulare gli eventi 'close'/'error'. */
@@ -47,7 +48,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
   });
 
   it('dovrebbe individuare pg_dump nativo ed eseguire il backup senza errori', async () => {
-    spawn.mockImplementation((command: string, args: string[]) => {
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
       const child = mockChild();
 
       setTimeout(() => {
@@ -86,7 +87,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
       await fs.writeFile(path.join(testBackupDir, fakeName), 'fake content');
     }
 
-    spawn.mockImplementation((command: string, args: string[]) => {
+    mockedSpawn.mockImplementation((command: string, args: string[]) => {
       const child = mockChild();
 
       setTimeout(() => {
@@ -110,7 +111,7 @@ describe('DatabaseBackupScheduler Unit Tests (Without Postgres)', () => {
   });
 
   it('dovrebbe gestire con grazia l assenza sia di pg_dump che di docker', async () => {
-    spawn.mockImplementation(() => {
+    mockedSpawn.mockImplementation(() => {
       const child = mockChild();
 
       setTimeout(() => {

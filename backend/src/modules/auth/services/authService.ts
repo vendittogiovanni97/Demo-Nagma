@@ -6,7 +6,7 @@ import { config } from '../../../core/config/env';
 import { Role, ThemeMode } from '@prisma/client';
 
 function sanitizeUser<T extends Record<string, unknown>>(user: T): Omit<T, 'password'> {
-  const { password, ...rest } = user;
+  const { password: _password, ...rest } = user;
   return rest;
 }
 

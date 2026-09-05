@@ -4,7 +4,6 @@ import type { Server } from 'http';
 import prisma, { closeDatabase } from './core/shared/utils/prisma';
 import { financeCache } from './modules/finance/services/finance.cache';
 import { createApp } from './app';
-import { config } from './core/config/env';
 import { isDebugHttpEnabled, logger } from './core/shared/utils/logger';
 import { container } from './core/container';
 import { ConfigService } from './modules/config/services/configService';
@@ -13,7 +12,6 @@ import { backupService } from './core/backup/backup.service';
 import { initErrorTracking } from './core/observability/errorTracking';
 const configService = container.get(ConfigService);
 
-const RESTART_DELAY_MS = config.restartDelayMs;
 const port = Number(process.env.PORT || 3001);
 
 let server: Server | null = null;
@@ -30,7 +28,7 @@ function validateEnv() {
     throw new Error('JWT_SECRET troppo corto (minimo 32 caratteri richiesti per HS256)');
   }
   if (/change-this|your-super-secret|placeholder|example/i.test(jwtSecret)) {
-    console.warn('⚠️  ATTENZIONE: JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
+    logger.warn('JWT_SECRET sembra un placeholder. Cambialo prima della produzione.');
   }
 
   if (!process.env.DATABASE_URL) {

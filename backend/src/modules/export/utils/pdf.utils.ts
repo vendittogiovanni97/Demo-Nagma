@@ -196,7 +196,7 @@ export class PdfUtils {
   /**
    * Finalizza la numerazione delle pagine nel footer ed evita qualsiasi pagina bianca vuota
    */
-  static finalizeFooter(doc: typeof PDFDocument, totalRecords: number): void {
+  static finalizeFooter(doc: typeof PDFDocument, _totalRecords: number): void {
     const margin = this.DEFAULT_MARGIN;
     const pageWidth = this.PAGE_WIDTH_LANDSCAPE;
     const pageHeight = this.PAGE_HEIGHT_LANDSCAPE;

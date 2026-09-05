@@ -1,7 +1,7 @@
 // swagger.ts — Swagger/OpenAPI configuration
 // Uses dynamic require because swagger-jsdoc is a CommonJS-only package.
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const swaggerJsdoc = require('swagger-jsdoc');
 
 let cachedSwaggerSpec: ReturnType<typeof swaggerJsdoc> | null = null;

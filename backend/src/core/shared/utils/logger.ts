@@ -129,15 +129,18 @@ function writeLog(level: LogLevel, message: string, meta?: LogMeta) {
   const line = buildLine(level, message, meta);
 
   if (level === 'ERROR') {
+    // eslint-disable-next-line no-console
     console.error(line);
     return;
   }
 
   if (level === 'WARN') {
+    // eslint-disable-next-line no-console
     console.warn(line);
     return;
   }
 
+  // eslint-disable-next-line no-console
   console.log(line);
 }
 

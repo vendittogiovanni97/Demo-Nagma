@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../../core/middleware/auth.middleware';
-import { ConfigService, ClientFeatures } from '../services/configService';
+import { ConfigService } from '../services/configService';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 import { clearFeatureCache } from '../../../core/middleware/featureFlag.middleware';
 import { DatabaseBackupService } from '../services/databaseBackupService';

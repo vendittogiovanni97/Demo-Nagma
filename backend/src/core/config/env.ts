@@ -14,11 +14,6 @@ function envStr(key: string, fallback: string): string {
   return process.env[key] ?? fallback;
 }
 
-function envRequired(key: string): string {
-  const val = process.env[key];
-  if (!val) throw new Error(`Variabile d'ambiente obbligatoria non impostata: ${key}`);
-  return val;
-}
 
 function envBool(key: string, fallback: boolean): boolean {
   const val = process.env[key];

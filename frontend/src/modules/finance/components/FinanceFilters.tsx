@@ -88,7 +88,7 @@ export default function FinanceFilters({
             border: `1px solid ${theme.palette.divider}`,
             '&.Mui-selected': {
               bgcolor: 'primary.main',
-              color: 'white',
+              color: 'common.white',
               '&:hover': { bgcolor: 'primary.dark' }
             }
           }

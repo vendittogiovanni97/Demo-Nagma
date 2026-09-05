@@ -237,7 +237,7 @@ export class TransactionService {
     amount?: number;
     date?: string;
   }, userId?: number) {
-    const existing = await prisma.transaction.findUnique({ where: { id } });
+    const existing = await prisma.transaction.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError('Transazione non trovata', 404);
 
     const result = await prisma.$transaction(async (tx) => {
@@ -273,7 +273,7 @@ export class TransactionService {
   }
 
   async delete(id: number, userId?: number) {
-    const existing = await prisma.transaction.findUnique({ where: { id } });
+    const existing = await prisma.transaction.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError('Transazione non trovata', 404);
 
     await prisma.$transaction(async (tx) => {

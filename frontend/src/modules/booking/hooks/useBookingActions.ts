@@ -21,22 +21,24 @@ export function useBookingActions({ mutate, onUpdateLocalState }: UseBookingActi
     closePendingDelete,
   } = useBookingDelete(mutate);
 
-  const handleComplete = async (id: number) => {
+  const handleComplete = async (id: number, previousStatus?: string) => {
+    onUpdateLocalState?.(id, { status: 'COMPLETATO' });
     try {
-      onUpdateLocalState?.(id, { status: 'COMPLETATO' });
       await bookingService.update(id, { status: 'COMPLETATO' });
       await mutate();
     } catch {
+      if (previousStatus) onUpdateLocalState?.(id, { status: previousStatus });
       await mutate();
     }
   };
 
-  const handleRestore = async (id: number) => {
+  const handleRestore = async (id: number, previousStatus?: string) => {
+    onUpdateLocalState?.(id, { status: 'CONFERMATO' });
     try {
-      onUpdateLocalState?.(id, { status: 'CONFERMATO' });
       await bookingService.update(id, { status: 'CONFERMATO' });
       await mutate();
     } catch {
+      if (previousStatus) onUpdateLocalState?.(id, { status: previousStatus });
       await mutate();
     }
   };

@@ -64,11 +64,12 @@ function hashPassword(pw: string): Promise<string> {
 async function seedAccounts(accounts: AccountSeed[]): Promise<void> {
   for (const acc of accounts) {
     const hashed = await hashPassword(acc.password);
-    await prisma.user.upsert({
-      where: { email: acc.email },
-      update: { password: hashed },
-      create: { name: acc.name, email: acc.email, role: acc.role as any, password: hashed },
-    });
+    const existing = await prisma.user.findFirst({ where: { email: acc.email, deletedAt: null } });
+    if (existing) {
+      await prisma.user.update({ where: { id: existing.id }, data: { password: hashed } });
+    } else {
+      await prisma.user.create({ data: { name: acc.name, email: acc.email, role: acc.role as any, password: hashed } });
+    }
   }
   console.log(`  ${accounts.length} account`);
 }

@@ -138,6 +138,7 @@ export default function CustomerListPage() {
               customer={customer}
               onEdit={(selected) => openCustomerModal(selected)}
               onDelete={() => handleDelete(customer)}
+              onView={(selected) => setViewId(selected.id)}
             />
           )}
         />

@@ -18,6 +18,7 @@ jest.mock('../../../src/core/shared/utils/preview', () => ({
 const createMockPrisma = () => ({
   booking: {
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
   },
   attachment: {
     create: jest.fn(),
@@ -55,7 +56,7 @@ describe('AttachmentService', () => {
 
   describe('upload', () => {
     it('should upload file and create attachment record', async () => {
-      mockPrisma.booking.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.booking.findFirst.mockResolvedValue({ id: 1 });
       mockPrisma.attachment.create.mockResolvedValue({ id: 'att-uuid', bookingId: 1, fileName: 'test.pdf', fileSize: 100, mimeType: 'application/pdf', filePath: '/uploads/test.pdf' });
 
       const result = await service.upload({ bookingId: 1, fileName: 'test.pdf', buffer: Buffer.alloc(100), mimeType: 'application/pdf' });
@@ -66,7 +67,7 @@ describe('AttachmentService', () => {
     });
 
     it('should throw when booking not found', async () => {
-      mockPrisma.booking.findUnique.mockResolvedValue(null);
+      mockPrisma.booking.findFirst.mockResolvedValue(null);
 
       await expect(service.upload({ bookingId: 999, fileName: 't.pdf', buffer: Buffer.alloc(1), mimeType: 'text/plain' }))
         .rejects.toThrow(new AppError('Booking non trovato', 404, 'BOOKING_NOT_FOUND'));

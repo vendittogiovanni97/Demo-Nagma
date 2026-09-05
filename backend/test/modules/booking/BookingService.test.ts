@@ -66,6 +66,7 @@ function bookingRow(overrides = {}) {
 
 function mockTx() {
   return {
+    $queryRaw: jest.fn().mockResolvedValue([]),
     booking: {
       create: jest.fn(),
       update: jest.fn(),
@@ -80,6 +81,9 @@ function mockTx() {
       updateMany: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
+    },
+    staff: {
+      findUnique: jest.fn(),
     },
   };
 }
@@ -98,8 +102,9 @@ describe('BookingService', () => {
 
   describe('create', () => {
     it('should create booking when no conflict', async () => {
-      mockPrisma.$queryRaw.mockResolvedValue([]);
       const tx = mockTx();
+      // prima chiamata: advisory lock (restituisce void), seconda: nessun conflitto
+      tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       tx.booking.create.mockResolvedValue(bookingRow());
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
@@ -110,7 +115,7 @@ describe('BookingService', () => {
         duration: 120,
       }, 1);
 
-      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
+      expect(tx.$queryRaw).toHaveBeenCalled();
       expect(tx.booking.create).toHaveBeenCalled();
       expect(tx.bookingHistory.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ action: 'CREATO' }) })
@@ -119,7 +124,10 @@ describe('BookingService', () => {
     });
 
     it('should throw 409 on conflict', async () => {
-      mockPrisma.$queryRaw.mockResolvedValue([{ id: 42 }]);
+      const tx = mockTx();
+      // prima chiamata: advisory lock, seconda: conflitto trovato
+      tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: 42 }]);
+      mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
       await expect(bookingService.create({
         customerId: 1, artistId: 1, date: '2026-07-15T10:00:00',
@@ -135,9 +143,10 @@ describe('BookingService', () => {
     it('should update booking and change status to SPOSTATO when date changes', async () => {
       const old = bookingRow({ date: new Date('2026-07-15T10:00:00') });
       mockPrisma.booking.findUnique.mockResolvedValue(old);
-      mockPrisma.$queryRaw.mockResolvedValue([]);
 
       const tx = mockTx();
+      // prima chiamata: advisory lock, seconda: nessun conflitto
+      tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       tx.booking.update.mockResolvedValue({ ...old, date: new Date('2026-07-16T10:00:00') });
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
@@ -258,7 +267,7 @@ describe('BookingService', () => {
 
       expect(tx.booking.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { status: 'CANCELLATO', price: 0 },
+        data: { status: 'CANCELLATO', price: 0, deletedAt: expect.any(Date) },
       });
       expect(tx.bookingHistory.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ action: 'CANCELLATO' }) })

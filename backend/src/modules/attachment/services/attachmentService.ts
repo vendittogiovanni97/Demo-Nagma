@@ -6,7 +6,7 @@ import { PreviewManager } from '../../../core/shared/utils/preview';
 
 export class AttachmentService {
   async upload(data: { bookingId: number; fileName: string; buffer: Buffer; mimeType: string }) {
-    const bookingExists = !!(await prisma.booking.findUnique({ where: { id: data.bookingId }, select: { id: true } }));
+    const bookingExists = !!(await prisma.booking.findFirst({ where: { id: data.bookingId, deletedAt: null }, select: { id: true } }));
     if (!bookingExists) {
       throw new AppError('Booking non trovato', 404, 'BOOKING_NOT_FOUND');
     }

@@ -113,8 +113,14 @@ export class StaffService {
 
   async listShifts(weekStart?: string) {
     if (!weekStart) {
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setUTCDate(today.getUTCDate() - today.getUTCDay() + 1);
+      startOfWeek.setUTCHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
       return prisma.shift.findMany({
-        where: { deletedAt: null },
+        where: { deletedAt: null, date: { gte: startOfWeek, lte: endOfWeek } },
         orderBy: { date: 'asc' },
         include: { staff: true },
       });

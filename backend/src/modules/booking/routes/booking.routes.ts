@@ -21,7 +21,7 @@ export function registerBookingRoutes(app: Express): void {
   router.get('/:id/history', controller.getHistory);
   router.put('/:id', controller.update);
   router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.delete);
-  router.put('/:id/annul', controller.annul);
+  router.put('/:id/annul', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.annul);
 
   app.use('/api/bookings', router);
 }

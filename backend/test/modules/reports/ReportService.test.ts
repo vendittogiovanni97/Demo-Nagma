@@ -1,18 +1,17 @@
 const createMockPrisma = () => ({
   transaction: {
     findMany: jest.fn(),
+    aggregate: jest.fn(),
+    count: jest.fn(),
   },
   booking: {
-    count: jest.fn(),
-    groupBy: jest.fn(),
     findMany: jest.fn(),
+    count: jest.fn(),
   },
   customer: {
     count: jest.fn(),
   },
-  staff: {
-    findMany: jest.fn(),
-  },
+  $transaction: jest.fn(),
 });
 
 jest.mock('../../../src/core/shared/utils/prisma', () => ({
@@ -35,20 +34,32 @@ describe('ReportsService', () => {
 
   describe('getSummary', () => {
     it('should aggregate financial, booking and customer metrics correctly', async () => {
-      mockPrisma.transaction.findMany.mockResolvedValue([
-        { amount: 1500, type: 'ENTRATA' },
-        { amount: 300, type: 'USCITA' },
+      // $transaction([revenueAgg, expensesAgg, transactionCount])
+      mockPrisma.$transaction.mockResolvedValue([
+        { _sum: { amount: 1500 } },
+        { _sum: { amount: 300 } },
+        2,
       ]);
-      const mockBookings = Array(15).fill({ status: 'COMPLETATO' }).concat(Array(5).fill({ status: 'ANNULLATO' }));
+
+      const mockBookings = [
+        ...Array(15).fill(null).map((_, i) => ({
+          id: i + 1,
+          status: 'COMPLETATO',
+          price: 100,
+          artistId: 1,
+          artist: { id: 1, name: 'Marco Tatuatore' },
+        })),
+        ...Array(5).fill(null).map((_, i) => ({
+          id: i + 16,
+          status: 'ANNULLATO',
+          price: 0,
+          artistId: 1,
+          artist: { id: 1, name: 'Marco Tatuatore' },
+        })),
+      ];
       mockPrisma.booking.findMany.mockResolvedValue(mockBookings as any);
       mockPrisma.customer.count.mockResolvedValueOnce(100);
       mockPrisma.customer.count.mockResolvedValueOnce(5);
-      mockPrisma.booking.groupBy.mockResolvedValue([
-        { staffId: 1, _count: { id: 8 } },
-      ]);
-      mockPrisma.staff.findMany.mockResolvedValue([
-        { id: 1, name: 'Marco Tatuatore' },
-      ]);
 
       const result = await service.getSummary({});
 
@@ -58,6 +69,8 @@ describe('ReportsService', () => {
       expect(result.bookings.totalBookings).toBe(20);
       expect(result.bookings.completedBookings).toBe(15);
       expect(result.bookings.completionRate).toBe(75);
+      expect(result.customers.totalActiveCustomers).toBe(100);
+      expect(result.customers.newCustomersInPeriod).toBe(5);
     });
   });
 });

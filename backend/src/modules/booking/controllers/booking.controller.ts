@@ -4,7 +4,7 @@ import { AuthRequest } from '../../../core/middleware/auth.middleware';
 import { BookingService } from '../services/bookingService';
 import { handleCreate, handleUpdate } from '../../../core/utils/handler';
 import { validate } from '../../../core/shared/utils/validation';
-import { verifyPasswordSchema, createBookingSchema, updateBookingSchema } from './booking.schemas';
+import { verifyPasswordSchema, createBookingSchema, updateBookingSchema, kanbanStageSchema } from './booking.schemas';
 import { parsePageQuery } from '../../../core/shared/utils/date-utils';
 import { parseId } from '../../../core/shared/utils/parse-id';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
@@ -102,8 +102,7 @@ export class BookingController {
 
   updateKanbanStatus = asyncHandler(async (req: AuthRequest, res: Response) => {
     const id = parseId(req.params.id);
-    const { stage } = req.body;
-    if (!stage) return res.status(400).json({ message: 'Stato kanban obbligatorio' });
+    const { stage } = validate(kanbanStageSchema, req.body);
     const result = await this.bookingService.updateKanbanStatus(id, stage, req.user?.id);
     res.json(result);
   });

@@ -4,8 +4,10 @@ const createMockPrisma = () => ({
   transaction: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
     count: jest.fn(),
     groupBy: jest.fn(),
+    aggregate: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -106,7 +108,7 @@ describe('TransactionService', () => {
 
   describe('delete', () => {
     it('should soft-delete transaction and add history', async () => {
-      mockPrisma.transaction.findUnique.mockResolvedValue(txRow());
+      mockPrisma.transaction.findFirst.mockResolvedValue(txRow());
       const tx = mockTx();
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
@@ -122,7 +124,7 @@ describe('TransactionService', () => {
     });
 
     it('should throw 404 when transaction not found', async () => {
-      mockPrisma.transaction.findUnique.mockResolvedValue(null);
+      mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
       await expect(transactionService.delete(999))
         .rejects.toThrow(new AppError('Transazione non trovata', 404));

@@ -252,27 +252,31 @@ export class BookingService {
     const startDate = new Date(data.date as string | number | Date);
     const duration = (data.duration as number) ?? 120;
     const endDate = new Date(startDate.getTime() + duration * 60_000);
-
-    const conflictRows = await prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
-      SELECT id FROM "bookings"
-      WHERE "artistId" = ${data.artistId as number}
-        AND "deletedAt" IS NULL
-        AND "status" <> 'CANCELLATO'
-        AND "date" < ${endDate}
-        AND ("date" + ("duration" || ' minutes')::interval) > ${startDate}
-      LIMIT 1
-    `);
-
-    if (conflictRows[0]) {
-      throw new AppError(
-        'Esiste già una prenotazione per questo artista nella fascia oraria selezionata',
-        409,
-        'BOOKING_CONFLICT',
-        { conflictingBookingId: conflictRows[0].id }
-      );
-    }
+    const artistId = data.artistId as number;
 
     const result = await prisma.$transaction(async (tx) => {
+      // Lock esclusivo per artista: serializza le richieste concorrenti sullo stesso artista
+      // ed elimina la race condition tra il check conflitti e l'INSERT.
+      await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(${artistId}::bigint)`);
+
+      const conflictRows = await tx.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+        SELECT id FROM "bookings"
+        WHERE "artistId" = ${artistId}
+          AND "deletedAt" IS NULL
+          AND "status" <> 'CANCELLATO'
+          AND "date" < ${endDate}
+          AND ("date" + ("duration" || ' minutes')::interval) > ${startDate}
+        LIMIT 1
+      `);
+
+      if (conflictRows[0]) {
+        throw new AppError(
+          'Esiste già una prenotazione per questo artista nella fascia oraria selezionata',
+          409,
+          'BOOKING_CONFLICT',
+          { conflictingBookingId: conflictRows[0].id }
+        );
+      }
       const booking = await tx.booking.create({
         data: {
           customerId: data.customerId as number,
@@ -348,29 +352,34 @@ export class BookingService {
     const newArtistId = (data.artistId as number) ?? oldBooking.artistId;
     const endDate = new Date(newDate.getTime() + newDuration * 60_000);
 
-    if (newStatus !== 'ANNULLATO' && newStatus !== 'CANCELLATO' && (data.date || data.duration || data.artistId)) {
-      const conflictRows = await prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
-      SELECT id FROM "bookings"
-      WHERE "artistId" = ${newArtistId}
-        AND "deletedAt" IS NULL
-        AND "status" <> 'CANCELLATO'
-        AND "date" < ${endDate}
-        AND ("date" + ("duration" || ' minutes')::interval) > ${newDate}
-        AND id <> ${id}
-      LIMIT 1
-      `);
-
-      if (conflictRows[0]) {
-        throw new AppError(
-          'Esiste già una prenotazione per questo artista nella fascia oraria selezionata',
-          409,
-          'BOOKING_CONFLICT',
-          { conflictingBookingId: conflictRows[0].id }
-        );
-      }
-    }
+    const needsConflictCheck =
+      newStatus !== 'ANNULLATO' && newStatus !== 'CANCELLATO' && (data.date || data.duration || data.artistId);
 
     const result = await prisma.$transaction(async (tx) => {
+      if (needsConflictCheck) {
+        // Lock esclusivo per artista: serializza le richieste concorrenti sullo stesso artista.
+        await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(${newArtistId}::bigint)`);
+
+        const conflictRows = await tx.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+          SELECT id FROM "bookings"
+          WHERE "artistId" = ${newArtistId}
+            AND "deletedAt" IS NULL
+            AND "status" <> 'CANCELLATO'
+            AND "date" < ${endDate}
+            AND ("date" + ("duration" || ' minutes')::interval) > ${newDate}
+            AND id <> ${id}
+          LIMIT 1
+        `);
+
+        if (conflictRows[0]) {
+          throw new AppError(
+            'Esiste già una prenotazione per questo artista nella fascia oraria selezionata',
+            409,
+            'BOOKING_CONFLICT',
+            { conflictingBookingId: conflictRows[0].id }
+          );
+        }
+      }
       const updated = await tx.booking.update({
         where: { id },
         data: {
@@ -387,8 +396,9 @@ export class BookingService {
         include: { customer: true, artist: true },
       });
 
-      const action =
-        data.status === 'ANNULLATO' || data.status === 'CANCELLATO' ? 'ANNULLATO'
+      const action: BookingStatus =
+        data.status === 'CANCELLATO' ? 'CANCELLATO'
+        : data.status === 'ANNULLATO' ? 'ANNULLATO'
         : data.status === 'COMPLETATO' ? 'COMPLETATO'
         : data.date || data.duration || data.artistId ? 'SPOSTATO'
         : 'MODIFICATO';
@@ -478,7 +488,7 @@ export class BookingService {
 
       await tx.booking.update({
         where: { id },
-        data: { status: 'CANCELLATO', price: 0 },
+        data: { status: 'CANCELLATO', price: 0, deletedAt: new Date() },
       });
 
       await tx.bookingHistory.create({

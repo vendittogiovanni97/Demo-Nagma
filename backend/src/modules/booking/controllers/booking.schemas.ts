@@ -18,6 +18,11 @@ export const verifyPasswordSchema = z.object({
   password: z.string().min(1, 'Password obbligatoria'),
 });
 
+export const kanbanStageValues = ['IN_ARRIVO', 'IN_ATTESA', 'IN_SEDUTA', 'DA_SALDARE', 'SALDATO'] as const;
+export const kanbanStageSchema = z.object({
+  stage: z.enum(kanbanStageValues, { message: 'Stato kanban non valido' }),
+});
+
 export const updateBookingSchema = z.object({
   artistId: z.coerce.number().int().min(1).max(999999, 'artistId non valido').optional(),
   customerId: z.coerce.number().int().min(1).max(999999, 'customerId non valido').optional(),

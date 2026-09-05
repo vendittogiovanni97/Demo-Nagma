@@ -30,13 +30,17 @@ echo ""
 
 # Download degli aggiornamenti da Git
 echo "📡 Download degli ultimi aggiornamenti da GitHub in corso..."
-CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "master")
-git pull origin "$CURRENT_BRANCH"
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "main")
 
-if [ $? -ne 0 ]; then
+# Timeout su git pull per evitare blocchi su richiesta credenziali
+GIT_TERMINAL_PROMPT=0 git pull origin "$CURRENT_BRANCH" 2>&1
+GIT_EXIT=$?
+
+if [ $GIT_EXIT -ne 0 ]; then
   echo ""
   echo "❌ ERRORE: Impossibile scaricare gli aggiornamenti da Git."
-  echo "   Verifica la connessione ad Internet o lo stato del repository."
+  echo "   Possibile causa: credenziali GitHub non salvate o nessuna connessione."
+  echo "   Soluzione: esegui una volta dal terminale 'git pull' e salva le credenziali."
   echo ""
   echo "Premi un tasto qualsiasi per chiudere la finestra..."
   read -k 1 -s
@@ -56,6 +60,20 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+echo ""
+echo "🗄️  Applicazione migrazioni database in corso..."
+npm run db:migrate:prod
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ ERRORE: Migrazione database fallita."
+  echo "   Assicurati che Docker sia avviato e il database sia raggiungibile."
+  echo ""
+  echo "Premi un tasto qualsiasi per chiudere la finestra..."
+  read -k 1 -s
+  exit 1
+fi
+
 # Lettura nuova versione dal package.json
 NEW_VERSION=$(node -e "try { console.log(require('./package.json').version || '1.0.0'); } catch(e) { console.log('1.0.0'); }" 2>/dev/null)
 
@@ -67,7 +85,7 @@ echo "  📌 Versione precedente: v${OLD_VERSION}"
 echo "  🆕 Versione attuale:    v${NEW_VERSION}"
 echo "================================================================="
 echo ""
-echo "💡 Ora puoi avviare il progetto facendo doppio click su 'starter.command'."
+echo "💡 Ora puoi avviare il progetto facendo doppio click su 'start.command'."
 echo ""
 echo "Premi un tasto qualsiasi per uscire..."
 read -k 1 -s

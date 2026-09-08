@@ -32,6 +32,9 @@ echo ""
 echo "📡 Download degli ultimi aggiornamenti da GitHub in corso..."
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "main")
 
+# Ripristina eventuali file generati modificati in locale per evitare blocchi al pull
+git checkout -- frontend/next-env.d.ts 2>/dev/null || true
+
 # Timeout su git pull per evitare blocchi su richiesta credenziali
 GIT_TERMINAL_PROMPT=0 git pull origin "$CURRENT_BRANCH" 2>&1
 GIT_EXIT=$?

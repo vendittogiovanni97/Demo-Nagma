@@ -67,7 +67,20 @@ npm run db:migrate:prod
 if [ $? -ne 0 ]; then
   echo ""
   echo "❌ ERRORE: Migrazione database fallita."
-  echo "   Assicurati che Docker sia avviato e il database sia raggiungibile."
+  echo "   Assicurati che il database sia avviato e raggiungibile."
+  echo ""
+  echo "Premi un tasto qualsiasi per chiudere la finestra..."
+  read -k 1 -s
+  exit 1
+fi
+
+echo ""
+echo "🏗️  Compilazione e ottimizzazione di produzione in corso..."
+npm run build
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ ERRORE: Compilazione del progetto fallita."
   echo ""
   echo "Premi un tasto qualsiasi per chiudere la finestra..."
   read -k 1 -s
@@ -85,7 +98,7 @@ echo "  📌 Versione precedente: v${OLD_VERSION}"
 echo "  🆕 Versione attuale:    v${NEW_VERSION}"
 echo "================================================================="
 echo ""
-echo "💡 Ora puoi avviare il progetto facendo doppio click su 'start.command'."
+echo "💡 Ora puoi avviare il progetto facendo doppio click su 'starter.command'."
 echo ""
 echo "Premi un tasto qualsiasi per uscire..."
 read -k 1 -s

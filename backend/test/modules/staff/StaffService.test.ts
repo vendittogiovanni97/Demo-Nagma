@@ -159,6 +159,24 @@ describe('StaffService', () => {
         .rejects.toThrow(new AppError('Conflitto orario rilevato per questo staff nel giorno specificato', 409));
     });
 
+    it('should create shift with string date', async () => {
+      mockPrisma.shift.findMany.mockResolvedValue([]);
+      mockPrisma.shift.create.mockResolvedValue({ id: 's1', staffId: 1, date: new Date('2026-07-15'), startTime: '09:00', endTime: '13:00', staff: {} });
+
+      const result = await service.createShift({ staffId: 1, date: '2026-07-15', label: 'Mattina' });
+
+      expect(result.startTime).toBe('09:00');
+    });
+
+    it('should create shift with weekStart and dayOfWeek', async () => {
+      mockPrisma.shift.findMany.mockResolvedValue([]);
+      mockPrisma.shift.create.mockResolvedValue({ id: 's2', staffId: 1, date: new Date('2026-07-15'), startTime: '09:00', endTime: '13:00', staff: {} });
+
+      const result = await service.createShift({ staffId: 1, weekStart: '2026-07-13', dayOfWeek: 2, label: 'Mattina' });
+
+      expect(result.startTime).toBe('09:00');
+    });
+
     it('should throw when missing date and weekStart', async () => {
       mockPrisma.shift.findMany.mockResolvedValue([]);
 

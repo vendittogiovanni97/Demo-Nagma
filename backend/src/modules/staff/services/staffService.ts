@@ -148,12 +148,12 @@ export class StaffService {
     });
   }
 
-  async createShift(data: { staffId: number; label?: string; startTime?: string; endTime?: string; isOff?: boolean; date?: Date; weekStart?: string; dayOfWeek?: number; notes?: string }) {
+  async createShift(data: { staffId: number; label?: string; startTime?: string; endTime?: string; isOff?: boolean; date?: Date | string; weekStart?: string; dayOfWeek?: number; notes?: string | null }) {
     const resolved = resolveShiftLabel(data.label, data);
 
     let date: Date;
     if (data.date) {
-      date = data.date;
+      date = typeof data.date === 'string' ? parseUTCDate(data.date) : data.date;
     } else if (data.weekStart && data.dayOfWeek !== undefined) {
       date = buildShiftDate(data.weekStart, data.dayOfWeek);
     } else {
@@ -203,19 +203,21 @@ export class StaffService {
     return created;
   }
 
-  async updateShift(id: string, data: { label?: string; startTime?: string; endTime?: string; isOff?: boolean; weekStart?: string; dayOfWeek?: number; notes?: string }) {
+  async updateShift(id: string, data: { staffId?: number; label?: string; startTime?: string; endTime?: string; isOff?: boolean; date?: Date | string; weekStart?: string; dayOfWeek?: number; notes?: string | null }) {
     const existing = await prisma.shift.findUnique({ where: { id } });
     if (!existing) throw new AppError('Turno non trovato', 404);
 
     const resolved = resolveShiftLabel(data.label, data);
 
     let nextDate = existing.date;
-    if (data.weekStart !== undefined && data.dayOfWeek !== undefined) {
+    if (data.date) {
+      nextDate = typeof data.date === 'string' ? parseUTCDate(data.date) : data.date;
+    } else if (data.weekStart !== undefined && data.dayOfWeek !== undefined) {
       nextDate = buildShiftDate(data.weekStart, data.dayOfWeek);
     }
 
     const updateData: Prisma.ShiftUpdateInput = {};
-    if (data.weekStart !== undefined && data.dayOfWeek !== undefined) {
+    if (data.date !== undefined || (data.weekStart !== undefined && data.dayOfWeek !== undefined)) {
       updateData.date = nextDate;
     }
     if (data.startTime !== undefined) updateData.startTime = data.startTime;

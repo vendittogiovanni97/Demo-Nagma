@@ -23,15 +23,24 @@ export type UpdateStaffInput = z.infer<typeof updateStaffSchema>;
 
 export const createShiftSchema = z.object({
   staffId: z.number(),
-  startTime: z.string(),
-  endTime: z.string(),
-  label: z.string().optional(),
+  date: z.union([z.date(), z.string()]).optional(),
   weekStart: z.string().optional(),
+  dayOfWeek: z.number().min(0).max(6).optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  label: z.string().optional(),
+  isOff: z.boolean().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 export const updateShiftSchema = z.object({
   staffId: z.number().optional(),
+  date: z.union([z.date(), z.string()]).optional(),
+  weekStart: z.string().optional(),
+  dayOfWeek: z.number().min(0).max(6).optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
   label: z.string().optional(),
+  isOff: z.boolean().optional(),
+  notes: z.string().nullable().optional(),
 });

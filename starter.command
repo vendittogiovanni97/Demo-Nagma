@@ -52,6 +52,15 @@ if [ ! -d "backend/dist" ] || [ ! -d "frontend/.next" ]; then
   echo "✅ Compilazione completata con successo!"
 fi
 
+# 3. Libera eventuali vecchi processi rimasti bloccati in background sulle porte 3000 e 3001
+STALE_PIDS=$(lsof -ti :3000,3001 2>/dev/null)
+if [ -n "$STALE_PIDS" ]; then
+  echo ""
+  echo "🧹 Chiusura vecchie istanze rimaste in background..."
+  kill -9 $STALE_PIDS 2>/dev/null || true
+  sleep 1
+fi
+
 echo ""
 echo "================================================================="
 echo "  ⚡ DEMO-NAGMA ATTIVO (MODALITÀ PRODUZIONE - ALTE PRESTAZIONI)"

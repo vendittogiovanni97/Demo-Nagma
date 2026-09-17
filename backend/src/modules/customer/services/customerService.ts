@@ -108,7 +108,7 @@ export class CustomerService {
       where: { phone: data.phone, deletedAt: null },
     });
     if (existingByPhone) {
-      throw new AppError(`Un cliente con questo numero di telefono (${data.phone}) esiste già.`, 409, 'DUPLICATE_PHONE');
+      throw new AppError(`Il numero ${data.phone} è già associato a ${existingByPhone.firstName} ${existingByPhone.lastName}.`, 409, 'DUPLICATE_PHONE');
     }
 
     const existingByName = await prisma.customer.findFirst({
@@ -148,7 +148,7 @@ export class CustomerService {
         where: { phone: data.phone, deletedAt: null },
       });
       if (existingByPhone && existingByPhone.id !== id) {
-        throw new AppError(`Un altro cliente possiede già questo numero di telefono (${data.phone}).`, 409, 'DUPLICATE_PHONE');
+        throw new AppError(`Il numero ${data.phone} è già associato a ${existingByPhone.firstName} ${existingByPhone.lastName}.`, 409, 'DUPLICATE_PHONE');
       }
     }
 

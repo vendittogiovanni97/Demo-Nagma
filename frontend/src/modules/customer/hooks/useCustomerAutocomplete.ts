@@ -44,7 +44,7 @@ export function useCustomerAutocomplete(config: UseCustomerAutocompleteOptions =
   const options = useMemo<CustomerOption[]>(() => {
     const list = (data?.data ?? []).map((c) => ({
       value: c.id.toString(),
-      label: `${c.firstName} ${c.lastName}`,
+      label: c.phone ? `${c.firstName} ${c.lastName} — ${c.phone}` : `${c.firstName} ${c.lastName}`,
     }));
     if (pinned && !list.some((o) => o.value === pinned.value)) {
       list.unshift(pinned);

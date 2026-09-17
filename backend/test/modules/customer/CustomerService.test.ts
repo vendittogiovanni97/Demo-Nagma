@@ -109,9 +109,9 @@ describe('CustomerService', () => {
     });
 
     it('should throw when phone already exists', async () => {
-      mockPrisma.customer.findFirst.mockResolvedValueOnce({ id: 2, phone: '+39 123' });
+      mockPrisma.customer.findFirst.mockResolvedValueOnce({ id: 2, phone: '+39 123', firstName: 'Luca', lastName: 'Bianchi' });
 
-      await expect(service.create(createData)).rejects.toThrow('Un cliente con questo numero di telefono (+39 123) esiste già.');
+      await expect(service.create(createData)).rejects.toThrow('Il numero +39 123 è già associato a Luca Bianchi.');
     });
 
     it('should throw when name already exists', async () => {
@@ -137,10 +137,10 @@ describe('CustomerService', () => {
     it('should throw when phone conflicts with another customer', async () => {
       mockPrisma.customer.findFirst
         .mockResolvedValueOnce({ id: 1, firstName: 'Mario', lastName: 'Rossi', deletedAt: null })
-        .mockResolvedValueOnce({ id: 2, phone: '+39 999' });
+        .mockResolvedValueOnce({ id: 2, phone: '+39 999', firstName: 'Luca', lastName: 'Bianchi' });
 
       await expect(service.update(1, { phone: '+39 999' }))
-        .rejects.toThrow('Un altro cliente possiede già questo numero di telefono (+39 999).');
+        .rejects.toThrow('Il numero +39 999 è già associato a Luca Bianchi.');
     });
 
     it('should throw when name conflicts with another customer', async () => {

@@ -104,13 +104,6 @@ export class CustomerService {
   }
 
   async create(data: { firstName: string; lastName: string; phone: string; email?: string; notes?: string }) {
-    const existingByPhone = await prisma.customer.findFirst({
-      where: { phone: data.phone, deletedAt: null },
-    });
-    if (existingByPhone) {
-      throw new AppError(`Il numero ${data.phone} è già associato a ${existingByPhone.firstName} ${existingByPhone.lastName}.`, 409, 'DUPLICATE_PHONE');
-    }
-
     const existingByName = await prisma.customer.findFirst({
       where: {
         firstName: { equals: data.firstName, mode: 'insensitive' },
@@ -141,15 +134,6 @@ export class CustomerService {
     });
     if (!currentCustomer) {
       throw new AppError('Cliente non trovato.', 404, 'CUSTOMER_NOT_FOUND');
-    }
-
-    if (data.phone) {
-      const existingByPhone = await prisma.customer.findFirst({
-        where: { phone: data.phone, deletedAt: null },
-      });
-      if (existingByPhone && existingByPhone.id !== id) {
-        throw new AppError(`Il numero ${data.phone} è già associato a ${existingByPhone.firstName} ${existingByPhone.lastName}.`, 409, 'DUPLICATE_PHONE');
-      }
     }
 
     if (data.firstName || data.lastName) {

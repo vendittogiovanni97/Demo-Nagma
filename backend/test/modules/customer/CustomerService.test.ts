@@ -108,14 +108,18 @@ describe('CustomerService', () => {
       expect(result).toEqual({ id: 1, ...createData });
     });
 
-    it('should throw when phone already exists', async () => {
-      mockPrisma.customer.findFirst.mockResolvedValueOnce({ id: 2, phone: '+39 123', firstName: 'Luca', lastName: 'Bianchi' });
+    it('should allow a phone already used by another customer', async () => {
+      mockPrisma.customer.findFirst.mockResolvedValue(null);
+      mockPrisma.customer.create.mockResolvedValue({ id: 3, ...createData });
 
-      await expect(service.create(createData)).rejects.toThrow('Il numero +39 123 è già associato a Luca Bianchi.');
+      await service.create(createData);
+
+      expect(mockPrisma.customer.findFirst).not.toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ phone: createData.phone }) })
+      );
     });
 
     it('should throw when name already exists', async () => {
-      mockPrisma.customer.findFirst.mockResolvedValueOnce(null);
       mockPrisma.customer.findFirst.mockResolvedValueOnce({ id: 2, firstName: 'Mario', lastName: 'Rossi' });
 
       await expect(service.create(createData)).rejects.toThrow('Un cliente con nome "Mario Rossi" esiste già.');
@@ -134,13 +138,13 @@ describe('CustomerService', () => {
       expect(result).toEqual({ id: 1, firstName: 'Updated' });
     });
 
-    it('should throw when phone conflicts with another customer', async () => {
-      mockPrisma.customer.findFirst
-        .mockResolvedValueOnce({ id: 1, firstName: 'Mario', lastName: 'Rossi', deletedAt: null })
-        .mockResolvedValueOnce({ id: 2, phone: '+39 999', firstName: 'Luca', lastName: 'Bianchi' });
+    it('should allow updating to a phone already used by another customer', async () => {
+      mockPrisma.customer.findFirst.mockResolvedValueOnce({ id: 1, firstName: 'Mario', lastName: 'Rossi', deletedAt: null });
+      mockPrisma.customer.update.mockResolvedValue({ id: 1, phone: '+39 999' });
 
-      await expect(service.update(1, { phone: '+39 999' }))
-        .rejects.toThrow('Il numero +39 999 è già associato a Luca Bianchi.');
+      const result = await service.update(1, { phone: '+39 999' });
+
+      expect(result).toEqual({ id: 1, phone: '+39 999' });
     });
 
     it('should throw when name conflicts with another customer', async () => {

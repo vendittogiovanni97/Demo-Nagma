@@ -256,7 +256,7 @@ export class BookingService {
     const result = await prisma.$transaction(async (tx) => {
       // Lock esclusivo per artista: serializza le richieste concorrenti sullo stesso artista
       // ed elimina la race condition tra il check conflitti e l'INSERT.
-      await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(${artistId}::bigint)`);
+      await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(${artistId}::bigint)`);
 
       const conflictRows = await tx.$queryRaw<Array<{ id: number }>>(Prisma.sql`
         SELECT id FROM "bookings"
@@ -357,7 +357,7 @@ export class BookingService {
     const result = await prisma.$transaction(async (tx) => {
       if (needsConflictCheck) {
         // Lock esclusivo per artista: serializza le richieste concorrenti sullo stesso artista.
-        await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(${newArtistId}::bigint)`);
+        await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(${newArtistId}::bigint)`);
 
         const conflictRows = await tx.$queryRaw<Array<{ id: number }>>(Prisma.sql`
           SELECT id FROM "bookings"

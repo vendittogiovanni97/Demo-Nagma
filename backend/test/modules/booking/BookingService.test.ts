@@ -29,6 +29,7 @@ const createMockPrisma = () => ({
   },
   $transaction: jest.fn(),
   $queryRaw: jest.fn(),
+  $executeRaw: jest.fn(),
   $connect: jest.fn(),
   $disconnect: jest.fn(),
 });
@@ -67,6 +68,7 @@ function bookingRow(overrides = {}) {
 function mockTx() {
   return {
     $queryRaw: jest.fn().mockResolvedValue([]),
+    $executeRaw: jest.fn().mockResolvedValue(0),
     booking: {
       create: jest.fn(),
       update: jest.fn(),
@@ -103,8 +105,8 @@ describe('BookingService', () => {
   describe('create', () => {
     it('should create booking when no conflict', async () => {
       const tx = mockTx();
-      // prima chiamata: advisory lock (restituisce void), seconda: nessun conflitto
-      tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+      // l'advisory lock usa $executeRaw; $queryRaw risponde alla sola query conflitti
+      tx.$queryRaw.mockResolvedValueOnce([]);
       tx.booking.create.mockResolvedValue(bookingRow());
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
@@ -126,7 +128,7 @@ describe('BookingService', () => {
     it('should throw 409 on conflict', async () => {
       const tx = mockTx();
       // prima chiamata: advisory lock, seconda: conflitto trovato
-      tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: 42 }]);
+      tx.$queryRaw.mockResolvedValueOnce([{ id: 42 }]);
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 
       await expect(bookingService.create({
@@ -146,7 +148,7 @@ describe('BookingService', () => {
 
       const tx = mockTx();
       // prima chiamata: advisory lock, seconda: nessun conflitto
-      tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+      tx.$queryRaw.mockResolvedValueOnce([]);
       tx.booking.update.mockResolvedValue({ ...old, date: new Date('2026-07-16T10:00:00') });
       mockPrisma.$transaction.mockImplementation((cb: Function) => cb(tx));
 

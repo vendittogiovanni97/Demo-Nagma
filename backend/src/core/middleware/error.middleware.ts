@@ -73,7 +73,7 @@ export function globalErrorHandler(err: unknown, req: Request, res: Response, _n
 
     logger.warn(
       `${statusCode} ${req.method} ${req.originalUrl} · ${code} · ${message}`,
-      { userId: req.user?.id, prismaCode: err.code },
+      { userId: req.user?.id, prismaCode: err.code, detail: err.message },
     );
 
     return res.status(statusCode).json({

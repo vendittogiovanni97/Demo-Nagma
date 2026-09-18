@@ -170,6 +170,7 @@ export class StaffService {
     const existingShifts = await prisma.shift.findMany({
       where: {
         staffId: data.staffId,
+        deletedAt: null,
         date: {
           gte: new Date(date.toDateString()),
           lt: new Date(new Date(date.toDateString()).getTime() + 24 * 60 * 60 * 1000),
@@ -204,7 +205,7 @@ export class StaffService {
   }
 
   async updateShift(id: string, data: { staffId?: number; label?: string; startTime?: string; endTime?: string; isOff?: boolean; date?: Date | string; weekStart?: string; dayOfWeek?: number; notes?: string | null }) {
-    const existing = await prisma.shift.findUnique({ where: { id } });
+    const existing = await prisma.shift.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new AppError('Turno non trovato', 404);
 
     const resolved = resolveShiftLabel(data.label, data);

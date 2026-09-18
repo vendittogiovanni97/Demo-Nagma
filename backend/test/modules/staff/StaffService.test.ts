@@ -11,6 +11,7 @@ const createMockPrisma = () => ({
   },
   shift: {
     findMany: jest.fn(),
+    findFirst: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -187,7 +188,7 @@ describe('StaffService', () => {
 
   describe('updateShift', () => {
     it('should update shift data', async () => {
-      mockPrisma.shift.findUnique.mockResolvedValue({ id: 's1', date: new Date(), startTime: '09:00', endTime: '13:00' });
+      mockPrisma.shift.findFirst.mockResolvedValue({ id: 's1', date: new Date(), startTime: '09:00', endTime: '13:00' });
       mockPrisma.shift.update.mockResolvedValue({ id: 's1', startTime: '10:00', staff: {} });
 
       const result = await service.updateShift('s1', { startTime: '10:00' });
@@ -196,7 +197,7 @@ describe('StaffService', () => {
     });
 
     it('should throw when shift not found', async () => {
-      mockPrisma.shift.findUnique.mockResolvedValue(null);
+      mockPrisma.shift.findFirst.mockResolvedValue(null);
 
       await expect(service.updateShift('s999', {}))
         .rejects.toThrow(new AppError('Turno non trovato', 404));

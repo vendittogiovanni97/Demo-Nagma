@@ -161,6 +161,9 @@ export function useBookingForm({
   const { data: templates } = useFormTemplates();
 
   // Internal state for complex UI states - DECLARE FIRST
+  // Il cliente viene creato prima della prenotazione: se il salvataggio della
+  // prenotazione fallisce, al nuovo tentativo va riusato invece di ricrearlo.
+  const createdCustomerIdRef = useRef<number | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [pendingData, setPendingData] = useState<BookingFormData | null>(null);
@@ -273,6 +276,7 @@ export function useBookingForm({
       onClose();
       setShowPasswordModal(false);
       setPendingData(null);
+      createdCustomerIdRef.current = null;
     },
     validate,
     errorMessage: 'Errore nel salvare la prenotazione',
@@ -391,6 +395,8 @@ export function useBookingForm({
 
   // Handle new customer creation
   const handleNewCustomerCreate = useCallback(async (): Promise<number | null> => {
+    if (createdCustomerIdRef.current) return createdCustomerIdRef.current;
+
     const { newCustomerFirstName, newCustomerLastName, newCustomerPhone, newCustomerEmail } = form.formData;
     if (!newCustomerFirstName || !newCustomerLastName || !newCustomerPhone) {
       toast.error('Dati nuovo cliente mancanti');
@@ -418,6 +424,7 @@ export function useBookingForm({
       });
 
       await mutateCustomers();
+      createdCustomerIdRef.current = newCustomer.id;
       toast.success('Cliente creato');
       return newCustomer.id;
     } catch (err) {
@@ -507,6 +514,7 @@ export function useBookingForm({
     setShowPasswordModal(false);
     setPendingData(null);
     setShowSuccess(false);
+    createdCustomerIdRef.current = null;
   }, [form]);
 
   return {

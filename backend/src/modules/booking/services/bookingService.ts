@@ -204,7 +204,7 @@ export class BookingService {
     const busyRows = await prisma.$queryRaw<Array<{ artistId: number }>>(Prisma.sql`
       SELECT DISTINCT "artistId" FROM "bookings"
       WHERE "deletedAt" IS NULL
-        AND "status" <> 'CANCELLATO'
+        AND "status" NOT IN ('ANNULLATO', 'CANCELLATO')
         AND "artistId" IS NOT NULL
         AND "date" < ${end}
         AND ("date" + ("duration" || ' minutes')::interval) > ${start}
@@ -262,7 +262,7 @@ export class BookingService {
         SELECT id FROM "bookings"
         WHERE "artistId" = ${artistId}
           AND "deletedAt" IS NULL
-          AND "status" <> 'CANCELLATO'
+          AND "status" NOT IN ('ANNULLATO', 'CANCELLATO')
           AND "date" < ${endDate}
           AND ("date" + ("duration" || ' minutes')::interval) > ${startDate}
         LIMIT 1
@@ -363,7 +363,7 @@ export class BookingService {
           SELECT id FROM "bookings"
           WHERE "artistId" = ${newArtistId}
             AND "deletedAt" IS NULL
-            AND "status" <> 'CANCELLATO'
+            AND "status" NOT IN ('ANNULLATO', 'CANCELLATO')
             AND "date" < ${endDate}
             AND ("date" + ("duration" || ' minutes')::interval) > ${newDate}
             AND id <> ${id}

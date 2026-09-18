@@ -83,7 +83,7 @@ export function useFormModal<TFormData extends object, TResult = void>({
       onClose?.();
       return result;
     } catch (caught: unknown) {
-      const message = errorMessage ?? extractErrorMessage(caught);
+      const message = extractErrorMessage(caught, errorMessage);
       setError(message);
       toast.error(message);
       return undefined;

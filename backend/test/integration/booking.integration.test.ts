@@ -16,23 +16,45 @@ describe('Booking API Integration Tests (/api/bookings)', () => {
     const auth = await getAdminAuth();
     adminToken = auth.token;
 
-    // Fetch Customer ID
     const custRes = await fetch(`${BASE_URL}/api/customers?limit=1`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     const custData = await custRes.json();
-    if (custData.data && custData.data.length > 0) {
-      testCustomerId = custData.data[0].id;
+    testCustomerId = custData.data?.[0]?.id;
+
+    // Il seed base non crea clienti: senza questo i test di scrittura
+    // uscirebbero senza eseguire nulla e la suite risulterebbe verde a vuoto.
+    if (!testCustomerId) {
+      const createRes = await fetch(`${BASE_URL}/api/customers`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: 'Cliente',
+          lastName: `Integrazione ${Date.now()}`,
+          phone: `+39000${Date.now().toString().slice(-7)}`,
+        }),
+      });
+      if (!createRes.ok) {
+        throw new Error(`Impossibile creare il cliente di prova: HTTP ${createRes.status}`);
+      }
+      const created = await createRes.json();
+      testCustomerId = created.id ?? created.data?.id;
     }
 
-    // Fetch Staff Artist ID
     const staffRes = await fetch(`${BASE_URL}/api/staff/members`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     const staffData = await staffRes.json();
     const staffList = Array.isArray(staffData) ? staffData : staffData.data || [];
-    if (staffList.length > 0) {
-      testArtistId = staffList[0].id;
+    testArtistId = staffList[0]?.id;
+
+    if (!testCustomerId || !testArtistId) {
+      throw new Error(
+        `Prerequisiti mancanti: cliente=${testCustomerId ?? 'assente'}, artista=${testArtistId ?? 'assente'}`
+      );
     }
   });
 
@@ -55,12 +77,13 @@ describe('Booking API Integration Tests (/api/bookings)', () => {
   });
 
   describe('POST /api/bookings', () => {
-    test('🟢 201/200/400 — Tentativo creazione appuntamento', async () => {
-      if (!testCustomerId || !testArtistId) return;
-
+    test('🟢 201/200 — Creazione appuntamento', async () => {
+      // Data univoca per esecuzione: su un database gia popolato una data fissa
+      // darebbe 409 e il test passerebbe senza aver creato nulla.
       const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 50);
-      futureDate.setHours(14, 0, 0, 0);
+      futureDate.setFullYear(futureDate.getFullYear() + 5);
+      futureDate.setMilliseconds(0);
+      futureDate.setSeconds(0);
 
       const res = await fetch(`${BASE_URL}/api/bookings`, {
         method: 'POST',
@@ -78,18 +101,16 @@ describe('Booking API Integration Tests (/api/bookings)', () => {
         }),
       });
 
-      expect([200, 201, 400, 409, 500]).toContain(res.status);
-      if (res.status === 200 || res.status === 201) {
-        const data = await res.json();
-        if (data.id || data.data?.id) {
-          createdBookingId = data.id || data.data.id;
-        }
-      }
+      // Accettare 400/409/500 renderebbe il test incapace di fallire: e' cosi
+      // che un errore di persistenza sul salvataggio e' passato inosservato.
+      expect([200, 201]).toContain(res.status);
+
+      const data = await res.json();
+      createdBookingId = data.id ?? data.data?.id;
+      expect(createdBookingId).toBeDefined();
     });
 
     test('🔴 201/400/500 — Durata non valida (0 minuti)', async () => {
-      if (!testCustomerId || !testArtistId) return;
-
       const res = await fetch(`${BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: {
@@ -110,7 +131,7 @@ describe('Booking API Integration Tests (/api/bookings)', () => {
 
   describe('PUT /api/bookings/:id/annul', () => {
     test('🟢 200/204/404 — Annullamento appuntamento', async () => {
-      if (!createdBookingId) return;
+      expect(createdBookingId).toBeDefined();
 
       const res = await fetch(`${BASE_URL}/api/bookings/${createdBookingId}/annul`, {
         method: 'PUT',

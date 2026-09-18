@@ -96,7 +96,8 @@ export class CreamService {
   async getSalesSummary() {
     const staff = await prisma.staff.findMany({
       where: {
-        creamSales: { some: {} },
+        deletedAt: null,
+        creamSales: { some: { deletedAt: null } },
       },
       select: {
         id: true,

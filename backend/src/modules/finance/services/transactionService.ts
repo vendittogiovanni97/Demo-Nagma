@@ -177,6 +177,7 @@ export class TransactionService {
         AND b."deletedAt" IS NULL
         AND b.status = 'COMPLETATO'
         ${month ? Prisma.sql`AND DATE_TRUNC('month', b.date) = DATE_TRUNC('month', ${month + '-01'}::date)` : Prisma.empty}
+      WHERE s."deletedAt" IS NULL
       GROUP BY s.id, s.name, s.color
       ORDER BY revenue DESC NULLS LAST
     `;

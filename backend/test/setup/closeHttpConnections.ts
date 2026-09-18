@@ -36,11 +36,20 @@ globalThis.fetch = async (
         const chunks: Buffer[] = [];
         response.on('data', (chunk: Buffer) => chunks.push(chunk));
         response.on('end', () => {
-          resolve(new Response(Buffer.concat(chunks), {
-            status: response.statusCode ?? 500,
-            statusText: response.statusMessage,
-            headers: response.headers as HeadersInit,
-          }));
+          const status = response.statusCode ?? 500;
+          // 204/205/304 non possono avere corpo: passarne uno fa lanciare il
+          // costruttore di Response, e l'eccezione qui dentro lascerebbe la
+          // promise sospesa per sempre invece di far fallire il test.
+          const hasNullBody = status === 204 || status === 205 || status === 304;
+          try {
+            resolve(new Response(hasNullBody ? null : Buffer.concat(chunks), {
+              status,
+              statusText: response.statusMessage,
+              headers: response.headers as HeadersInit,
+            }));
+          } catch (err) {
+            reject(err);
+          }
         });
       }
     );

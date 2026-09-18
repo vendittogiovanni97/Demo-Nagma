@@ -1,8 +1,10 @@
 #!/bin/sh
 #
 # Controlli eseguiti prima di ogni push. Se falliscono, il push non parte.
-# Installazione: npm run hooks:install
-# Scavalco consapevole in emergenza: git push --no-verify
+#
+# Installazione:            npm run hooks:install
+# Scavalco in emergenza:    git push --no-verify
+# Database di test diverso: NAGMA_TEST_DATABASE_URL=postgresql://... git push
 #
 
 # Git LFS: comportamento preesistente, va mantenuto.
@@ -17,32 +19,48 @@ export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PAT
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT" || exit 1
 
+# File di log privato: nome imprevedibile, solo per l'utente corrente, rimosso all'uscita.
+LOG=$(mktemp "${TMPDIR:-/tmp}/nagma-push.XXXXXX") || exit 1
+chmod 600 "$LOG"
+trap 'rm -f "$LOG"' EXIT INT TERM
+
+# Prisma stampa la stringa di connessione negli errori: va oscurata prima di mostrarla.
+mostra_log() {
+  sed -E 's#(postgres(ql)?://[^:@/]+:)[^@]*@#\1***@#g' "$LOG" | tail -"${1:-20}"
+}
+
 fallito() {
   printf '\n\033[31m✗ %s\033[0m\n' "$1"
   printf '\n\033[31mPush annullato.\033[0m Correggi prima di spedire.\n'
-  printf 'Se è un\''emergenza e sai cosa stai facendo: \033[1mgit push --no-verify\033[0m\n\n'
+  printf "Se è un'emergenza e sai cosa stai facendo: \033[1mgit push --no-verify\033[0m\n\n"
   exit 1
 }
 
 printf '\n\033[1m🔍 Controlli prima del push...\033[0m\n\n'
 
 printf '  lint ... '
-npm run lint --prefix backend >/tmp/nagma-push.log 2>&1 || { printf '\n'; tail -20 /tmp/nagma-push.log; fallito "lint backend"; }
-npm run lint --prefix frontend >/tmp/nagma-push.log 2>&1 || { printf '\n'; tail -20 /tmp/nagma-push.log; fallito "lint frontend"; }
+npm run lint --prefix backend >"$LOG" 2>&1 || { printf '\n'; mostra_log 20; fallito "lint backend"; }
+npm run lint --prefix frontend >"$LOG" 2>&1 || { printf '\n'; mostra_log 20; fallito "lint frontend"; }
 printf '\033[32mok\033[0m\n'
 
 printf '  typecheck ... '
-npm run typecheck >/tmp/nagma-push.log 2>&1 || { printf '\n'; tail -25 /tmp/nagma-push.log; fallito "typecheck"; }
+npm run typecheck >"$LOG" 2>&1 || { printf '\n'; mostra_log 25; fallito "typecheck"; }
 printf '\033[32mok\033[0m\n'
 
 printf '  test unitari ... '
-UNIT=$(cd backend && npx jest --selectProjects unit --runInBand --forceExit 2>&1)
-echo "$UNIT" | grep -q "^Tests:.*failed" && { printf '\n'; echo "$UNIT" | grep -A12 "●.*›" | head -30; fallito "test unitari"; }
-printf '\033[32m%s\033[0m\n' "$(echo "$UNIT" | grep '^Tests:' | sed 's/Tests: *//')"
+if ! (cd backend && npx jest --selectProjects unit --runInBand --forceExit) >"$LOG" 2>&1; then
+  printf '\n'
+  grep -A12 '●.*›' "$LOG" | head -30 || mostra_log 25
+  fallito "test unitari"
+fi
+ESITO=$(grep '^Tests:' "$LOG" | sed 's/Tests: *//')
+# Senza riga di riepilogo jest non ha eseguito nulla: non e' un successo.
+[ -z "$ESITO" ] && { printf '\n'; mostra_log 25; fallito "test unitari: nessun risultato prodotto"; }
+printf '\033[32m%s\033[0m\n' "$ESITO"
 
 # I test di integrazione sono gli unici che toccano il database vero:
 # sono loro ad aver individuato il difetto sul salvataggio prenotazioni.
-DB_URL=$(grep -E '^DATABASE_URL=' backend/.env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"')
+DB_URL="${NAGMA_TEST_DATABASE_URL:-$(grep -E '^DATABASE_URL=' backend/.env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"')}"
 [ -z "$DB_URL" ] && fallito "DATABASE_URL non trovata in backend/.env"
 
 DB_HOST=$(node -e "console.log(new URL(process.argv[1]).hostname)" "$DB_URL" 2>/dev/null)
@@ -57,17 +75,27 @@ if ! nc -z "$DB_HOST" "$DB_PORT" >/dev/null 2>&1; then
 fi
 
 # Database separato: i test scrivono record e non devono sporcare i dati di lavoro.
-TEST_URL=$(node -e "const u=new URL(process.argv[1]);u.pathname=u.pathname.replace(/\/*$/,'')+'_test';console.log(u.toString())" "$DB_URL")
+if [ -n "$NAGMA_TEST_DATABASE_URL" ]; then
+  TEST_URL="$NAGMA_TEST_DATABASE_URL"
+else
+  TEST_URL=$(node -e "const u=new URL(process.argv[1]);u.pathname=u.pathname.replace(/\/*$/,'')+'_test';console.log(u.toString())" "$DB_URL")
+fi
 
 printf '  preparazione database di test ... '
-(cd backend && DATABASE_URL="$TEST_URL" npx prisma migrate deploy >/tmp/nagma-push.log 2>&1) || { printf '\n'; tail -15 /tmp/nagma-push.log; fallito "migrazioni sul database di test"; }
-(cd backend && DATABASE_URL="$TEST_URL" npx tsx prisma/seed.ts >/tmp/nagma-push.log 2>&1) || { printf '\n'; tail -15 /tmp/nagma-push.log; fallito "seed del database di test"; }
+(cd backend && DATABASE_URL="$TEST_URL" npx prisma migrate deploy) >"$LOG" 2>&1 || { printf '\n'; mostra_log 15; fallito "migrazioni sul database di test"; }
+(cd backend && DATABASE_URL="$TEST_URL" npx tsx prisma/seed.ts) >"$LOG" 2>&1 || { printf '\n'; mostra_log 15; fallito "seed del database di test"; }
 printf '\033[32mok\033[0m\n'
 
 printf '  test integrazione ... '
-INT=$(cd backend && DATABASE_URL="$TEST_URL" npx jest --selectProjects integration --runInBand --forceExit 2>&1)
-echo "$INT" | grep -q "^Tests:.*failed" && { printf '\n'; echo "$INT" | grep -A12 "●.*›" | head -30; fallito "test di integrazione"; }
-printf '\033[32m%s\033[0m\n' "$(echo "$INT" | grep '^Tests:' | sed 's/Tests: *//')"
+if ! (cd backend && DATABASE_URL="$TEST_URL" npx jest --selectProjects integration --runInBand --forceExit) >"$LOG" 2>&1; then
+  printf '\n'
+  grep -A12 '●.*›' "$LOG" | head -30 || mostra_log 25
+  mostra_log 8
+  fallito "test di integrazione"
+fi
+ESITO=$(grep '^Tests:' "$LOG" | sed 's/Tests: *//')
+[ -z "$ESITO" ] && { printf '\n'; mostra_log 25; fallito "test di integrazione: nessun risultato prodotto"; }
+printf '\033[32m%s\033[0m\n' "$ESITO"
 
 printf '\n\033[32m✓ Tutto verde.\033[0m 🚀 Push in corso...\n\n'
 exit 0

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { config } from '../../../core/config/env';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { buildPagination, paginate } from '../../../core/shared/kernel/pagination';
-import { getMonthRange } from '../../../core/shared/utils/date-utils';
+import { buildDateFilter, getMonthRange } from '../../../core/shared/utils/date-utils';
 import prisma from '../../../core/shared/utils/prisma';
 import { financeCache } from '../../finance/services/finance.cache';
 import { softDeleteMirrorTransactions } from '../../finance/services/financeMirror';
@@ -40,21 +40,9 @@ export class BookingService {
       customer: { is: { deletedAt: null } },
     };
 
-    const dateBounds: { gte?: Date; lt?: Date; lte?: Date } = {};
-    if (month) {
-      const range = getMonthRange(month);
-      dateBounds.gte = range.gte;
-      dateBounds.lt = range.lt;
-    }
-    if (startDate) {
-      const from = new Date(startDate);
-      if (!dateBounds.gte || from > dateBounds.gte) dateBounds.gte = from;
-    }
-    if (endDate) {
-      dateBounds.lte = new Date(endDate + 'T23:59:59.999');
-    }
-    if (Object.keys(dateBounds).length > 0) {
-      where.date = dateBounds;
+    const dateFilter = buildDateFilter(month, startDate, endDate);
+    if (dateFilter) {
+      where.date = dateFilter;
     }
 
     if (status && status !== 'ALL') {

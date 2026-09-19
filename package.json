@@ -28,7 +28,8 @@
     "make:executable": "chmod +x starter.command aggiorna.command",
     "postinstall": "chmod +x starter.command aggiorna.command 2>/dev/null || true",
     "hooks:install": "sh scripts/hooks/install.sh",
-    "db:repair:password": "npm run db:repair:password --prefix backend"
+    "db:repair:password": "npm run db:repair:password --prefix backend",
+    "db:seed:finance": "npm run db:seed:finance --prefix backend"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

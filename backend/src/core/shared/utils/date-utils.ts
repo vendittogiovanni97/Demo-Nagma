@@ -42,6 +42,30 @@ export function getMonthRange(monthStr: string): { gte: Date; lt: Date } {
 }
 
 /**
+ * Intervallo di date per i filtri elenco.
+ *
+ * Un intervallo esplicito sostituisce il mese invece di sommarsi ad esso:
+ * combinarli restringeva i risultati al solo mese selezionato, svuotando la
+ * lista quando le due condizioni non si sovrapponevano.
+ *
+ * @returns L'intervallo, oppure undefined quando non c'e' alcun filtro data.
+ */
+export function buildDateFilter(
+  month?: string,
+  startDate?: string,
+  endDate?: string,
+): { gte?: Date; lt?: Date; lte?: Date } | undefined {
+  if (startDate || endDate) {
+    const bounds: { gte?: Date; lte?: Date } = {};
+    if (startDate) bounds.gte = new Date(startDate);
+    if (endDate) bounds.lte = new Date(`${endDate}T23:59:59.999`);
+    return bounds;
+  }
+  if (month) return getMonthRange(month);
+  return undefined;
+}
+
+/**
  * Estrae e converte i parametri di paginazione/ricerca dalla query string.
  */
 export function parsePageQuery(query: Record<string, unknown>) {

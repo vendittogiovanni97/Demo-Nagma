@@ -2,7 +2,7 @@ import { Prisma, TransactionType } from '@prisma/client';
 import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
-import { getMonthRange } from '../../../core/shared/utils/date-utils';
+import { buildDateFilter } from '../../../core/shared/utils/date-utils';
 import { financeCache } from './finance.cache';
 
 /** Le colonne Json di TransactionHistory accettano InputJsonValue; i record Prisma
@@ -31,12 +31,9 @@ export class TransactionService {
         { category: { contains: search, mode: 'insensitive' } },
       ];
     }
-    if (month) {
-      where.date = getMonthRange(month);
-    } else if (startDate || endDate) {
-      where.date = {};
-      if (startDate) where.date.gte = new Date(startDate);
-      if (endDate) where.date.lte = new Date(endDate + 'T23:59:59.999Z');
+    const dateFilter = buildDateFilter(month, startDate, endDate);
+    if (dateFilter) {
+      where.date = dateFilter;
     }
 
     const [raws, total] = await prisma.$transaction([
@@ -93,12 +90,9 @@ export class TransactionService {
     if (cached) return cached;
 
     const where: Prisma.TransactionWhereInput = { deletedAt: null };
-    if (month) {
-      where.date = getMonthRange(month);
-    } else if (startDate || endDate) {
-      where.date = {};
-      if (startDate) where.date.gte = new Date(startDate);
-      if (endDate) where.date.lte = new Date(endDate + 'T23:59:59.999Z');
+    const dateFilter = buildDateFilter(month, startDate, endDate);
+    if (dateFilter) {
+      where.date = dateFilter;
     }
 
     const rows = await prisma.transaction.groupBy({

@@ -78,6 +78,10 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
+echo "🔑 Verifica configurazione in corso..."
+npm run db:repair:password
+
+echo ""
 echo "🏗️  Compilazione e ottimizzazione di produzione in corso..."
 npm run build
 

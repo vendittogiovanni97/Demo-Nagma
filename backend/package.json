@@ -26,7 +26,8 @@
     "db:migrate:prod": "prisma migrate deploy",
     "db:reset": "prisma migrate reset --force && tsx prisma/seed.ts",
     "db:restore": "tsx scripts/restoreDump.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:repair:password": "tsx prisma/repair_booking_password.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

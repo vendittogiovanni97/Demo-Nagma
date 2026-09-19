@@ -1,3 +1,5 @@
+import bcrypt from 'bcryptjs';
+
 import { AppError } from '../../../src/core/shared/errors/AppError';
 
 const createMockPrisma = () => ({
@@ -26,6 +28,10 @@ const createMockPrisma = () => ({
   },
   staff: {
     findMany: jest.fn(),
+  },
+  clientConfig: {
+    findFirst: jest.fn(),
+    update: jest.fn(),
   },
   $transaction: jest.fn(),
   $queryRaw: jest.fn(),
@@ -254,6 +260,36 @@ describe('BookingService', () => {
           sourceType: 'BOOKING_REFUND',
         }),
       });
+    });
+  });
+
+  describe('verifyPassword', () => {
+    const PASSWORD = 'nagmatatto12';
+
+    it.each([['$2a$'], ['$2b$'], ['$2y$']])(
+      'accetta la password con hash che inizia per %s',
+      async (prefisso) => {
+        const hash = bcrypt.hashSync(PASSWORD, 10).replace(/^\$2[aby]\$/, prefisso);
+        mockPrisma.clientConfig.findFirst.mockResolvedValue({ id: 1, bookingUpdatePassword: hash });
+
+        await expect(bookingService.verifyPassword(PASSWORD)).resolves.toBeUndefined();
+        // Un hash gia' cifrato non va ri-cifrato: lo renderebbe inservibile.
+        expect(mockPrisma.clientConfig.update).not.toHaveBeenCalled();
+      }
+    );
+
+    it('rifiuta una password errata', async () => {
+      const hash = bcrypt.hashSync(PASSWORD, 10);
+      mockPrisma.clientConfig.findFirst.mockResolvedValue({ id: 1, bookingUpdatePassword: hash });
+
+      await expect(bookingService.verifyPassword('sbagliata')).rejects.toThrow('Password non corretta');
+    });
+
+    it('migra a hash un valore storico salvato in chiaro', async () => {
+      mockPrisma.clientConfig.findFirst.mockResolvedValue({ id: 1, bookingUpdatePassword: PASSWORD });
+
+      await expect(bookingService.verifyPassword(PASSWORD)).resolves.toBeUndefined();
+      expect(mockPrisma.clientConfig.update).toHaveBeenCalled();
     });
   });
 

@@ -8,6 +8,8 @@ import prisma from '../../../core/shared/utils/prisma';
 import { financeCache } from '../../finance/services/finance.cache';
 import { softDeleteMirrorTransactions } from '../../finance/services/financeMirror';
 
+const BCRYPT_HASH_RE = /^\$2[aby]\$/;
+
 export interface BookingFilters {
   month?: string;
   startDate?: string;
@@ -230,7 +232,9 @@ export class BookingService {
     }
 
     let isValid: boolean;
-    if (!storedPassword.startsWith('$2b$')) {
+    // bcrypt usa i prefissi $2a$, $2b$ e $2y$: riconoscerne solo uno fa scambiare
+    // un hash gia' cifrato per testo in chiaro, e lo ri-cifra rendendolo inservibile.
+    if (!BCRYPT_HASH_RE.test(storedPassword)) {
       const salt = config.bcryptSaltRounds;
       const hashed = await bcrypt.hash(storedPassword, salt);
       await prisma.clientConfig.update({

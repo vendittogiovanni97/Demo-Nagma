@@ -47,6 +47,31 @@ describe('CustomerService', () => {
       expect(result.total).toBe(1);
     });
 
+    // I campi Dal/Al della pagina Clienti venivano inviati al server e ignorati:
+    // l'elenco restava invariato qualunque intervallo si impostasse.
+    it('filtra per data di iscrizione quando è indicato un intervallo', async () => {
+      mockPrisma.customer.findMany.mockResolvedValue([]);
+      mockPrisma.customer.count.mockResolvedValue(0);
+      mockPrisma.$transaction.mockImplementation((arr: any[]) => Promise.all(arr));
+
+      await service.search({ startDate: '2026-07-01', endDate: '2026-07-31' });
+
+      const where = mockPrisma.customer.findMany.mock.calls.at(-1)![0].where;
+      expect(where.createdAt.gte).toEqual(new Date('2026-07-01'));
+      expect(where.createdAt.lte).toEqual(new Date('2026-07-31T23:59:59.999'));
+    });
+
+    it('non applica alcun filtro data senza intervallo', async () => {
+      mockPrisma.customer.findMany.mockResolvedValue([]);
+      mockPrisma.customer.count.mockResolvedValue(0);
+      mockPrisma.$transaction.mockImplementation((arr: any[]) => Promise.all(arr));
+
+      await service.search({ search: 'Mario' });
+
+      const where = mockPrisma.customer.findMany.mock.calls.at(-1)![0].where;
+      expect(where.createdAt).toBeUndefined();
+    });
+
     it('should handle empty search query', async () => {
       mockPrisma.customer.findMany.mockResolvedValue([]);
       mockPrisma.customer.count.mockResolvedValue(0);

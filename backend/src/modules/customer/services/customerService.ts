@@ -3,14 +3,26 @@ import prisma from '../../../core/shared/utils/prisma';
 import { paginate, buildPagination } from '../../../core/shared/kernel/pagination';
 import type { IPaginatedResponse } from '../../../core/shared/kernel/interfaces';
 import { AppError } from '../../../core/shared/errors/AppError';
+import { buildDateFilter } from '../../../core/shared/utils/date-utils';
 
 export class CustomerService {
   async search(params: Record<string, unknown>): Promise<IPaginatedResponse<unknown>> {
-    const { search, page: pageStr = '1', limit: limitStr = '25' } = params as { search?: string; page?: string | number; limit?: string | number };
+    const { search, page: pageStr = '1', limit: limitStr = '25', month, startDate, endDate } = params as {
+      search?: string; page?: string | number; limit?: string | number;
+      month?: string; startDate?: string; endDate?: string;
+    };
     const page = Number(pageStr);
     const limit = Number(limitStr);
 
     const where: Prisma.CustomerWhereInput = { deletedAt: null };
+
+    // I campi Dal/Al della pagina Clienti filtrano la data di iscrizione,
+    // la stessa mostrata nella colonna "Iscritto il".
+    const dateFilter = buildDateFilter(month, startDate, endDate);
+    if (dateFilter) {
+      where.createdAt = dateFilter;
+    }
+
     if (search?.trim()) {
       where.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },

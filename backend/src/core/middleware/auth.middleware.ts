@@ -60,6 +60,21 @@ function isQueryTokenAllowed(req: Request): boolean {
   );
 }
 
+interface TokenVersionCacheEntry {
+  version: number;
+  expiresAt: number;
+}
+const tokenVersionCache = new Map<number, TokenVersionCacheEntry>();
+const CACHE_TTL_MS = 30_000;
+
+export function invalidateTokenVersionCache(userId?: number): void {
+  if (userId) {
+    tokenVersionCache.delete(userId);
+  } else {
+    tokenVersionCache.clear();
+  }
+}
+
 export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token = '';
   const authHeader = req.headers.authorization;
@@ -108,14 +123,30 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
   try {
     const decoded = jwt.verify(token, secret) as NonNullable<AuthRequest['user']>;
 
-    const dbUser = await prisma.user.findFirst({
-      where: { id: decoded.id, deletedAt: null },
-      select: { tokenVersion: true },
-    });
+    const now = Date.now();
+    const cached = tokenVersionCache.get(decoded.id);
+    let currentVersion: number | null = null;
+
+    if (cached && cached.expiresAt > now) {
+      currentVersion = cached.version;
+    } else {
+      const dbUser = await prisma.user.findFirst({
+        where: { id: decoded.id, deletedAt: null },
+        select: { tokenVersion: true },
+      });
+      if (dbUser) {
+        currentVersion = dbUser.tokenVersion;
+        tokenVersionCache.set(decoded.id, {
+          version: dbUser.tokenVersion,
+          expiresAt: now + CACHE_TTL_MS,
+        });
+      }
+    }
 
     // Il claim tokenVersion è sempre emesso da login/refresh: la sua assenza (token legacy o forgiato)
     // deve valere come revoca, non come bypass del controllo.
-    if (!dbUser || dbUser.tokenVersion !== decoded.tokenVersion) {
+    if (currentVersion === null || currentVersion !== decoded.tokenVersion) {
+      tokenVersionCache.delete(decoded.id);
       logger.warn(`401 ${req.method} ${req.originalUrl} · REVOKED_TOKEN`);
       return res.status(401).json({
         message: 'Token revocato o non più valido.',

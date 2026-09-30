@@ -52,7 +52,7 @@ describe('useFormModal', () => {
   });
 
   it('should show error on failure', async () => {
-    const onSubmit = jest.fn().mockRejectedValue(new Error('Errore'));
+    const onSubmit = jest.fn().mockRejectedValue({});
 
     const { result } = renderHook(() => useFormModal({
       onSubmit,

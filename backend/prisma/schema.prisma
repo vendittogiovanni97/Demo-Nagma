@@ -128,6 +128,8 @@ model Booking {
   @@index([status, date])
   @@index([status])
   @@index([date])
+  @@index([deletedAt, date])
+  @@index([deletedAt, status, date])
   @@map("bookings")
 }
 
@@ -196,6 +198,7 @@ model Transaction {
 
   @@index([date, type])
   @@index([deletedAt])
+  @@index([deletedAt, date])
   @@index([category])
   @@index([sourceId, sourceType])
   @@map("transactions")

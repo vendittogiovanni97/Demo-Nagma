@@ -31,7 +31,8 @@ describe('exportService', () => {
       expect.stringContaining('/api/export'),
       expect.objectContaining({
         method: 'POST',
-        headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       }),
     );
     expect(click).toHaveBeenCalledTimes(1);

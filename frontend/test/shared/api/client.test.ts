@@ -52,9 +52,7 @@ describe('apiClient', () => {
     );
   });
 
-  it('should attach Authorization header when token exists', async () => {
-    mockedGetToken.mockReturnValue('my-jwt');
-
+  it('should include credentials for httpOnly cookies', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -64,7 +62,7 @@ describe('apiClient', () => {
     await apiClient.get('/api/test');
 
     const callArgs = mockFetch.mock.calls[0][1];
-    expect(callArgs.headers.get('Authorization')).toBe('Bearer my-jwt');
+    expect(callArgs.credentials).toBe('include');
   });
 
   it('should throw on non-ok response', async () => {

@@ -11,6 +11,7 @@ import { BreakpointProvider as CustomBreakpointProvider } from '@/common/context
 import { ToastContainer } from '@/common/components/ui/Toast/ToastContainer';
 import DynamicThemeProvider from '@/common/providers/ThemeProvider';
 
+import { SWRConfig } from 'swr';
 import dynamic from 'next/dynamic';
 import AuthGuard from '@/common/components/auth/AuthGuard';
 
@@ -20,7 +21,14 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   const isStandalonePage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/consenso');
 
   return (
-    <DynamicThemeProvider>
+    <SWRConfig
+      value={{
+        revalidateOnFocus: false,
+        dedupingInterval: 5000,
+        shouldRetryOnError: false,
+      }}
+    >
+      <DynamicThemeProvider>
       <CustomBreakpointProvider>
         <AuthProvider>
           <PreferencesProvider>
@@ -43,5 +51,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       </CustomBreakpointProvider>
       <ToastContainer />
     </DynamicThemeProvider>
+    </SWRConfig>
   );
 }

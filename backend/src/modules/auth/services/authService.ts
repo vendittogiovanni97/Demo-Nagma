@@ -4,6 +4,7 @@ import prisma from '../../../core/shared/utils/prisma';
 import { AppError } from '../../../core/shared/errors/AppError';
 import { config } from '../../../core/config/env';
 import { Role, ThemeMode } from '@prisma/client';
+import { invalidateTokenVersionCache } from '../../../core/middleware/auth.middleware';
 
 function sanitizeUser<T extends Record<string, unknown>>(user: T): Omit<T, 'password'> {
   const { password: _password, ...rest } = user;
@@ -122,6 +123,7 @@ export class AuthService {
       where: { id: userId },
       data: { password: hashedPassword, tokenVersion: { increment: 1 } },
     });
+    invalidateTokenVersionCache(userId);
   }
 
   async refreshToken(userId: number) {

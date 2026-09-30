@@ -1,3 +1,4 @@
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import crypto from 'crypto';
@@ -29,6 +30,7 @@ export function createApp() {
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
+  app.use(compression());
 
   // Health check endpoint — esclusivo dalla CORS (usato da Docker healthcheck senza origin header)
   app.get('/health', async (_req: Request, res: Response) => {

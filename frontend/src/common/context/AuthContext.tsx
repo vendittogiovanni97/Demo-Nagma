@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedUser) {
       setIsAuthenticated(true);
       setCurrentUser(savedUser);
+      setIsLoading(false);
     } else {
       setIsLoading(false);
       return () => {

@@ -19,7 +19,12 @@ function requireDatabaseUrl(): string {
 
 export const DATABASE_URL = requireDatabaseUrl();
 
-const pool = new Pool({ connectionString: DATABASE_URL });
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  max: Number(process.env.PG_MAX_POOL || 20),
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter, errorFormat: 'pretty' });
 

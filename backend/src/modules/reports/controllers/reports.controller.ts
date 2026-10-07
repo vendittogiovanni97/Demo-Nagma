@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { ReportsService } from '../services/reports.service';
 import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 import { ReportFilterDto, ReportType } from '../types/reports.types';
+import { validate } from '../../../core/shared/utils/validation';
+import { artistRevenueQuerySchema } from './reports.schemas';
 
 export class ReportsController {
   constructor(private reportsService: ReportsService) {}
@@ -65,4 +67,11 @@ export class ReportsController {
     res.setHeader('Content-Disposition', `attachment; filename="report_${Date.now()}.csv"`);
     res.send(csvData);
   });
+
+  getArtistRevenue = asyncHandler(async (req: Request, res: Response) => {
+    const query = validate(artistRevenueQuerySchema, req.query);
+    const data = await this.reportsService.getArtistRevenue(query);
+    res.json({ success: true, data });
+  });
 }
+

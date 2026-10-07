@@ -6,7 +6,21 @@ import {
   ReportSummaryDto,
   PaginatedReportDetailsDto,
   ReportDetailItemDto,
+  ArtistRevenueResponseDto,
+  ArtistRevenueItemDto,
+  ArtistRevenueQuery,
 } from '../types/reports.types';
+import { todayInZone, zonedDayStart } from '../../../core/shared/utils/date-utils';
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Quota artista salvata nel form prenotazione, limitata al prezzo. */
+function artistShareOf(formData: unknown, price: number): number {
+  const fd = (formData ?? {}) as Record<string, unknown>;
+  const artistPrice = Number(fd.artistPrice);
+  if (!Number.isFinite(artistPrice) || artistPrice <= 0) return 0;
+  return Math.min(artistPrice, price);
+}
 
 export class ReportsService {
   /**
@@ -235,4 +249,158 @@ export class ReportsService {
       doc.end();
     });
   }
+
+  /**
+   * Fatturato netto per artista sulle prenotazioni COMPLETATE del periodo.
+   * La quota artista segue la stessa regola dei compensi registrati al completamento
+   * (`formData.artistPrice`), mentre l'affittuario di postazione incassa il 100%.
+   * I limiti del periodo sono mezzanotti nel fuso dello studio, non in UTC.
+   */
+  async getArtistRevenue(params: ArtistRevenueQuery): Promise<ArtistRevenueResponseDto> {
+    const today = todayInZone();
+    const [todayYear, todayMonth] = today.split('-').map(Number);
+    const mode = params.mode ?? (params.day ? 'day' : 'month');
+    const year = params.year ?? todayYear;
+    const month = params.month ?? todayMonth;
+    let targetDayStr: string | undefined;
+
+    const dayStart = (isoDay: string, offsetDays = 0) => {
+      const [y, m, d] = isoDay.split('-').map(Number);
+      return zonedDayStart(y, m, d + offsetDays);
+    };
+
+    let startDate: Date;
+    let endExclusive: Date;
+    if (mode === 'day') {
+      targetDayStr = params.day ?? today;
+      startDate = dayStart(targetDayStr);
+      endExclusive = dayStart(targetDayStr, 1);
+    } else if (mode === 'year') {
+      startDate = zonedDayStart(year, 1, 1);
+      endExclusive = zonedDayStart(year + 1, 1, 1);
+    } else if (mode === 'custom' && params.startDate && params.endDate) {
+      startDate = dayStart(params.startDate);
+      endExclusive = dayStart(params.endDate, 1);
+    } else {
+      startDate = zonedDayStart(year, month, 1);
+      endExclusive = zonedDayStart(year, month + 1, 1);
+    }
+
+    const [staffMembers, bookings] = await Promise.all([
+      prisma.staff.findMany({
+        where: { deletedAt: null },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, color: true, type: true },
+      }),
+      prisma.booking.findMany({
+        where: {
+          deletedAt: null,
+          status: 'COMPLETATO',
+          // Gli artisti eliminati non hanno una card: escluderli tiene il riepilogo
+          // uguale alla somma delle card.
+          artist: { is: { deletedAt: null } },
+          date: { gte: startDate, lt: endExclusive },
+        },
+        select: {
+          id: true,
+          artistId: true,
+          price: true,
+          deposit: true,
+          date: true,
+          status: true,
+          formData: true,
+          artist: { select: { isRentPayee: true } },
+          customer: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { date: 'desc' },
+      }),
+    ]);
+
+    type ArtistStat = {
+      totalRevenue: number;
+      grossRevenue: number;
+      studioRevenue: number;
+      totalDeposits: number;
+      completedCount: number;
+      bookingsList: ArtistRevenueItemDto['bookings'];
+    };
+    const emptyStat = (): ArtistStat => ({
+      totalRevenue: 0,
+      grossRevenue: 0,
+      studioRevenue: 0,
+      totalDeposits: 0,
+      completedCount: 0,
+      bookingsList: [],
+    });
+    const statsByArtist = new Map<number, ArtistStat>(staffMembers.map((s) => [s.id, emptyStat()]));
+    const salon = emptyStat();
+
+    for (const b of bookings) {
+      if (!b.artistId) continue;
+      const stat = statsByArtist.get(b.artistId);
+      if (!stat) continue;
+
+      const price = Number(b.price ?? 0);
+      const deposit = Number(b.deposit ?? 0);
+      const artistShare = b.artist?.isRentPayee ? price : artistShareOf(b.formData, price);
+      const studioShare = price - artistShare;
+
+      for (const target of [stat, salon]) {
+        target.totalRevenue += artistShare;
+        target.grossRevenue += price;
+        target.studioRevenue += studioShare;
+        target.totalDeposits += deposit;
+        target.completedCount += 1;
+      }
+      stat.bookingsList.push({
+        id: b.id,
+        date: b.date.toISOString(),
+        customerName: `${b.customer?.firstName ?? ''} ${b.customer?.lastName ?? ''}`.trim() || 'Cliente sconosciuto',
+        price,
+        artistShare: round2(artistShare),
+        deposit,
+        status: b.status,
+      });
+    }
+
+    const artists: ArtistRevenueItemDto[] = staffMembers.map((staff) => {
+      const stat = statsByArtist.get(staff.id) ?? emptyStat();
+      return {
+        id: staff.id,
+        name: staff.name,
+        color: staff.color,
+        type: staff.type,
+        totalRevenue: round2(stat.totalRevenue),
+        grossRevenue: round2(stat.grossRevenue),
+        studioRevenue: round2(stat.studioRevenue),
+        totalDeposits: round2(stat.totalDeposits),
+        completedBookingsCount: stat.completedCount,
+        averageTicket: stat.completedCount > 0 ? round2(stat.grossRevenue / stat.completedCount) : 0,
+        revenueShare: salon.totalRevenue > 0 ? Number(((stat.totalRevenue / salon.totalRevenue) * 100).toFixed(1)) : 0,
+        bookings: stat.bookingsList,
+      };
+    });
+    artists.sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    return {
+      period: {
+        mode,
+        startDate: startDate.toISOString(),
+        endDate: new Date(endExclusive.getTime() - 1).toISOString(),
+        year,
+        month,
+        day: targetDayStr,
+      },
+      summary: {
+        totalRevenue: round2(salon.totalRevenue),
+        grossRevenue: round2(salon.grossRevenue),
+        studioRevenue: round2(salon.studioRevenue),
+        totalDeposits: round2(salon.totalDeposits),
+        completedBookingsCount: salon.completedCount,
+        averageTicket: salon.completedCount > 0 ? round2(salon.grossRevenue / salon.completedCount) : 0,
+      },
+      artists,
+    };
+  }
 }
+

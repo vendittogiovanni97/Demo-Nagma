@@ -99,6 +99,7 @@ export const ENDPOINTS = {
   REPORTS: {
     SUMMARY: '/api/reports/summary',
     DETAILS: '/api/reports/details',
+    ARTISTS_REVENUE: '/api/reports/artists-revenue',
     EXPORT: '/api/reports/export',
   },
 };

@@ -15,6 +15,7 @@ import { useStaffForSelect } from '@/modules/staff/hooks/useStaff';
 import { useFormTemplates } from '@/modules/form-templates/hooks/useFormTemplates';
 import type { FieldDef } from '@/modules/form-templates/model/form-template.types';
 import { decodeFields } from '@/common/shared/utils/formSchema';
+import { artistPercentToStore, studioPercentFromStored } from '@/modules/booking/utils/percentuale';
 
 export interface ArtistOption {
   id: number;
@@ -32,7 +33,7 @@ export interface BookingFormData {
   duration: string;
   price: string;
   deposit: string;
-  percentualeMode: string;
+  studioPercentuale: string;
   notes: string;
   dynamicValues: Record<string, string>;
   status: BookingStatus;
@@ -59,7 +60,7 @@ const INITIAL_FORM_DATA: BookingFormData = {
   duration: '120',
   price: '',
   deposit: '',
-  percentualeMode: '50',
+  studioPercentuale: '50',
   notes: '',
   dynamicValues: {},
   status: 'CONFERMATO',
@@ -199,8 +200,9 @@ export function useBookingForm({
   // Build payload for API
   const buildPayload = useCallback((formData: BookingFormData): CreateBookingData & { status?: BookingStatus } => {
     const prezzoNum = parseAmount(formData.price);
-    const artistPercentage = Number(formData.percentualeMode) || 0;
-    const artistPrice = Math.round((prezzoNum * artistPercentage / 100) * 100) / 100;
+    const studioPercentage = Number(formData.studioPercentuale) || 0;
+    const studioPrice = Math.round((prezzoNum * studioPercentage / 100) * 100) / 100;
+    const artistPrice = Math.round((prezzoNum - studioPrice) * 100) / 100;
 
     const formDataObj: Record<string, unknown> = {
       ...formData.dynamicValues,
@@ -209,7 +211,7 @@ export function useBookingForm({
       newCustomerLastName: formData.newCustomerLastName,
       newCustomerPhone: formData.newCustomerPhone,
       newCustomerEmail: formData.newCustomerEmail,
-      percentualeMode: formData.percentualeMode,
+      percentualeMode: artistPercentToStore(formData.studioPercentuale),
       artistPrice,
       selectedTemplateId: formData.selectedTemplateId,
     };
@@ -307,15 +309,15 @@ export function useBookingForm({
   const isRentPayeeArtist = Boolean((selectedArtist as any)?.isRentPayee);
 
   useEffect(() => {
-    if (isRentPayeeArtist && form.formData.percentualeMode !== '100') {
-      form.setField('percentualeMode', '100');
+    if (isRentPayeeArtist && form.formData.studioPercentuale !== '0') {
+      form.setField('studioPercentuale', '0');
     }
   }, [isRentPayeeArtist, form]);
 
-  const percentuale = isRentPayeeArtist ? 100 : (Number(form.formData.percentualeMode) || 0);
+  const studioPercentuale = isRentPayeeArtist ? 0 : (Number(form.formData.studioPercentuale) || 0);
   const prezzoNum = parseAmount(form.formData.price);
-  const prezzoArtista = isRentPayeeArtist ? prezzoNum : Math.round((prezzoNum * percentuale / 100) * 100) / 100;
-  const guadagno = isRentPayeeArtist ? 0 : Math.round((prezzoNum - prezzoArtista) * 100) / 100;
+  const guadagno = isRentPayeeArtist ? 0 : Math.round((prezzoNum * studioPercentuale / 100) * 100) / 100;
+  const prezzoArtista = isRentPayeeArtist ? prezzoNum : Math.round((prezzoNum - guadagno) * 100) / 100;
 
   // Auto-select first template
   useEffect(() => {
@@ -342,21 +344,6 @@ export function useBookingForm({
     if (isJustOpened || isDifferentBooking) {
       if (booking) {
         const d = new Date(booking.date);
-        const perc =
-          booking.formData?.percentualeMode ??
-          booking.formData?.artistPercentage;
-        // Usa sempre il valore numerico reale. Per i dati legacy salvati come
-        // 'custom' ricava la percentuale da artistPrice/prezzo, così la tendina
-        // mostra un valore selezionabile e il calcolo non azzera l'artista.
-        let percentualeMode = '50';
-        if (perc != null && perc !== 'custom') {
-          percentualeMode = perc.toString();
-        } else if (perc === 'custom') {
-          const ap = Number(booking.formData?.artistPrice) || 0;
-          const pr = Number(booking.price) || 0;
-          percentualeMode = pr > 0 ? Math.round((ap / pr) * 100).toString() : '0';
-        }
-
         setFields({
           customerId: booking.customerId.toString(),
           artistId: booking.artistId.toString(),
@@ -366,7 +353,7 @@ export function useBookingForm({
           price: booking.price?.toString() || '',
           deposit: booking.deposit?.toString() || '',
           notes: booking.notes || '',
-          percentualeMode,
+          studioPercentuale: studioPercentFromStored(booking.formData, booking.price),
           dynamicValues: booking.formData as Record<string, string> || {},
           status: booking.status ?? 'CONFERMATO',
         });
@@ -376,7 +363,7 @@ export function useBookingForm({
           date: initialDate || '',
           time: initialTime || '',
           duration: '120',
-          percentualeMode: '50',
+          studioPercentuale: '50',
           status: 'CONFERMATO',
           isNewCustomer: false,
           newCustomerFirstName: '',
@@ -522,7 +509,7 @@ export function useBookingForm({
     // Computed
     artistOptions,
     customerOptions,
-    percentuale,
+    percentuale: studioPercentuale,
     prezzoNum,
     prezzoArtista,
     guadagno,

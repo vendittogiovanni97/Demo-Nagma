@@ -60,3 +60,56 @@ export interface PaginatedReportDetailsDto {
 }
 
 export type ExportFormat = 'csv' | 'pdf';
+
+export interface ArtistRevenueItemDto {
+  id: number;
+  name: string;
+  color: string;
+  type: string;
+  /** Quota netta incassata dall'artista. */
+  totalRevenue: number;
+  grossRevenue: number;
+  studioRevenue: number;
+  totalDeposits: number;
+  completedBookingsCount: number;
+  averageTicket: number;
+  revenueShare: number;
+  bookings: Array<{
+    id: number;
+    date: string;
+    customerName: string;
+    price: number;
+    artistShare: number;
+    deposit: number;
+    status: string;
+  }>;
+}
+
+export interface ArtistRevenueQuery {
+  mode?: 'day' | 'month' | 'year' | 'custom';
+  year?: number;
+  month?: number;
+  day?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ArtistRevenueResponseDto {
+  period: {
+    mode: 'day' | 'month' | 'year' | 'custom';
+    startDate: string;
+    endDate: string;
+    year?: number;
+    month?: number;
+    day?: string;
+  };
+  summary: {
+    totalRevenue: number;
+    grossRevenue: number;
+    studioRevenue: number;
+    totalDeposits: number;
+    completedBookingsCount: number;
+    averageTicket: number;
+  };
+  artists: ArtistRevenueItemDto[];
+}

@@ -11,6 +11,7 @@ export function registerReportRoutes(app: Express): void {
 
   router.get('/summary', reportsController.getSummary);
   router.get('/details', reportsController.getDetails);
+  router.get('/artists-revenue', reportsController.getArtistRevenue);
   router.get('/export', reportsController.exportReport);
 
   app.use('/api/reports', router);

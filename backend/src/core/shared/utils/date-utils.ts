@@ -82,3 +82,38 @@ export function parsePageQuery(query: Record<string, unknown>) {
     endDate: query.endDate as string | undefined,
   };
 }
+
+export const STUDIO_TIME_ZONE = 'Europe/Rome';
+
+function zoneOffsetMs(instant: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(new Date(instant));
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+  return asUtc - Math.floor(instant / 1000) * 1000;
+}
+
+/**
+ * Istante UTC della mezzanotte locale del giorno indicato. Giorni e mesi fuori
+ * intervallo vengono normalizzati (es. giorno 32 → primo del mese successivo).
+ * L'offset viene ricalcolato sull'istante trovato per gestire i cambi d'ora.
+ */
+export function zonedDayStart(year: number, month: number, day: number, timeZone = STUDIO_TIME_ZONE): Date {
+  const wallClock = Date.UTC(year, month - 1, day);
+  const firstGuess = wallClock - zoneOffsetMs(wallClock, timeZone);
+  return new Date(wallClock - zoneOffsetMs(firstGuess, timeZone));
+}
+
+/** Data odierna "YYYY-MM-DD" nel fuso dello studio. */
+export function todayInZone(timeZone = STUDIO_TIME_ZONE, now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
+
+/** Ora corrente (0-23) nel fuso dello studio. */
+export function hourInZone(timeZone = STUDIO_TIME_ZONE, now = new Date()): number {
+  return Number(new Intl.DateTimeFormat('en-US', { timeZone, hour: '2-digit', hourCycle: 'h23' }).format(now));
+}

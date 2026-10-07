@@ -70,7 +70,6 @@ export function CustomerSection({
                   onCustomerSelect?.(val);
                 }}
                 onSearchChange={onCustomerSearchChange}
-                disabled={customersLoading}
                 loading={customersLoading}
                 placeholder="Cerca per nome o telefono..."
                 options={customerOptions}

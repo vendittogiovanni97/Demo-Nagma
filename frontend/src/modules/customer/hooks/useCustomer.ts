@@ -27,7 +27,8 @@ export function useCustomers(params: UseCustomersParams = {}) {
         ...response,
         data: response.data.map(customerMapper.toModel),
       };
-    }
+    },
+    { keepPreviousData: true }
   );
 
   return {

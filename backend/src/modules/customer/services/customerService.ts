@@ -23,12 +23,17 @@ export class CustomerService {
       where.createdAt = dateFilter;
     }
 
-    if (search?.trim()) {
-      where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search } },
-      ];
+    // Ogni parola deve comparire in almeno un campo: così "Mario Rossi" trova
+    // il cliente anche se nome e cognome stanno in colonne separate.
+    const terms = search?.trim().split(/\s+/).filter(Boolean) ?? [];
+    if (terms.length) {
+      where.AND = terms.map((term) => ({
+        OR: [
+          { firstName: { contains: term, mode: 'insensitive' } },
+          { lastName: { contains: term, mode: 'insensitive' } },
+          { phone: { contains: term } },
+        ],
+      }));
     }
 
     const [raws, total] = await prisma.$transaction([

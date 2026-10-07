@@ -19,7 +19,7 @@ export interface RecommendedWhatsAppTemplate extends CreateWhatsAppTemplateData 
   description: string;
 }
 
-export type WhatsAppMessageStatus = 'MANUAL_SENT' | 'FAILED';
+export type WhatsAppMessageStatus = 'MANUAL_SENT' | 'AUTO_SENT' | 'FAILED';
 
 export interface WhatsAppMessageLog {
   id: number;
@@ -63,3 +63,38 @@ export interface SendWhatsAppMessageResponse {
   message: string;
   log: WhatsAppMessageLog;
 }
+
+export interface BirthdayCustomer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string | null;
+  birthDate: string;
+  alreadySentToday: boolean;
+  lastMessageSentAt?: string | null;
+}
+
+export interface BirthdayGreetingResult {
+  customer: { id: number; name: string; phone: string };
+  sentVia: 'whatsapp' | 'link';
+  whatsappUrl?: string;
+  message: string;
+}
+
+export interface BulkBirthdayGreetingResult {
+  processedCount: number;
+  sentCount: number;
+  failedCount: number;
+  results: Array<{ customerId: number; name: string; success: boolean }>;
+}
+
+export type WhatsAppConnectionStatus = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED';
+
+export interface WhatsAppSessionInfo {
+  status: WhatsAppConnectionStatus;
+  qrCodeDataUrl: string | null;
+  phoneNumber: string | null;
+  userName: string | null;
+}
+

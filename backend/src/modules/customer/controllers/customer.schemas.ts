@@ -5,6 +5,7 @@ export const createCustomerSchema = z.object({
   lastName: z.string().min(1, 'Cognome obbligatorio'),
   phone: z.string().min(1, 'Telefono obbligatorio'),
   email: z.string().email('Email non valida').optional().or(z.literal('')),
+  birthDate: z.iso.date('Data di nascita non valida (formato AAAA-MM-GG)').optional().nullable().or(z.literal('')),
   notes: z.string().optional(),
 });
 
@@ -13,5 +14,6 @@ export const updateCustomerSchema = z.object({
   lastName: z.string().min(1).optional(),
   phone: z.string().min(1).optional(),
   email: z.string().email('Email non valida').optional().or(z.literal('')),
+  birthDate: z.iso.date('Data di nascita non valida (formato AAAA-MM-GG)').optional().nullable().or(z.literal('')),
   notes: z.string().optional(),
 });

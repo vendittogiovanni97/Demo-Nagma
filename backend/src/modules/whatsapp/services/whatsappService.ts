@@ -33,6 +33,42 @@ function normalizePhoneNumber(phone: string) {
   return normalized;
 }
 
+/**
+ * Numero in formato internazionale senza "+" (quello richiesto da wa.me e dai JID).
+ * I clienti inseriti senza prefisso sono numeri italiani: un cellulare "3xx…" va
+ * completato con 39, altrimenti il messaggio finisce a un numero inesistente.
+ */
+export function toInternationalDigits(phone: string): string {
+  const hasPlus = phone.trim().startsWith('+');
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  else if (!hasPlus && /^3\d{8,9}$/.test(digits)) digits = `39${digits}`;
+
+  if (!digits) {
+    throw new AppError('Il numero di telefono non è valido', 400, 'WHATSAPP_PHONE_INVALID');
+  }
+  return digits;
+}
+
+export interface PreparedWhatsAppMessage {
+  templateId: number | null;
+  templateName: string | null;
+  recipientPhone: string;
+  message: string;
+  whatsappUrl: string;
+}
+
+type SendMessageInput = {
+  recipientPhone?: string;
+  phone?: string;
+  customerId?: number;
+  bookingId?: number;
+  templateId?: number;
+  message?: string;
+  variables?: Record<string, string>;
+  recipientName?: string;
+};
+
 export class WhatsAppService {
   async getAllTemplates(params: Record<string, unknown>) {
     const search = params.search as string | undefined;
@@ -146,7 +182,7 @@ export class WhatsAppService {
     return created;
   }
 
-  async sendMessage(data: { recipientPhone?: string; phone?: string; customerId?: number; bookingId?: number; templateId?: number; message?: string; variables?: Record<string, string>; recipientName?: string }, userId: number) {
+  async prepareMessage(data: SendMessageInput): Promise<PreparedWhatsAppMessage> {
     let templateBody = data.message || '';
     let templateName: string | null = null;
 
@@ -168,22 +204,30 @@ export class WhatsAppService {
       throw new AppError('Il messaggio da inviare è obbligatorio', 400, 'WHATSAPP_MESSAGE_REQUIRED');
     }
 
-    const renderedMessage = renderTemplate(templateBody, data.variables || {});
-    const phoneToUse = data.recipientPhone || data.phone || '';
-    const recipientPhone = normalizePhoneNumber(phoneToUse);
-    const whatsappUrl = `https://wa.me/${recipientPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(renderedMessage)}`;
+    const message = renderTemplate(templateBody, data.variables || {});
+    const recipientPhone = normalizePhoneNumber(data.recipientPhone || data.phone || '');
+    const whatsappUrl = `https://wa.me/${toInternationalDigits(recipientPhone)}?text=${encodeURIComponent(message)}`;
 
-    const log = await prisma.whatsAppMessageLog.create({
+    return { templateId: data.templateId ?? null, templateName, recipientPhone, message, whatsappUrl };
+  }
+
+  async logMessage(
+    prepared: PreparedWhatsAppMessage,
+    data: Pick<SendMessageInput, 'customerId' | 'bookingId' | 'recipientName' | 'variables'>,
+    userId: number,
+    status: WhatsAppMessageStatus,
+  ) {
+    return prisma.whatsAppMessageLog.create({
       data: {
-        templateId: data.templateId || null,
+        templateId: prepared.templateId,
         bookingId: data.bookingId || null,
         customerId: data.customerId || null,
         createdById: userId,
         recipientName: data.recipientName || null,
-        recipientPhone,
-        templateName,
-        message: renderedMessage,
-        status: 'MANUAL_SENT',
+        recipientPhone: prepared.recipientPhone,
+        templateName: prepared.templateName,
+        message: prepared.message,
+        status,
         variablesJson: data.variables,
       },
       include: {
@@ -193,7 +237,11 @@ export class WhatsAppService {
         createdBy: { select: { id: true, name: true, email: true, role: true } },
       },
     });
+  }
 
-    return { log, whatsappUrl, message: renderedMessage };
+  async sendMessage(data: SendMessageInput, userId: number) {
+    const prepared = await this.prepareMessage(data);
+    const log = await this.logMessage(prepared, data, userId, 'MANUAL_SENT');
+    return { log, whatsappUrl: prepared.whatsappUrl, message: prepared.message };
   }
 }

@@ -7,6 +7,7 @@ export const createCustomerSchema = z.object({
   lastName: nonEmptyString('Il cognome è obbligatorio'),
   phone: nonEmptyString('Il telefono è obbligatorio'),
   email: optionalEmailSchema,
+  birthDate: z.string().optional().nullable().or(z.literal('')),
   notes: z.string().optional(),
 });
 

@@ -18,6 +18,8 @@ import { useWhatsAppTemplates } from '@/modules/whatsapp/hooks/useWhatsApp';
 import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
 import { whatsappApi as whatsappService } from '@/modules/whatsapp/api/whatsapp.api';
 import type { WhatsAppTemplate } from '@/modules/whatsapp/model/whatsapp.types';
+import TodayBirthdaysWidget from '../components/TodayBirthdaysWidget';
+import WhatsAppConnectCard from '../components/WhatsAppConnectCard';
 import TemplateList from '../components/TemplateList';
 import { useTemplateFilters } from '../hooks/useTemplateFilters';
 
@@ -94,6 +96,10 @@ export default function WhatsAppPage() {
           setIsTemplateModalOpen(true);
         }}
       />
+
+      <WhatsAppConnectCard />
+
+      <TodayBirthdaysWidget />
 
       <Box
         sx={{

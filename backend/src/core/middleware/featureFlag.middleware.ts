@@ -33,6 +33,10 @@ async function getClientFeatures(): Promise<ClientFeatures> {
   return features;
 }
 
+export async function isFeatureEnabled(feature: keyof ClientFeatures): Promise<boolean> {
+  return (await getClientFeatures())[feature];
+}
+
 export function requireFeature(feature: keyof ClientFeatures) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

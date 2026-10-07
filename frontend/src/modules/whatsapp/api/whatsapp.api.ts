@@ -2,6 +2,10 @@ import { apiClient } from '@/common/shared/api/client';
 import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import type { PaginatedResponse } from '@/common/shared/types/pagination';
 import type {
+  BirthdayCustomer,
+  BirthdayGreetingResult,
+  BulkBirthdayGreetingResult,
+  WhatsAppSessionInfo,
   CreateWhatsAppTemplateData,
   SendWhatsAppMessageData,
   SendWhatsAppMessageResponse,
@@ -47,4 +51,33 @@ export const whatsappApi = {
       limit,
     });
   },
+  getTodayBirthdays: async (): Promise<{ success: boolean; data: BirthdayCustomer[]; total: number }> => {
+    return apiClient.get<{ success: boolean; data: BirthdayCustomer[]; total: number }>(
+      ENDPOINTS.WHATSAPP.BIRTHDAYS_TODAY,
+    );
+  },
+  sendBirthdayGreeting: async (customerId: number, resend: boolean): Promise<BirthdayGreetingResult> => {
+    return apiClient.post<BirthdayGreetingResult>(ENDPOINTS.WHATSAPP.BIRTHDAYS_SEND, { customerId, resend });
+  },
+  sendAllBirthdayGreetings: async (): Promise<BulkBirthdayGreetingResult> => {
+    return apiClient.post<BulkBirthdayGreetingResult>(ENDPOINTS.WHATSAPP.BIRTHDAYS_SEND, {});
+  },
+  getConnectionStatus: async () => {
+    return apiClient.get<WhatsAppSessionInfo>(
+      ENDPOINTS.WHATSAPP.CONNECTION_STATUS
+    );
+  },
+  connect: async () => {
+    return apiClient.post<WhatsAppSessionInfo>(
+      ENDPOINTS.WHATSAPP.CONNECT,
+      {}
+    );
+  },
+  disconnect: async () => {
+    return apiClient.post<{ success: boolean; message: string }>(
+      ENDPOINTS.WHATSAPP.DISCONNECT,
+      {}
+    );
+  },
 };
+

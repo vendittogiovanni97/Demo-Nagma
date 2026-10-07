@@ -14,7 +14,7 @@ import type { BirthdayCustomer } from '../model/whatsapp.types';
 
 export default function TodayBirthdaysWidget() {
   const theme = useTheme();
-  const { birthdays, unsentCount, isLoading, isSending, sendGreeting, sendAll } = useBirthdays();
+  const { birthdays, unsentCount, templateConfigured, isLoading, isSending, sendGreeting, sendAll } = useBirthdays();
   const [resendTarget, setResendTarget] = useState<BirthdayCustomer | null>(null);
 
   if (isLoading) {
@@ -79,6 +79,7 @@ export default function TodayBirthdaysWidget() {
             </Typography>
           </Box>
         </Box>
+        {!templateConfigured && <TemplateMissingNotice />}
       </Box>
     );
   }
@@ -144,13 +145,15 @@ export default function TodayBirthdaysWidget() {
           <Button
             variant="primary"
             onClick={sendAll}
-            disabled={isSending}
+            disabled={isSending || !templateConfigured}
             icon={<Icon name="send" size={16} />}
           >
             {isSending ? 'Invio in corso...' : 'Invia a tutti i non contattati'}
           </Button>
         )}
       </Box>
+
+      {!templateConfigured && <TemplateMissingNotice />}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 0.5 }}>
         {birthdays.map((c: BirthdayCustomer) => (
@@ -203,7 +206,7 @@ export default function TodayBirthdaysWidget() {
               <Button
                 variant={c.alreadySentToday ? 'secondary' : 'primary'}
                 onClick={() => (c.alreadySentToday ? setResendTarget(c) : sendGreeting(c))}
-                disabled={isSending || !c.phone}
+                disabled={isSending || !c.phone || !templateConfigured}
                 icon={<Icon name="messageCircle" size={14} />}
                 sx={{ minHeight: 36, py: 0.5, px: 1.5, fontSize: '0.8125rem' }}
               >
@@ -226,8 +229,33 @@ export default function TodayBirthdaysWidget() {
           ? `${resendTarget.firstName} ${resendTarget.lastName} ha già ricevuto gli auguri oggi: riceverà un secondo messaggio.`
           : ''}
         confirmText="Rinvia"
-        severity="warning"
+        severity="primary"
       />
+    </Box>
+  );
+}
+
+function TemplateMissingNotice() {
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 1.25,
+        p: 1.5,
+        borderRadius: 2,
+        border: 1,
+        borderColor: 'warning.main',
+        bgcolor: (theme) => alpha(theme.palette.warning.main, 0.08),
+        color: 'warning.main',
+      }}
+    >
+      <Icon name="alertTriangle" size={18} />
+      <Typography sx={{ fontSize: '0.8125rem', color: 'text.primary' }}>
+        Gli auguri non partono finché non esiste un template attivo con categoria <strong>Compleanno</strong>.
+        Crealo qui sotto con il testo che preferisci: puoi usare <strong>{'{{nome}}'}</strong> e <strong>{'{{cognome}}'}</strong>.
+      </Typography>
     </Box>
   );
 }

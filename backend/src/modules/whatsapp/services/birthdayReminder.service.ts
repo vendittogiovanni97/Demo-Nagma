@@ -6,8 +6,23 @@ import { hourInZone, todayInZone } from '../../../core/shared/utils/date-utils';
 import { WhatsAppService } from './whatsappService';
 import { BaileysService } from './baileys.service';
 
-const DEFAULT_TEMPLATE_BODY =
-  'Tanti auguri di buon compleanno da Nagma Tattoo Studio, {{nome}}! 🎂🎉\n\nPer festeggiare il tuo giorno speciale ti riserviamo uno sconto esclusivo del 10% sul tuo prossimo appuntamento!\n\nTi aspettiamo in studio, a presto!';
+// Il testo degli auguri è sempre quello del template, personalizzabile dallo studio:
+// senza un template attivo non si invia nulla invece di usare un testo fisso.
+const BIRTHDAY_TEMPLATE_WHERE: Prisma.WhatsAppTemplateWhereInput = {
+  deletedAt: null,
+  isActive: true,
+  OR: [
+    { category: { equals: 'compleanno', mode: 'insensitive' } },
+    { name: { contains: 'compleanno', mode: 'insensitive' } },
+    { name: { contains: 'auguri', mode: 'insensitive' } },
+  ],
+};
+
+const templateMissingError = () => new AppError(
+  'Crea un template WhatsApp attivo con categoria "Compleanno" per inviare gli auguri',
+  409,
+  'BIRTHDAY_TEMPLATE_MISSING',
+);
 
 // Una prenotazione dell'invio rimasta in SENDING oltre questa soglia viene da un
 // processo interrotto a metà: si può riprendere senza rischiare un doppio invio.
@@ -63,6 +78,10 @@ export class BirthdayReminderService {
     return this.baileysService.isConnected();
   }
 
+  async findBirthdayTemplate() {
+    return prisma.whatsAppTemplate.findFirst({ where: BIRTHDAY_TEMPLATE_WHERE, orderBy: { updatedAt: 'desc' } });
+  }
+
   async getTodayBirthdayCustomers(now = new Date()): Promise<BirthdayCustomer[]> {
     const { year, month, day } = todayParts(now);
     // Negli anni non bisestili chi è nato il 29 febbraio festeggia il 28.
@@ -113,30 +132,19 @@ export class BirthdayReminderService {
       throw new AppError('WhatsApp non è collegato', 409, 'WHATSAPP_NOT_CONNECTED');
     }
 
+    const template = await this.findBirthdayTemplate();
+    if (!template) throw templateMissingError();
+
     const { year } = todayParts(options.now ?? new Date());
     const claim = await this.claimGreeting(customer.id, year, Boolean(options.resend));
     let sent = false;
 
     try {
-      const template = await prisma.whatsAppTemplate.findFirst({
-        where: {
-          deletedAt: null,
-          isActive: true,
-          OR: [
-            { category: 'COMPLEANNO' },
-            { name: { contains: 'compleanno', mode: 'insensitive' } },
-            { name: { contains: 'auguri', mode: 'insensitive' } },
-          ],
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
       const messageData = {
         recipientPhone: customer.phone,
         recipientName: `${customer.firstName} ${customer.lastName}`,
         customerId: customer.id,
-        templateId: template?.id,
-        message: template?.body || DEFAULT_TEMPLATE_BODY,
+        templateId: template.id,
         variables: {
           nome: customer.firstName,
           firstName: customer.firstName,
@@ -182,6 +190,7 @@ export class BirthdayReminderService {
     if (!this.baileysService.isConnected()) {
       throw new AppError('Collega WhatsApp per inviare gli auguri automaticamente', 409, 'WHATSAPP_NOT_CONNECTED');
     }
+    if (!(await this.findBirthdayTemplate())) throw templateMissingError();
 
     const todayCustomers = await this.getTodayBirthdayCustomers(now);
     const results: BulkGreetingResult['results'] = [];
@@ -325,9 +334,13 @@ export class BirthdayReminderScheduler {
         failedCount: result.failedCount,
       });
     } catch (err) {
-      logger.error(`[BirthdayReminderScheduler] Errore nel controllo compleanni delle ${hour}:00`, {
-        error: err instanceof Error ? err.message : String(err),
-      });
+      const message = err instanceof Error ? err.message : String(err);
+      // 409 = configurazione mancante (template, collegamento): si riprova al prossimo controllo.
+      if (err instanceof AppError && err.statusCode === 409) {
+        logger.warn(`[BirthdayReminderScheduler] Invio delle ${hour}:00 rimandato: ${message}`);
+      } else {
+        logger.error(`[BirthdayReminderScheduler] Errore nel controllo compleanni delle ${hour}:00`, { error: message });
+      }
     } finally {
       this.isRunning = false;
     }

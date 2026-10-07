@@ -8,17 +8,16 @@ import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import type { BirthdayCustomer } from '../model/whatsapp.types';
 import { useToast } from '@/common/hooks/useToast';
 
+export const TODAY_BIRTHDAYS_KEY = 'whatsapp-today-birthdays';
+
 const errorMessage = (err: unknown) => (err instanceof Error ? err.message : 'Errore invio auguri');
 
 export function useBirthdays() {
   const toast = useToast();
 
   const { data, error, isLoading, mutate } = useSWR(
-    'whatsapp-today-birthdays',
-    async () => {
-      const res = await whatsappApi.getTodayBirthdays();
-      return res.data ?? [];
-    },
+    TODAY_BIRTHDAYS_KEY,
+    () => whatsappApi.getTodayBirthdays(),
     { revalidateOnFocus: false, dedupingInterval: 10000 }
   );
 
@@ -66,10 +65,13 @@ export function useBirthdays() {
     }
   }, [triggerSendAll, toast, mutate]);
 
+  const birthdays = data?.data ?? [];
+
   return {
-    birthdays: data ?? [],
-    count: (data ?? []).length,
-    unsentCount: (data ?? []).filter((c) => !c.alreadySentToday).length,
+    birthdays,
+    count: birthdays.length,
+    unsentCount: birthdays.filter((c) => !c.alreadySentToday).length,
+    templateConfigured: data?.templateConfigured ?? true,
     isLoading,
     isSending: isSendingOne || isSendingAll,
     error,

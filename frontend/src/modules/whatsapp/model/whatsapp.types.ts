@@ -75,6 +75,13 @@ export interface BirthdayCustomer {
   lastMessageSentAt?: string | null;
 }
 
+export interface TodayBirthdaysResponse {
+  success: boolean;
+  data: BirthdayCustomer[];
+  total: number;
+  templateConfigured: boolean;
+}
+
 export interface BirthdayGreetingResult {
   customer: { id: number; name: string; phone: string };
   sentVia: 'whatsapp' | 'link';

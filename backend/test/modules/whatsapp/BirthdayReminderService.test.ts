@@ -137,6 +137,25 @@ describe('BirthdayReminderService', () => {
       expect(loggedStatus()).toEqual(['MANUAL_SENT']);
     });
 
+    it('usa il testo del template dello studio', async () => {
+      mockPrisma.whatsAppTemplate.findFirst.mockResolvedValue({ ...template, body: 'Auguri {{nome}} {{cognome}} dallo studio' });
+      mockPrisma.whatsAppTemplate.findUnique.mockResolvedValue({ ...template, body: 'Auguri {{nome}} {{cognome}} dallo studio' });
+
+      await service.sendBirthdayGreeting(10, { allowLink: false, now: NOW });
+
+      expect(baileys.sendTextMessage).toHaveBeenCalledWith('3331234567', 'Auguri Marco Rossi dallo studio');
+    });
+
+    it('senza template compleanno non invia e non prenota nulla', async () => {
+      mockPrisma.whatsAppTemplate.findFirst.mockResolvedValue(null);
+
+      await expect(service.sendBirthdayGreeting(10, { allowLink: true, now: NOW }))
+        .rejects.toMatchObject({ code: 'BIRTHDAY_TEMPLATE_MISSING' });
+
+      expect(mockPrisma.birthdayGreeting.create).not.toHaveBeenCalled();
+      expect(baileys.sendTextMessage).not.toHaveBeenCalled();
+    });
+
     it('non invia due volte gli auguri allo stesso cliente nello stesso anno', async () => {
       mockPrisma.birthdayGreeting.create.mockRejectedValue(uniqueViolation());
       mockPrisma.birthdayGreeting.findUnique.mockResolvedValue({ id: 99, status: 'SENT', updatedAt: NOW });
@@ -191,6 +210,12 @@ describe('BirthdayReminderService', () => {
     it('rifiuta l\'invio a tutti se WhatsApp non è collegato', async () => {
       baileys.isConnected.mockReturnValue(false);
       await expect(service.sendAllTodayBirthdayGreetings(undefined, NOW)).rejects.toMatchObject({ code: 'WHATSAPP_NOT_CONNECTED' });
+    });
+
+    it('senza template compleanno l\'invio a tutti si ferma subito', async () => {
+      mockPrisma.whatsAppTemplate.findFirst.mockResolvedValue(null);
+      await expect(service.sendAllTodayBirthdayGreetings(undefined, NOW)).rejects.toMatchObject({ code: 'BIRTHDAY_TEMPLATE_MISSING' });
+      expect(mockPrisma.$queryRaw).not.toHaveBeenCalled();
     });
 
     it('invia solo ai festeggiati non ancora raggiunti e conta i fallimenti', async () => {

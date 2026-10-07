@@ -36,7 +36,7 @@
     },
     {
       "name": "Auguri di Compleanno", "category": "COMPLEANNO",
-      "body": "Tanti auguri di buon compleanno da Nagma Tattoo Studio, {{nome}}! 🎂🎉\n\nPer festeggiare il tuo giorno speciale, abbiamo un regalo per te: uno sconto del 10% sul tuo prossimo appuntamento!\n\nTi aspettiamo in studio, a presto!"
+      "body": "Tanti auguri di buon compleanno da Nagma Tattoo Studio, {{nome}}! 🎂🎉\n\nTi aspettiamo in studio, a presto!"
     }
   ],
   "formTemplate": {

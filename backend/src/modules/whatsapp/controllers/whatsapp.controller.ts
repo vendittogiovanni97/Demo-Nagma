@@ -45,8 +45,11 @@ export class WhatsAppController {
   });
 
   getTodayBirthdays = asyncHandler(async (_req: Request, res: Response) => {
-    const result = await this.birthdayReminderService.getTodayBirthdayCustomers();
-    res.json({ success: true, data: result, total: result.length });
+    const [result, template] = await Promise.all([
+      this.birthdayReminderService.getTodayBirthdayCustomers(),
+      this.birthdayReminderService.findBirthdayTemplate(),
+    ]);
+    res.json({ success: true, data: result, total: result.length, templateConfigured: template !== null });
   });
 
   sendTodayBirthdays = asyncHandler(async (req: AuthRequest, res: Response) => {

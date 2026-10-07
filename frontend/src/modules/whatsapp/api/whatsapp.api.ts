@@ -3,6 +3,7 @@ import { ENDPOINTS } from '@/common/shared/api/endpoints';
 import type { PaginatedResponse } from '@/common/shared/types/pagination';
 import type {
   BirthdayCustomer,
+  TodayBirthdaysResponse,
   BirthdayGreetingResult,
   BulkBirthdayGreetingResult,
   WhatsAppSessionInfo,
@@ -51,8 +52,8 @@ export const whatsappApi = {
       limit,
     });
   },
-  getTodayBirthdays: async (): Promise<{ success: boolean; data: BirthdayCustomer[]; total: number }> => {
-    return apiClient.get<{ success: boolean; data: BirthdayCustomer[]; total: number }>(
+  getTodayBirthdays: async (): Promise<TodayBirthdaysResponse> => {
+    return apiClient.get<TodayBirthdaysResponse>(
       ENDPOINTS.WHATSAPP.BIRTHDAYS_TODAY,
     );
   },

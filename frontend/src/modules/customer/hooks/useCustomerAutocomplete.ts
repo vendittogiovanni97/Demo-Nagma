@@ -26,16 +26,17 @@ interface UseCustomerAutocompleteOptions {
  */
 export function useCustomerAutocomplete(config: UseCustomerAutocompleteOptions = {}) {
   const enabled = config.enabled ?? true;
-  const minChars = config.minChars ?? 2;
+  const minChars = config.minChars ?? 0;
 
   const [search, setSearch] = useState('');
   const [pinned, setPinned] = useState<CustomerOption | null>(null);
-  const debouncedSearch = useDebouncedValue(search, 300);
+  const debouncedSearch = useDebouncedValue(search, 250);
 
-  const shouldQuery = enabled && debouncedSearch.trim().length >= minChars;
+  const trimmedSearch = debouncedSearch.trim();
+  const shouldQuery = enabled && (trimmedSearch.length >= minChars || trimmedSearch.length === 0);
 
   const { data, isLoading, error, mutate } = useCustomers({
-    search: shouldQuery ? debouncedSearch.trim() : undefined,
+    search: trimmedSearch || undefined,
     page: 1,
     limit: 25,
     enabled: shouldQuery,
@@ -44,7 +45,7 @@ export function useCustomerAutocomplete(config: UseCustomerAutocompleteOptions =
   const options = useMemo<CustomerOption[]>(() => {
     const list = (data?.data ?? []).map((c) => ({
       value: c.id.toString(),
-      label: `${c.firstName} ${c.lastName}`,
+      label: c.phone ? `${c.firstName} ${c.lastName} (${c.phone})` : `${c.firstName} ${c.lastName}`,
     }));
     if (pinned && !list.some((o) => o.value === pinned.value)) {
       list.unshift(pinned);

@@ -61,11 +61,14 @@ export default function FormAutocomplete({
         onInputChange={(_, inputValue, reason) => {
           if (reason === 'input' && onSearchChange) onSearchChange(inputValue);
         }}
+        // Se c'è ricerca server-side (onSearchChange), le opzioni arrivano già filtrate dal server
+        filterOptions={onSearchChange ? (x) => x : undefined}
         options={options}
         getOptionLabel={(option) => option.label}
         isOptionEqualToValue={(option, val) => String(option.value) === String(val.value)}
         disabled={disabled}
         loading={loading}
+        noOptionsText={loading ? 'Caricamento clienti...' : 'Nessun cliente trovato'}
         slotProps={{
           paper: { sx: (t: Theme) => styles.paper(t) }
         }}

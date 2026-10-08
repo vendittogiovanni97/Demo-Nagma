@@ -9,6 +9,8 @@ import { useBookings } from '@/modules/booking/hooks/useBooking';
 import { useBookingDelete } from '@/modules/booking/hooks/useBookingDelete';
 import type { BookingModel } from '@/modules/booking/model/booking.model';
 
+const AGENDA_REFRESH_MS = 30_000;
+
 interface AgendaBookingsState {
   isModalOpen: boolean;
   editingBooking: BookingModel | null;
@@ -52,7 +54,12 @@ export function useAgendaBookings(): AgendaBookingsResult {
   const [initialTime, setInitialTime] = useState('');
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
 
-  const { data: bookingsResult, mutate, isLoading, error } = useBookings({ month: currentMonth });
+  // Più persone usano l'agenda insieme (reception, artisti): senza aggiornamento
+  // periodico una prenotazione creata altrove resta invisibile fino al ricaricamento.
+  const { data: bookingsResult, mutate, isLoading, error } = useBookings(
+    { month: currentMonth },
+    { refreshInterval: AGENDA_REFRESH_MS, revalidateOnFocus: true },
+  );
   const bookings = bookingsResult?.data ?? [];
 
   const {

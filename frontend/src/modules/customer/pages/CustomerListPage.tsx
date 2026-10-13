@@ -8,6 +8,10 @@ import { CancelButton } from '@/common/components/ui/Button';
 import Icon from '@/common/components/ui/Icon';
 import { useAuth } from '@/common/context/AuthContext';
 import { Box } from '@mui/material';
+import { format, parseISO } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { EXPORT_FETCH_LIMIT } from '@/common/config/env';
+import type { ExportFilter } from '@/common/components/modals/ExportModal';
 import { useCallback, useMemo, useState } from 'react';
 import { customerApi } from '../api/customer.api';
 import CustomerCard from '../components/CustomerCard';
@@ -78,6 +82,38 @@ export default function CustomerListPage() {
     };
   }, [filterState.startDate, filterState.endDate, filterState.debouncedSearch]);
 
+  const exportColumns = useMemo(() => [
+    { label: 'Cliente', value: (c: Customer) => c.fullName },
+    { label: 'Telefono', value: (c: Customer) => c.phone },
+    { label: 'Email', value: (c: Customer) => c.email },
+    { label: 'Data di nascita', value: (c: Customer) => (c.birthDate ? format(parseISO(c.birthDate), 'dd/MM/yyyy') : '') },
+    { label: 'Iscritto il', value: (c: Customer) => format(parseISO(c.createdAt), 'dd/MM/yyyy', { locale: it }) },
+    { label: 'Prenotazioni', value: (c: Customer) => c.totalBookings },
+    { label: 'Note', value: (c: Customer) => c.notes },
+  ], []);
+
+  const exportFilters = useMemo<ExportFilter<Customer>[]>(() => [
+    {
+      key: 'cliente',
+      label: 'Cliente',
+      type: 'text',
+      placeholder: 'Cerca per nome...',
+      filterFn: (c, v) => c.fullName.toLowerCase().includes(v.toLowerCase()),
+    },
+    {
+      key: 'giorno',
+      label: 'Giorno',
+      type: 'date',
+      filterFn: (c, v) => !v || format(parseISO(c.createdAt), 'yyyy-MM-dd') === v,
+    },
+    {
+      key: 'mese',
+      label: 'Mese',
+      type: 'month',
+      filterFn: (c, v) => !v || format(parseISO(c.createdAt), 'yyyy-MM') === v,
+    },
+  ], []);
+
   const refreshKey = useMemo(() => {
     return `${filterState.debouncedSearch || ''}_${filterState.startDate || ''}_${filterState.endDate || ''}_${refreshTrigger}`;
   }, [filterState.debouncedSearch, filterState.startDate, filterState.endDate, refreshTrigger]);
@@ -88,6 +124,34 @@ export default function CustomerListPage() {
     <PageContainer pt={1}>
       <PageHeader
         title="Clienti"
+        exportConfig={{
+          filenameBase: 'clienti',
+          title: 'Clienti',
+          rows: [],
+          columns: exportColumns,
+          filters: exportFilters,
+          filtersLabel: [
+            filterState.debouncedSearch && `Ricerca: ${filterState.debouncedSearch}`,
+            filterState.startDate && `Dal: ${filterState.startDate}`,
+            filterState.endDate && `Al: ${filterState.endDate}`,
+          ].filter(Boolean).join(' · ') || undefined,
+          resolveRows: async () => {
+            const res = await customerApi.getAll({
+              page: 1,
+              limit: EXPORT_FETCH_LIMIT,
+              search: filterState.debouncedSearch || undefined,
+              startDate: filterState.startDate || undefined,
+              endDate: filterState.endDate || undefined,
+            });
+            return res.data.map((customer): Customer => ({
+              ...customer,
+              fullName: `${customer.firstName} ${customer.lastName}`.trim(),
+              email: customer.email ?? '',
+              notes: customer.notes ?? '',
+              totalBookings: customer._count?.bookings ?? 0,
+            }));
+          },
+        }}
         showButton
         buttonLabel="Nuovo Cliente"
         buttonIcon={<Icon name="plus" size={18} />}

@@ -564,12 +564,14 @@ export class BookingService {
       ? `${booking.customer.firstName} ${booking.customer.lastName || ''}`.trim()
       : 'Cliente';
 
-    const fd = (booking.formData || {}) as Record<string, unknown>;
-    const artistPrice = typeof fd.artistPrice === 'number' ? fd.artistPrice : 0;
     const fullPrice = Number(booking.price) || 0;
     const completionDate = new Date();
     const depositAmount = Number(booking.deposit) || 0;
-    const finalIncomeAmount = fullPrice - depositAmount;
+    // Il saldo è la sola quota studio: la parte dell'artista non è incasso dello studio.
+    const fd = (booking.formData || {}) as Record<string, unknown>;
+    const artistShare = Math.min(Math.max(Number(fd.artistPrice) || 0, 0), fullPrice);
+    const studioShare = fullPrice - artistShare;
+    const finalIncomeAmount = Math.round((studioShare - depositAmount) * 100) / 100;
 
     if (finalIncomeAmount > 0) {
       const description = depositAmount > 0
@@ -591,27 +593,6 @@ export class BookingService {
             date: completionDate,
             sourceId: booking.id,
             sourceType: 'BOOKING',
-          },
-        });
-      }
-    }
-
-    if (artistPrice > 0) {
-      // Dedup: evita doppio compenso se il completamento viene ripetuto
-      const existingCommission = await tx.transaction.findFirst({
-        where: { sourceId: booking.id, sourceType: 'BOOKING_COMMISSION', deletedAt: null },
-      });
-
-      if (!existingCommission) {
-        await tx.transaction.create({
-          data: {
-            type: 'USCITA',
-            category: 'Compenso Artista',
-            description: `Compenso artista — prenotazione #${booking.id}`,
-            amount: artistPrice,
-            date: completionDate,
-            sourceId: booking.id,
-            sourceType: 'BOOKING_COMMISSION',
           },
         });
       }

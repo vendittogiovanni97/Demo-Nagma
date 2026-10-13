@@ -5,7 +5,7 @@ import SmartModal from '@/common/components/common/SmartModal';
 import Button from '@/common/components/ui/Button';
 import { Alert, Box, Stack, Typography, useTheme } from '@mui/material';
 import Icon from '@/common/components/ui/Icon';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   exportService,
@@ -14,6 +14,8 @@ import {
 } from '@/common/shared/api/export.api';
 import FormInput from '@/common/components/forms/FormInput';
 import FormSelect from '@/common/components/forms/FormSelect';
+
+const KNOWN_FILTER_KEYS = ['cliente', 'artista', 'stato', 'giorno', 'mese'];
 
 export interface ExportColumn<T> {
   label: string;
@@ -74,6 +76,31 @@ export default function ExportModal<T>({
 
   const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
 
+  // Con resolveRows i dati vengono presi dal server all'apertura, così filtri e conteggio
+  // lavorano sullo stesso insieme che verrà esportato.
+  const [fetchedRows, setFetchedRows] = useState<T[] | null>(null);
+  const [isLoadingRows, setIsLoadingRows] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !resolveRows) {
+      setFetchedRows(null);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingRows(true);
+    setError(null);
+    resolveRows()
+      .then((data) => { if (!cancelled) setFetchedRows(data); })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Errore nel recupero dei dati');
+      })
+      .finally(() => { if (!cancelled) setIsLoadingRows(false); });
+    return () => { cancelled = true; };
+    // resolveRows cambia identità a ogni render dei chiamanti: si ricarica solo all'apertura.
+  }, [isOpen]);
+
+  const sourceRows = resolveRows ? (fetchedRows ?? []) : rows;
+
 
   const initialValues = useMemo(() => {
     const init: Record<string, string> = {};
@@ -84,15 +111,15 @@ export default function ExportModal<T>({
   const [filterValues, setFilterValues] = useState<Record<string, string>>(initialValues);
 
   const filteredRows = useMemo(() => {
-    if (!filters || filters.length === 0) return rows;
-    return rows.filter(row =>
+    if (!filters || filters.length === 0) return sourceRows;
+    return sourceRows.filter(row =>
       filters.every(f => {
         const val = filterValues[f.key] ?? '';
         if (!val) return true;
         return f.filterFn(row, val);
       })
     );
-  }, [rows, filters, filterValues]);
+  }, [sourceRows, filters, filterValues]);
 
   const hasActiveFilters = filters?.some(f => (filterValues[f.key] ?? '') !== '');
   const resetFilters = () => setFilterValues(initialValues);
@@ -128,8 +155,6 @@ export default function ExportModal<T>({
           setError(err instanceof Error ? err.message : 'Errore nel recupero dei dati filtrati');
           return;
         }
-      } else if (resolveRows) {
-        data = await resolveRows();
       }
 
       const exportColumns = columns.map((column, index) => ({
@@ -203,7 +228,7 @@ export default function ExportModal<T>({
         <Button
           variant="glass"
           size="md"
-          disabled={rows.length === 0}
+          disabled={!resolveRows && rows.length === 0}
           onClick={handleOpen}
           icon={<Icon name="fileDown" size={18} />}
         >
@@ -273,14 +298,20 @@ export default function ExportModal<T>({
                 {filters.filter(f => ['stato', 'giorno', 'mese'].includes(f.key)).map(renderFilterItem)}
               </Box>
 
+              {filters.some(f => !KNOWN_FILTER_KEYS.includes(f.key)) && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                  {filters.filter(f => !KNOWN_FILTER_KEYS.includes(f.key)).map(renderFilterItem)}
+                </Box>
+              )}
+
               <Stack direction="row" sx={{ gap: 1, alignItems: 'center', p: 2, borderRadius: 2, backgroundColor: alpha(theme.palette.primary.main, 0.05), border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
                 <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: filteredRows.length === 0 ? theme.palette.error.main : theme.palette.primary.main }}>
                   {filteredRows.length}
                 </Typography>
                 <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
-                  {filteredRows.length === rows.length
+                  {filteredRows.length === sourceRows.length
                     ? `record da esportare`
-                    : `di ${rows.length} record corrispondono ai filtri attuali`}
+                    : `di ${sourceRows.length} record corrispondono ai filtri attuali`}
                 </Typography>
               </Stack>
             </Stack>
@@ -289,7 +320,7 @@ export default function ExportModal<T>({
           {(!filters || filters.length === 0) && (
             <Box sx={{ p: 2, borderRadius: 2, backgroundColor: alpha(theme.palette.primary.main, 0.05), border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}` }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
-                Stai per esportare <Box component="span" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>{rows.length}</Box> record.
+                Stai per esportare <Box component="span" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>{filteredRows.length}</Box> record.
                 {resolveRows && <Box component="span" sx={{ display: 'block', mt: 0.5, fontSize: '0.75rem' }}>Verranno scaricati tutti i dati disponibili per questa vista.</Box>}
               </Typography>
             </Box>

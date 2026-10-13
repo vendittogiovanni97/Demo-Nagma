@@ -7,6 +7,7 @@ export interface CustomerDTO {
   lastName: string;
   phone: string;
   email?: string;
+  birthDate?: string | null;
   notes?: string;
   createdAt: string;
   _count?: {
@@ -22,6 +23,7 @@ export interface CustomerSummaryDTO {
   lastName: string;
   email?: string;
   phone: string;
+  birthDate?: string | null;
   notes?: string;
   createdAt: string;
   totalSpent: number;
@@ -42,6 +44,7 @@ export interface CreateCustomerRequest {
   lastName: string;
   phone: string;
   email?: string;
+  birthDate?: string | null;
   notes?: string;
 }
 

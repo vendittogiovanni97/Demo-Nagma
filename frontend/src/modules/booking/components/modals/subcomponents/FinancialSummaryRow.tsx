@@ -8,7 +8,7 @@ import { alpha } from '@mui/material/styles';
 interface FinancialSummaryRowProps {
   price: number | string;
   deposit: number | string;
-  percentualeMode: number | string;
+  studioPercentuale: number | string;
   prezzoArtista: number;
   guadagno: number;
   percentualeOptions: Array<{ label: string; value: number | string }>;
@@ -19,7 +19,7 @@ interface FinancialSummaryRowProps {
 export function FinancialSummaryRow({
   price,
   deposit,
-  percentualeMode,
+  studioPercentuale,
   prezzoArtista,
   guadagno,
   percentualeOptions,
@@ -29,13 +29,13 @@ export function FinancialSummaryRow({
   const theme = useTheme();
 
   const baseOptions = isRentPayeeArtist
-    ? [{ label: '100% (Affitto Postazione)', value: 100 }]
+    ? [{ label: '0% (Affitto Postazione)', value: 0 }]
     : percentualeOptions;
   // Garantisce che il valore corrente sia sempre presente tra le opzioni (es. percentuali
   // non standard salvate in passato), così la select lo mostra e il calcolo non lo azzera.
-  const optionsToUse = baseOptions.some((o) => String(o.value) === String(percentualeMode))
+  const optionsToUse = baseOptions.some((o) => String(o.value) === String(studioPercentuale))
     ? baseOptions
-    : [{ label: `${percentualeMode}%`, value: percentualeMode }, ...baseOptions];
+    : [{ label: `${studioPercentuale}%`, value: studioPercentuale }, ...baseOptions];
 
   return (
     <Grid size={12}>
@@ -62,9 +62,9 @@ export function FinancialSummaryRow({
         </Grid>
         <Grid size={{ xs: 4, sm: 2 }}>
           <FormSelect
-            label="% Artista"
-            value={isRentPayeeArtist ? 100 : percentualeMode}
-            onChange={(v) => onChangeField('percentualeMode', v)}
+            label="% Studio"
+            value={isRentPayeeArtist ? 0 : studioPercentuale}
+            onChange={(v) => onChangeField('studioPercentuale', v)}
             options={optionsToUse}
             disabled={isRentPayeeArtist}
           />

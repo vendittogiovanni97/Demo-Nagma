@@ -12,6 +12,11 @@ export function registerWhatsAppRoutes(app: Express): void {
   router.use(requireFeature('enableWhatsApp'));
 
   router.get('/', controller.getAll);
+  router.get('/connection-status', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getConnectionStatus);
+  router.post('/connect', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.connectWhatsApp);
+  router.post('/disconnect', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.disconnectWhatsApp);
+  router.get('/birthdays/today', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getTodayBirthdays);
+  router.post('/birthdays/send-today', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.sendTodayBirthdays);
   router.get('/logs', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.getLogs);
   router.post('/send', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.sendManual);
   router.post('/:id/duplicate', requireRoles('ADMIN', 'SUPER_ADMIN'), controller.duplicate);

@@ -252,6 +252,20 @@ action={
                     </Link>
                   </Box>
                 )}
+                {customer.birthDate && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      fontSize: '0.875rem',
+                      color: 'text.primary',
+                    }}
+                  >
+                    <Icon name="calendar" size={16} color={theme.palette.primary.main} />
+                    Nato il {formatDate(customer.birthDate, 'dd MMMM yyyy')}
+                  </Box>
+                )}
                 <Box
                   sx={{
                     display: 'flex',
@@ -664,16 +678,16 @@ action={
                               py: 0.25,
                               borderRadius: '12px',
                               bgcolor:
-                                log.status === 'MANUAL_SENT'
+                                log.status !== 'FAILED'
                                   ? alpha(theme.palette.success.main, 0.2)
                                   : alpha(theme.palette.error.main, 0.2),
                               color:
-                                log.status === 'MANUAL_SENT'
+                                log.status !== 'FAILED'
                                   ? theme.palette.success.light
                                   : theme.palette.error.light,
                             }}
                           >
-                            {log.status === 'MANUAL_SENT' ? 'Inviato' : 'Fallito'}
+                            {log.status !== 'FAILED' ? 'Inviato' : 'Fallito'}
                           </Box>
                         </Box>
                         <Typography

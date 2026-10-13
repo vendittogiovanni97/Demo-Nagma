@@ -7,6 +7,7 @@ export interface CustomerModel {
   lastName: string;
   phone: string;
   email: string;
+  birthDate?: string | null;
   notes: string;
   createdAt: string;
   totalBookings: number;
@@ -21,6 +22,7 @@ export interface CustomerSummaryModel {
   lastName: string;
   email: string;
   phone: string;
+  birthDate?: string | null;
   notes: string;
   createdAt: string;
   totalSpent: number;
@@ -40,7 +42,7 @@ export interface WhatsAppLog {
   recipientName?: string;
   recipientPhone: string;
   message: string;
-  status: 'MANUAL_SENT' | 'FAILED';
+  status: 'MANUAL_SENT' | 'AUTO_SENT' | 'FAILED';
   createdAt: string;
   template?: { id: number; name: string };
 }

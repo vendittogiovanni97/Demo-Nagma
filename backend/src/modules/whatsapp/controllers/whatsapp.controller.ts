@@ -5,14 +5,34 @@ import { asyncHandler } from '../../../core/shared/utils/asyncHandler';
 import { validate } from '../../../core/shared/utils/validation';
 import { parseId } from '../../../core/shared/utils/parse-id';
 import { WhatsAppService } from '../services/whatsappService';
+import { BirthdayReminderService } from '../services/birthdayReminder.service';
+import { BaileysService } from '../services/baileys.service';
 import {
   createWhatsAppTemplateSchema,
   updateWhatsAppTemplateSchema,
   sendWhatsAppMessageSchema,
+  sendBirthdayGreetingsSchema,
 } from './whatsapp.schemas';
 
 export class WhatsAppController {
-  constructor(private readonly whatsappService: WhatsAppService) {}
+  constructor(
+    private readonly whatsappService: WhatsAppService,
+    private readonly birthdayReminderService: BirthdayReminderService,
+    private readonly baileysService: BaileysService,
+  ) {}
+
+  getConnectionStatus = asyncHandler(async (_req: Request, res: Response) => {
+    res.json(this.baileysService.getStatus());
+  });
+
+  connectWhatsApp = asyncHandler(async (_req: Request, res: Response) => {
+    res.json(await this.baileysService.connect());
+  });
+
+  disconnectWhatsApp = asyncHandler(async (_req: Request, res: Response) => {
+    await this.baileysService.disconnect();
+    res.json({ success: true, message: 'Disconnesso con successo' });
+  });
 
   getAll = asyncHandler(async (req: Request, res: Response) => {
     const result = await this.whatsappService.getAllTemplates(req.query);
@@ -21,6 +41,22 @@ export class WhatsAppController {
 
   getLogs = asyncHandler(async (req: Request, res: Response) => {
     const result = await this.whatsappService.getLogs(req.query);
+    res.json(result);
+  });
+
+  getTodayBirthdays = asyncHandler(async (_req: Request, res: Response) => {
+    const [result, template] = await Promise.all([
+      this.birthdayReminderService.getTodayBirthdayCustomers(),
+      this.birthdayReminderService.findBirthdayTemplate(),
+    ]);
+    res.json({ success: true, data: result, total: result.length, templateConfigured: template !== null });
+  });
+
+  sendTodayBirthdays = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { customerId, resend } = validate(sendBirthdayGreetingsSchema, req.body ?? {});
+    const result = customerId
+      ? await this.birthdayReminderService.sendBirthdayGreeting(customerId, { userId: req.user?.id, allowLink: true, resend })
+      : await this.birthdayReminderService.sendAllTodayBirthdayGreetings(req.user?.id);
     res.json(result);
   });
 

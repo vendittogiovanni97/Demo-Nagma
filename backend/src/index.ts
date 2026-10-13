@@ -10,6 +10,7 @@ import { ConfigService } from './modules/config/services/configService';
 import { databaseBackupScheduler } from './core/backup/databaseBackup';
 import { backupService } from './core/backup/backup.service';
 import { initErrorTracking } from './core/observability/errorTracking';
+import { BirthdayReminderScheduler } from './modules/whatsapp/services/birthdayReminder.service';
 const configService = container.get(ConfigService);
 
 const port = Number(process.env.PORT || 3001);
@@ -38,6 +39,7 @@ function validateEnv() {
 
 async function stopServer() {
   databaseBackupScheduler.stop();
+  container.get(BirthdayReminderScheduler).stop();
 
   if (server) {
     await new Promise<void>((resolve, reject) => {
@@ -87,6 +89,13 @@ async function startServer() {
         debugHttp: isDebugHttpEnabled(),
       });
       databaseBackupScheduler.start();
+      // Disattivabile in sviluppo: senza questo flag un backend locale collegato a
+      // WhatsApp manderebbe gli auguri veri ai clienti presenti nel database.
+      if ((process.env.BIRTHDAY_SCHEDULER_ENABLED ?? 'true').toLowerCase() === 'true') {
+        container.get(BirthdayReminderScheduler).start();
+      } else {
+        logger.info('[BirthdayReminderScheduler] Disattivato (BIRTHDAY_SCHEDULER_ENABLED=false)');
+      }
       if (process.env.NODE_ENV === 'production') {
         void backupService.createAndSendBackupEmail();
       }

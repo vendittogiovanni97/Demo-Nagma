@@ -12,6 +12,7 @@ import { validateData } from '@/common/shared/utils/validation';
 import { Mail, Phone, User } from '@/common/components/ui/Icon';
 import { Box } from '@mui/material';
 import FormInput from '@/common/components/forms/FormInput';
+import DateInput from '@/common/components/forms/DateInput';
 import TextareaInput from '@/common/components/forms/TextareaInput';
 
 interface Props {
@@ -42,9 +43,10 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
             lastName: entity.lastName,
             phone: entity.phone,
             email: entity.email ?? '',
+            birthDate: entity.birthDate ? entity.birthDate.slice(0, 10) : '',
             notes: entity.notes ?? '',
           }
-        : { firstName: '', lastName: '', phone: '', email: '', notes: '' },
+        : { firstName: '', lastName: '', phone: '', email: '', birthDate: '', notes: '' },
     validate: (formData) => {
       const dataToValidate = { ...formData, phone: formatPhone(formData.phone) };
       return validateData(createCustomerSchema, dataToValidate);
@@ -118,14 +120,30 @@ export default function CustomerModal({ isOpen, onClose, onSuccess, customer }: 
             required
           />
 
-          <FormInput
-            label="Email"
-            type="email"
-            value={form.formData.email || ''}
-            onChange={(v) => form.setField('email', v)}
-            placeholder="Email opzionale"
-            icon={Mail}
-          />
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 3,
+            }}
+          >
+            <FormInput
+              label="Email"
+              type="email"
+              value={form.formData.email || ''}
+              onChange={(v) => form.setField('email', v)}
+              placeholder="Email opzionale"
+              icon={Mail}
+            />
+
+            <DateInput
+              label="Data di Nascita"
+              value={form.formData.birthDate || ''}
+              onChange={(v) => form.setField('birthDate', v)}
+              quickButtons={false}
+              size="md"
+            />
+          </Box>
 
           <TextareaInput
             label="Note"

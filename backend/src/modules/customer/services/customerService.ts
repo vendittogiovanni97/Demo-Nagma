@@ -120,7 +120,7 @@ export class CustomerService {
     };
   }
 
-  async create(data: { firstName: string; lastName: string; phone: string; email?: string; notes?: string }) {
+  async create(data: { firstName: string; lastName: string; phone: string; email?: string; birthDate?: string | Date | null; notes?: string }) {
     const existingByName = await prisma.customer.findFirst({
       where: {
         firstName: { equals: data.firstName, mode: 'insensitive' },
@@ -132,12 +132,15 @@ export class CustomerService {
       throw new AppError(`Un cliente con nome "${data.firstName} ${data.lastName}" esiste già.`, 409, 'DUPLICATE_NAME');
     }
 
+    const birthDate = data.birthDate ? new Date(data.birthDate) : null;
+
     const created = await prisma.customer.create({
       data: {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
         email: data.email,
+        birthDate,
         notes: data.notes,
       },
     });
@@ -145,7 +148,7 @@ export class CustomerService {
     return created;
   }
 
-  async update(id: number, data: { firstName?: string; lastName?: string; phone?: string; email?: string | null; notes?: string | null }) {
+  async update(id: number, data: { firstName?: string; lastName?: string; phone?: string; email?: string | null; birthDate?: string | Date | null; notes?: string | null }) {
     const currentCustomer = await prisma.customer.findFirst({
       where: { id, deletedAt: null },
     });
@@ -171,9 +174,12 @@ export class CustomerService {
       }
     }
 
-    const dataToUpdate = { ...data };
+    const dataToUpdate: Prisma.CustomerUpdateInput = { ...data };
     if (dataToUpdate.email !== undefined) {
       dataToUpdate.email = dataToUpdate.email || undefined;
+    }
+    if (data.birthDate !== undefined) {
+      dataToUpdate.birthDate = data.birthDate ? new Date(data.birthDate) : null;
     }
 
     const updated = await prisma.customer.update({

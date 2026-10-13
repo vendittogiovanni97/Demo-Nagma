@@ -35,6 +35,7 @@ import {
   Settings,
   Shield,
   Building2,
+  TrendingUp,
   Menu as MenuIcon,
   Sun,
   Moon,
@@ -489,6 +490,7 @@ function NavbarUserMenu({
 
   const menuItems = useMemo(
     () => [
+      { href: '/fatturato-artisti', icon: TrendingUp, label: 'Fatturato Artisti', show: isAdmin },
       { href: '/finance', icon: DollarSign, label: 'Finanza', show: isAdmin },
       { href: '/form-templates', icon: FileText, label: 'Form Template', show: isSuperAdmin },
       { href: '/posizionamento', icon: Map, label: 'Mappa Corporea', show: isSuperAdmin && SHOW_POSIZIONAMENTO },

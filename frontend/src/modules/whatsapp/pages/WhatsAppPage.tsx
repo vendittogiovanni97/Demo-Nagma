@@ -16,8 +16,12 @@ import ConfirmDialog from '@/common/components/ui/ConfirmDialog';
 import { useAuth } from '@/common/context/AuthContext';
 import { useWhatsAppTemplates } from '@/modules/whatsapp/hooks/useWhatsApp';
 import { useDeleteConfirm } from '@/common/hooks/useDeleteConfirm';
+import { useSWRConfig } from 'swr';
+import { TODAY_BIRTHDAYS_KEY } from '@/modules/whatsapp/hooks/useBirthdays';
 import { whatsappApi as whatsappService } from '@/modules/whatsapp/api/whatsapp.api';
 import type { WhatsAppTemplate } from '@/modules/whatsapp/model/whatsapp.types';
+import TodayBirthdaysWidget from '../components/TodayBirthdaysWidget';
+import WhatsAppConnectCard from '../components/WhatsAppConnectCard';
 import TemplateList from '../components/TemplateList';
 import { useTemplateFilters } from '../hooks/useTemplateFilters';
 
@@ -42,6 +46,13 @@ export default function WhatsAppPage() {
 
   const filteredTemplates = useMemo(() => templates || [], [templates]);
 
+  // Il widget compleanni dipende dall'esistenza del template "Compleanno".
+  const { mutate: mutateGlobal } = useSWRConfig();
+  const refreshTemplates = () => {
+    void mutateTemplates();
+    void mutateGlobal(TODAY_BIRTHDAYS_KEY);
+  };
+
   const { deleteItem, confirmDialogProps } = useDeleteConfirm();
 
   const handleDeleteTemplate = async (templateId: number) => {
@@ -50,7 +61,7 @@ export default function WhatsAppPage() {
       action: () => whatsappService.deleteTemplate(templateId),
       successMessage: 'Template eliminato',
       errorMessage: 'Errore durante l\'eliminazione',
-      onSuccess: mutateTemplates,
+      onSuccess: refreshTemplates,
     });
   };
 
@@ -65,7 +76,7 @@ export default function WhatsAppPage() {
   };
 
   const handleModalSuccess = () => {
-    void mutateTemplates();
+    refreshTemplates();
     setEditingTemplate(null);
   };
 
@@ -94,6 +105,10 @@ export default function WhatsAppPage() {
           setIsTemplateModalOpen(true);
         }}
       />
+
+      <WhatsAppConnectCard />
+
+      <TodayBirthdaysWidget />
 
       <Box
         sx={{

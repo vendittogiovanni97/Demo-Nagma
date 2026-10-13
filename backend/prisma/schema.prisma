@@ -86,17 +86,20 @@ model Customer {
   lastName     String
   phone        String
   email        String?
+  birthDate    DateTime?            @db.Date
   notes        String?
   deletedAt    DateTime?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   bookings     Booking[]
   whatsappLogs WhatsAppMessageLog[]
+  birthdayGreetings BirthdayGreeting[]
 
   @@index([phone])
   @@index([email])
   @@index([lastName, firstName])
   @@index([deletedAt, createdAt])
+  @@index([deletedAt, birthDate])
   @@map("customers")
 }
 
@@ -303,6 +306,23 @@ model WhatsAppMessageLog {
   @@map("whatsapp_message_logs")
 }
 
+// Una riga per cliente e anno: il vincolo unico impedisce doppi auguri anche con
+// più processi, riavvii a metà invio o invio manuale sovrapposto allo scheduler.
+model BirthdayGreeting {
+  id         Int                    @id @default(autoincrement())
+  customerId Int
+  year       Int
+  status     BirthdayGreetingStatus @default(SENDING)
+  channel    String?
+  sentAt     DateTime?
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  customer   Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, year])
+  @@map("birthday_greetings")
+}
+
 model Config {
   id        Int      @id @default(autoincrement())
   paramsKey String   @unique
@@ -404,8 +424,14 @@ enum TransactionType {
   USCITA
 }
 
+enum BirthdayGreetingStatus {
+  SENDING
+  SENT
+}
+
 enum WhatsAppMessageStatus {
   MANUAL_SENT
+  AUTO_SENT
   FAILED
 }
 

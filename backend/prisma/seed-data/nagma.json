@@ -33,6 +33,10 @@
     {
       "name": "Promemoria Appuntamento", "category": "Promemoria",
       "body": "Ciao {{nome}}!\n\nTi ricordiamo il tuo appuntamento del {{data}} alle {{ora}} con {{artista}}.\n\nSe hai un imprevisto, contattaci il prima possibile così possiamo riprogrammare.\n\nA presto!"
+    },
+    {
+      "name": "Auguri di Compleanno", "category": "COMPLEANNO",
+      "body": "Tanti auguri di buon compleanno da Nagma Tattoo Studio, {{nome}}! 🎂🎉\n\nTi aspettiamo in studio, a presto!"
     }
   ],
   "formTemplate": {

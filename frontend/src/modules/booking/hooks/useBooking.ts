@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import useSWR from 'swr';
+import useSWR, { type SWRConfiguration } from 'swr';
 import { bookingApi } from '../api/booking.api';
 import {
   BOOKING_DETAIL_CACHE_KEY,
@@ -22,7 +22,10 @@ interface UseBookingsParams {
   enabled?: boolean;
 }
 
-export function useBookings(params: UseBookingsParams = {}) {
+export function useBookings(
+  params: UseBookingsParams = {},
+  refreshOptions: Pick<SWRConfiguration, 'refreshInterval' | 'revalidateOnFocus'> = {},
+) {
   const { enabled = true, ...apiParams } = params;
   const { data, isLoading, error, mutate } = useSWR(
     enabled ? [BOOKING_LIST_CACHE_KEY, apiParams] : null,
@@ -33,6 +36,7 @@ export function useBookings(params: UseBookingsParams = {}) {
         data: response.data.map(bookingMapper.toModel),
       };
     },
+    refreshOptions,
   );
 
   const updateBookingLocalState = useCallback((id: number, updatedFields: Partial<BookingModel>) => {

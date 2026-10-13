@@ -148,7 +148,7 @@ export default function BookingModal({
             <FinancialSummaryRow
               price={form.formData.price}
               deposit={form.formData.deposit}
-              percentualeMode={form.formData.percentualeMode}
+              studioPercentuale={form.formData.studioPercentuale}
               prezzoArtista={form.prezzoArtista}
               guadagno={form.guadagno}
               percentualeOptions={PERCENTUALE_OPTIONS}

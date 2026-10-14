@@ -10,15 +10,16 @@ Regole, comandi, hook e skill in `.claude/`:
 
 ## Regole Assolute — Seguire SEMPRE
 
-1. **Rispondi in italiano** — sempre.
-2. **Nessun colore hardcoded** — usa `theme.palette.*` o token del tema. Mai `#hex`, `rgba()`, `'red'` inline in `sx`.
-3. **Loading e Error via toast/provider** — mai `useState` sparsi per loading/errore API. Usa `useToast()`.
-4. **Mai `prisma db push`** — solo Prisma Migrations (`prisma migrate dev`).
-5. **Mai committare .env** — i `.env` sono in `.gitignore`. Ogni cartella ha `.env` (dev) e `.env.production` (prod).
-6. **Un solo httpClient** — usa `apiClient` da `@/common/shared/api/client`.
-7. **Handler factory obbligatorio** — `handleSearch`, `handleGetById`, `handleCreate`, `handleUpdate`, `handleDelete` da `core/utils/handler.ts`. Mai try/catch nei controller.
-8. **Dati seed solo in JSON** — `prisma/seed-data/<profilo>.json`. Mai dati hardcoded in `seed.ts`.
-9. **Password solo nei JSON di seed** — mai in env o compose.
+1. **Release: allineare i lock prima del tag** — prima di ogni versione (tag) eseguire `npm run release:lock`, verificare con `git status` che cambino solo i lock e i `package.json` della versione, poi committare tutto insieme. Così sul Mac del cliente `aggiorna.command` non trova lock diversi da scaricare.
+2. **Rispondi in italiano** — sempre.
+3. **Nessun colore hardcoded** — usa `theme.palette.*` o token del tema. Mai `#hex`, `rgba()`, `'red'` inline in `sx`.
+4. **Loading e Error via toast/provider** — mai `useState` sparsi per loading/errore API. Usa `useToast()`.
+5. **Mai `prisma db push`** — solo Prisma Migrations (`prisma migrate dev`).
+6. **Mai committare .env** — i `.env` sono in `.gitignore`. Ogni cartella ha `.env` (dev) e `.env.production` (prod).
+7. **Un solo httpClient** — usa `apiClient` da `@/common/shared/api/client`.
+8. **Handler factory obbligatorio** — `handleSearch`, `handleGetById`, `handleCreate`, `handleUpdate`, `handleDelete` da `core/utils/handler.ts`. Mai try/catch nei controller.
+9. **Dati seed solo in JSON** — `prisma/seed-data/<profilo>.json`. Mai dati hardcoded in `seed.ts`.
+10. **Password solo nei JSON di seed** — mai in env o compose.
 
 ## Stack
 

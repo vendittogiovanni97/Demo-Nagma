@@ -32,8 +32,20 @@ echo ""
 echo "📡 Download degli ultimi aggiornamenti da GitHub in corso..."
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "main")
 
-# Ripristina eventuali file generati modificati in locale per evitare blocchi al pull
-git checkout -- frontend/next-env.d.ts 2>/dev/null || true
+# File generati da npm: le modifiche locali si scartano, vengono ricreate dall'installazione
+for f in package-lock.json backend/package-lock.json frontend/package-lock.json frontend/next-env.d.ts; do
+  if [ -f "$f" ] && ! git diff --quiet -- "$f" 2>/dev/null; then
+    git checkout -- "$f" && echo "🧹 Ripristinato file generato: $f"
+  fi
+done
+
+# Altre modifiche locali (es. .env): salvate in stash, non cancellate
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  STASH_NAME="aggiorna-$(date +%Y%m%d-%H%M%S)"
+  if git stash push -m "$STASH_NAME" >/dev/null 2>&1; then
+    echo "📦 Modifiche locali salvate in stash: $STASH_NAME (recuperabili con 'git stash list')"
+  fi
+fi
 
 # Timeout su git pull per evitare blocchi su richiesta credenziali
 GIT_TERMINAL_PROMPT=0 git pull origin "$CURRENT_BRANCH" 2>&1

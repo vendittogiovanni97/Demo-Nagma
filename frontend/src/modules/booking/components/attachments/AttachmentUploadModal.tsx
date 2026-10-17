@@ -104,7 +104,6 @@ export default function AttachmentUploadModal({
             bgcolor: dragActive
               ? alpha(theme.palette.primary.main, 0.12)
               : alpha(theme.palette.background.paper, 0.4),
-            backdropFilter: 'blur(16px)',
             boxShadow: dragActive
               ? `0 0 30px ${alpha(theme.palette.primary.main, 0.3)}`
               : 'none',

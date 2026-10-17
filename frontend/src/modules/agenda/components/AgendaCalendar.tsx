@@ -80,7 +80,6 @@ function CalendarToolbar({
         py: 1.25,
         borderBottom: `1px solid ${theme.palette.divider}`,
         background: isLight ? alpha(theme.palette.background.paper, 0.8) : alpha(theme.palette.background.default, 0.6),
-        backdropFilter: 'blur(12px)',
         flexWrap: 'wrap',
         gap: 1,
       }}

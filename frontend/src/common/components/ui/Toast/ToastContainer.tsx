@@ -7,7 +7,7 @@ export function ToastContainer() {
   const theme = useTheme();
 
   const isLight = theme.palette.mode === 'light';
-  const bg = isLight ? alpha(theme.palette.background.paper, 0.95) : alpha(theme.palette.background.paper, 0.88);
+  const bg = isLight ? alpha(theme.palette.background.paper, 0.95) : alpha(theme.palette.background.paper, 0.96);
   const textColor = theme.palette.text.primary;
   const paperBg = theme.palette.background.paper;
 
@@ -18,8 +18,6 @@ export function ToastContainer() {
         duration: 3500,
         style: {
           background: bg,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
           color: textColor,
           borderRadius: '14px',
           padding: '12px 18px',
@@ -32,8 +30,6 @@ export function ToastContainer() {
         success: {
           style: {
             background: bg,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
             color: textColor,
             borderRadius: '14px',
             padding: '12px 18px',
@@ -52,8 +48,6 @@ export function ToastContainer() {
           duration: 4500,
           style: {
             background: bg,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
             color: textColor,
             borderRadius: '14px',
             padding: '12px 18px',
@@ -71,8 +65,6 @@ export function ToastContainer() {
         loading: {
           style: {
             background: bg,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
             color: textColor,
             borderRadius: '14px',
             padding: '12px 18px',

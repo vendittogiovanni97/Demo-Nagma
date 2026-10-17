@@ -48,7 +48,6 @@ export default function WeekNavigator({
       border: `1px solid ${theme.palette.divider}`,
       padding: '8px 16px',
       borderRadius: '12px',
-      backdropFilter: 'blur(8px)',
       boxShadow: `0px 4px 12px ${alpha(theme.palette.common.black, 0.15)}`,
     },
   };

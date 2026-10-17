@@ -25,8 +25,7 @@ export default function CreamInfoBanner({ creamData, salesCount }: CreamInfoBann
         display: 'flex',
         alignItems: 'center',
         gap: 1.5,
-        bgcolor: alpha(theme.palette.background.paper, 0.6),
-        backdropFilter: 'blur(12px)',
+        bgcolor: alpha(theme.palette.background.paper, 0.92),
         borderRadius: 2,
         border: `1px solid ${theme.palette.divider}`,
       }}

@@ -40,8 +40,7 @@ export default function BookingHistoryCard({ entry, onClick }: BookingHistoryCar
       sx={{
         p: 2,
         borderRadius: 2,
-        backgroundColor: alpha(theme.palette.background.paper, 0.6),
-        backdropFilter: 'blur(12px)',
+        backgroundColor: alpha(theme.palette.background.paper, 0.92),
         border: `1px solid ${theme.palette.divider}`,
         display: 'flex',
         flexDirection: 'column',

@@ -48,7 +48,6 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
             backgroundColor: isLight
               ? alpha(theme.palette.background.paper, 0.9)
               : alpha(theme.palette.common.white, 0.04),
-            backdropFilter: 'blur(12px)',
             border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : theme.palette.divider}`,
             boxShadow: isLight
               ? `0 2px 12px ${alpha(theme.palette.common.black, 0.04)}`

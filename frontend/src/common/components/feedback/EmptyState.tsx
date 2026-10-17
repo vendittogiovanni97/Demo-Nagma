@@ -51,7 +51,6 @@ export default function EmptyState({
                 : alpha(theme.palette.common.white, 0.02))
             : 'transparent',
           border: isCard ? `1px dashed ${alpha(theme.palette.primary.main, 0.15)}` : 'none',
-          backdropFilter: isCard ? 'blur(10px)' : 'none',
           boxShadow: 'none',
           transition: 'all 0.3s ease',
         },

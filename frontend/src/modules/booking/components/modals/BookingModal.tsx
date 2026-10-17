@@ -211,7 +211,6 @@ export default function BookingModal({
                 right: 0,
                 bottom: 0,
                 bgcolor: alpha(theme.palette.common.black, 0.85),
-                backdropFilter: 'blur(8px)',
                 zIndex: 9999,
                 display: 'flex',
                 flexDirection: 'column',

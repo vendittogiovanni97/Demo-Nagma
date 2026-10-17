@@ -218,7 +218,6 @@ export default function SmartModal({
 const styles = {
   paper: (theme: Theme) => ({
     backgroundColor: theme.palette.background.default,
-    backdropFilter: 'blur(40px)',
     border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
     borderRadius: '16px',
     boxShadow: `0px 24px 64px ${alpha(theme.palette.common.black, 0.6)}, 0px 0px 32px ${alpha(theme.palette.primary.main, 0.1)}`,
@@ -227,7 +226,6 @@ const styles = {
   }),
   backdrop: (theme: Theme) => ({
     backgroundColor: alpha(theme.palette.common.black, 0.8),
-    backdropFilter: 'blur(4px)',
   }),
   titleWrapper: (theme: Theme) => ({
     display: 'flex',

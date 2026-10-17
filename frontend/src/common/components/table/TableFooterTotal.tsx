@@ -71,8 +71,6 @@ export default function TableFooterTotal({
         bgcolor: isLight
           ? alpha(theme.palette.background.paper, 0.95)
           : alpha(theme.palette.background.paper, 0.75),
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
         boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.25)}`,
       }}
     >

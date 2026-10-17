@@ -69,7 +69,6 @@ export function KanbanCard({ booking, onOpenPayment }: KanbanCardProps) {
           t.palette.mode === 'dark'
             ? alpha(t.palette.background.paper, 0.8)
             : t.palette.background.paper,
-        backdropFilter: 'blur(12px)',
         border: '1px solid',
         borderColor: (t) =>
           t.palette.mode === 'dark'

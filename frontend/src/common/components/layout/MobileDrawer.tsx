@@ -58,7 +58,6 @@ export default function MobileDrawer({
           sx: {
             width: 290,
             backgroundColor: alpha(theme.palette.background.default, 0.98),
-            backdropFilter: 'blur(25px)',
             borderRight: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
             display: 'flex',
             flexDirection: 'column',

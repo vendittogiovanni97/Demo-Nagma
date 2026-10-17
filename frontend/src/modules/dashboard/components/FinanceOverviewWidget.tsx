@@ -51,8 +51,7 @@ function CustomTooltip({ active, payload, showBilancioData, totalIncome, totalEx
           p: 1.25,
           px: 1.75,
           borderRadius: 2.5,
-          bgcolor: alpha(theme.palette.background.paper, 0.88),
-          backdropFilter: 'blur(20px)',
+          bgcolor: alpha(theme.palette.background.paper, 0.96),
           border: `1px solid ${alpha(data.payload.color || theme.palette.primary.main, 0.4)}`,
           boxShadow: `0 8px 24px ${alpha(theme.palette.common.black, 0.4)}, 0 0 15px ${alpha(data.payload.color || theme.palette.primary.main, 0.2)}`,
         }}

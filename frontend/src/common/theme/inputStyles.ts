@@ -22,7 +22,6 @@ export function inputRootSx(theme: Theme) {
     backgroundColor: isLight
       ? alpha(theme.palette.background.paper, 0.85)
       : alpha(theme.palette.common.white, 0.04),
-    backdropFilter: 'blur(8px)',
     borderRadius: '12px',
     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
     '& fieldset': {

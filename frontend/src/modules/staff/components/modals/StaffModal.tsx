@@ -134,7 +134,6 @@ export default function StaffModal({ isOpen, onClose, onSuccess, member }: Props
               borderRadius: 2.5,
               border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
               bgcolor: alpha(theme.palette.primary.main, 0.04),
-              backdropFilter: 'blur(10px)',
             }}
           >
             <CheckboxInput

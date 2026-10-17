@@ -141,9 +141,8 @@ export default function Navbar() {
               maxWidth: { xs: '100%', sm: 'calc(100% - 24px)' },
               right: 'auto',
               backgroundColor: resolvedTheme === 'light'
-                ? alpha(muiTheme.palette.background.paper, 0.92)
+                ? alpha(muiTheme.palette.background.paper, 0.97)
                 : alpha(muiTheme.palette.background.default, 0.98),
-              backdropFilter: 'blur(30px)',
               border: {
                 xs: 'none',
                 sm: `1px solid ${resolvedTheme === 'light' ? alpha(muiTheme.palette.common.black, 0.08) : alpha(muiTheme.palette.primary.main, 0.15)}`,
@@ -297,8 +296,7 @@ function UnauthenticatedNavbar({ navConfig }: { navConfig: NavConfigType }) {
         width: 'fit-content',
         maxWidth: 'calc(100% - 24px)',
         right: 'auto',
-        backgroundColor: alpha(localTheme.palette.background.default, 0.86),
-        backdropFilter: 'blur(20px)',
+        backgroundColor: alpha(localTheme.palette.background.default, 0.97),
         border: `1px solid ${alpha(localTheme.palette.primary.main, 0.12)}`,
         borderRadius: '100px',
         boxShadow: `0 8px 24px ${alpha(localTheme.palette.common.black, 0.42)}, 0 0 18px ${alpha(localTheme.palette.primary.main, 0.1)}`,
@@ -551,7 +549,6 @@ function NavbarUserMenu({
               borderRadius: 3,
               border: `1px solid ${alpha(muiTheme.palette.primary.main, 0.2)}`,
               backgroundColor: alpha(muiTheme.palette.background.default, 0.98),
-              backdropFilter: 'blur(30px)',
               boxShadow: `0 12px 40px ${alpha(muiTheme.palette.common.black, 0.6)}, 0 0 20px ${alpha(muiTheme.palette.primary.main, 0.15)}`,
               mt: 1,
             },

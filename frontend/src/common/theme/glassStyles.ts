@@ -21,6 +21,5 @@ export function glassSurfaceSx(
 ) {
   return {
     backgroundColor: alpha(theme.palette.common.white, opacity),
-    backdropFilter: `blur(${blur})`,
   } as const;
 }

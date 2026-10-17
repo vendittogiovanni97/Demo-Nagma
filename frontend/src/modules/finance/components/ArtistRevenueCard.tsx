@@ -26,7 +26,6 @@ export default function ArtistRevenueCard({ artist, rank }: ArtistRevenueCardPro
         position: 'relative',
         overflow: 'hidden',
         backgroundColor: alpha(theme.palette.common.white, 0.03),
-        backdropFilter: 'blur(12px)',
         border: 1,
         borderColor: alpha(theme.palette.common.white, 0.08),
         transition: 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',

@@ -422,7 +422,6 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
           track: {
             borderRadius: 12,
             backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.15)',
-            backdropFilter: 'blur(4px)',
           },
         },
       },
@@ -447,8 +446,6 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
             backgroundColor: mode === 'light'
               ? 'rgba(255,255,255,0.92)'
               : hexToRgba(secondaryColor, 0.35),
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             borderRadius: 12,
             border: mode === 'light'
               ? `1px solid rgba(0,0,0,0.08)`
@@ -490,9 +487,7 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
           paper: {
             backgroundColor: mode === 'light'
               ? 'rgba(255, 255, 255, 0.98)'
-              : hexToRgba(activePalette.background.paper, 0.88),
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
+              : hexToRgba(activePalette.background.paper, 0.96),
             border: `1px solid ${hexToRgba(primaryColor, 0.25)}`,
             borderRadius: 12,
             boxShadow: mode === 'light'
@@ -617,9 +612,7 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
           tooltip: {
             backgroundColor: mode === 'light'
               ? 'rgba(15, 23, 42, 0.92)'
-              : hexToRgba(activePalette.background.paper, 0.88),
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+              : hexToRgba(activePalette.background.paper, 0.96),
             color: '#ffffff',
             fontSize: '0.75rem',
             fontWeight: 600,
@@ -633,7 +626,7 @@ export function createDynamicTheme(clientConfig?: ClientConfig, mode: 'light' | 
           arrow: {
             color: mode === 'light'
               ? 'rgba(15, 23, 42, 0.92)'
-              : hexToRgba(activePalette.background.paper, 0.88),
+              : hexToRgba(activePalette.background.paper, 0.96),
           },
         },
       },

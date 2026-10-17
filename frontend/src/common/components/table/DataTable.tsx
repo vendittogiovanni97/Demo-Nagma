@@ -331,9 +331,7 @@ export function DataTable<E>(props: DataTableProps<E>) {
                     overflow: 'hidden',
                     bgcolor: (theme) => theme.palette.mode === 'light'
                       ? alpha(theme.palette.background.paper, 0.98)
-                      : alpha(theme.palette.background.paper, 0.88),
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
+                      : alpha(theme.palette.background.paper, 0.96),
                     border: (theme) => `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
                     boxShadow: (theme) => `0 16px 40px ${alpha(theme.palette.common.black, 0.4)}, 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
                   },

@@ -99,7 +99,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
               : alpha(theme.palette.common.white, 0.05),
             color: theme.palette.text.primary,
             border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.08) : theme.palette.divider}`,
-            backdropFilter: 'blur(10px)',
             '&:hover': {
               backgroundColor: isLight
                 ? theme.palette.common.white

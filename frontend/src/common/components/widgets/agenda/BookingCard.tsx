@@ -61,7 +61,6 @@ export default function BookingCard({
         backgroundColor: `${color}28`,
         border: `1px solid ${color}40`,
         boxShadow: `0 8px 30px ${alpha(theme.palette.common.black, 0.12)}`,
-        backdropFilter: 'blur(8px)',
         cursor: 'default',
         transition: theme.transitions.create(['all'], { duration: 300 }),
         zIndex: isHovered ? 20 : 'auto',

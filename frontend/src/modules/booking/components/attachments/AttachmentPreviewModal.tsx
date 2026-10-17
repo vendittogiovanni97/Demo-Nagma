@@ -129,7 +129,6 @@ export default function AttachmentPreviewModal({ open, onClose, attachment }: At
 const styles = {
   paper: {
     bgcolor: (t: Theme) => alpha(t.palette.background.paper, 0.95),
-    backdropFilter: 'blur(40px)',
     border: (t: Theme) => `1px solid ${alpha(t.palette.common.white, 0.08)}`,
     borderRadius: 3,
     boxShadow: (t: Theme) =>
@@ -137,7 +136,6 @@ const styles = {
   } as SxProps<Theme>,
   backdrop: {
     bgcolor: (t: Theme) => alpha(t.palette.common.black, 0.75),
-    backdropFilter: 'blur(4px)',
   } as SxProps<Theme>,
   title: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',

@@ -73,7 +73,6 @@ export default function DashboardWidgetCard({
               bgcolor: alpha(theme.palette.primary.main, 0.08),
               border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
               boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.12)}`,
-              backdropFilter: 'blur(8px)',
               color: 'primary.main',
               display: 'flex',
               alignItems: 'center',

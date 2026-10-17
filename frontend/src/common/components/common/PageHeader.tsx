@@ -132,7 +132,6 @@ export default function PageHeader({
                 bgcolor: alpha(muiTheme.palette.primary.main, 0.08),
                 border: `1px solid ${alpha(muiTheme.palette.primary.main, 0.2)}`,
                 boxShadow: `0 0 15px ${alpha(muiTheme.palette.primary.main, 0.12)}`,
-                backdropFilter: 'blur(8px)',
                 color: muiTheme.palette.primary.main,
                 display: 'flex',
                 alignItems: 'center',

@@ -112,9 +112,7 @@ const styles = {
     return {
       mt: 1,
       overflow: 'hidden',
-      bgcolor: isLight ? alpha(theme.palette.background.paper, 0.98) : alpha(theme.palette.background.paper, 0.88),
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
+      bgcolor: isLight ? alpha(theme.palette.background.paper, 0.98) : alpha(theme.palette.background.paper, 0.96),
       border: `1px solid ${isLight ? alpha(theme.palette.common.black, 0.1) : alpha(theme.palette.primary.main, 0.25)}`,
       boxShadow: isLight
         ? `0 4px 20px ${alpha(theme.palette.common.black, 0.1)}`

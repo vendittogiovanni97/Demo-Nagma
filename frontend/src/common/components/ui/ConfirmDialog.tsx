@@ -76,8 +76,6 @@ export const ConfirmDialog = ({
         backdrop: {
           sx: {
             bgcolor: alpha(theme.palette.common.black, 0.8),
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
           },
         },
         paper: {
@@ -87,8 +85,6 @@ export const ConfirmDialog = ({
             bgcolor: isLight
               ? alpha(theme.palette.background.paper, 0.98)
               : alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
             backgroundImage: 'none',
             border: `1px solid ${alpha(severityColor, 0.35)}`,
             boxShadow: `0 24px 64px ${alpha(theme.palette.common.black, 0.6)}, 0 0 30px ${alpha(severityColor, 0.2)}`,

@@ -51,7 +51,6 @@ export const Skeleton: React.FC<SkeletonProps> = ({
           backgroundSize: '200% 100%',
           animation: `${cyanShimmerAnimation} 2s infinite linear`,
           border: `1px solid ${alpha(primaryCyan, 0.15)}`,
-          backdropFilter: 'blur(8px)',
         },
         variantStyle,
         sx as any,

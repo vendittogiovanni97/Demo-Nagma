@@ -223,7 +223,6 @@ export default function CustomFieldsManager() {
         sx={{
           borderRadius: 3,
           backgroundColor: isLight ? 'background.paper' : alpha(theme.palette.common.white, 0.02),
-          backdropFilter: 'blur(20px)',
           border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
         }}
       >

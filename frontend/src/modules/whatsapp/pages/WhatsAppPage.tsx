@@ -120,7 +120,6 @@ export default function WhatsAppPage() {
           p: 3,
           position: 'relative',
           backgroundColor: alpha(theme.palette.common.white, 0.03),
-          backdropFilter: 'blur(12px)',
           border: 1,
           borderColor: 'divider',
         }}

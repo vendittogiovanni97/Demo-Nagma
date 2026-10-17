@@ -92,9 +92,7 @@ const Toast = forwardRef<HTMLDivElement, ToastProps>(
         variant="outlined"
         icon={config.icon}
         sx={{
-          backgroundColor: alpha(theme.palette.background.paper, 0.88),
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backgroundColor: alpha(theme.palette.background.paper, 0.96),
           borderColor: config.borderColor,
           border: `1px solid ${config.borderColor}`,
           color: theme.palette.text.primary,

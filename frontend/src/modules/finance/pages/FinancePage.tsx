@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from '@mui/material';
-import { addMonths, format, subMonths } from 'date-fns';
+import { addMonths, endOfYear, format, startOfYear, subMonths } from 'date-fns';
 import { it } from 'date-fns/locale';
 import PageContainer from '@/common/components/layout/PageContainer';
 import PageHeader from '@/common/components/common/PageHeader';
@@ -28,10 +28,28 @@ export default function FinancePage() {
 
   const exportColumns = [
     { label: 'Data', value: (t: Transaction) => format(new Date(t.date), 'dd/MM/yyyy') },
-    { label: 'Tipo', value: (t: Transaction) => (t.type === 'ENTRATA' ? 'Entrata' : 'Uscita') },
-    { label: 'Categoria', value: (t: Transaction) => t.category },
+    { label: 'Tipo', width: 60, value: (t: Transaction) => (t.type === 'ENTRATA' ? 'Entrata' : 'Uscita') },
+    { label: 'Categoria', width: 85, value: (t: Transaction) => t.category },
+    { label: 'Artista', value: (t: Transaction) => t.artistName ?? '' },
     { label: 'Descrizione', value: (t: Transaction) => t.description },
-    { label: 'Importo', value: (t: Transaction) => formatPrice(t.amount) },
+    {
+      label: 'Importo',
+      // La % studio riguarda il saldo della prenotazione, non l'acconto.
+      value: (t: Transaction) => (t.sourceType === 'BOOKING' && t.studioPercentage != null
+        ? `${formatPrice(t.amount)} (${t.studioPercentage}%)`
+        : formatPrice(t.amount)),
+    },
+    { label: 'Note', width: 170, value: (t: Transaction) => t.bookingNotes ?? '' },
+  ];
+
+  const exportFilters = [
+    {
+      key: 'mese',
+      label: 'Mese',
+      type: 'month' as const,
+      defaultValue: format(month, 'yyyy-MM'),
+      filterFn: (t: Transaction, v: string) => !v || format(new Date(t.date), 'yyyy-MM') === v,
+    },
   ];
 
   return (
@@ -67,15 +85,30 @@ export default function FinancePage() {
         exportConfig={{
           filenameBase: `finanza_${format(month, 'yyyy_MM')}`,
           title: `Esportazione Finanziaria - ${format(month, 'MMMM yyyy', { locale: it })}`,
+          // Titolo e nome file seguono il mese scelto nel filtro Mese del modale.
+          getExportNaming: (values) => {
+            if (!values.mese) {
+              return {
+                title: `Esportazione Finanziaria - ${format(month, 'yyyy', { locale: it })}`,
+                filenameBase: `finanza_${format(month, 'yyyy')}`,
+              };
+            }
+            const chosen = new Date(`${values.mese}-01T00:00:00`);
+            return {
+              title: `Esportazione Finanziaria - ${format(chosen, 'MMMM yyyy', { locale: it })}`,
+              filenameBase: `finanza_${format(chosen, 'yyyy_MM')}`,
+            };
+          },
           rows: transactions,
           columns: exportColumns,
+          filters: exportFilters,
           resolveRows: async () => {
+            // Si scarica l'intero anno: il filtro Mese del modale sceglie il mese da esportare.
             const res = await financeApi.getAll({
-              month: format(month, 'yyyy-MM'),
               type: type === 'ALL' ? undefined : type,
               search,
-              startDate: startDate || undefined,
-              endDate: endDate || undefined,
+              startDate: startDate || format(startOfYear(month), 'yyyy-MM-dd'),
+              endDate: endDate || format(endOfYear(month), 'yyyy-MM-dd'),
               limit: 1000,
             });
             return res.data;

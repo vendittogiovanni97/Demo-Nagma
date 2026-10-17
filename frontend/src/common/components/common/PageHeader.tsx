@@ -14,6 +14,7 @@ export type { ExportColumn, ExportFilter, ExportFilters, SmartFiltersProps };
 export interface HeaderExportConfig<T = any> {
   filenameBase: string;
   title: string;
+  getExportNaming?: (filterValues: Record<string, string>) => { title?: string; filenameBase?: string };
   rows: T[];
   columns: ExportColumn<T>[];
   filters?: ExportFilter<T>[];

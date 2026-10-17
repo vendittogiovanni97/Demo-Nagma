@@ -204,7 +204,7 @@ export class ExportService {
       };
 
       const defaultColW = contentWidth / Math.max(columns.length, 1);
-      const colWidths = columns.map((col) => getExactColWidth(col.label, defaultColW));
+      const colWidths = columns.map((col) => col.width ?? getExactColWidth(col.label, defaultColW));
       const colPositions = colWidths.reduce<number[]>((acc, w, i) => {
         const prev = i === 0 ? margin : acc[i - 1] + colWidths[i - 1];
         acc.push(prev);

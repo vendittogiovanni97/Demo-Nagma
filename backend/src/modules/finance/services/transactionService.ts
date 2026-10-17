@@ -9,6 +9,45 @@ import { financeCache } from './finance.cache';
  *  (con Decimal/Date) vengono serializzati correttamente al momento della scrittura. */
 const toJsonInput = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
 
+const BOOKING_SOURCE_TYPES = ['BOOKING', 'BOOKING_DEPOSIT'];
+
+export interface BookingInfo {
+  artistName: string | null;
+  notes: string | null;
+  formData: unknown;
+}
+
+/**
+ * Percentuale studio di una prenotazione. Nel formData è salvata la quota dell'artista
+ * (`percentualeMode`): la quota studio è il suo complemento a 100.
+ */
+export function studioPercentageOf(formData: unknown): number | null {
+  const fd = (formData ?? {}) as Record<string, unknown>;
+  const artistPercent = Number(fd.percentualeMode ?? fd.artistPercentage);
+  if (fd.percentualeMode == null && fd.artistPercentage == null) return null;
+  if (!Number.isFinite(artistPercent)) return null;
+  return Math.min(100, Math.max(0, 100 - artistPercent));
+}
+
+/** Aggiunge a ogni movimento legato a una prenotazione artista, % studio e note. */
+export function withBookingInfo<T extends { amount: unknown; sourceId: number | null; sourceType: string | null }>(
+  rows: T[],
+  bookings: Map<number, BookingInfo>,
+) {
+  return rows.map((row) => {
+    const booking = row.sourceType && BOOKING_SOURCE_TYPES.includes(row.sourceType) && row.sourceId
+      ? bookings.get(row.sourceId)
+      : undefined;
+    return {
+      ...row,
+      amount: Number(row.amount),
+      artistName: booking?.artistName ?? null,
+      studioPercentage: booking ? studioPercentageOf(booking.formData) : null,
+      bookingNotes: booking?.notes ?? null,
+    };
+  });
+}
+
 export class TransactionService {
   async findAll(filters: {
     type?: string;
@@ -45,7 +84,21 @@ export class TransactionService {
       prisma.transaction.count({ where }),
     ]);
 
-    const data = raws.map((r) => ({ ...r, amount: Number(r.amount) }));
+    const bookingIds = [...new Set(raws
+      .filter((r) => r.sourceType && BOOKING_SOURCE_TYPES.includes(r.sourceType) && r.sourceId)
+      .map((r) => r.sourceId as number))];
+    const bookings = new Map<number, BookingInfo>();
+    if (bookingIds.length) {
+      const found = await prisma.booking.findMany({
+        where: { id: { in: bookingIds } },
+        select: { id: true, notes: true, formData: true, artist: { select: { name: true } } },
+      });
+      for (const b of found) {
+        bookings.set(b.id, { artistName: b.artist?.name ?? null, notes: b.notes, formData: b.formData });
+      }
+    }
+
+    const data = withBookingInfo(raws, bookings);
     return paginate(data, total, page, limit);
   }
 

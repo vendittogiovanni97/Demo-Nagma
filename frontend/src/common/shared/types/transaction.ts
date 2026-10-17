@@ -12,6 +12,9 @@ export interface Transaction {
   date: string;
   sourceId?: number | null;
   sourceType?: string | null;
+  artistName?: string | null;
+  studioPercentage?: number | null;
+  bookingNotes?: string | null;
   attachmentUrl?: string | null;
   createdAt: string;
   updatedAt?: string;

@@ -19,6 +19,8 @@ const KNOWN_FILTER_KEYS = ['cliente', 'artista', 'stato', 'giorno', 'mese'];
 
 export interface ExportColumn<T> {
   label: string;
+  /** Larghezza nel PDF in punti: se assente il generatore sceglie in base all'etichetta. */
+  width?: number;
   value: (row: T) => string | number | undefined | null;
   strikeThroughInPdf?: (row: T) => boolean;
 }
@@ -37,9 +39,16 @@ export interface ExportFilter<T> {
   filterFn: (row: T, value: string) => boolean;
 }
 
+export interface ExportNaming {
+  title?: string;
+  filenameBase?: string;
+}
+
 interface ExportModalProps<T> {
   filenameBase: string;
   title: string;
+  /** Titolo e nome file calcolati dai filtri scelti nel modale (es. il mese selezionato). */
+  getExportNaming?: (filterValues: Record<string, string>) => ExportNaming;
   rows: T[];
   columns: ExportColumn<T>[];
   filters?: ExportFilter<T>[];
@@ -54,8 +63,9 @@ interface ExportModalProps<T> {
 }
 
 export default function ExportModal<T>({
-  filenameBase,
-  title,
+  filenameBase: defaultFilenameBase,
+  title: defaultTitle,
+  getExportNaming,
   rows,
   columns,
   filters,
@@ -160,6 +170,7 @@ export default function ExportModal<T>({
       const exportColumns = columns.map((column, index) => ({
         key: `col_${index}`,
         label: column.label,
+        width: column.width,
       }));
       const exportRows = data.map((row) =>
         Object.fromEntries(
@@ -172,6 +183,10 @@ export default function ExportModal<T>({
           ],
         ),
       );
+
+      const naming = getExportNaming?.(filterValues);
+      const title = naming?.title ?? defaultTitle;
+      const filenameBase = naming?.filenameBase ?? defaultFilenameBase;
 
       const finalTitle = finalFiltersLabel && !title.toLowerCase().includes(finalFiltersLabel.toLowerCase())
         ? `${title} — ${finalFiltersLabel}`

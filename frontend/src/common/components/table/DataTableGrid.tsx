@@ -122,6 +122,7 @@ export function DataTableGrid<E>({
         onPaginationChanged={onPaginationChanged}
         onModelUpdated={onPaginationChanged}
         suppressCellFocus
+        animateRows={false}
         getRowStyle={getRowStyle}
       />
     </Box>
